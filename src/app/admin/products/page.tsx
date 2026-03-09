@@ -26,15 +26,14 @@ import {
   Truck,
   LayoutGrid,
   Layers,
-  RefreshCcw,
-  Image as ImageIcon,
   Copy,
   Download,
   Upload,
   ArrowUpDown,
-  Edit2
+  Edit2,
+  CheckCircle2
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { 
@@ -81,12 +80,17 @@ export default function ProductsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<string>('newest');
+
+  // Bulk Edit State
+  const [bulkCategoryId, setBulkCategoryId] = useState<string>('');
+  const [bulkStatus, setBulkStatus] = useState<string>('');
 
   // Form State
   const [name, setName] = useState('');
@@ -191,17 +195,63 @@ export default function ProductsPage() {
 
   const handleBulkDelete = async () => {
     if (!db || selectedIds.length === 0) return;
-    if (!confirm(`Are you sure you want to remove ${selectedIds.length} archive entries?`)) return;
+    if (!confirm(`Are you sure you want to permanently remove ${selectedIds.length} entries from the archive?`)) return;
 
     const batch = writeBatch(db);
     selectedIds.forEach(id => {
       batch.delete(doc(db, 'products', id));
     });
 
-    batch.commit().then(() => {
-      setSelectedIds([]);
-      toast({ title: "Archive Updated", description: `${selectedIds.length} entries removed.` });
+    batch.commit()
+      .then(() => {
+        setSelectedIds([]);
+        toast({ title: "Archive Updated", description: `${selectedIds.length} items have been removed.` });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: 'products',
+          operation: 'delete'
+        }));
+      });
+  };
+
+  const handleBulkUpdate = async () => {
+    if (!db || selectedIds.length === 0) return;
+    setIsSaving(true);
+
+    const batch = writeBatch(db);
+    const updates: any = {};
+    if (bulkCategoryId) updates.categoryId = bulkCategoryId;
+    if (bulkStatus) updates.status = bulkStatus;
+    
+    if (Object.keys(updates).length === 0) {
+      setIsBulkEditDialogOpen(false);
+      setIsSaving(false);
+      return;
+    }
+
+    selectedIds.forEach(id => {
+      batch.update(doc(db, 'products', id), {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
     });
+
+    batch.commit()
+      .then(() => {
+        setSelectedIds([]);
+        setIsBulkEditDialogOpen(false);
+        setBulkCategoryId('');
+        setBulkStatus('');
+        toast({ title: "Bulk Update Complete", description: `Updated ${selectedIds.length} entries successfully.` });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: 'products',
+          operation: 'update'
+        }));
+      })
+      .finally(() => setIsSaving(false));
   };
 
   const handleBulkDuplicate = async () => {
@@ -527,7 +577,47 @@ export default function ProductsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDuplicate} className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"><Copy className="h-3.5 w-3.5" /> Duplicate {selectedIds.length > 0 && `(${selectedIds.length})`}</Button>
-              <Button variant="outline" size="sm" disabled={selectedIds.length === 0} className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"><Edit2 className="h-3.5 w-3.5" /> Bulk Edit</Button>
+              
+              <Dialog open={isBulkEditDialogOpen} onOpenChange={setIsBulkEditDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={selectedIds.length === 0} className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2">
+                    <Edit2 className="h-3.5 w-3.5" /> Bulk Edit {selectedIds.length > 0 && `(${selectedIds.length})`}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md bg-white">
+                  <DialogHeader>
+                    <DialogTitle className="text-sm font-bold uppercase tracking-widest">Bulk Archive Management</DialogTitle>
+                    <DialogDescription className="text-xs">Updating {selectedIds.length} selected entries across the archive.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Move to Collection</Label>
+                      <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
+                        <SelectTrigger className="h-11"><SelectValue placeholder="Select new collection..." /></SelectTrigger>
+                        <SelectContent>{categories?.map((cat: any) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Update Archive Status</Label>
+                      <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                        <SelectTrigger className="h-11"><SelectValue placeholder="Select status..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active (Visible)</SelectItem>
+                          <SelectItem value="draft">Draft (Hidden)</SelectItem>
+                          <SelectItem value="archived">Archived</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleBulkUpdate} disabled={isSaving} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]">
+                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                      Apply Changes to Archive
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <Button variant="destructive" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDelete} className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"><Trash2 className="h-3.5 w-3.5" /> Remove</Button>
             </div>
             <div className="flex items-center gap-2">
@@ -615,7 +705,7 @@ export default function ProductsPage() {
                         onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} 
                       />
                     </TableCell>
-                    <TableCell><div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{firstMedia ? <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" /> : <ImageIcon className="h-4 w-4 text-gray-300" />}</div></TableCell>
+                    <TableCell><div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{firstMedia ? <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" /> : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
                     <TableCell><div className="flex flex-col"><span className="font-bold text-sm">{product.name}</span><span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.sku || 'No SKU'}</span></div></TableCell>
                     <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
                     <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
