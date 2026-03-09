@@ -31,7 +31,8 @@ import {
   Copy,
   Download,
   Upload,
-  ArrowUpDown
+  ArrowUpDown,
+  Edit2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -87,6 +88,7 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<string>('newest');
 
+  // Form State
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [comparedPrice, setComparedPrice] = useState('');
@@ -160,18 +162,31 @@ export default function ProductsPage() {
     return result;
   }, [products, searchQuery, categoryFilter, sortBy]);
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(filteredProducts.map(p => p.id));
+  // Selection Logic
+  const isAllFilteredSelected = useMemo(() => {
+    return filteredProducts.length > 0 && filteredProducts.every(p => selectedIds.includes(p.id));
+  }, [filteredProducts, selectedIds]);
+
+  const isSomeFilteredSelected = useMemo(() => {
+    return filteredProducts.some(p => selectedIds.includes(p.id)) && !isAllFilteredSelected;
+  }, [filteredProducts, selectedIds, isAllFilteredSelected]);
+
+  const handleSelectAll = (checked: boolean | "indeterminate") => {
+    if (checked === true) {
+      const currentFilteredIds = filteredProducts.map(p => p.id);
+      setSelectedIds(prev => Array.from(new Set([...prev, ...currentFilteredIds])));
     } else {
-      setSelectedIds([]);
+      const currentFilteredIds = new Set(filteredProducts.map(p => p.id));
+      setSelectedIds(prev => prev.filter(id => !currentFilteredIds.has(id)));
     }
   };
 
-  const handleToggleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
+  const handleToggleSelect = (id: string, checked: boolean | "indeterminate") => {
+    if (checked === true) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(item => item !== id));
+    }
   };
 
   const handleBulkDelete = async () => {
@@ -183,9 +198,10 @@ export default function ProductsPage() {
       batch.delete(doc(db, 'products', id));
     });
 
-    await batch.commit();
-    setSelectedIds([]);
-    toast({ title: "Archive Updated", description: `${selectedIds.length} entries removed.` });
+    batch.commit().then(() => {
+      setSelectedIds([]);
+      toast({ title: "Archive Updated", description: `${selectedIds.length} entries removed.` });
+    });
   };
 
   const handleBulkDuplicate = async () => {
@@ -207,9 +223,10 @@ export default function ProductsPage() {
       }
     });
 
-    await batch.commit();
-    setSelectedIds([]);
-    toast({ title: "Entries Duplicated", description: `${selectedIds.length} copies added to archive.` });
+    batch.commit().then(() => {
+      setSelectedIds([]);
+      toast({ title: "Entries Duplicated", description: `${selectedIds.length} copies added to archive.` });
+    });
   };
 
   const handleExportCSV = () => {
@@ -240,22 +257,26 @@ export default function ProductsPage() {
       if (lines.length <= 1) return;
       const batch = writeBatch(db);
       lines.slice(1).forEach(line => {
-        const [name, sku, brand, price, inventory] = line.split(',');
-        if (name && price) {
-          const newRef = doc(collection(db, 'products'));
-          batch.set(newRef, {
-            name: name.trim(),
-            sku: (sku || '').trim(),
-            brand: (brand || '').trim(),
-            price: parseFloat(price),
-            inventory: parseInt(inventory) || 0,
-            status: 'draft',
-            createdAt: serverTimestamp()
-          });
+        const parts = line.split(',');
+        if (parts.length >= 2) {
+          const [name, sku, brand, price, inventory] = parts;
+          if (name && price) {
+            const newRef = doc(collection(db, 'products'));
+            batch.set(newRef, {
+              name: name.trim(),
+              sku: (sku || '').trim(),
+              brand: (brand || '').trim(),
+              price: parseFloat(price),
+              inventory: parseInt(inventory) || 0,
+              status: 'draft',
+              createdAt: serverTimestamp()
+            });
+          }
         }
       });
-      await batch.commit();
-      toast({ title: "Import Complete", description: "New entries processed into archive." });
+      batch.commit().then(() => {
+        toast({ title: "Import Complete", description: "New entries processed into archive." });
+      });
     };
     reader.readAsText(file);
   };
@@ -506,7 +527,7 @@ export default function ProductsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDuplicate} className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"><Copy className="h-3.5 w-3.5" /> Duplicate {selectedIds.length > 0 && `(${selectedIds.length})`}</Button>
-              <Button variant="outline" size="sm" disabled={selectedIds.length === 0} className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"><RefreshCcw className="h-3.5 w-3.5" /> Bulk Edit</Button>
+              <Button variant="outline" size="sm" disabled={selectedIds.length === 0} className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"><Edit2 className="h-3.5 w-3.5" /> Bulk Edit</Button>
               <Button variant="destructive" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDelete} className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"><Trash2 className="h-3.5 w-3.5" /> Remove</Button>
             </div>
             <div className="flex items-center gap-2">
@@ -547,14 +568,27 @@ export default function ProductsPage() {
                   <SelectItem value="stock-low" className="text-[10px] uppercase font-bold">Stock: Low to High</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}><SelectTrigger className="h-9 w-[160px] text-[10px] font-bold uppercase tracking-widest"><Filter className="h-3 w-3 mr-2" /> {categoryFilter === 'all' ? 'All Collections' : categories?.find(c => c.id === categoryFilter)?.name}</SelectTrigger><SelectContent><SelectItem value="all" className="text-[10px] uppercase font-bold">All Collections</SelectItem>{categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}</SelectContent></Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="h-9 w-[160px] text-[10px] font-bold uppercase tracking-widest">
+                  <Filter className="h-3 w-3 mr-2" /> {categoryFilter === 'all' ? 'All Collections' : categories?.find(c => c.id === categoryFilter)?.name}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-[10px] uppercase font-bold">All Collections</SelectItem>
+                  {categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
         <Table>
           <TableHeader className="bg-[#f6f6f7]">
             <TableRow className="hover:bg-transparent border-[#e1e3e5]">
-              <TableHead className="w-[40px] px-4"><Checkbox checked={selectedIds.length === filteredProducts.length && filteredProducts.length > 0} onCheckedChange={handleSelectAll} /></TableHead>
+              <TableHead className="w-[40px] px-4">
+                <Checkbox 
+                  checked={isAllFilteredSelected ? true : isSomeFilteredSelected ? "indeterminate" : false} 
+                  onCheckedChange={handleSelectAll} 
+                />
+              </TableHead>
               <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Preview</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Product</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Collection</TableHead>
@@ -564,22 +598,33 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {productsLoading || categoriesLoading ? (<TableRow><TableCell colSpan={7} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>) : filteredProducts.length === 0 ? (<TableRow><TableCell colSpan={7} className="text-center py-20 text-gray-400">No archive entries match your criteria.</TableCell></TableRow>) : (filteredProducts.map((product: any) => {
-              const category = categories?.find((c: any) => c.id === product.categoryId);
-              const firstMedia = product.media?.[0]?.url;
-              const isSelected = selectedIds.includes(product.id);
-              return (
-                <TableRow key={product.id} className={`transition-colors border-[#e1e3e5] group ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}>
-                  <TableCell className="px-4"><Checkbox checked={isSelected} onCheckedChange={() => handleToggleSelect(product.id)} /></TableCell>
-                  <TableCell><div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{firstMedia ? <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" /> : <ImageIcon className="h-4 w-4 text-gray-300" />}</div></TableCell>
-                  <TableCell><div className="flex flex-col"><span className="font-bold text-sm">{product.name}</span><span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.sku || 'No SKU'}</span></div></TableCell>
-                  <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
-                  <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
-                  <TableCell className="text-sm font-semibold">${Number(product.price).toFixed(2)}</TableCell>
-                  <TableCell><button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4 text-[#5c5f62]" /></button></TableCell>
-                </TableRow>
-              );
-            }))}
+            {productsLoading || categoriesLoading ? (
+              <TableRow><TableCell colSpan={7} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+            ) : filteredProducts.length === 0 ? (
+              <TableRow><TableCell colSpan={7} className="text-center py-20 text-gray-400">No archive entries match your criteria.</TableCell></TableRow>
+            ) : (
+              filteredProducts.map((product: any) => {
+                const category = categories?.find((c: any) => c.id === product.categoryId);
+                const firstMedia = product.media?.[0]?.url;
+                const isSelected = selectedIds.includes(product.id);
+                return (
+                  <TableRow key={product.id} className={`transition-colors border-[#e1e3e5] group ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}>
+                    <TableCell className="px-4">
+                      <Checkbox 
+                        checked={isSelected} 
+                        onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} 
+                      />
+                    </TableCell>
+                    <TableCell><div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{firstMedia ? <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" /> : <ImageIcon className="h-4 w-4 text-gray-300" />}</div></TableCell>
+                    <TableCell><div className="flex flex-col"><span className="font-bold text-sm">{product.name}</span><span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.sku || 'No SKU'}</span></div></TableCell>
+                    <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
+                    <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
+                    <TableCell className="text-sm font-semibold">${Number(product.price).toFixed(2)}</TableCell>
+                    <TableCell><button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4 text-[#5c5f62]" /></button></TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>
