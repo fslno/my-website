@@ -6,9 +6,11 @@ import { ShoppingBag, Menu, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useCart } from '@/context/CartContext';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,7 +64,11 @@ export function Header() {
           </Button>
           <Button variant="ghost" size="icon" className="relative">
             <ShoppingBag className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                {cartCount}
+              </span>
+            )}
           </Button>
           <Link href="/admin" className="text-xs uppercase tracking-widest font-semibold border-b border-transparent hover:border-black transition-all hidden md:inline">Admin</Link>
         </div>

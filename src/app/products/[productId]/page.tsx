@@ -6,9 +6,8 @@ import {
   useFirestore, 
   useDoc, 
   useMemoFirebase,
-  useCollection
 } from '@/firebase';
-import { doc, collection } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -20,11 +19,8 @@ import {
   Heart, 
   Share2, 
   Ruler, 
-  ChevronRight, 
   Loader2,
-  Info,
   Check,
-  X,
   Table as TableIcon
 } from 'lucide-react';
 import {
@@ -44,11 +40,15 @@ import {
 } from "@/components/ui/table";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useCart } from '@/context/CartContext';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.productId as string;
   const db = useFirestore();
+  const { cart, addToCart } = useCart();
+  const { toast } = useToast();
 
   const productRef = useMemoFirebase(() => 
     db ? doc(db, 'products', productId) : null, 
@@ -95,6 +95,40 @@ export default function ProductDetailPage() {
     return product.sku || 'N/A';
   }, [product, selectedSize]);
 
+  // Stock reaching logic
+  const selectedVariant = useMemo(() => {
+    return product?.variants?.find((v: any) => v.size === selectedSize);
+  }, [product, selectedSize]);
+
+  const currentQtyInCart = useMemo(() => {
+    const item = cart.find(i => i.id === productId && i.size === selectedSize);
+    return item?.quantity || 0;
+  }, [cart, productId, selectedSize]);
+
+  const isStockReached = useMemo(() => {
+    if (!selectedVariant) return false;
+    return currentQtyInCart >= selectedVariant.stock;
+  }, [selectedVariant, currentQtyInCart]);
+
+  const handleAddToCart = () => {
+    if (!product || !selectedSize || isStockReached) return;
+
+    addToCart({
+      id: product.id,
+      variantId: `${product.id}-${selectedSize}`,
+      name: product.name,
+      price: totalPrice,
+      quantity: 1,
+      image: product.media?.[0]?.url || '',
+      size: selectedSize
+    });
+
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} (${selectedSize}) is ready for checkout.`,
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -125,7 +159,6 @@ export default function ProductDetailPage() {
       <div className="max-w-[1280px] mx-auto px-4 pt-24 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
-          {/* Left Column: Compact Visuals */}
           <div className="space-y-6">
             <div className="space-y-4">
               <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
@@ -156,7 +189,6 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Narrative (Desktop Position) */}
             <div className="hidden lg:block space-y-4 pt-6 border-t">
               <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Product Narrative</h3>
               <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-sm">
@@ -179,7 +211,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Right Column: Actions & Configuration */}
           <div className="space-y-6">
             <div className="space-y-1">
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO Studio'}</p>
@@ -195,7 +226,6 @@ export default function ProductDetailPage() {
                   <span className="text-[9px] text-gray-400 font-bold ml-1">(24 Reviews)</span>
                 </div>
               </div>
-              {/* Dynamic SKU Display */}
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
                 REF: {displayedSku}
               </p>
@@ -210,8 +240,8 @@ export default function ProductDetailPage() {
                 {sizeChart ? (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <button className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors text-[11px] font-bold">
-                        <Ruler className="h-4 w-4" /> Size Guide
+                      <button className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors text-[13px] font-bold">
+                        <Ruler className="h-5 w-5" /> Size Guide
                       </button>
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-xl bg-white border-l p-0 overflow-hidden flex flex-col">
@@ -360,8 +390,17 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="space-y-3 pt-2">
-              <button className="w-full h-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 rounded-sm">
-                Add to Cart
+              <button 
+                onClick={handleAddToCart}
+                disabled={!selectedSize || isStockReached}
+                className={cn(
+                  "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-sm transition-all",
+                  isStockReached 
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
+                    : "bg-black text-white hover:bg-black/90"
+                )}
+              >
+                {!selectedSize ? 'Select Size' : isStockReached ? 'Limited Reached' : 'Add to Cart'}
               </button>
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm">
@@ -373,7 +412,6 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Mobile-only Narrative position */}
             <div className="lg:hidden space-y-4 pt-6 border-t">
               <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Product Narrative</h3>
               <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-sm">
