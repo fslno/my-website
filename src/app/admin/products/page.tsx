@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -20,9 +20,6 @@ import {
   Loader2,
   Tag,
   Trash2,
-  Upload,
-  Image as ImageIcon,
-  Play,
   X,
   PlusCircle,
   Globe,
@@ -32,7 +29,10 @@ import {
   ChevronLeft,
   Layers,
   Box,
-  GripVertical
+  GripVertical,
+  RefreshCcw,
+  Image as ImageIcon,
+  Play
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -61,6 +61,7 @@ interface MediaItem {
 interface Variant {
   size: string;
   stock: number;
+  sku: string;
 }
 
 export default function ProductsPage() {
@@ -92,7 +93,7 @@ export default function ProductsPage() {
   const [categoryId, setCategoryId] = useState('');
   
   // Variants State
-  const [variants, setVariants] = useState<Variant[]>([{ size: 'M', stock: 0 }]);
+  const [variants, setVariants] = useState<Variant[]>([{ size: 'M', stock: 0, sku: '' }]);
   
   // SEO State
   const [seoTitle, setSeoTitle] = useState('');
@@ -110,13 +111,35 @@ export default function ProductsPage() {
   const [features, setFeatures] = useState('');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
+  // Auto-generate Root SKU
+  const handleAutoGenerateSku = () => {
+    if (!name) return;
+    const prefix = 'FSL';
+    const namePart = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
+    const randomPart = Math.floor(1000 + Math.random() * 9000);
+    const generated = `${prefix}-${namePart}-${randomPart}`;
+    setSku(generated);
+  };
+
+  // Sync Variant SKUs when Root SKU changes
+  useEffect(() => {
+    if (sku) {
+      setVariants(prev => prev.map(v => ({
+        ...v,
+        sku: v.sku.startsWith(sku) || !v.sku ? `${sku}-${v.size.toUpperCase().replace(/\s+/g, '')}` : v.sku
+      })));
+    }
+  }, [sku]);
+
   // Real-time Inventory Calculation
   const totalInventory = useMemo(() => {
     return variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
   }, [variants]);
 
   const handleAddVariant = () => {
-    setVariants([...variants, { size: 'NEW', stock: 0 }]);
+    const newSize = 'NEW';
+    const newVariantSku = sku ? `${sku}-${newSize}` : '';
+    setVariants([...variants, { size: newSize, stock: 0, sku: newVariantSku }]);
   };
 
   const handleRemoveVariant = (index: number) => {
@@ -126,7 +149,14 @@ export default function ProductsPage() {
 
   const handleUpdateVariant = (index: number, field: keyof Variant, value: string | number) => {
     const updated = [...variants];
-    updated[index] = { ...updated[index], [field]: value };
+    const item = { ...updated[index], [field]: value };
+    
+    // If size changes, update SKU if it follows the pattern
+    if (field === 'size' && sku && (item.sku.startsWith(sku) || !item.sku)) {
+      item.sku = `${sku}-${String(value).toUpperCase().replace(/\s+/g, '')}`;
+    }
+    
+    updated[index] = item;
     setVariants(updated);
   };
 
@@ -254,7 +284,7 @@ export default function ProductsPage() {
     setSizeFit('');
     setDescription('');
     setCategoryId('');
-    setVariants([{ size: 'M', stock: 0 }]);
+    setVariants([{ size: 'M', stock: 0, sku: '' }]);
     setMedia([]);
     setFeatures('');
     setSeoTitle('');
@@ -315,7 +345,7 @@ export default function ProductsPage() {
                 <TabsContent value="general" className="p-8 m-0 space-y-12 max-w-5xl mx-auto">
                   <section className="space-y-6">
                     <div>
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1 text-foreground">Visual Content</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Visual Content</h3>
                       <p className="text-xs text-gray-500">Upload multiple images or videos for the product gallery. Hold and drag to reorder.</p>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -397,7 +427,17 @@ export default function ProductsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">SKU Number</Label>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Root SKU</Label>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={handleAutoGenerateSku}
+                              className="h-6 px-2 text-[8px] uppercase font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <RefreshCcw className="h-3 w-3 mr-1" /> Auto-Generate
+                            </Button>
+                          </div>
                           <Input placeholder="e.g. FSL-MN-001" value={sku} onChange={(e) => setSku(e.target.value)} />
                         </div>
                         <div className="space-y-2">
@@ -438,7 +478,7 @@ export default function ProductsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-foreground">Sizing & Availability</h3>
-                      <p className="text-xs text-gray-500 mt-1">Manage individual stock for each size variant.</p>
+                      <p className="text-xs text-gray-500 mt-1">Manage individual stock and unique SKUs for each size variant.</p>
                     </div>
                     <div className="bg-black text-white px-4 py-2 rounded flex items-center gap-4">
                       <Box className="h-4 w-4" />
@@ -454,6 +494,7 @@ export default function ProductsPage() {
                       <TableHeader className="bg-gray-50">
                         <TableRow>
                           <TableHead className="text-[10px] font-bold uppercase tracking-widest">Size Label</TableHead>
+                          <TableHead className="text-[10px] font-bold uppercase tracking-widest">Variant SKU</TableHead>
                           <TableHead className="text-[10px] font-bold uppercase tracking-widest">Available Units</TableHead>
                           <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
@@ -466,6 +507,14 @@ export default function ProductsPage() {
                                 value={v.size} 
                                 onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)}
                                 className="h-9 font-bold text-xs"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                value={v.sku} 
+                                onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)}
+                                className="h-9 font-mono text-[10px]"
+                                placeholder="Auto-generated SKU"
                               />
                             </TableCell>
                             <TableCell>
@@ -673,7 +722,7 @@ export default function ProductsPage() {
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-bold text-sm">{product.name}</span>
-                        <span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.brand || 'Unbranded'}</span>
+                        <span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.sku || 'No SKU'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
