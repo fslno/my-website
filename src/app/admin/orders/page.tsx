@@ -30,7 +30,9 @@ import {
   Mail,
   Phone,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  BadgeCheck,
+  CreditCard as PaymentIcon
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -73,6 +75,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
 
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
@@ -106,7 +109,7 @@ export default function OrdersPage() {
     updateDoc(orderRef, { status: newStatus })
       .then(() => {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
-        toast({ title: "Order Updated", description: `Status changed to ${newStatus.toUpperCase()}.` });
+        toast({ title: "Order Updated", description: `Archival status changed to ${newStatus.toUpperCase()}.` });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -116,6 +119,29 @@ export default function OrdersPage() {
         }));
       })
       .finally(() => setIsUpdatingStatus(false));
+  };
+
+  const handleConfirmPayment = (newPaymentStatus: string = 'paid') => {
+    if (!db || !selectedOrder || isUpdatingPayment) return;
+    setIsUpdatingPayment(true);
+
+    const orderRef = doc(db, 'orders', selectedOrder.id);
+    updateDoc(orderRef, { paymentStatus: newPaymentStatus })
+      .then(() => {
+        setSelectedOrder({ ...selectedOrder, paymentStatus: newPaymentStatus });
+        toast({ 
+          title: "Payment Synchronized", 
+          description: `Financial record marked as ${newPaymentStatus.toUpperCase()}.` 
+        });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `orders/${selectedOrder.id}`,
+          operation: 'update',
+          requestResourceData: { paymentStatus: newPaymentStatus }
+        }));
+      })
+      .finally(() => setIsUpdatingPayment(false));
   };
 
   const getStatusBadge = (status: string) => {
@@ -130,6 +156,23 @@ export default function OrdersPage() {
         return <Badge className="bg-red-50 text-red-700 border-red-100 hover:bg-red-100 uppercase text-[10px] font-bold">Cancelled</Badge>;
       default:
         return <Badge className="bg-gray-50 text-gray-700 border-gray-100 hover:bg-gray-100 uppercase text-[10px] font-bold">{status}</Badge>;
+    }
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] font-bold">Paid</Badge>;
+      case 'awaiting':
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Payment</Badge>;
+      case 'refunded':
+        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[10px] font-bold">Refunded</Badge>;
+      case 'partially_refunded':
+        return <Badge className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[10px] font-bold">Partially Refunded</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
+      default:
+        return <Badge className="bg-zinc-50 text-zinc-700 border-zinc-100 uppercase text-[10px] font-bold">Pending</Badge>;
     }
   };
 
@@ -222,7 +265,8 @@ export default function OrdersPage() {
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4">Order ID</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Date</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Customer</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Status</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Archival Status</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Financial</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] text-right">Total</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -230,13 +274,13 @@ export default function OrdersPage() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-20">
+                <TableCell colSpan={7} className="text-center py-20">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" />
                 </TableCell>
               </TableRow>
             ) : filteredOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">
+                <TableCell colSpan={7} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">
                   No archive orders found matching your criteria.
                 </TableCell>
               </TableRow>
@@ -265,6 +309,9 @@ export default function OrdersPage() {
                   <TableCell>
                     {getStatusBadge(order.status)}
                   </TableCell>
+                  <TableCell>
+                    {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+                  </TableCell>
                   <TableCell className="text-right text-sm font-bold">
                     ${(Number(order.total) || 0).toLocaleString()}
                   </TableCell>
@@ -286,11 +333,24 @@ export default function OrdersPage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
                     <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Order Details</DialogTitle>
-                    {getStatusBadge(selectedOrder.status)}
+                    {getPaymentStatusBadge(selectedOrder.paymentStatus || 'pending')}
                   </div>
                   <p className="text-[10px] font-mono text-gray-400 font-bold uppercase tracking-widest">ID: {selectedOrder.id}</p>
                 </div>
                 <div className="flex gap-3">
+                  <Select value={selectedOrder.paymentStatus || 'pending'} onValueChange={handleConfirmPayment} disabled={isUpdatingPayment}>
+                    <SelectTrigger className="h-10 w-[160px] bg-white border-black text-[10px] font-bold uppercase tracking-widest">
+                      <PaymentIcon className="h-3 w-3 mr-2" /> Financial Status
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending" className="text-[10px] font-bold uppercase">Pending</SelectItem>
+                      <SelectItem value="paid" className="text-[10px] font-bold uppercase">Paid</SelectItem>
+                      <SelectItem value="awaiting" className="text-[10px] font-bold uppercase">Awaiting Payment</SelectItem>
+                      <SelectItem value="refunded" className="text-[10px] font-bold uppercase">Refunded</SelectItem>
+                      <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   <Select value={selectedOrder.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
                     <SelectTrigger className="h-10 w-[160px] bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
                       <SelectValue placeholder="Update Status" />
@@ -310,10 +370,22 @@ export default function OrdersPage() {
                   {/* Left Column: Items & Summary */}
                   <div className="lg:col-span-2 space-y-8">
                     <Card className="border-[#e1e3e5] shadow-sm rounded-none">
-                      <CardHeader className="bg-gray-50/50 border-b py-4">
+                      <CardHeader className="bg-gray-50/50 border-b py-4 flex flex-row items-center justify-between">
                         <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                           <Package className="h-3 w-3" /> Archive Manifest ({(selectedOrder.items || []).length} Items)
                         </CardTitle>
+                        {selectedOrder.paymentStatus !== 'paid' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleConfirmPayment('paid')}
+                            disabled={isUpdatingPayment}
+                            className="h-7 px-3 bg-emerald-50 text-emerald-700 border-emerald-200 text-[9px] font-bold uppercase tracking-widest hover:bg-emerald-100"
+                          >
+                            {isUpdatingPayment ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <BadgeCheck className="h-3 w-3 mr-1" />}
+                            Mark as Paid
+                          </Button>
+                        )}
                       </CardHeader>
                       <CardContent className="p-0">
                         <Table>
@@ -493,7 +565,7 @@ export default function OrdersPage() {
                         <div className="space-y-1">
                           <p className="text-[9px] uppercase font-bold text-gray-400">Billing Verification</p>
                           <p className="text-xs font-bold uppercase leading-relaxed text-gray-500 italic">
-                            Verified via Studo Payment Engine. {selectedOrder.customer?.billing?.city || 'Local Transaction'}
+                            Verified via Studio Payment Engine. {selectedOrder.customer?.billing?.city || 'Local Transaction'}
                           </p>
                         </div>
                       </CardContent>

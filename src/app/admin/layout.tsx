@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   LayoutDashboard, 
@@ -40,6 +40,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const auth = useAuth();
   const { toast } = useToast();
   const db = useFirestore();
+
+  // Defer dynamic rendering until after hydration to avoid errors
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Fetch Store Config for Branding
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
@@ -105,7 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  if (loading) {
+  if (loading || !hasMounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f6f6f7]">
         <div className="flex flex-col items-center gap-4">
