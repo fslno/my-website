@@ -45,7 +45,7 @@ import {
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 type DeliveryMethod = 'shipping' | 'pickup';
 
@@ -207,20 +207,24 @@ export default function CheckoutPage() {
       createdAt: serverTimestamp()
     };
 
-    try {
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
-      setConfirmedOrder({ ...orderData, id: docRef.id });
-      setShowSuccessDialog(true);
-      clearCart();
-    } catch (error) {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: 'orders',
-        operation: 'create',
-        requestResourceData: orderData
-      }));
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Use non-blocking pattern by chaining .then() and .catch()
+    addDoc(collection(db, 'orders'), orderData)
+      .then((docRef) => {
+        setConfirmedOrder({ ...orderData, id: docRef.id });
+        setShowSuccessDialog(true);
+        clearCart();
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: 'orders',
+          operation: 'create',
+          requestResourceData: orderData
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   if (cartCount === 0 && !showSuccessDialog) {

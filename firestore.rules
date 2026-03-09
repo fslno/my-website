@@ -32,45 +32,47 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
+    // Top-level Orders Archive
+    match /orders/{orderId} {
+      allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
+      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
     match /products/{productId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow create, update, delete: if isAdmin();
 
       match /variants/{variantId} {
         allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update, delete: if isSignedIn() && resource != null;
+        allow create, update, delete: if isAdmin();
       }
 
       match /images/{imageId} {
         allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update, delete: if isSignedIn() && resource != null;
+        allow create, update, delete: if isAdmin();
       }
     }
 
     match /categories/{categoryId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow create, update, delete: if isAdmin();
     }
 
     match /sizeCharts/{sizeChartId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow create, update, delete: if isAdmin();
     }
 
     match /collections/{collectionId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow create, update, delete: if isAdmin();
     }
 
     match /inventory/{inventoryId} {
-      allow get, list, create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /users/{userId} {
@@ -109,36 +111,32 @@ service cloud.firestore {
 
     match /shippingZones/{zoneId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow create, update, delete: if isAdmin();
 
       match /rates/{rateId} {
         allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update, delete: if isSignedIn() && resource != null;
+        allow create, update, delete: if isAdmin();
       }
     }
 
     match /paymentGatewayConfigs/{configId} {
-      allow get, list, create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow get, list: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
     match /storeSettings/{settingId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow create, update, delete: if isAdmin();
     }
 
     match /banners/{bannerId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow create, update, delete: if isAdmin();
     }
 
     match /socialSyncs/{platformId} {
-      allow get, list, create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource != null;
+      allow get, list: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
     match /roles_admin/{uid} {
@@ -148,11 +146,11 @@ service cloud.firestore {
       allow delete: if isSignedIn();
     }
 
-    // Config singleton permissions - relaxed for development
+    // Config singleton permissions
     match /config/{configId} {
       allow get: if true;
       allow list: if isSignedIn();
-      allow write: if isSignedIn();
+      allow write: if isAdmin();
     }
   }
 }
