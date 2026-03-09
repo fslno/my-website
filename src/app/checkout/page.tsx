@@ -20,13 +20,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -60,7 +53,8 @@ export default function CheckoutPage() {
   const [shippingRate, setShippingRate] = useState<number>(0);
 
   const calculatedTax = useMemo(() => {
-    const rate = TAX_RATES[selectedProvince] || 0;
+    // Attempt to match the manual input (e.g. "ON") to tax rates
+    const rate = TAX_RATES[selectedProvince.toUpperCase()] || 0;
     return cartSubtotal * rate;
   }, [cartSubtotal, selectedProvince]);
 
@@ -165,23 +159,20 @@ export default function CheckoutPage() {
                     <Input placeholder="City" className="h-12" />
                     <Input placeholder="Postal Code" className="h-12" />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
-                    <Select onValueChange={setSelectedProvince}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select region for tax calculation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ON">Ontario (13% HST)</SelectItem>
-                        <SelectItem value="QC">Quebec (14.975% GST/QST)</SelectItem>
-                        <SelectItem value="BC">British Columbia (12% GST/PST)</SelectItem>
-                        <SelectItem value="AB">Alberta (5% GST)</SelectItem>
-                        <SelectItem value="NS">Nova Scotia (15% HST)</SelectItem>
-                        <SelectItem value="NB">New Brunswick (15% HST)</SelectItem>
-                        <SelectItem value="NY">New York (Simulated Tax)</SelectItem>
-                        <SelectItem value="CA">California (Simulated Tax)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
+                      <Input 
+                        placeholder="e.g. Ontario or ON" 
+                        className="h-12"
+                        value={selectedProvince}
+                        onChange={(e) => setSelectedProvince(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Country</Label>
+                      <Input placeholder="e.g. Canada" className="h-12" />
+                    </div>
                   </div>
                 </div>
 
@@ -217,7 +208,7 @@ export default function CheckoutPage() {
                     <div className="flex items-center justify-between p-4 border rounded-sm bg-gray-50/50">
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="usps" id="usps" />
-                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest">Standard (Canada Post / Economy)</Label>
+                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest">Standard (USPS / Economy)</Label>
                       </div>
                       <span className="text-[11px] font-bold">FREE</span>
                     </div>
@@ -247,19 +238,20 @@ export default function CheckoutPage() {
                     <Input placeholder="City" className="h-12" />
                     <Input placeholder="Postal Code" className="h-12" />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
-                    <Select onValueChange={setSelectedProvince}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select region for tax calculation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ON">Ontario (13% HST)</SelectItem>
-                        <SelectItem value="QC">Quebec (14.975% GST/QST)</SelectItem>
-                        <SelectItem value="BC">British Columbia (12% GST/PST)</SelectItem>
-                        <SelectItem value="AB">Alberta (5% GST)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
+                      <Input 
+                        placeholder="e.g. Ontario or ON" 
+                        className="h-12"
+                        value={selectedProvince}
+                        onChange={(e) => setSelectedProvince(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Country</Label>
+                      <Input placeholder="e.g. Canada" className="h-12" />
+                    </div>
                   </div>
                 </div>
 
@@ -368,7 +360,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Tax</span>
                 <span className={cn("text-black", !selectedProvince && "italic")}>
-                  {selectedProvince ? `$${calculatedTax.toLocaleString()} CAD` : 'Select province'}
+                  {selectedProvince ? `$${calculatedTax.toLocaleString()} CAD` : 'Region tax calculated'}
                 </span>
               </div>
               <Separator />
