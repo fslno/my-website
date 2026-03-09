@@ -524,6 +524,21 @@ export default function CheckoutPage() {
                         <span>Size: {item.size}</span>
                         <span>Qty: {item.quantity}</span>
                       </div>
+
+                      {/* Customization Details */}
+                      {(item.customName || item.customNumber) && (
+                        <div className="flex gap-2 text-[8px] font-bold uppercase text-blue-600 mt-1">
+                          {item.customName && <span>Name: {item.customName}</span>}
+                          {item.customNumber && <span>Number: {item.customNumber}</span>}
+                        </div>
+                      )}
+                      
+                      {/* Special Note */}
+                      {item.specialNote && (
+                        <div className="text-[8px] text-gray-500 mt-1 border-l-2 border-gray-200 pl-2">
+                          Note: {item.specialNote}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
