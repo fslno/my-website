@@ -1,0 +1,238 @@
+/**
+ * FIRESTORE SECURITY RULES
+ * 
+ * Core Philosophy:
+ * This ruleset implements a dual-layer security model designed for a robust e-commerce platform. 
+ * It prioritizes Authorization Independence and Structural Segregation to ensure high performance 
+ * and clear security boundaries.
+ * 
+ * Data Structure:
+ * 1. Public Storefront Data: Collections like /products, /categories, /sizeCharts, /collections, 
+ *    /storeSettings, and /banners are publicly readable to facilitate fast storefront rendering 
+ *    without authentication, while writes are strictly restricted to administrators.
+ * 2. User-Specific Data: All customer-sensitive information (Profiles, Addresses, Carts, Orders) 
+ *    is strictly nested under /users/{userId}. Access is granted based on the path-matching 
+ *    principle (request.auth.uid == userId), ensuring users can only access their own data.
+ * 3. Administrative Data: Sensitive configurations (Payment Gateways, Social Syncs, Inventory) 
+ *    are restricted to users with verified admin roles.
+ * 
+ * Key Security Decisions:
+ * - Admin roles are managed via a dedicated /roles_admin/{uid} collection. The existence of a 
+ *   document there signifies administrative privileges.
+ * - Ownership is enforced primarily through the document path, making authorization checks 
+ *   O(1) and independent of other document reads.
+ * - Relational integrity is enforced on creation (e.g., ensuring a user's document ID matches 
+ *   their UID) and immutability is enforced on updates for critical linking fields.
+ * - Per user request, 'sizeCharts' allow public listing to support category-specific UI logic.
+ */
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- GLOBAL HELPER FUNCTIONS ---
+
+    /** @description Checks if the user is authenticated. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** @description Checks if the authenticated user has an entry in the roles_admin collection. */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /** @description Checks if the authenticated user's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** @description Verifies ownership and ensures the resource exists for destructive operations. */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Publicly readable products; admin-only writes.
+     * @path /products/{productId}
+     * @allow get, list: if true; (Public access)
+     * @deny create, update, delete: if !isAdmin(); (Only admins modify catalog)
+     * @principle Structural Segregation for public storefront data.
+     */
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+
+      match /variants/{variantId} {
+        allow get, list: if true;
+        allow create: if isAdmin();
+        allow update, delete: if isAdmin() && resource != null;
+      }
+
+      match /images/{imageId} {
+        allow get, list: if true;
+        allow create: if isAdmin();
+        allow update, delete: if isAdmin() && resource != null;
+      }
+    }
+
+    /**
+     * @description Categories for product organization. Public read, admin write.
+     * @path /categories/{categoryId}
+     * @allow get, list: if true;
+     * @deny write: if !isAdmin();
+     */
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Sizing information. Explicitly allowed listing per user request to fix 403 errors.
+     * @path /sizeCharts/{sizeChartId}
+     * @allow get, list: if true; (Permits storefront to list charts)
+     * @deny write: if !isAdmin();
+     * @principle Flexible Access Control Patterns (Public Read).
+     */
+    match /sizeCharts/{sizeChartId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Marketing collections. Public read, admin write.
+     * @path /collections/{collectionId}
+     */
+    match /collections/{collectionId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Sensitive inventory levels. Restricted to admins only.
+     * @path /inventory/{inventoryId}
+     * @deny get, list, write: if !isAdmin();
+     */
+    match /inventory/{inventoryId} {
+      allow get, list, create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Customer profile data. Users own their own data; admins can audit.
+     * @path /users/{userId}
+     * @allow create: if isOwner(userId) && request.resource.data.id == userId;
+     * @allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+     * @principle Path-based ownership and relational integrity enforcement.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+
+      match /addresses/{addressId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+        allow update, delete: if isExistingOwner(userId);
+      }
+
+      match /orders/{orderId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+        allow update, delete: if (isOwner(userId) || isAdmin()) && resource != null;
+
+        match /items/{orderItemId} {
+          allow get, list: if isOwner(userId) || isAdmin();
+          allow create: if isOwner(userId);
+          allow update, delete: if (isOwner(userId) || isAdmin()) && resource != null;
+        }
+      }
+
+      match /cart {
+        allow get: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+        allow update, delete: if isExistingOwner(userId);
+
+        match /items/{cartItemId} {
+          allow get, list: if isOwner(userId) || isAdmin();
+          allow create: if isOwner(userId);
+          allow update, delete: if isExistingOwner(userId);
+        }
+      }
+    }
+
+    /**
+     * @description Shipping logic for checkout. Public read to allow calculation.
+     * @path /shippingZones/{zoneId}
+     */
+    match /shippingZones/{zoneId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+
+      match /rates/{rateId} {
+        allow get, list: if true;
+        allow create: if isAdmin();
+        allow update, delete: if isAdmin() && resource != null;
+      }
+    }
+
+    /**
+     * @description Highly sensitive gateway configurations. Admin only.
+     * @path /paymentGatewayConfigs/{configId}
+     */
+    match /paymentGatewayConfigs/{configId} {
+      allow get, list, create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Global theme and layout settings. Public read, admin write.
+     * @path /storeSettings/{settingId}
+     */
+    match /storeSettings/{settingId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Storefront promo banners. Public read, admin write.
+     * @path /banners/{bannerId}
+     */
+    match /banners/{bannerId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Social platform sync status. Admin only.
+     * @path /socialSyncs/{platformId}
+     */
+    match /socialSyncs/{platformId} {
+      allow get, list, create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Internal admin role management.
+     * @path /roles_admin/{uid}
+     * @principle Database-Based Access Control (DBAC).
+     */
+    match /roles_admin/{uid} {
+      allow get: if isAdmin() || isOwner(uid);
+      allow list: if isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin() || isExistingOwner(uid);
+    }
+  }
+}
