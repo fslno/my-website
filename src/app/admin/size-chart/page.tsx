@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -16,7 +17,8 @@ import {
   Trash2, 
   Loader2, 
   Ruler, 
-  MoreHorizontal
+  MoreHorizontal,
+  X
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -39,14 +41,11 @@ import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
-interface Measurement {
+interface RowData {
   label: string;
-  xs: string;
-  s: string;
-  m: string;
-  l: string;
-  xl: string;
+  values: string[];
 }
 
 export default function SizeChartPage() {
@@ -59,27 +58,57 @@ export default function SizeChartPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Form State
+  // Dynamic Form State
   const [name, setName] = useState('');
   const [unit, setUnit] = useState<'cm' | 'inch'>('cm');
-  const [measurements, setMeasurements] = useState<Measurement[]>([
-    { label: 'Chest', xs: '', s: '', m: '', l: '', xl: '' },
-    { label: 'Length', xs: '', s: '', m: '', l: '', xl: '' }
+  const [columns, setColumns] = useState<string[]>(['Chest', 'Length']);
+  const [rows, setRows] = useState<RowData[]>([
+    { label: 'XS', values: ['', ''] },
+    { label: 'S', values: ['', ''] },
+    { label: 'M', values: ['', ''] },
+    { label: 'L', values: ['', ''] },
+    { label: 'XL', values: ['', ''] }
   ]);
 
-  const addMeasurementRow = () => {
-    setMeasurements([...measurements, { label: '', xs: '', s: '', m: '', l: '', xl: '' }]);
+  const addColumn = () => {
+    setColumns([...columns, 'New Point']);
+    setRows(rows.map(row => ({ ...row, values: [...row.values, ''] })));
   };
 
-  const removeMeasurementRow = (index: number) => {
-    if (measurements.length <= 1) return;
-    setMeasurements(measurements.filter((_, i) => i !== index));
+  const removeColumn = (index: number) => {
+    if (columns.length <= 1) return;
+    setColumns(columns.filter((_, i) => i !== index));
+    setRows(rows.map(row => ({
+      ...row,
+      values: row.values.filter((_, i) => i !== index)
+    })));
   };
 
-  const updateMeasurement = (index: number, field: keyof Measurement, value: string) => {
-    const updated = [...measurements];
-    updated[index] = { ...updated[index], [field]: value };
-    setMeasurements(updated);
+  const addRow = () => {
+    setRows([...rows, { label: 'Size', values: new Array(columns.length).fill('') }]);
+  };
+
+  const removeRow = (index: number) => {
+    if (rows.length <= 1) return;
+    setRows(rows.filter((_, i) => i !== index));
+  };
+
+  const updateColumnLabel = (index: number, label: string) => {
+    const updated = [...columns];
+    updated[index] = label;
+    setColumns(updated);
+  };
+
+  const updateRowLabel = (index: number, label: string) => {
+    const updated = [...rows];
+    updated[index].label = label;
+    setRows(updated);
+  };
+
+  const updateValue = (rowIndex: number, colIndex: number, value: string) => {
+    const updated = [...rows];
+    updated[rowIndex].values[colIndex] = value;
+    setRows(updated);
   };
 
   const handleSave = () => {
@@ -89,7 +118,8 @@ export default function SizeChartPage() {
     const chartData = { 
       name, 
       unit, 
-      measurements: measurements.filter(m => m.label.trim() !== '') 
+      columns,
+      rows 
     };
 
     addDoc(collection(db, 'sizeCharts'), chartData)
@@ -121,9 +151,13 @@ export default function SizeChartPage() {
   const resetForm = () => {
     setName('');
     setUnit('cm');
-    setMeasurements([
-      { label: 'Chest', xs: '', s: '', m: '', l: '', xl: '' },
-      { label: 'Length', xs: '', s: '', m: '', l: '', xl: '' }
+    setColumns(['Chest', 'Length']);
+    setRows([
+      { label: 'XS', values: ['', ''] },
+      { label: 'S', values: ['', ''] },
+      { label: 'M', values: ['', ''] },
+      { label: 'L', values: ['', ''] },
+      { label: 'XL', values: ['', ''] }
     ]);
   };
 
@@ -140,7 +174,7 @@ export default function SizeChartPage() {
               <Plus className="h-4 w-4" /> Create Chart
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl bg-white max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl bg-white max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl font-headline">New Measurement Guide</DialogTitle>
             </DialogHeader>
@@ -172,41 +206,74 @@ export default function SizeChartPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Matrix</Label>
-                  <Button variant="ghost" size="sm" onClick={addMeasurementRow} className="text-[10px] uppercase tracking-widest font-bold gap-2">
-                    <Plus className="h-3 w-3" /> Add Row
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={addColumn} className="text-[10px] uppercase tracking-widest font-bold gap-2">
+                      <Plus className="h-3 w-3" /> Add Measure Column
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={addRow} className="text-[10px] uppercase tracking-widest font-bold gap-2">
+                      <Plus className="h-3 w-3" /> Add Size Row
+                    </Button>
+                  </div>
                 </div>
-                <div className="border rounded-md overflow-hidden bg-gray-50/30">
-                  <Table>
+                
+                <div className="border rounded-md overflow-x-auto bg-gray-50/30">
+                  <Table className="min-w-[800px]">
                     <TableHeader className="bg-gray-50/50">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="w-[200px] text-[10px] font-bold uppercase tracking-widest">Point of Measure</TableHead>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">XS</TableHead>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">S</TableHead>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">M</TableHead>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">L</TableHead>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">XL</TableHead>
+                        <TableHead className="w-[150px] text-[10px] font-bold uppercase tracking-widest">
+                          Size \ Measure
+                        </TableHead>
+                        {columns.map((col, colIdx) => (
+                          <TableHead key={colIdx} className="p-0 border-l min-w-[120px]">
+                            <div className="flex items-center p-2 group">
+                              <Input 
+                                value={col} 
+                                onChange={(e) => updateColumnLabel(colIdx, e.target.value)}
+                                className="h-8 text-[10px] font-bold uppercase tracking-widest text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
+                              />
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => removeColumn(colIdx)} 
+                                className="h-6 w-6 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableHead>
+                        ))}
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {measurements.map((m, idx) => (
-                        <TableRow key={idx} className="bg-white hover:bg-white">
-                          <TableCell>
-                            <Input 
-                              placeholder="e.g. Sleeve Length" 
-                              value={m.label} 
-                              onChange={(e) => updateMeasurement(idx, 'label', e.target.value)}
-                              className="h-9 text-xs font-bold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
-                            />
+                      {rows.map((row, rowIdx) => (
+                        <TableRow key={rowIdx} className="bg-white hover:bg-white group/row">
+                          <TableCell className="p-0 border-r">
+                            <div className="flex items-center p-2">
+                              <Input 
+                                value={row.label} 
+                                onChange={(e) => updateRowLabel(rowIdx, e.target.value)}
+                                className="h-9 text-xs font-bold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
+                              />
+                            </div>
                           </TableCell>
-                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.xs} onChange={(e) => updateMeasurement(idx, 'xs', e.target.value)} /></TableCell>
-                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.s} onChange={(e) => updateMeasurement(idx, 's', e.target.value)} /></TableCell>
-                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.m} onChange={(e) => updateMeasurement(idx, 'm', e.target.value)} /></TableCell>
-                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.l} onChange={(e) => updateMeasurement(idx, 'l', e.target.value)} /></TableCell>
-                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.xl} onChange={(e) => updateMeasurement(idx, 'xl', e.target.value)} /></TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => removeMeasurementRow(idx)} className="h-8 w-8 text-gray-400 hover:text-red-500">
+                          {row.values.map((val, colIdx) => (
+                            <TableCell key={colIdx} className="p-0 border-r">
+                              <Input 
+                                value={val} 
+                                onChange={(e) => updateValue(rowIdx, colIdx, e.target.value)}
+                                className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
+                                placeholder="--"
+                              />
+                            </TableCell>
+                          ))}
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => removeRow(rowIdx)} 
+                              className="h-8 w-8 opacity-0 group-hover/row:opacity-100 text-gray-400 hover:text-red-500"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -248,7 +315,7 @@ export default function SizeChartPage() {
                 <TableRow>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Template Name</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Unit</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Measurement Points</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Structure</TableHead>
                   <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -260,7 +327,7 @@ export default function SizeChartPage() {
                       <span className="text-[10px] font-bold uppercase bg-gray-100 px-2 py-0.5 rounded">{chart.unit}</span>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
-                      {chart.measurements?.length || 0} points defined
+                      {chart.rows?.length || 0} Sizes × {chart.columns?.length || 0} Measures
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

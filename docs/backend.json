@@ -37,17 +37,14 @@
       "properties": {
         "name": { "type": "string" },
         "unit": { "type": "string", "enum": ["cm", "inch"] },
-        "measurements": {
+        "columns": { "type": "array", "items": { "type": "string" }, "description": "Measurement point names (e.g. Chest, Sleeve)" },
+        "rows": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "label": { "type": "string" },
-              "xs": { "type": "string" },
-              "s": { "type": "string" },
-              "m": { "type": "string" },
-              "l": { "type": "string" },
-              "xl": { "type": "string" }
+              "label": { "type": "string", "description": "Size label (e.g. XS, 32, One Size)" },
+              "values": { "type": "array", "items": { "type": "string" }, "description": "Measurement values corresponding to columns" }
             }
           }
         }
