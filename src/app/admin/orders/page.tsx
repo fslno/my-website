@@ -24,7 +24,9 @@ import {
   MapPin,
   Phone,
   Package,
-  Layers
+  Layers,
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import { 
   Select, 
@@ -207,8 +209,8 @@ export default function OrdersPage() {
         <Table>
           <TableHeader className="bg-[#f6f6f7]">
             <TableRow className="border-[#e1e3e5]">
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 w-[120px]">Order & Date</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] min-w-[180px]">Manifest (Units)</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 min-w-[240px]">Archive Manifest (Units)</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] w-[120px]">Order & Date</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Recipient</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Logistics & Route</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] text-right">Financial</TableHead>
@@ -240,31 +242,49 @@ export default function OrdersPage() {
                     onClick={() => router.push(`/admin/orders/${order.id}`)}
                   >
                     <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <span className="font-mono text-[11px] font-bold uppercase tracking-tight">#{order.id.substring(0, 6).toUpperCase()}</span>
-                        <span className="text-[10px] text-[#8c9196] font-medium leading-none">{formatDate(order.createdAt).split(',')[0]}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="flex -space-x-3 overflow-hidden">
                           {(order.items || []).slice(0, 3).map((item: any, i: number) => (
-                            <div key={i} className="inline-block h-10 w-8 bg-gray-100 border border-white rounded shrink-0 overflow-hidden relative">
+                            <div key={i} className="inline-block h-10 w-8 bg-gray-100 border border-white rounded shrink-0 overflow-hidden relative shadow-sm">
                               {item.image ? <img src={item.image} className="object-cover w-full h-full" alt="" /> : <Package className="h-3 w-3 m-auto text-gray-300" />}
                             </div>
                           ))}
                           {(order.items || []).length > 3 && (
-                            <div className="flex items-center justify-center h-10 w-8 bg-black text-white text-[8px] font-bold rounded border border-white shrink-0">
+                            <div className="flex items-center justify-center h-10 w-8 bg-black text-white text-[8px] font-bold rounded border border-white shrink-0 shadow-sm">
                               +{(order.items || []).length - 3}
                             </div>
                           )}
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[10px] font-bold uppercase tracking-tighter">{totalUnits} {totalUnits === 1 ? 'UNIT' : 'UNITS'}</span>
-                          <span className="text-[9px] text-[#8c9196] font-medium uppercase truncate max-w-[120px]">
+                          <span className="text-[9px] text-[#8c9196] font-medium uppercase truncate max-w-[150px]">
                             {order.items?.[0]?.name || 'Unknown Item'}
                           </span>
+                          
+                          <div className="flex flex-col gap-0.5 mt-1">
+                            {order.items?.[0]?.customName && (
+                              <div className="flex items-center gap-1 text-[8px] font-bold text-blue-600 uppercase">
+                                <Sparkles className="h-2 w-2" />
+                                {order.items[0].customName} {order.items[0].customNumber}
+                              </div>
+                            )}
+                            {order.items?.[0]?.specialNote && (
+                              <div className="flex items-center gap-1 text-[8px] text-gray-400 italic max-w-[150px] truncate">
+                                <MessageSquare className="h-2 w-2" />
+                                {order.items[0].specialNote}
+                              </div>
+                            )}
+                            {order.items?.length > 1 && (
+                              <span className="text-[8px] font-bold text-gray-300 uppercase mt-0.5">Full manifest available in details</span>
+                            )}
+                          </div>
                         </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-mono text-[11px] font-bold uppercase tracking-tight">#{order.id.substring(0, 6).toUpperCase()}</span>
+                        <span className="text-[10px] text-[#8c9196] font-medium leading-none">{formatDate(order.createdAt).split(',')[0]}</span>
                       </div>
                     </TableCell>
                     <TableCell>
