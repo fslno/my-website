@@ -24,7 +24,8 @@ import {
   Barcode,
   Scan,
   ShieldCheck,
-  Building2
+  Building2,
+  ShoppingBag
 } from 'lucide-react';
 import { 
   Table, 
@@ -54,8 +55,8 @@ import {
   DialogTitle, 
   DialogFooter 
 } from '@/components/ui/dialog';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, updateDoc, query, where, collection } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -72,6 +73,15 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
   // Fetch Store Config for Branding & Invoice Sender details
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
+
+  // Fetch all orders for this customer to get the total count
+  const customerOrdersQuery = useMemoFirebase(() => {
+    if (!db || !order?.email) return null;
+    return query(collection(db, 'orders'), where('email', '==', order.email));
+  }, [db, order?.email]);
+
+  const { data: customerOrders } = useCollection(customerOrdersQuery);
+  const orderCount = customerOrders?.length || 0;
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
@@ -628,6 +638,29 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                   <div className="space-y-1">
                     <p className="text-[9px] uppercase font-bold text-gray-400">Phone Number</p>
                     <p className="text-xs font-bold uppercase">{order.customer?.phone || 'Not Provided'}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <ShoppingBag className="h-4 w-4 text-gray-400 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-[9px] uppercase font-bold text-gray-400">Total Acquisitions</p>
+                    <p className="text-xs font-bold uppercase">{orderCount} {orderCount === 1 ? 'Order' : 'Orders'}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-[9px] uppercase font-bold text-gray-400">Primary Address</p>
+                    {order.customer?.shipping ? (
+                      <p className="text-xs font-bold uppercase leading-relaxed">
+                        {order.customer.shipping.address}<br />
+                        {order.customer.shipping.city}, {order.customer.shipping.province}<br />
+                        {order.customer.shipping.postalCode}<br />
+                        {order.customer.shipping.country}
+                      </p>
+                    ) : (
+                      <p className="text-xs font-bold uppercase text-gray-400 italic">Local Studio Pickup</p>
+                    )}
                   </div>
                 </div>
               </div>
