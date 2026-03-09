@@ -24,12 +24,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
+import { useFirestore, useCollection } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function ProductsPage() {
+  const db = useFirestore();
+  const { data: products, loading } = useCollection(db ? collection(db, 'products') : null);
+  
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [productName, setProductName] = useState('');
   const [features, setFeatures] = useState('');
+  const [price, setPrice] = useState('');
+  const [category, setCategory] = useState('');
+  const [inventory, setInventory] = useState('');
   const [generatedDescription, setGeneratedDescription] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleGenerate = async () => {
     if (!productName || !features) return;
@@ -48,6 +60,49 @@ export default function ProductsPage() {
     }
   };
 
+  const handleSaveProduct = async () => {
+    if (!db || !productName || !price) return;
+    setIsSaving(true);
+    
+    const productData = {
+      name: productName,
+      description: generatedDescription,
+      features: features.split(',').map(f => f.trim()),
+      price: parseFloat(price),
+      category: category || 'Uncategorized',
+      inventory: parseInt(inventory) || 0,
+      status: 'active',
+      imageUrl: `https://picsum.photos/seed/${Math.random()}/600/800`,
+      createdAt: serverTimestamp(),
+    };
+
+    addDoc(collection(db, 'products'), productData)
+      .then(() => {
+        setIsDialogOpen(false);
+        resetForm();
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: 'products',
+          operation: 'create',
+          requestResourceData: productData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
+  };
+
+  const resetForm = () => {
+    setProductName('');
+    setFeatures('');
+    setPrice('');
+    setCategory('');
+    setInventory('');
+    setGeneratedDescription('');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -56,20 +111,36 @@ export default function ProductsPage() {
           <p className="text-[#5c5f62] mt-1 text-sm">Add and manage your store inventory.</p>
         </div>
         <div className="flex gap-2">
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-black hover:bg-black/90 text-white font-bold h-9">
                 <Plus className="h-4 w-4 mr-2" /> Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white">
+            <DialogContent className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-headline">Add New Product</DialogTitle>
               </DialogHeader>
               <div className="grid gap-6 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Product Name</Label>
-                  <Input id="name" placeholder="e.g. Sculpted Merino Knit" value={productName} onChange={(e) => setProductName(e.target.value)} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Product Name</Label>
+                    <Input id="name" placeholder="e.g. Sculpted Merino Knit" value={productName} onChange={(e) => setProductName(e.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Input id="category" placeholder="e.g. Knitwear" value={category} onChange={(e) => setCategory(e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="price">Price ($)</Label>
+                    <Input id="price" type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="inventory">Initial Inventory</Label>
+                    <Input id="inventory" type="number" placeholder="24" value={inventory} onChange={(e) => setInventory(e.target.value)} />
+                  </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="features">Features (comma separated)</Label>
@@ -99,14 +170,21 @@ export default function ProductsPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button className="w-full bg-black text-white h-11 font-bold">Save Product</Button>
+                <Button 
+                  onClick={handleSaveProduct} 
+                  disabled={isSaving || !productName || !price}
+                  className="w-full bg-black text-white h-11 font-bold"
+                >
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Save Product
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <div className="bg-white border border-[#e1e3e5] rounded-lg">
+      <div className="bg-white border border-[#e1e3e5] rounded-lg overflow-hidden">
         <div className="p-4 border-b border-[#e1e3e5] flex items-center justify-between gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
@@ -118,9 +196,6 @@ export default function ProductsPage() {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-9 border-[#babfc3]">
               <Filter className="h-4 w-4 mr-2" /> Filter
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 border-[#babfc3]">
-              Sort By
             </Button>
           </div>
         </div>
@@ -136,31 +211,45 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <TableRow key={i} className="hover:bg-[#f6f6f7] transition-colors border-[#e1e3e5]">
-                <TableCell>
-                  <div className="w-12 h-16 bg-gray-100 relative overflow-hidden">
-                    <img src={`https://picsum.photos/seed/lux${i}/100/150`} alt="Product" className="object-cover" />
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-sm">Oversized Raw Trench</span>
-                    <span className="text-xs text-[#5c5f62]">Outerwear</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Active</span>
-                </TableCell>
-                <TableCell className="text-sm">24 in stock</TableCell>
-                <TableCell className="text-sm font-semibold">$890.00</TableCell>
-                <TableCell>
-                  <button className="p-1 hover:bg-[#e1e3e5] rounded transition-colors">
-                    <MoreHorizontal className="h-4 w-4 text-[#5c5f62]" />
-                  </button>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
                 </TableCell>
               </TableRow>
-            ))}
+            ) : products?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                  No products found. Start by adding one.
+                </TableCell>
+              </TableRow>
+            ) : (
+              products?.map((product: any) => (
+                <TableRow key={product.id} className="hover:bg-[#f6f6f7] transition-colors border-[#e1e3e5]">
+                  <TableCell>
+                    <div className="w-12 h-16 bg-gray-100 relative overflow-hidden">
+                      <img src={product.imageUrl || `https://picsum.photos/seed/${product.id}/100/150`} alt={product.name} className="object-cover w-full h-full" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm">{product.name}</span>
+                      <span className="text-xs text-[#5c5f62]">{product.category}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{product.status}</span>
+                  </TableCell>
+                  <TableCell className="text-sm">{product.inventory} in stock</TableCell>
+                  <TableCell className="text-sm font-semibold">${product.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <button className="p-1 hover:bg-[#e1e3e5] rounded transition-colors">
+                      <MoreHorizontal className="h-4 w-4 text-[#5c5f62]" />
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -13,7 +14,6 @@ import {
   BarChart3,
   Search,
   Bell,
-  HelpCircle,
   Tag,
   Ruler,
   Globe,
@@ -21,7 +21,6 @@ import {
   RefreshCw,
   BarChart
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -117,7 +116,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Domain Name & Site Address: The primary URL for your store (e.g., fslno.com). This section allows you to connect a custom domain and ensures all traffic is directed to the secure https version of your Next.js site. Header Meta Tags & Site Verification: A central hub to inject custom code into the <head> of your site. This is where you paste verification strings for Google Search Console, Pinterest, and Facebook Business Manager to prove you own the domain. Sitemap: An automatically generated sitemap.xml file that lists every product, category, and page on Fslno. It acts as a roadmap for Google’s crawlers to find and index your new clothing drops instantly. Allow Search Engines to Index Instant Site: A master Visibility Toggle. When ON, it tells Google and Bing that your store is live and ready to appear in search results. When OFF (Maintenance Mode), it hides your site while you are building or updating a Spot Closing drop.">
+                  <SidebarMenuButton asChild tooltip="Domain Name & Site Address The primary URL for your store (e.g., fslno.com). This section allows you to connect a custom domain and ensures all traffic is directed to the secure https version of your Next.js site. Header Meta Tags & Site Verification A central hub to inject custom code into the <head> of your site. This is where you paste verification strings for Google Search Console, Pinterest, and Facebook Business Manager to prove you own the domain. Sitemap An automatically generated sitemap.xml file that lists every product, category, and page on Fslno. It acts as a roadmap for Google’s crawlers to find and index your new clothing drops instantly. Allow Search Engines to Index Instant Site A master 'Visibility Toggle.' When ON, it tells Google and Bing that your store is live and ready to appear in search results. When OFF (Maintenance Mode), it hides your site while you are building or updating a 'Spot Closing' drop.">
                     <Link href="/admin/domain">
                       <Globe />
                       <span>Domain</span>
@@ -139,7 +138,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Google Merchant Center (GMC) Sync: Auto-Feed real-time Content API feed for Search, Shopping, and YouTube. Attribute Mapping: Map Firestore fields (Color, Size, Material) to Google's specific requirements.">
+                  <SidebarMenuButton asChild tooltip="Merchant API (V1) Integration: On-Demand Updates: Unlike standard feeds that update once a day, the API pushes price or stock changes to Google in minutes. Partial Sync: Only update the 'Price' or 'Availability' for a specific hoodie without re-sending your entire 500-item catalog. Google Product Studio: AI Enhancement: Integrated tools to remove backgrounds or upscale FSLNO lifestyle photos directly before they hit Google Shopping. YouTube Shopping: Product Tagging: Automatically syncs your FSLNO catalog so you can tag products in YouTube videos or during live streams. Local Inventory Ads: If you have a physical 'Spot' location, this tells Google users exactly what is in stock at that specific address.">
                     <Link href="/admin/sales-channels/google">
                       <RefreshCw />
                       <span>Google Sync</span>
