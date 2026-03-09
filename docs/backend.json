@@ -58,6 +58,19 @@
         "metaEmqEnabled": { "type": "boolean" },
         "customIntegrations": { "type": "array", "items": { "type": "object" } }
       }
+    },
+    "AnalyticsConfig": {
+      "title": "Analytics Configuration",
+      "description": "GA4 and funnel tracking settings.",
+      "type": "object",
+      "properties": {
+        "ga4MeasurementId": { "type": "string" },
+        "funnelTrackingEnabled": { "type": "boolean" },
+        "predictiveAudiencesEnabled": { "type": "boolean" },
+        "userIdTrackingEnabled": { "type": "boolean" },
+        "churnProbabilityEnabled": { "type": "boolean" },
+        "purchaseProbabilityEnabled": { "type": "boolean" }
+      }
     }
   },
   "auth": {
@@ -79,6 +92,10 @@
     "/config/social-commerce": {
       "schema": "SocialCommerceConfig",
       "description": "Social commerce and CAPI settings."
+    },
+    "/config/analytics": {
+      "schema": "AnalyticsConfig",
+      "description": "GA4 and analytics settings."
     }
   }
 }

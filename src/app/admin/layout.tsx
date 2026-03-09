@@ -32,6 +32,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { signInWithPopup, GoogleAuthProvider, signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
@@ -292,28 +293,81 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Google Sync">
-                    <Link href="/admin/sales-channels/google">
-                      <RefreshCw />
-                      <span>Google Sync</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <Link href="/admin/sales-channels/google">
+                            <RefreshCw />
+                            <span>Google Sync</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
+                        <div className="space-y-2">
+                          <p className="font-bold text-sm">Merchant API (V1) Integration</p>
+                          <p className="text-xs text-muted-foreground">• On-Demand Updates: Price/stock changes sync in minutes.</p>
+                          <p className="text-xs text-muted-foreground">• Partial Sync: Update specific fields without re-sending the entire catalog.</p>
+                          <p className="font-bold text-sm mt-2">Google Product Studio</p>
+                          <p className="text-xs text-muted-foreground">• AI Enhancement: Background removal and image upscaling.</p>
+                          <p className="font-bold text-sm mt-2">YouTube Shopping</p>
+                          <p className="text-xs text-muted-foreground">• Product Tagging: Real-time sync for shoppable videos and live streams.</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Social Commerce">
-                    <Link href="/admin/sales-channels/social">
-                      <Share2 />
-                      <span>Social Commerce</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <Link href="/admin/sales-channels/social">
+                            <Share2 />
+                            <span>Social Commerce</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
+                        <div className="space-y-2">
+                          <p className="font-bold text-sm">TikTok Shop Seller API</p>
+                          <p className="text-xs text-muted-foreground">• In-App Checkout: Customers buy without leaving TikTok.</p>
+                          <p className="text-xs text-muted-foreground">• Affiliate Management: Track sample ROI and creator sales.</p>
+                          <p className="font-bold text-sm mt-2">Meta Conversions API (CAPI)</p>
+                          <p className="text-xs text-muted-foreground">• Server-to-Server Tracking: Bypasses iOS privacy/ad-blockers.</p>
+                          <p className="text-xs text-muted-foreground">• Event Match Quality: Sends hashed data to find buyers.</p>
+                          <p className="font-bold text-sm mt-2">Instagram Shopping</p>
+                          <p className="text-xs text-muted-foreground">• Product Tags: Sync categories into shoppable Guides and Reels.</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="GA4 Analytics">
-                    <Link href="/admin/sales-channels/analytics">
-                      <BarChart />
-                      <span>Analytics</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <Link href="/admin/sales-channels/analytics">
+                            <BarChart />
+                            <span>Analytics</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
+                        <div className="space-y-2">
+                          <p className="font-bold text-sm">Custom Funnel Tracking</p>
+                          <p className="text-xs text-muted-foreground">• view_item_list: Track most popular categories.</p>
+                          <p className="text-xs text-muted-foreground">• Checkout Drop-off: Pinpoint user exit points.</p>
+                          <p className="font-bold text-sm mt-2">Predictive Audiences</p>
+                          <p className="text-xs text-muted-foreground">• Churn Probability: Identify users likely to stop visiting.</p>
+                          <p className="text-xs text-muted-foreground">• 7-day Purchasers: Target high-intent buyers via Google Ads.</p>
+                          <p className="font-bold text-sm mt-2">User ID Tracking</p>
+                          <p className="text-xs text-muted-foreground">• Cross-Device: Connect mobile browsing to desktop purchase.</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroup>
