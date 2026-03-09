@@ -1,5 +1,4 @@
-
-import type {Config} from 'tailwind-merge';
+import type {Config} from 'tailwindcss';
 
 const config: Config = {
   darkMode: ['class'],
@@ -11,8 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Playfair Display', 'serif'],
+        body: ['var(--font-body)', 'Inter', 'sans-serif'],
+        headline: ['var(--font-headline)', 'Playfair Display', 'serif'],
         code: ['monospace'],
       },
       colors: {

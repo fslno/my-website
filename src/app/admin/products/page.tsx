@@ -25,20 +25,13 @@ import {
   Globe,
   Truck,
   LayoutGrid,
-  ChevronRight,
-  ChevronLeft,
   Layers,
-  Box,
-  GripVertical,
   RefreshCcw,
   Image as ImageIcon,
-  Play,
   Copy,
   Download,
   Upload,
-  ArrowUpDown,
-  CheckSquare,
-  Square
+  ArrowUpDown
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -55,7 +48,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -78,7 +71,6 @@ export default function ProductsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvImportRef = useRef<HTMLInputElement>(null);
 
-  // Stable queries
   const productsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
 
@@ -90,14 +82,12 @@ export default function ProductsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
 
-  // UI State: Selection, Filter, Sort
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'stock'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Product Form State
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [comparedPrice, setComparedPrice] = useState('');
@@ -127,9 +117,7 @@ export default function ProductsPage() {
   const [shippingClass, setShippingClass] = useState('standard');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [features, setFeatures] = useState('');
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  // Filtering & Sorting Logic
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     
@@ -156,7 +144,6 @@ export default function ProductsPage() {
     return result;
   }, [products, searchQuery, categoryFilter, sortBy, sortOrder]);
 
-  // Bulk Actions
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(filteredProducts.map(p => p.id));
@@ -209,16 +196,13 @@ export default function ProductsPage() {
     toast({ title: "Entries Duplicated", description: `${selectedIds.length} copies added to archive.` });
   };
 
-  // CSV Tools
   const handleExportCSV = () => {
     if (!products || products.length === 0) return;
-    
     const headers = ['Name', 'SKU', 'Brand', 'Price', 'Stock', 'Category'];
     const rows = products.map(p => {
       const cat = categories?.find(c => c.id === p.categoryId)?.name || 'Unlinked';
       return [p.name, p.sku || '', p.brand || '', p.price, p.inventory || 0, cat].join(',');
     });
-    
     const csvContent = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -233,13 +217,11 @@ export default function ProductsPage() {
   const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !db) return;
-
     const reader = new FileReader();
     reader.onload = async (event) => {
       const text = event.target?.result as string;
       const lines = text.split('\n');
       if (lines.length <= 1) return;
-
       const batch = writeBatch(db);
       lines.slice(1).forEach(line => {
         const [name, sku, brand, price, inventory] = line.split(',');
@@ -247,8 +229,8 @@ export default function ProductsPage() {
           const newRef = doc(collection(db, 'products'));
           batch.set(newRef, {
             name: name.trim(),
-            sku: sku.trim(),
-            brand: brand.trim(),
+            sku: (sku || '').trim(),
+            brand: (brand || '').trim(),
             price: parseFloat(price),
             inventory: parseInt(inventory) || 0,
             status: 'draft',
@@ -256,7 +238,6 @@ export default function ProductsPage() {
           });
         }
       });
-
       await batch.commit();
       toast({ title: "Import Complete", description: "New entries processed into archive." });
     };
@@ -270,8 +251,6 @@ export default function ProductsPage() {
     const randomPart = Math.floor(1000 + Math.random() * 9000);
     return `${prefix}-${namePart}-${randomPart}`;
   };
-
-  const handleAutoGenerateSku = () => setSku(generateSku(name));
 
   useEffect(() => {
     if (name && name.length >= 2 && !sku) {
@@ -291,17 +270,6 @@ export default function ProductsPage() {
   const totalInventory = useMemo(() => {
     return variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
   }, [variants]);
-
-  const handleAddVariant = () => {
-    const newSize = 'NEW';
-    const newVariantSku = sku ? `${sku}-${newSize}` : '';
-    setVariants([...variants, { size: newSize, stock: 0, sku: newVariantSku }]);
-  };
-
-  const handleRemoveVariant = (index: number) => {
-    if (variants.length <= 1) return;
-    setVariants(variants.filter((_, i) => i !== index));
-  };
 
   const handleUpdateVariant = (index: number, field: keyof Variant, value: string | number) => {
     const updated = [...variants];
@@ -443,21 +411,19 @@ export default function ProductsPage() {
               </div>
               <div className="flex-1 overflow-y-auto">
                 <TabsContent value="general" className="p-8 m-0 space-y-12 max-w-5xl mx-auto">
-                  <section className="space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                      {media.map((item, index) => (
-                        <div key={index} className="relative aspect-square bg-gray-100 border rounded-lg overflow-hidden group">
-                          {item.type === 'video' ? <video src={item.url} className="absolute inset-0 w-full h-full object-cover" muted loop /> : <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />}
-                          <button onClick={() => setMedia(media.filter((_, i) => i !== index))} className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X className="h-3 w-3" /></button>
-                        </div>
-                      ))}
-                      <button onClick={() => fileInputRef.current?.click()} className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group">
-                        <PlusCircle className="h-5 w-5 text-gray-400" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Add Media</span>
-                      </button>
-                      <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,video/*" onChange={handleMediaUpload} />
-                    </div>
-                  </section>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {media.map((item, index) => (
+                      <div key={index} className="relative aspect-square bg-gray-100 border rounded-lg overflow-hidden group">
+                        {item.type === 'video' ? <video src={item.url} className="absolute inset-0 w-full h-full object-cover" muted loop /> : <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />}
+                        <button onClick={() => setMedia(media.filter((_, i) => i !== index))} className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X className="h-3 w-3" /></button>
+                      </div>
+                    ))}
+                    <button onClick={() => fileInputRef.current?.click()} className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group">
+                      <PlusCircle className="h-5 w-5 text-gray-400" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Add Media</span>
+                    </button>
+                    <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,video/*" onChange={handleMediaUpload} />
+                  </div>
                   <section className="space-y-8 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
                     <div className="grid gap-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -481,7 +447,34 @@ export default function ProductsPage() {
                     </div>
                   </section>
                 </TabsContent>
-                {/* ... other tabs content unchanged for brevity ... */}
+                <TabsContent value="inventory" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                  <div className="bg-black text-white p-6 rounded-xl flex justify-between items-center">
+                    <div><p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total Available Units</p><p className="text-3xl font-bold font-headline">{totalInventory} PCS</p></div>
+                    <div className="text-right"><Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Universal SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1" /></div>
+                  </div>
+                  <div className="grid gap-4">
+                    {variants.map((v, i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 border rounded-xl bg-white shadow-sm">
+                        <div className="w-20"><Label className="text-[9px] uppercase font-bold text-gray-400">Size</Label><Input value={v.size} onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)} className="h-9" /></div>
+                        <div className="flex-1"><Label className="text-[9px] uppercase font-bold text-gray-400">Variant SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-9 font-mono text-xs" /></div>
+                        <div className="w-32"><Label className="text-[9px] uppercase font-bold text-gray-400">Units in Stock</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-9" /></div>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+                <TabsContent value="seo" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                  <div className="space-y-6">
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Custom SEO Title</Label><Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} /></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Meta Description</Label><Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} /></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">URL Handle</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-xs text-gray-400">fslno.com/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0" /></div></div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="logistics" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Weight (kg)</Label><Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} /></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Shipping Class</Label><Select value={shippingClass} onValueChange={setShippingClass}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="standard">Standard Dispatch</SelectItem><SelectItem value="heavy">Heavy Goods</SelectItem><SelectItem value="fragile">White Glove Service</SelectItem></SelectContent></Select></div>
+                  </div>
+                </TabsContent>
               </div>
               <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="h-11 px-6 font-bold uppercase tracking-widest text-[10px]">Cancel</Button>
@@ -493,120 +486,36 @@ export default function ProductsPage() {
       </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-lg overflow-hidden shadow-sm">
-        {/* Power Tools Row (Above Search) */}
         <div className="p-4 border-b bg-gray-50/50 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                disabled={selectedIds.length === 0}
-                onClick={handleBulkDuplicate}
-                className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"
-              >
-                <Copy className="h-3.5 w-3.5" /> Duplicate {selectedIds.length > 0 && `(${selectedIds.length})`}
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                disabled={selectedIds.length === 0}
-                className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"
-              >
-                <RefreshCcw className="h-3.5 w-3.5" /> Bulk Edit
-              </Button>
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                disabled={selectedIds.length === 0}
-                onClick={handleBulkDelete}
-                className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"
-              >
-                <Trash2 className="h-3.5 w-3.5" /> Remove
-              </Button>
+              <Button variant="outline" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDuplicate} className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"><Copy className="h-3.5 w-3.5" /> Duplicate {selectedIds.length > 0 && `(${selectedIds.length})`}</Button>
+              <Button variant="outline" size="sm" disabled={selectedIds.length === 0} className="h-9 border-[#babfc3] text-[10px] font-bold uppercase tracking-widest gap-2"><RefreshCcw className="h-3.5 w-3.5" /> Bulk Edit</Button>
+              <Button variant="destructive" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDelete} className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"><Trash2 className="h-3.5 w-3.5" /> Remove</Button>
             </div>
             <div className="flex items-center gap-2">
-              <input 
-                type="file" 
-                ref={csvImportRef} 
-                className="hidden" 
-                accept=".csv" 
-                onChange={handleImportCSV} 
-              />
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => csvImportRef.current?.click()}
-                className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"
-              >
-                <Upload className="h-3.5 w-3.5" /> CSV Import
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleExportCSV}
-                className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"
-              >
-                <Download className="h-3.5 w-3.5" /> CSV Export
-              </Button>
+              <input type="file" ref={csvImportRef} className="hidden" accept=".csv" onChange={handleImportCSV} />
+              <Button variant="ghost" size="sm" onClick={() => csvImportRef.current?.click()} className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"><Upload className="h-3.5 w-3.5" /> CSV Import</Button>
+              <Button variant="ghost" size="sm" onClick={handleExportCSV} className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"><Download className="h-3.5 w-3.5" /> CSV Export</Button>
             </div>
           </div>
-          
           <Separator />
-
-          {/* Search & Filter Row */}
           <div className="flex items-center justify-between gap-4">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
-              <Input 
-                placeholder="Search archive by name or SKU..." 
-                className="pl-10 h-9 border-[#babfc3] focus:ring-black" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <Input placeholder="Search archive by name or SKU..." className="pl-10 h-9 border-[#babfc3] focus:ring-black" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
             <div className="flex items-center gap-2">
-              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-                <SelectTrigger className="h-9 w-[140px] text-[10px] font-bold uppercase tracking-widest">
-                  <ArrowUpDown className="h-3 w-3 mr-2" /> {sortBy}
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name" className="text-[10px] uppercase font-bold">Name</SelectItem>
-                  <SelectItem value="price" className="text-[10px] uppercase font-bold">Price</SelectItem>
-                  <SelectItem value="stock" className="text-[10px] uppercase font-bold">Stock</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="h-9 w-[160px] text-[10px] font-bold uppercase tracking-widest">
-                  <Filter className="h-3 w-3 mr-2" /> {categoryFilter === 'all' ? 'All Collections' : categories?.find(c => c.id === categoryFilter)?.name}
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-[10px] uppercase font-bold">All Collections</SelectItem>
-                  {categories?.map(c => (
-                    <SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                className="h-9 w-9 border-[#babfc3]"
-              >
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
+              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}><SelectTrigger className="h-9 w-[140px] text-[10px] font-bold uppercase tracking-widest"><ArrowUpDown className="h-3 w-3 mr-2" /> {sortBy}</SelectTrigger><SelectContent><SelectItem value="name" className="text-[10px] uppercase font-bold">Name</SelectItem><SelectItem value="price" className="text-[10px] uppercase font-bold">Price</SelectItem><SelectItem value="stock" className="text-[10px] uppercase font-bold">Stock</SelectItem></SelectContent></Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}><SelectTrigger className="h-9 w-[160px] text-[10px] font-bold uppercase tracking-widest"><Filter className="h-3 w-3 mr-2" /> {categoryFilter === 'all' ? 'All Collections' : categories?.find(c => c.id === categoryFilter)?.name}</SelectTrigger><SelectContent><SelectItem value="all" className="text-[10px] uppercase font-bold">All Collections</SelectItem>{categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}</SelectContent></Select>
+              <Button variant="outline" size="icon" onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="h-9 w-9 border-[#babfc3]"><ArrowUpDown className="h-4 w-4" /></Button>
             </div>
           </div>
         </div>
-
         <Table>
           <TableHeader className="bg-[#f6f6f7]">
             <TableRow className="hover:bg-transparent border-[#e1e3e5]">
-              <TableHead className="w-[40px] px-4">
-                <Checkbox 
-                  checked={selectedIds.length === filteredProducts.length && filteredProducts.length > 0}
-                  onCheckedChange={handleSelectAll}
-                />
-              </TableHead>
+              <TableHead className="w-[40px] px-4"><Checkbox checked={selectedIds.length === filteredProducts.length && filteredProducts.length > 0} onCheckedChange={handleSelectAll} /></TableHead>
               <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Preview</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Product</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Collection</TableHead>
@@ -616,48 +525,22 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {productsLoading || categoriesLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
-            ) : filteredProducts.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-20 text-gray-400">No archive entries match your criteria.</TableCell></TableRow>
-            ) : (
-              filteredProducts.map((product: any) => {
-                const category = categories?.find((c: any) => c.id === product.categoryId);
-                const firstMedia = product.media?.[0]?.url;
-                const isSelected = selectedIds.includes(product.id);
-                return (
-                  <TableRow key={product.id} className={`transition-colors border-[#e1e3e5] group ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}>
-                    <TableCell className="px-4">
-                      <Checkbox 
-                        checked={isSelected}
-                        onCheckedChange={() => handleToggleSelect(product.id)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">
-                        {firstMedia ? <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" /> : <ImageIcon className="h-4 w-4 text-gray-300" />}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm">{product.name}</span>
-                        <span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.sku || 'No SKU'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
-                        <Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
-                    <TableCell className="text-sm font-semibold">${Number(product.price).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4 text-[#5c5f62]" /></button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
+            {productsLoading || categoriesLoading ? (<TableRow><TableCell colSpan={7} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>) : filteredProducts.length === 0 ? (<TableRow><TableCell colSpan={7} className="text-center py-20 text-gray-400">No archive entries match your criteria.</TableCell></TableRow>) : (filteredProducts.map((product: any) => {
+              const category = categories?.find((c: any) => c.id === product.categoryId);
+              const firstMedia = product.media?.[0]?.url;
+              const isSelected = selectedIds.includes(product.id);
+              return (
+                <TableRow key={product.id} className={`transition-colors border-[#e1e3e5] group ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}>
+                  <TableCell className="px-4"><Checkbox checked={isSelected} onCheckedChange={() => handleToggleSelect(product.id)} /></TableCell>
+                  <TableCell><div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{firstMedia ? <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" /> : <ImageIcon className="h-4 w-4 text-gray-300" />}</div></TableCell>
+                  <TableCell><div className="flex flex-col"><span className="font-bold text-sm">{product.name}</span><span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.sku || 'No SKU'}</span></div></TableCell>
+                  <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
+                  <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
+                  <TableCell className="text-sm font-semibold">${Number(product.price).toFixed(2)}</TableCell>
+                  <TableCell><button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4 text-[#5c5f62]" /></button></TableCell>
+                </TableRow>
+              );
+            }))}
           </TableBody>
         </Table>
       </div>
