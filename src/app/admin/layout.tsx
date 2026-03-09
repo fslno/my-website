@@ -1,6 +1,7 @@
+
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
   LayoutDashboard, 
@@ -20,12 +21,17 @@ import {
   RefreshCw,
   BarChart,
   RefreshCw as LoaderIcon,
-  LogOut
+  LogOut,
+  Mail,
+  Lock
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUser, useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { signInWithPopup, GoogleAuthProvider, signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -33,7 +39,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const auth = useAuth();
   const { toast } = useToast();
 
-  const handleLogin = async () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleGoogleLogin = async () => {
     if (!auth) return;
     try {
       const provider = new GoogleAuthProvider();
@@ -47,8 +57,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "Could not verify credentials. Check authorized domains in Firebase Console.",
+        description: error.message || "Could not verify credentials.",
       });
+    }
+  };
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth || !email || !password) return;
+    setIsLoggingIn(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Welcome back",
+        description: "Successfully signed into the Command Center.",
+      });
+    } catch (error: any) {
+      console.error('Email login error:', error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Invalid email or password. Please try again.",
+      });
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -88,12 +120,62 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <p className="text-gray-500 text-sm mb-10 max-w-xs leading-relaxed">
           Authentication required to access the FSLNO luxury operations suite.
         </p>
+
+        <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
+          <div className="space-y-2 text-left">
+            <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email Address</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="admin@fslno.com" 
+                className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2 text-left">
+            <Label htmlFor="password" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="••••••••" 
+                className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <Button 
+            type="submit"
+            disabled={isLoggingIn}
+            className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 transition-all rounded-none"
+          >
+            {isLoggingIn ? "Authenticating..." : "Sign in to Dashboard"}
+          </Button>
+        </form>
+
+        <div className="flex items-center gap-4 w-full max-w-sm mb-8">
+          <Separator className="flex-1 bg-gray-200" />
+          <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">or</span>
+          <Separator className="flex-1 bg-gray-200" />
+        </div>
+
         <Button 
-          onClick={handleLogin} 
-          className="bg-black text-white px-10 h-14 font-bold uppercase tracking-[0.2em] text-xs hover:bg-black/90 transition-all rounded-none shadow-xl"
+          onClick={handleGoogleLogin} 
+          variant="outline"
+          className="w-full max-w-sm border-[#e1e3e5] bg-white text-black px-10 h-12 font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-50 transition-all rounded-none flex items-center justify-center gap-2"
         >
-          Sign in with Google
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
+          Continue with Google
         </Button>
+        
         <p className="mt-8 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Secure Environment V1.0</p>
       </div>
     );
@@ -213,7 +295,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Merchant API Integration: Real-time price/stock sync with Google Shopping and Product Studio AI tools.">
+                  <SidebarMenuButton asChild tooltip="Merchant API Integration: Real-time price/stock sync with Google Shopping.">
                     <Link href="/admin/sales-channels/google">
                       <RefreshCw />
                       <span>Google Sync</span>
@@ -221,7 +303,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="TikTok & Meta Sync: In-App Checkout, Server-to-Server CAPI tracking, and Instagram Shoppable Reels.">
+                  <SidebarMenuButton asChild tooltip="TikTok & Meta Sync: In-App Checkout and CAPI tracking.">
                     <Link href="/admin/sales-channels/social">
                       <Share2 />
                       <span>Social Commerce</span>
@@ -229,10 +311,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="GA4 Analytics: Track 'Add to Cart' and 'Purchase' events across the storefront.">
+                  <SidebarMenuButton asChild tooltip="GA4 Analytics: Track 'Add to Cart' and 'Purchase' events.">
                     <Link href="/admin/sales-channels/analytics">
                       <BarChart />
-                      <span>Analytics (GA4)</span>
+                      <span>Analytics</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
