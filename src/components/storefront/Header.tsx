@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -6,7 +5,7 @@ import Link from 'next/link';
 import { ShoppingBag, Menu, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -35,6 +34,9 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[300px] bg-white">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Navigation Menu</SheetTitle>
+              </SheetHeader>
               <nav className="flex flex-col gap-6 mt-12">
                 <Link href="/collections/new" className="text-xl font-headline">New Drops</Link>
                 <Link href="/collections/women" className="text-xl font-headline">Women</Link>
