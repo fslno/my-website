@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -159,6 +158,21 @@ export function Header() {
                               <p className="text-sm font-bold">${(item.price * item.quantity).toLocaleString()} CAD</p>
                             </div>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
+                            
+                            {/* Customization Details */}
+                            {(item.customName || item.customNumber) && (
+                              <div className="flex gap-2 text-[8px] font-bold uppercase text-blue-600 mt-1">
+                                {item.customName && <span>Name: {item.customName}</span>}
+                                {item.customNumber && <span>No: {item.customNumber}</span>}
+                              </div>
+                            )}
+                            
+                            {/* Special Note */}
+                            {item.specialNote && (
+                              <div className="text-[8px] text-gray-500 mt-1 border-l-2 border-gray-200 pl-2 line-clamp-2">
+                                Note: {item.specialNote}
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex items-center justify-between pt-2">
