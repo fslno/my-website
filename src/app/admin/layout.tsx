@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -25,6 +24,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import { useUser, useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { RefreshCw as LoaderIcon } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f6f6f7]">
         <div className="flex flex-col items-center gap-4">
-          <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+          <LoaderIcon className="h-8 w-8 animate-spin text-gray-400" />
           <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">Initializing FSLNO Admin...</p>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <SidebarGroup>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive tooltip="Home">
+                  <SidebarMenuButton asChild tooltip="Home">
                     <Link href="/admin">
                       <LayoutDashboard />
                       <span>Home</span>
@@ -195,8 +195,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <BarChart />
                       <span>Analytics (GA4)</span>
                     </Link>
-                  </SidebarMenuItem>
-                </SidebarMenu>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter className="border-t border-[#e1e3e5] p-4">
