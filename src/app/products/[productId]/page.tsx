@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -336,7 +335,7 @@ export default function ProductDetailPage() {
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Notes</Label>
                     <Textarea 
-                      placeholder="Special length requests..."
+                      placeholder="any special note"
                       value={specialRequest}
                       onChange={(e) => setSpecialRequest(e.target.value)}
                       className="bg-white border-gray-200 min-h-[60px] text-[10px] resize-none"
