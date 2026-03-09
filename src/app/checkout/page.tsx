@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   Package,
   Search,
-  ChevronDown
+  AlertCircle
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
@@ -27,24 +27,23 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 type DeliveryMethod = 'shipping' | 'pickup';
 
 const TAX_RATES: Record<string, number> = {
-  // Canada
-  'ON': 0.13, // HST
-  'BC': 0.12, // PST + GST
-  'QC': 0.14975, // QST + GST
-  'AB': 0.05, // GST
+  'ON': 0.13,
+  'BC': 0.12,
+  'QC': 0.14975,
+  'AB': 0.05,
   'MB': 0.12,
   'NB': 0.15,
   'NL': 0.15,
   'NS': 0.15,
   'PE': 0.15,
   'SK': 0.11,
-  // US (Simulated defaults)
   'NY': 0.08875,
   'CA': 0.0725,
   'TX': 0.0625,
@@ -56,17 +55,93 @@ export default function CheckoutPage() {
   const { cart, cartSubtotal, cartCount } = useCart();
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('shipping');
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
-  const [selectedProvince, setSelectedProvince] = useState<string>('');
   const [shippingRate, setShippingRate] = useState<number>(0);
+  
+  // Form State
+  const [formData, setFormData] = useState({
+    email: '',
+    phone: '',
+    name: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    province: '',
+    country: '',
+    billingAddress: '',
+    billingCity: '',
+    billingPostalCode: '',
+    billingProvince: '',
+    billingCountry: '',
+    courier: 'fedex', // Default set but validated on submit
+    pickupDate: new Date().toISOString().split('T')[0],
+    pickupTime: '14:00',
+    referral: ''
+  });
+
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [showErrorBanner, setShowErrors] = useState(false);
 
   const calculatedTax = useMemo(() => {
-    const rate = TAX_RATES[selectedProvince.toUpperCase()] || 0;
+    const province = deliveryMethod === 'shipping' ? formData.province : formData.billingProvince;
+    const rate = TAX_RATES[province.toUpperCase()] || 0;
     return cartSubtotal * rate;
-  }, [cartSubtotal, selectedProvince]);
+  }, [cartSubtotal, formData.province, formData.billingProvince, deliveryMethod]);
 
   const total = useMemo(() => {
     return cartSubtotal + calculatedTax + shippingRate;
   }, [cartSubtotal, calculatedTax, shippingRate]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: false }));
+    }
+  };
+
+  const handleUppercaseInput = (field: string, value: string) => {
+    handleInputChange(field, value.toUpperCase());
+  };
+
+  const validate = () => {
+    const newErrors: Record<string, boolean> = {};
+    
+    // Core requirements
+    if (!formData.email) newErrors.email = true;
+    if (!formData.phone) newErrors.phone = true;
+    if (!formData.name) newErrors.name = true;
+    if (!formData.referral) newErrors.referral = true;
+
+    if (deliveryMethod === 'shipping') {
+      if (!formData.address) newErrors.address = true;
+      if (!formData.city) newErrors.city = true;
+      if (!formData.postalCode) newErrors.postalCode = true;
+      if (!formData.province) newErrors.province = true;
+      if (!formData.country) newErrors.country = true;
+      if (!formData.courier) newErrors.courier = true;
+    } else {
+      if (!formData.billingAddress) newErrors.billingAddress = true;
+      if (!formData.billingCity) newErrors.billingCity = true;
+      if (!formData.billingPostalCode) newErrors.billingPostalCode = true;
+      if (!formData.billingProvince) newErrors.billingProvince = true;
+      if (!formData.billingCountry) newErrors.billingCountry = true;
+      if (!formData.pickupDate) newErrors.pickupDate = true;
+      if (!formData.pickupTime) newErrors.pickupTime = true;
+    }
+
+    setErrors(newErrors);
+    const hasErrors = Object.keys(newErrors).length > 0;
+    setShowErrors(hasErrors);
+    return !hasErrors;
+  };
+
+  const handleSubmit = () => {
+    if (validate()) {
+      // Proceed to payment processing
+      console.log("Archive order valid:", formData);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   if (cartCount === 0) {
     return (
@@ -80,10 +155,6 @@ export default function CheckoutPage() {
       </div>
     );
   }
-
-  const handleUppercaseInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.target.value = e.target.value.toUpperCase();
-  };
 
   return (
     <main className="min-h-screen bg-[#F9F9F9] flex flex-col">
@@ -102,7 +173,7 @@ export default function CheckoutPage() {
             <h2 className="text-sm font-bold uppercase tracking-[0.2em]">01. Delivery Method</h2>
             <div className="grid grid-cols-2 gap-4">
               <button
-                onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); }}
+                onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }}
                 className={cn(
                   "p-6 border-2 text-left flex flex-col gap-3 transition-all",
                   deliveryMethod === 'shipping' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50 hover:border-gray-300"
@@ -119,7 +190,7 @@ export default function CheckoutPage() {
               </button>
 
               <button
-                onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); }}
+                onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); setErrors({}); }}
                 className={cn(
                   "p-6 border-2 text-left flex flex-col gap-3 transition-all",
                   deliveryMethod === 'pickup' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50 hover:border-gray-300"
@@ -142,16 +213,42 @@ export default function CheckoutPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Email Address</Label>
-                <Input type="email" placeholder="ARCHIVE@FSLNO.COM" className="h-12 bg-[#F9F9F9] uppercase" onChange={handleUppercaseInput} />
+                <div className="flex justify-between items-center">
+                  <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-red-500" : "text-gray-500")}>Email Address</Label>
+                  {errors.email && <span className="text-[8px] font-bold text-red-500 uppercase tracking-tighter">Required</span>}
+                </div>
+                <Input 
+                  type="email" 
+                  placeholder="ARCHIVE@FSLNO.COM" 
+                  className={cn("h-12 bg-[#F9F9F9] uppercase", errors.email && "border-red-500 focus-visible:ring-red-500")}
+                  value={formData.email}
+                  onChange={(e) => handleUppercaseInput('email', e.target.value)} 
+                />
               </div>
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Phone Number</Label>
-                <Input type="tel" placeholder="+1 (555) 000-0000" className="h-12 bg-[#F9F9F9]" />
+                <div className="flex justify-between items-center">
+                  <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-red-500" : "text-gray-500")}>Phone Number</Label>
+                  {errors.phone && <span className="text-[8px] font-bold text-red-500 uppercase tracking-tighter">Required</span>}
+                </div>
+                <Input 
+                  type="tel" 
+                  placeholder="+1 (555) 000-0000" 
+                  className={cn("h-12 bg-[#F9F9F9]", errors.phone && "border-red-500 focus-visible:ring-red-500")}
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                />
               </div>
               <div className="md:col-span-2 space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Full Name</Label>
-                <Input placeholder="ENTER YOUR FULL NAME" className="h-12 bg-[#F9F9F9] uppercase" onChange={handleUppercaseInput} />
+                <div className="flex justify-between items-center">
+                  <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-red-500" : "text-gray-500")}>Full Name</Label>
+                  {errors.name && <span className="text-[8px] font-bold text-red-500 uppercase tracking-tighter">Required</span>}
+                </div>
+                <Input 
+                  placeholder="ENTER YOUR FULL NAME" 
+                  className={cn("h-12 bg-[#F9F9F9] uppercase", errors.name && "border-red-500 focus-visible:ring-red-500")}
+                  value={formData.name}
+                  onChange={(e) => handleUppercaseInput('name', e.target.value)}
+                />
               </div>
             </div>
 
@@ -159,25 +256,44 @@ export default function CheckoutPage() {
               <div className="space-y-6 pt-4 border-t">
                 <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Destination</h3>
                 <div className="grid gap-4">
-                  <Input placeholder="ADDRESS" className="h-12 uppercase" onChange={handleUppercaseInput} />
-                  <Input placeholder="APARTMENT, SUITE, ETC. (OPTIONAL)" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                  <Input 
+                    placeholder="ADDRESS" 
+                    className={cn("h-12 uppercase", errors.address && "border-red-500")} 
+                    value={formData.address}
+                    onChange={(e) => handleUppercaseInput('address', e.target.value)} 
+                  />
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder="CITY" className="h-12 uppercase" onChange={handleUppercaseInput} />
-                    <Input placeholder="POSTAL CODE" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                    <Input 
+                      placeholder="CITY" 
+                      className={cn("h-12 uppercase", errors.city && "border-red-500")}
+                      value={formData.city}
+                      onChange={(e) => handleUppercaseInput('city', e.target.value)}
+                    />
+                    <Input 
+                      placeholder="POSTAL CODE" 
+                      className={cn("h-12 uppercase", errors.postalCode && "border-red-500")}
+                      value={formData.postalCode}
+                      onChange={(e) => handleUppercaseInput('postalCode', e.target.value)}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-red-500" : "text-gray-500")}>Province / State</Label>
                       <Input 
                         placeholder="E.G. ON" 
-                        className="h-12 uppercase"
-                        value={selectedProvince}
-                        onChange={(e) => setSelectedProvince(e.target.value.toUpperCase())}
+                        className={cn("h-12 uppercase", errors.province && "border-red-500")}
+                        value={formData.province}
+                        onChange={(e) => handleUppercaseInput('province', e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Country</Label>
-                      <Input placeholder="E.G. CANADA" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-red-500" : "text-gray-500")}>Country</Label>
+                      <Input 
+                        placeholder="E.G. CANADA" 
+                        className={cn("h-12 uppercase", errors.country && "border-red-500")}
+                        value={formData.country}
+                        onChange={(e) => handleUppercaseInput('country', e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -197,10 +313,25 @@ export default function CheckoutPage() {
                   <div className="space-y-4 pt-4 animate-in fade-in duration-300">
                     <h3 className="text-[10px] uppercase tracking-widest font-bold">Billing Address</h3>
                     <div className="grid gap-4">
-                      <Input placeholder="ADDRESS" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                      <Input 
+                        placeholder="ADDRESS" 
+                        className={cn("h-12 uppercase", errors.billingAddress && "border-red-500")}
+                        value={formData.billingAddress}
+                        onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)}
+                      />
                       <div className="grid grid-cols-2 gap-4">
-                        <Input placeholder="CITY" className="h-12 uppercase" onChange={handleUppercaseInput} />
-                        <Input placeholder="POSTAL CODE" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                        <Input 
+                          placeholder="CITY" 
+                          className={cn("h-12 uppercase", errors.billingCity && "border-red-500")}
+                          value={formData.billingCity}
+                          onChange={(e) => handleUppercaseInput('billingCity', e.target.value)}
+                        />
+                        <Input 
+                          placeholder="POSTAL CODE" 
+                          className={cn("h-12 uppercase", errors.billingPostalCode && "border-red-500")}
+                          value={formData.billingPostalCode}
+                          onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -210,7 +341,14 @@ export default function CheckoutPage() {
                   <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
                     <Truck className="h-3 w-3" /> Select Courier
                   </h3>
-                  <RadioGroup defaultValue="fedex" onValueChange={(val) => setShippingRate(val === 'fedex' ? 25 : val === 'dhl' ? 45 : 0)} className="grid grid-cols-1 gap-2">
+                  <RadioGroup 
+                    defaultValue="fedex" 
+                    onValueChange={(val) => {
+                      setShippingRate(val === 'fedex' ? 25 : val === 'dhl' ? 45 : 0);
+                      handleInputChange('courier', val);
+                    }} 
+                    className="grid grid-cols-1 gap-2"
+                  >
                     <div className="flex items-center justify-between p-4 border rounded-sm bg-gray-50/50">
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="usps" id="usps" />
@@ -239,24 +377,44 @@ export default function CheckoutPage() {
               <div className="space-y-6 pt-4 border-t">
                 <h3 className="text-[10px] uppercase tracking-widest font-bold">Billing Address</h3>
                 <div className="grid gap-4">
-                  <Input placeholder="BILLING ADDRESS" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                  <Input 
+                    placeholder="BILLING ADDRESS" 
+                    className={cn("h-12 uppercase", errors.billingAddress && "border-red-500")}
+                    value={formData.billingAddress}
+                    onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} 
+                  />
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder="CITY" className="h-12 uppercase" onChange={handleUppercaseInput} />
-                    <Input placeholder="POSTAL CODE" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                    <Input 
+                      placeholder="CITY" 
+                      className={cn("h-12 uppercase", errors.billingCity && "border-red-500")}
+                      value={formData.billingCity}
+                      onChange={(e) => handleUppercaseInput('billingCity', e.target.value)}
+                    />
+                    <Input 
+                      placeholder="POSTAL CODE" 
+                      className={cn("h-12 uppercase", errors.billingPostalCode && "border-red-500")}
+                      value={formData.billingPostalCode}
+                      onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-red-500" : "text-gray-500")}>Province / State</Label>
                       <Input 
                         placeholder="E.G. ON" 
-                        className="h-12 uppercase"
-                        value={selectedProvince}
-                        onChange={(e) => setSelectedProvince(e.target.value.toUpperCase())}
+                        className={cn("h-12 uppercase", errors.billingProvince && "border-red-500")}
+                        value={formData.billingProvince}
+                        onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Country</Label>
-                      <Input placeholder="E.G. CANADA" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-red-500" : "text-gray-500")}>Country</Label>
+                      <Input 
+                        placeholder="E.G. CANADA" 
+                        className={cn("h-12 uppercase", errors.billingCountry && "border-red-500")}
+                        value={formData.billingCountry}
+                        onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -267,17 +425,27 @@ export default function CheckoutPage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Pickup Date</Label>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupDate ? "text-red-500" : "text-gray-500")}>Pickup Date</Label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input type="date" className="pl-10 h-12" defaultValue={new Date().toISOString().split('T')[0]} />
+                        <Input 
+                          type="date" 
+                          className={cn("pl-10 h-12", errors.pickupDate && "border-red-500")}
+                          value={formData.pickupDate}
+                          onChange={(e) => handleInputChange('pickupDate', e.target.value)}
+                        />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Time Slot</Label>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupTime ? "text-red-500" : "text-gray-500")}>Time Slot</Label>
                       <div className="relative">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input type="time" className="pl-10 h-12" defaultValue="14:00" />
+                        <Input 
+                          type="time" 
+                          className={cn("pl-10 h-12", errors.pickupTime && "border-red-500")}
+                          value={formData.pickupTime}
+                          onChange={(e) => handleInputChange('pickupTime', e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -286,14 +454,17 @@ export default function CheckoutPage() {
             )}
           </section>
 
-          <section className="space-y-6 bg-gray-50 border border-gray-100 p-8 rounded-sm">
-            <div className="flex items-center gap-3">
-              <Search className="h-5 w-5 text-gray-500" />
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-black">How did you find us?</h2>
+          <section className={cn("space-y-6 bg-gray-50 border p-8 rounded-sm transition-colors", errors.referral ? "border-red-200 bg-red-50/30" : "border-gray-100 bg-gray-50")}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Search className="h-5 w-5 text-gray-500" />
+                <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-black">How did you find us?</h2>
+              </div>
+              {errors.referral && <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">REQUIRED</span>}
             </div>
             
-            <Select>
-              <SelectTrigger className="h-12 bg-white border-gray-200 text-[10px] font-bold uppercase tracking-widest rounded-sm">
+            <Select onValueChange={(val) => handleInputChange('referral', val)}>
+              <SelectTrigger className={cn("h-12 bg-white border-gray-200 text-[10px] font-bold uppercase tracking-widest rounded-sm", errors.referral && "border-red-500")}>
                 <SelectValue placeholder="SELECT AN OPTION" />
               </SelectTrigger>
               <SelectContent>
@@ -308,6 +479,16 @@ export default function CheckoutPage() {
 
         <div className="lg:col-span-5 bg-white border-l p-6 lg:p-12 sticky lg:h-screen lg:top-20 overflow-y-auto">
           <div className="max-md:max-w-md mx-auto space-y-8">
+            {showErrorBanner && (
+              <Alert variant="destructive" className="bg-red-50 border-red-200 rounded-none mb-8 animate-in slide-in-from-top-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Information Required</AlertTitle>
+                <AlertDescription className="text-[10px] uppercase font-medium">
+                  Please provide all necessary details highlighted in the archive entry form.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4">Order Summary ({cartCount})</h2>
             
             <div className="space-y-6">
@@ -326,12 +507,6 @@ export default function CheckoutPage() {
                         <span>Size: {item.size}</span>
                         <span>Qty: {item.quantity}</span>
                       </div>
-                      {(item.customName || item.customNumber) && (
-                        <div className="mt-1 text-[8px] font-bold text-gray-500 uppercase tracking-widest bg-gray-50 p-1.5 rounded-sm">
-                          {item.customName && <span className="mr-2">Name: {item.customName}</span>}
-                          {item.customNumber && <span>No: {item.customNumber}</span>}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -351,8 +526,8 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Tax</span>
-                <span className={cn("text-black", !selectedProvince && "italic")}>
-                  {selectedProvince ? `$${calculatedTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD` : 'Region tax calculated'}
+                <span className={cn("text-black", !formData.province && !formData.billingProvince && "italic")}>
+                  {(formData.province || formData.billingProvince) ? `$${calculatedTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD` : 'Region tax calculated'}
                 </span>
               </div>
               <Separator />
@@ -365,7 +540,10 @@ export default function CheckoutPage() {
               </div>
 
               <div className="pt-8">
-                <Button className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] hover:bg-black/90 transition-all rounded-none shadow-xl">
+                <Button 
+                  onClick={handleSubmit}
+                  className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] hover:bg-black/90 transition-all rounded-none shadow-xl"
+                >
                   Pay Now & Confirm Archive
                 </Button>
                 <p className="text-center text-[9px] text-gray-400 mt-4 uppercase tracking-widest">
