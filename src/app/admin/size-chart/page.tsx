@@ -18,7 +18,10 @@ import {
   Loader2, 
   Ruler, 
   MoreHorizontal,
-  X
+  X,
+  PlusCircle,
+  Settings2,
+  Table as TableIcon
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -37,7 +40,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -61,13 +64,13 @@ export default function SizeChartPage() {
   // Dynamic Form State
   const [name, setName] = useState('');
   const [unit, setUnit] = useState<'cm' | 'inch'>('cm');
-  const [columns, setColumns] = useState<string[]>(['Chest', 'Length']);
+  const [columns, setColumns] = useState<string[]>(['Chest', 'Length', 'Shoulder']);
   const [rows, setRows] = useState<RowData[]>([
-    { label: 'XS', values: ['', ''] },
-    { label: 'S', values: ['', ''] },
-    { label: 'M', values: ['', ''] },
-    { label: 'L', values: ['', ''] },
-    { label: 'XL', values: ['', ''] }
+    { label: 'XS', values: ['', '', ''] },
+    { label: 'S', values: ['', '', ''] },
+    { label: 'M', values: ['', '', ''] },
+    { label: 'L', values: ['', '', ''] },
+    { label: 'XL', values: ['', '', ''] }
   ]);
 
   const addColumn = () => {
@@ -85,7 +88,7 @@ export default function SizeChartPage() {
   };
 
   const addRow = () => {
-    setRows([...rows, { label: 'Size', values: new Array(columns.length).fill('') }]);
+    setRows([...rows, { label: 'New Size', values: new Array(columns.length).fill('') }]);
   };
 
   const removeRow = (index: number) => {
@@ -119,14 +122,15 @@ export default function SizeChartPage() {
       name, 
       unit, 
       columns,
-      rows 
+      rows,
+      createdAt: serverTimestamp()
     };
 
     addDoc(collection(db, 'sizeCharts'), chartData)
       .then(() => {
         setIsDialogOpen(false);
         resetForm();
-        toast({ title: "Size Chart Created", description: `${name} has been added to your library.` });
+        toast({ title: "Template Saved", description: `${name} has been added to your permanent library.` });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -151,13 +155,13 @@ export default function SizeChartPage() {
   const resetForm = () => {
     setName('');
     setUnit('cm');
-    setColumns(['Chest', 'Length']);
+    setColumns(['Chest', 'Length', 'Shoulder']);
     setRows([
-      { label: 'XS', values: ['', ''] },
-      { label: 'S', values: ['', ''] },
-      { label: 'M', values: ['', ''] },
-      { label: 'L', values: ['', ''] },
-      { label: 'XL', values: ['', ''] }
+      { label: 'XS', values: ['', '', ''] },
+      { label: 'S', values: ['', '', ''] },
+      { label: 'M', values: ['', '', ''] },
+      { label: 'L', values: ['', '', ''] },
+      { label: 'XL', values: ['', '', ''] }
     ]);
   };
 
@@ -168,130 +172,158 @@ export default function SizeChartPage() {
           <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Chart Library</h1>
           <p className="text-[#5c5f62] mt-1 text-sm">Create reusable measurement guides for your luxury drops.</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="bg-black text-white font-bold h-10 gap-2">
               <Plus className="h-4 w-4" /> Create Chart
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-5xl bg-white max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-headline">New Measurement Guide</DialogTitle>
+          <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
+            <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
+              <DialogTitle className="text-xl font-headline font-bold">New Measurement Guide</DialogTitle>
+              <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
+                <X className="h-5 w-5" />
+              </Button>
             </DialogHeader>
-            <div className="grid gap-6 py-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Template Name</Label>
-                  <Input 
-                    placeholder="e.g. Oversized Heavyweight Hoodie" 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Unit of Measure</Label>
-                  <Select value={unit} onValueChange={(v: any) => setUnit(v)}>
-                    <SelectTrigger className="h-11">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cm">Centimeters (cm)</SelectItem>
-                      <SelectItem value="inch">Inches (in)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Matrix</Label>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={addColumn} className="text-[10px] uppercase tracking-widest font-bold gap-2">
-                      <Plus className="h-3 w-3" /> Add Measure Column
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={addRow} className="text-[10px] uppercase tracking-widest font-bold gap-2">
-                      <Plus className="h-3 w-3" /> Add Size Row
-                    </Button>
+            
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-6xl mx-auto w-full p-8 space-y-12">
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50/50 p-8 rounded-xl border border-gray-100">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Settings2 className="h-4 w-4 text-gray-400" />
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Guide Configuration</h3>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Template Name</Label>
+                      <Input 
+                        placeholder="e.g. Oversized Heavyweight Hoodie" 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)} 
+                        className="h-12 bg-white text-sm font-medium"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Unit of Measure</Label>
+                      <Select value={unit} onValueChange={(v: any) => setUnit(v)}>
+                        <SelectTrigger className="h-12 bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cm">Centimeters (cm)</SelectItem>
+                          <SelectItem value="inch">Inches (in)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="border rounded-md overflow-x-auto bg-gray-50/30">
-                  <Table className="min-w-[800px]">
-                    <TableHeader className="bg-gray-50/50">
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead className="w-[150px] text-[10px] font-bold uppercase tracking-widest">
-                          Size \ Measure
-                        </TableHead>
-                        {columns.map((col, colIdx) => (
-                          <TableHead key={colIdx} className="p-0 border-l min-w-[120px]">
-                            <div className="flex items-center p-2 group">
-                              <Input 
-                                value={col} 
-                                onChange={(e) => updateColumnLabel(colIdx, e.target.value)}
-                                className="h-8 text-[10px] font-bold uppercase tracking-widest text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
-                              />
+                  <div className="flex flex-col justify-center border-l pl-8 border-gray-100">
+                    <div className="flex items-center gap-4 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+                      <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center text-white">
+                        <Ruler className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">Global Compatibility</p>
+                        <p className="text-xs text-gray-500">This guide will be reusable across any product category in your archive.</p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TableIcon className="h-4 w-4 text-gray-400" />
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Matrix</h3>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={addColumn} className="h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
+                        <PlusCircle className="h-4 w-4" /> Add Measurement
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={addRow} className="h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
+                        <PlusCircle className="h-4 w-4" /> Add Size
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="border rounded-xl overflow-hidden bg-white shadow-sm">
+                    <Table>
+                      <TableHeader className="bg-gray-50/50">
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="w-[180px] text-[10px] font-bold uppercase tracking-widest text-gray-400 p-6">
+                            Size \ Metric
+                          </TableHead>
+                          {columns.map((col, colIdx) => (
+                            <TableHead key={colIdx} className="p-0 border-l min-w-[140px]">
+                              <div className="flex items-center p-4 group">
+                                <Input 
+                                  value={col} 
+                                  onChange={(e) => updateColumnLabel(colIdx, e.target.value)}
+                                  className="h-10 text-[10px] font-bold uppercase tracking-[0.1em] text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
+                                />
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => removeColumn(colIdx)} 
+                                  className="h-8 w-8 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableHead>
+                          ))}
+                          <TableHead className="w-[80px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {rows.map((row, rowIdx) => (
+                          <TableRow key={rowIdx} className="hover:bg-gray-50/30 group/row border-b last:border-0">
+                            <TableCell className="p-0 border-r bg-gray-50/20">
+                              <div className="flex items-center p-4">
+                                <Input 
+                                  value={row.label} 
+                                  onChange={(e) => updateRowLabel(rowIdx, e.target.value)}
+                                  className="h-10 text-xs font-bold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
+                                />
+                              </div>
+                            </TableCell>
+                            {row.values.map((val, colIdx) => (
+                              <TableCell key={colIdx} className="p-0 border-r">
+                                <Input 
+                                  value={val} 
+                                  onChange={(e) => updateValue(rowIdx, colIdx, e.target.value)}
+                                  className="h-12 text-sm text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
+                                  placeholder="--"
+                                />
+                              </TableCell>
+                            ))}
+                            <TableCell className="text-right p-4">
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                onClick={() => removeColumn(colIdx)} 
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500"
+                                onClick={() => removeRow(rowIdx)} 
+                                className="h-10 w-10 opacity-0 group-hover/row:opacity-100 text-gray-300 hover:text-red-500 transition-opacity"
+                                disabled={rows.length <= 1}
                               >
-                                <X className="h-3 w-3" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
-                            </div>
-                          </TableHead>
-                        ))}
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {rows.map((row, rowIdx) => (
-                        <TableRow key={rowIdx} className="bg-white hover:bg-white group/row">
-                          <TableCell className="p-0 border-r">
-                            <div className="flex items-center p-2">
-                              <Input 
-                                value={row.label} 
-                                onChange={(e) => updateRowLabel(rowIdx, e.target.value)}
-                                className="h-9 text-xs font-bold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
-                              />
-                            </div>
-                          </TableCell>
-                          {row.values.map((val, colIdx) => (
-                            <TableCell key={colIdx} className="p-0 border-r">
-                              <Input 
-                                value={val} 
-                                onChange={(e) => updateValue(rowIdx, colIdx, e.target.value)}
-                                className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
-                                placeholder="--"
-                              />
                             </TableCell>
-                          ))}
-                          <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => removeRow(rowIdx)} 
-                              className="h-8 w-8 opacity-0 group-hover/row:opacity-100 text-gray-400 hover:text-red-500"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </section>
               </div>
             </div>
-            <DialogFooter className="sm:justify-start">
+
+            <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0">
               <Button 
                 onClick={handleSave} 
                 disabled={isSaving || !name}
-                className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]"
+                className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-black/90 transition-all shadow-xl"
               >
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Save Template to Library
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : null}
+                {isSaving ? 'Committing to Library...' : 'Save Template Permanently'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -309,33 +341,38 @@ export default function SizeChartPage() {
             <p className="text-sm font-medium text-gray-500">No size charts found. Start by creating a template.</p>
           </div>
         ) : (
-          <div className="bg-white border rounded-xl overflow-hidden">
+          <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
             <Table>
               <TableHeader className="bg-gray-50/50">
                 <TableRow>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Template Name</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 p-6">Template Name</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Unit</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Structure</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Matrix Structure</TableHead>
                   <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {charts?.map((chart: any) => (
-                  <TableRow key={chart.id} className="hover:bg-gray-50/50 group">
-                    <TableCell className="font-bold text-sm">{chart.name}</TableCell>
-                    <TableCell>
-                      <span className="text-[10px] font-bold uppercase bg-gray-100 px-2 py-0.5 rounded">{chart.unit}</span>
+                  <TableRow key={chart.id} className="hover:bg-gray-50/50 group border-b last:border-0">
+                    <TableCell className="p-6">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm">{chart.name}</span>
+                        <span className="text-[10px] text-gray-400 mt-0.5">Created on {chart.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
+                      </div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500">
-                      {chart.rows?.length || 0} Sizes × {chart.columns?.length || 0} Measures
+                    <TableCell>
+                      <span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest">{chart.unit}</span>
+                    </TableCell>
+                    <TableCell className="text-sm font-medium text-gray-500">
+                      {chart.rows?.length || 0} Sizes × {chart.columns?.length || 0} Metrics
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(chart.id)}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleDelete(chart.id)}>
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9">
+                          <MoreHorizontal className="h-4 w-4 text-gray-400" />
                         </Button>
                       </div>
                     </TableCell>
