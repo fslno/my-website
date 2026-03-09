@@ -19,7 +19,12 @@ import {
   ShoppingBag,
   Clock,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Truck,
+  MapPin,
+  Phone,
+  Package,
+  Layers
 } from 'lucide-react';
 import { 
   Select, 
@@ -32,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
 
 export default function OrdersPage() {
   const db = useFirestore();
@@ -53,7 +59,8 @@ export default function OrdersPage() {
       const matchesSearch = 
         order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        order.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.customer?.phone?.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
       
@@ -74,40 +81,40 @@ export default function OrdersPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'awaiting_processing':
-        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100 uppercase text-[10px] font-bold">Awaiting Processing</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100 uppercase text-[9px] font-bold">Awaiting Processing</Badge>;
       case 'processing':
-        return <Badge className="bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100 uppercase text-[10px] font-bold">Processing</Badge>;
+        return <Badge className="bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100 uppercase text-[9px] font-bold">Processing</Badge>;
       case 'shipped':
-        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[10px] font-bold">Shipped</Badge>;
+        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[9px] font-bold">Shipped</Badge>;
       case 'delivered':
-        return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100 uppercase text-[10px] font-bold">Delivered</Badge>;
+        return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100 uppercase text-[9px] font-bold">Delivered</Badge>;
       case 'out_for_delivery':
-        return <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100 uppercase text-[10px] font-bold">Out for Delivery</Badge>;
+        return <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100 uppercase text-[9px] font-bold">Out for Delivery</Badge>;
       case 'returned':
-        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-100 uppercase text-[10px] font-bold">Returned</Badge>;
+        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-100 uppercase text-[9px] font-bold">Returned</Badge>;
       case 'cancelled':
-        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100 uppercase text-[10px] font-bold">Cancelled</Badge>;
+        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100 uppercase text-[9px] font-bold">Cancelled</Badge>;
       case 'confirmed':
-        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
+        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[9px] font-bold">Confirmed</Badge>;
       default:
-        return <Badge className="bg-gray-50 text-gray-700 border-gray-100 hover:bg-gray-100 uppercase text-[10px] font-bold">{status?.replace('_', ' ')}</Badge>;
+        return <Badge className="bg-gray-50 text-gray-700 border-gray-100 hover:bg-gray-100 uppercase text-[9px] font-bold">{status?.replace('_', ' ')}</Badge>;
     }
   };
 
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
-        return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] font-bold">Paid</Badge>;
+        return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[9px] font-bold">Paid</Badge>;
       case 'awaiting':
-        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Payment</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[9px] font-bold">Awaiting Payment</Badge>;
       case 'refunded':
-        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[10px] font-bold">Refunded</Badge>;
+        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[9px] font-bold">Refunded</Badge>;
       case 'partially_refunded':
-        return <Badge className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[10px] font-bold">Partially Refunded</Badge>;
+        return <Badge className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[9px] font-bold">Partially Refunded</Badge>;
       case 'cancelled':
-        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
+        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[9px] font-bold">Canceled</Badge>;
       default:
-        return <Badge className="bg-zinc-50 text-zinc-700 border-zinc-100 uppercase text-[10px] font-bold">Pending</Badge>;
+        return <Badge className="bg-zinc-50 text-zinc-700 border-zinc-100 uppercase text-[9px] font-bold">Pending</Badge>;
     }
   };
 
@@ -172,7 +179,7 @@ export default function OrdersPage() {
           <div className="relative flex-1 max-w-sm w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
             <Input 
-              placeholder="Search by Order ID, Name, or Email..." 
+              placeholder="Search by ID, Name, Phone, or Email..." 
               className="pl-10 h-10 border-[#e1e3e5] focus:ring-black bg-white"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -200,61 +207,108 @@ export default function OrdersPage() {
         <Table>
           <TableHeader className="bg-[#f6f6f7]">
             <TableRow className="border-[#e1e3e5]">
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4">Order ID</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Date</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Customer</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Logistics</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Financial</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] text-right">Total</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 w-[120px]">Order & Date</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] min-w-[180px]">Manifest (Units)</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Recipient</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Logistics & Route</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] text-right">Financial</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-20">
+                <TableCell colSpan={6} className="text-center py-20">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" />
                 </TableCell>
               </TableRow>
             ) : filteredOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">
+                <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">
                   No archive orders found matching your criteria.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredOrders.map((order) => (
-                <TableRow 
-                  key={order.id} 
-                  className="hover:bg-[#f6f6f7]/50 cursor-pointer border-[#e1e3e5] group"
-                  onClick={() => router.push(`/admin/orders/${order.id}`)}
-                >
-                  <TableCell className="font-mono text-[11px] font-bold">
-                    #{order.id.substring(0, 6).toUpperCase()}
-                  </TableCell>
-                  <TableCell className="text-[11px] text-[#5c5f62]">
-                    {formatDate(order.createdAt)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold">{order.customer?.name || 'Guest User'}</span>
-                      <span className="text-[10px] text-[#8c9196]">{order.email}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(order.status)}
-                  </TableCell>
-                  <TableCell>
-                    {getPaymentStatusBadge(order.paymentStatus || 'pending')}
-                  </TableCell>
-                  <TableCell className="text-right text-sm font-bold">
-                    ${(Number(order.total) || 0).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <ChevronRight className="h-4 w-4 text-[#babfc3] group-hover:text-black transition-colors" />
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredOrders.map((order) => {
+                const totalUnits = order.items?.reduce((acc: number, item: any) => acc + (item.quantity || 0), 0) || 0;
+                const shipping = order.customer?.shipping;
+                
+                return (
+                  <TableRow 
+                    key={order.id} 
+                    className="hover:bg-[#f6f6f7]/50 cursor-pointer border-[#e1e3e5] group"
+                    onClick={() => router.push(`/admin/orders/${order.id}`)}
+                  >
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-mono text-[11px] font-bold uppercase tracking-tight">#{order.id.substring(0, 6).toUpperCase()}</span>
+                        <span className="text-[10px] text-[#8c9196] font-medium leading-none">{formatDate(order.createdAt).split(',')[0]}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex -space-x-3 overflow-hidden">
+                          {(order.items || []).slice(0, 3).map((item: any, i: number) => (
+                            <div key={i} className="inline-block h-10 w-8 bg-gray-100 border border-white rounded shrink-0 overflow-hidden relative">
+                              {item.image ? <img src={item.image} className="object-cover w-full h-full" alt="" /> : <Package className="h-3 w-3 m-auto text-gray-300" />}
+                            </div>
+                          ))}
+                          {(order.items || []).length > 3 && (
+                            <div className="flex items-center justify-center h-10 w-8 bg-black text-white text-[8px] font-bold rounded border border-white shrink-0">
+                              +{(order.items || []).length - 3}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold uppercase tracking-tighter">{totalUnits} {totalUnits === 1 ? 'UNIT' : 'UNITS'}</span>
+                          <span className="text-[9px] text-[#8c9196] font-medium uppercase truncate max-w-[120px]">
+                            {order.items?.[0]?.name || 'Unknown Item'}
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold truncate max-w-[150px] uppercase tracking-tight">{order.customer?.name || 'Guest User'}</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Phone className="h-2.5 w-2.5 text-[#babfc3]" />
+                          <span className="text-[10px] font-mono text-[#8c9196]">{order.customer?.phone || 'NO-PHONE'}</span>
+                        </div>
+                        <span className="text-[10px] text-[#8c9196] truncate max-w-[150px]">{order.email}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(order.status)}
+                          <div className="flex items-center gap-1 text-[9px] font-bold text-[#8c9196] uppercase">
+                            {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
+                            {order.deliveryMethod}
+                          </div>
+                        </div>
+                        {shipping ? (
+                          <span className="text-[10px] text-[#8c9196] leading-tight max-w-[200px] line-clamp-1 uppercase italic">
+                            {shipping.address}, {shipping.city}, {shipping.province}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-[#8c9196] italic uppercase">Local Studio Collection</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex flex-col items-end gap-1.5">
+                        {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+                        <span className="text-sm font-bold tracking-tighter">
+                          ${(Number(order.total) || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <ChevronRight className="h-4 w-4 text-[#babfc3] group-hover:text-black transition-colors" />
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
