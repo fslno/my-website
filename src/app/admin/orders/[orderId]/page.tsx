@@ -22,7 +22,9 @@ import {
   ScanBarcode,
   Globe,
   Barcode,
-  Scan
+  Scan,
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 import { 
   Table, 
@@ -66,6 +68,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
 
   const orderRef = useMemoFirebase(() => db ? doc(db, 'orders', orderId) : null, [db, orderId]);
   const { data: order, loading } = useDoc(orderRef);
+
+  // Fetch Store Config for Branding & Invoice Sender details
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  const { data: storeConfig } = useDoc(storeConfigRef);
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
@@ -171,7 +177,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   };
 
   if (loading) {
@@ -199,7 +211,146 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
     : '#';
 
   return (
-    <div className="space-y-8 print:space-y-4">
+    <div className="space-y-8">
+      {/* Printable Invoice Section - Hidden in UI */}
+      <div className="hidden print:block w-[210mm] mx-auto bg-white text-black p-12 font-sans">
+        <style type="text/css" dangerouslySetInnerHTML={{ __html: `
+          @page { size: A4; margin: 0; }
+          body { -webkit-print-color-adjust: exact; }
+        ` }} />
+        
+        <div className="flex justify-between items-start border-b-2 border-black pb-8 mb-12">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl">
+                {storeConfig?.logoUrl ? <img src={storeConfig.logoUrl} className="w-full h-full object-cover" /> : (storeConfig?.businessName?.[0] || 'F')}
+              </div>
+              <h1 className="text-3xl font-headline font-bold tracking-tighter uppercase">{storeConfig?.businessName || 'FSLNO STUDIO'}</h1>
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 space-y-1">
+              <p className="flex items-center gap-2"><Globe className="h-3 w-3" /> ARCHIVE OPERATIONS SUITE</p>
+              <p className="flex items-center gap-2"><ShieldCheck className="h-3 w-3" /> VERIFIED ACQUISITION</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <h2 className="text-4xl font-headline font-bold tracking-tighter mb-2">INVOICE</h2>
+            <p className="text-sm font-mono font-bold uppercase tracking-tight">Order #{order.id.substring(0, 6).toUpperCase()}</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Ref: {order.id}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-12 mb-12">
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Sender (From)</h3>
+            <div className="space-y-1">
+              <p className="font-bold uppercase text-sm">{storeConfig?.businessName || 'FSLNO STUDIO'}</p>
+              <p className="text-xs uppercase leading-relaxed text-gray-600 whitespace-pre-wrap">
+                {storeConfig?.address || '123 Studio Way\nLondon, UK\nArchives HQ'}
+              </p>
+              <p className="text-xs font-bold mt-2">{storeConfig?.phone || '+1 (555) 000-0000'}</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Receiver (To)</h3>
+            <div className="space-y-1">
+              <p className="font-bold uppercase text-sm">{order.customer?.name || 'GUEST USER'}</p>
+              {order.customer?.shipping ? (
+                <p className="text-xs uppercase leading-relaxed text-gray-600">
+                  {order.customer.shipping.address}<br />
+                  {order.customer.shipping.city}, {order.customer.shipping.province}<br />
+                  {order.customer.shipping.postalCode}<br />
+                  {order.customer.shipping.country}
+                </p>
+              ) : (
+                <p className="text-xs uppercase italic text-gray-400">Local Studio Pickup - Verification Required</p>
+              )}
+              <p className="text-xs font-bold mt-2">{order.email}</p>
+              <p className="text-xs font-bold">{order.customer?.phone}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 mb-12">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Archive Manifest</h3>
+          <Table className="border-none shadow-none">
+            <TableHeader className="bg-gray-50">
+              <TableRow className="border-black border-b">
+                <TableHead className="text-[9px] font-bold uppercase text-black">Acquisition Item</TableHead>
+                <TableHead className="text-[9px] font-bold uppercase text-black text-center">Size</TableHead>
+                <TableHead className="text-[9px] font-bold uppercase text-black text-center">Qty</TableHead>
+                <TableHead className="text-[9px] font-bold uppercase text-black text-right">Unit Price</TableHead>
+                <TableHead className="text-[9px] font-bold uppercase text-black text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(order.items || []).map((item: any, i: number) => (
+                <TableRow key={i} className="border-b border-gray-100">
+                  <TableCell>
+                    <div className="py-1">
+                      <p className="font-bold uppercase text-xs">{item.name}</p>
+                      {(item.customName || item.customNumber) && (
+                        <p className="text-[9px] font-bold text-blue-600 uppercase mt-0.5">Custom: {item.customName} {item.customNumber}</p>
+                      )}
+                      {item.specialNote && <p className="text-[9px] text-gray-400 italic mt-0.5">Note: {item.specialNote}</p>}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center font-bold text-xs uppercase">{item.size}</TableCell>
+                  <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
+                  <TableCell className="text-right text-xs">${(Number(item.price) || 0).toLocaleString()}</TableCell>
+                  <TableCell className="text-right font-bold text-xs">${((Number(item.price) || 0) * item.quantity).toLocaleString()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="flex justify-end mb-12">
+          <div className="w-[300px] space-y-3">
+            <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
+              <span>Subtotal</span>
+              <span className="text-black">${(Number(order.subtotal) || 0).toLocaleString()}</span>
+            </div>
+            {Number(order.discountTotal) > 0 && (
+              <div className="flex justify-between text-[10px] font-bold uppercase text-red-600">
+                <span>Archive Discounts</span>
+                <span>-${(Number(order.discountTotal) || 0).toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
+              <span>Shipping & Logistics</span>
+              <span className="text-black">${(Number(order.shipping) || 0).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
+              <span>Estimated Tax</span>
+              <span className="text-black">${(Number(order.tax) || 0).toLocaleString()}</span>
+            </div>
+            <div className="h-px bg-black my-2" />
+            <div className="flex justify-between items-end">
+              <span className="text-[12px] font-bold uppercase tracking-widest">Total Acquisition Value</span>
+              <span className="text-2xl font-headline font-bold">${(Number(order.total) || 0).toLocaleString()} CAD</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-8 border-t-2 border-black pt-8">
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Transaction Logs</h3>
+            <div className="space-y-2 font-mono text-[9px] font-bold text-gray-500 uppercase">
+              <p>Acquired: {formatDate(order.createdAt)}</p>
+              <p>Transaction: {order.transactionId || 'STUDIO-TXN-INTERNAL'}</p>
+              <p>Origin IP: {order.ipAddress || '127.0.0.1'}</p>
+              <p>Status: {order.status?.toUpperCase()}</p>
+              <p>Payment: {order.paymentStatus?.toUpperCase()}</p>
+            </div>
+          </div>
+          <div className="text-right flex flex-col justify-end">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-black">Thank you for your acquisition.</p>
+            <p className="text-[8px] font-bold text-gray-400 mt-2">© 2024 FSLNO ARCHIVES. ALL RIGHTS RESERVED.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Screen-only UI */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="space-y-1">
           <Link href="/admin/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
@@ -222,9 +373,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
         </div>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-8">
+      <div className="flex flex-col xl:flex-row gap-8 print:hidden">
         <div className="flex-1 space-y-8">
-          <Card className="border-[#e1e3e5] shadow-none bg-white print:hidden">
+          <Card className="border-[#e1e3e5] shadow-none bg-white">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Logistics & Financial Orchestration</CardTitle>
             </CardHeader>
@@ -274,8 +425,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-sm rounded-none print:border-none print:shadow-none">
-            <CardHeader className="bg-gray-50/50 border-b py-4 flex flex-row items-center justify-between print:bg-white">
+          <Card className="border-[#e1e3e5] shadow-sm rounded-none">
+            <CardHeader className="bg-gray-50/50 border-b py-4 flex flex-row items-center justify-between">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                 <Package className="h-3 w-3" /> Archive Manifest ({(order.items || []).length} Items)
               </CardTitle>
@@ -295,7 +446,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                     <TableRow key={i} className="border-b last:border-0">
                       <TableCell>
                         <div className="flex gap-3">
-                          <div className="w-12 h-16 bg-gray-100 rounded border shrink-0 overflow-hidden relative print:hidden">
+                          <div className="w-12 h-16 bg-gray-100 rounded border shrink-0 overflow-hidden relative">
                             {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                           </div>
                           <div className="flex flex-col justify-center">
@@ -358,8 +509,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
               </CardContent>
             </Card>
 
-            <Card className="border-[#e1e3e5] shadow-sm rounded-none bg-black text-white print:bg-gray-100 print:text-black">
-              <CardHeader className="border-b border-white/10 py-4 print:border-gray-200">
+            <Card className="border-[#e1e3e5] shadow-sm rounded-none bg-black text-white">
+              <CardHeader className="border-b border-white/10 py-4">
                 <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                   <AlertCircle className="h-3 w-3" /> Operational Meta
                 </CardTitle>
@@ -426,17 +577,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                 )}
 
                 <div className="pt-4 border-t border-white/10 space-y-2">
-                  <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-white">
+                  <div className="flex justify-between items-center text-sm uppercase font-bold tracking-widest text-white">
                     <span>Transaction Ref:</span>
                     <span className="font-mono">{order.transactionId || 'STUDIO-TXN-INTERNAL'}</span>
                   </div>
-                  <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-white">
+                  <div className="flex justify-between items-center text-sm uppercase font-bold tracking-widest text-white">
                     <span>Origin IP:</span>
                     <span className="font-mono">{order.ipAddress || '127.0.0.1'}</span>
                   </div>
                 </div>
 
-                <div className="pt-2 print:hidden">
+                <div className="pt-2">
                   <Button variant="outline" className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest h-10">
                     View Studio Logs <ExternalLink className="ml-2 h-3 w-3" />
                   </Button>
@@ -446,7 +597,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
           </div>
         </div>
 
-        <div className="w-full xl:w-[320px] space-y-8">
+        <div className="w-full xl:w-[320px] space-y-8 print:hidden">
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
@@ -501,7 +652,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                       {order.customer.shipping.country}
                     </p>
                   </div>
-                  <Button variant="ghost" className="p-0 h-auto text-[10px] font-bold uppercase text-blue-600 underline hover:bg-transparent print:hidden">
+                  <Button variant="ghost" className="p-0 h-auto text-[10px] font-bold uppercase text-blue-600 underline hover:bg-transparent">
                     Validate via Maps
                   </Button>
                 </div>
