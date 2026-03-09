@@ -229,7 +229,7 @@ export default function CheckoutPage() {
       total: finalTotal,
       deliveryMethod,
       courier: formData.courier,
-      status: 'confirmed',
+      status: 'awaiting_processing',
       createdAt: serverTimestamp()
     };
 
