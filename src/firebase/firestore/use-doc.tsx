@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import {
   DocumentReference,
   onSnapshot,
-  DocumentSnapshot,
   DocumentData,
   FirestoreError,
 } from 'firebase/firestore';
@@ -12,7 +11,7 @@ import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
 /**
- * Hook to listen to a single Firestore document.
+ * Hook to listen to a single Firestore document with robust cleanup.
  * @param ref The DocumentReference to listen to.
  */
 export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
@@ -21,16 +20,21 @@ export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
   const [error, setError] = useState<FirestoreError | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     if (!ref) {
-      setLoading(false);
-      setData(null);
+      if (mounted) {
+        setLoading(false);
+        setData(null);
+      }
       return;
     }
 
     setLoading(true);
     const unsubscribe = onSnapshot(
       ref,
-      (snapshot: DocumentSnapshot<T>) => {
+      (snapshot) => {
+        if (!mounted) return;
         if (snapshot.exists()) {
           setData({ ...snapshot.data()!, id: snapshot.id } as T);
         } else {
@@ -39,6 +43,7 @@ export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
         setLoading(false);
       },
       (err: FirestoreError) => {
+        if (!mounted) return;
         if (err.code === 'permission-denied') {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: ref.path,
@@ -50,7 +55,10 @@ export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, [ref]);
 
   return { data, loading, error };

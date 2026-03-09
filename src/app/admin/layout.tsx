@@ -234,9 +234,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           </Link>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
+                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
                         <div className="space-y-2">
-                          <p className="font-bold text-sm text-black">Measurement Library</p>
+                          <p className="font-bold text-sm">Measurement Library</p>
                           <p className="text-xs text-muted-foreground">• unit: Support for metric (cm) or imperial (inch).</p>
                           <p className="text-xs text-muted-foreground">• measurements: Point-of-measure rows for XS through XL.</p>
                           <p className="text-xs text-muted-foreground">• reuse: Link charts to multiple categories.</p>
@@ -283,13 +283,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           <p className="font-bold text-sm">Global Carrier Integration</p>
                           <p className="text-muted-foreground">North America: USPS, UPS, FedEx, Canada Post.</p>
                           <p className="text-muted-foreground">Europe & UK: DHL Express, Royal Mail, DPD, Evri.</p>
-                          <p className="text-muted-foreground">Luxury Express: DHL Express GoGreen Plus.</p>
                           <p className="font-bold text-sm mt-2">Advanced Pickup Logic</p>
-                          <p className="text-muted-foreground">In-Store/Pop-Up: Real-time inventory-based pickup via Google Local Inventory.</p>
-                          <p className="text-muted-foreground">Locker Integration: UPS Access Point & FedEx OnSite.</p>
+                          <p className="text-muted-foreground">In-Store/Pop-Up Pickup: Use Google Local Inventory API.</p>
                           <p className="font-bold text-sm mt-2">Real-Time Shipping Features</p>
-                          <p className="text-muted-foreground">Address Validation: Prevent RTO with typo correction.</p>
-                          <p className="text-muted-foreground">DDP: International duties collected at checkout.</p>
+                          <p className="text-muted-foreground">Address Validation: Automatically correct typos at checkout.</p>
+                          <p className="text-muted-foreground">DDP: Calculate and collect duties at checkout.</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -309,11 +307,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
                         <div className="space-y-3 text-xs">
                           <p className="font-bold text-sm">Stripe (The Core)</p>
-                          <p className="text-muted-foreground">135+ currencies and 20+ methods (iDEAL, Klarna, Bancontact).</p>
-                          <p className="font-bold text-sm mt-2">PayPal Commerce Platform</p>
-                          <p className="text-muted-foreground">Smart Buttons including "PayPal Pay Later" (4 interest-free payments).</p>
-                          <p className="font-bold text-sm mt-2">Apple Pay & Google Pay (Express)</p>
-                          <p className="text-muted-foreground">High-priority buttons that bypass the entire address form.</p>
+                          <p className="text-muted-foreground">Supports 135+ currencies and 20+ methods.</p>
+                          <p className="font-bold text-sm mt-2">PayPal Commerce</p>
+                          <p className="text-muted-foreground">Includes Smart Buttons and "PayPal Pay Later".</p>
+                          <p className="font-bold text-sm mt-2">Express Checkout</p>
+                          <p className="text-muted-foreground">Apple Pay & Google Pay (Express) enabled.</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -342,51 +340,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <Link href="/admin/sales-channels/google">
-                            <RefreshCw />
-                            <span>Google Sync</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
-                        <div className="space-y-2 text-xs">
-                          <p className="font-bold text-sm">Merchant API (V1)</p>
-                          <p className="text-muted-foreground">On-Demand Updates: Price/stock changes sync in minutes.</p>
-                          <p className="text-muted-foreground">Partial Sync: Update only Price/Availability for specific SKUs.</p>
-                          <p className="font-bold text-sm mt-2">Google Product Studio</p>
-                          <p className="text-muted-foreground">AI Enhancement: Background removal and image upscaling.</p>
-                          <p className="font-bold text-sm mt-2">YouTube Shopping</p>
-                          <p className="text-muted-foreground">Product Tagging: Real-time sync for shoppable content.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <SidebarMenuButton asChild tooltip="Google Sync">
+                    <Link href="/admin/sales-channels/google">
+                      <RefreshCw />
+                      <span>Google Sync</span>
+                    </Link>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <Link href="/admin/sales-channels/social">
-                            <Share2 />
-                            <span>Social Commerce</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
-                        <div className="space-y-2 text-xs">
-                          <p className="font-bold text-sm">TikTok Shop Seller API</p>
-                          <p className="text-muted-foreground">In-App Checkout: Buy gear without leaving TikTok.</p>
-                          <p className="font-bold text-sm mt-2">Meta Conversions API (CAPI)</p>
-                          <p className="text-muted-foreground">Bypasses iOS privacy restrictions via server-to-server tracking.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <SidebarMenuButton asChild tooltip="Social Commerce">
+                    <Link href="/admin/sales-channels/social">
+                      <Share2 />
+                      <span>Social Commerce</span>
+                    </Link>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <TooltipProvider>
@@ -402,11 +369,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
                         <div className="space-y-2 text-xs">
                           <p className="font-bold text-sm">Custom Funnel Tracking</p>
-                          <p className="text-muted-foreground">view_item_list: Track popular FSLNO categories.</p>
-                          <p className="text-muted-foreground">Drop-off Analysis: add_to_cart vs begin_checkout.</p>
+                          <p className="text-muted-foreground">view_item_list: Tracks FSLNO category attention.</p>
+                          <p className="text-muted-foreground">Funnel: Analyze add_to_cart vs begin_checkout.</p>
                           <p className="font-bold text-sm mt-2">Predictive Audiences</p>
                           <p className="text-muted-foreground">Churn Probability: Identify users likely to stop visiting.</p>
-                          <p className="text-muted-foreground">7-day Purchasers: Target high-intent buyers.</p>
                           <p className="font-bold text-sm mt-2">User ID Tracking</p>
                           <p className="text-muted-foreground">Cross-Device: Unified mobile and desktop journey.</p>
                         </div>

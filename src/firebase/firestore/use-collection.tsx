@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Query,
   onSnapshot,
-  QuerySnapshot,
   DocumentData,
   FirestoreError,
 } from 'firebase/firestore';
@@ -12,7 +11,7 @@ import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
 /**
- * Hook to listen to a Firestore collection or query.
+ * Hook to listen to a Firestore collection or query with robust cleanup.
  * @param query The Firestore Query or CollectionReference to listen to.
  */
 export function useCollection<T = DocumentData>(query: Query<T> | null) {
@@ -21,24 +20,30 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
   const [error, setError] = useState<FirestoreError | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     if (!query) {
-      setLoading(false);
-      setData([]);
+      if (mounted) {
+        setLoading(false);
+        setData([]);
+      }
       return;
     }
 
     setLoading(true);
     const unsubscribe = onSnapshot(
       query,
-      (snapshot: QuerySnapshot<T>) => {
+      (snapshot) => {
+        if (!mounted) return;
         const items = snapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
-        } as T & { id: string }));
-        setData(items as T[]);
+        })) as unknown as T[];
+        setData(items);
         setLoading(false);
       },
       (err: FirestoreError) => {
+        if (!mounted) return;
         if (err.code === 'permission-denied') {
           // Attempt to extract path if possible safely
           const path = (query as any)._query?.path?.toString() || 'collection';
@@ -52,7 +57,10 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, [query]);
 
   return { data, loading, error };
