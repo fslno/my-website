@@ -1,15 +1,26 @@
+'use client';
 
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { ProductCard } from '@/components/storefront/ProductCard';
+import { Loader2 } from 'lucide-react';
 
 export default function Home() {
-  const mockProducts = [
-    { id: '1', name: 'OVERSIZED RAW TRENCH', price: '$890.00', image: 'https://picsum.photos/seed/lux4/600/800', category: 'Outerwear' },
-    { id: '2', name: 'ASYMMETRIC SILK TROUSERS', price: '$450.00', image: 'https://picsum.photos/seed/lux5/600/800', category: 'Bottoms' },
-    { id: '3', name: 'STRUCTURAL MERINO KNIT', price: '$320.00', image: 'https://picsum.photos/seed/lux6/600/800', category: 'Knitwear' },
-    { id: '4', name: 'MINIMALIST SCULPTED BLAZER', price: '$680.00', image: 'https://picsum.photos/seed/lux7/600/800', category: 'Tailoring' },
-  ];
+  const db = useFirestore();
+
+  // Fetch the latest 8 products from the archive
+  const productsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(
+      collection(db, 'products'),
+      orderBy('createdAt', 'desc'),
+      limit(8)
+    );
+  }, [db]);
+
+  const { data: products, loading } = useCollection(productsQuery);
 
   return (
     <main className="min-h-screen bg-background">
@@ -21,15 +32,32 @@ export default function Home() {
           <div className="flex items-end justify-between mb-12">
             <div>
               <span className="text-xs uppercase tracking-[0.3em] font-bold">The Archive</span>
-              <h2 className="text-4xl font-headline mt-2">FEATURED PIECES</h2>
+              <h2 className="text-4xl font-headline mt-2">LATEST RELEASES</h2>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {mockProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
+            </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-20 border border-dashed rounded-xl bg-gray-50/50">
+              <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">Archive is currently closed for curation.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.map((product: any) => (
+                <ProductCard 
+                  key={product.id} 
+                  id={product.id}
+                  name={product.name}
+                  price={`$${Number(product.price).toLocaleString()}`}
+                  image={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/600/800'}
+                  category={product.brand || 'FSLNO Archive'}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
