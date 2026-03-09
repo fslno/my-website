@@ -27,7 +27,8 @@ import {
   MousePointer2,
   ChevronRight,
   ShoppingBag,
-  Search as SearchIcon
+  Search as SearchIcon,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -146,6 +147,22 @@ export default function ThemeEnginePage() {
 
   return (
     <div className="space-y-8 h-full">
+      <style>{`
+        #theme-preview-root {
+          --preview-primary: ${primaryColor};
+          --preview-accent: ${accentColor};
+          --preview-radius: ${borderRadius}px;
+          --preview-headline: "${headlineFont}", serif;
+          --preview-body: "${bodyFont}", sans-serif;
+        }
+        #theme-preview-root .font-headline {
+          font-family: var(--preview-headline) !important;
+        }
+        #theme-preview-root .font-body {
+          font-family: var(--preview-body) !important;
+        }
+      `}</style>
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Theme Engine</h1>
@@ -209,13 +226,13 @@ export default function ThemeEnginePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Headline Font (Serif/Sports)</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Headline Font (Athletic Selection)</Label>
                     <Select value={headlineFont} onValueChange={setHeadlineFont}>
                       <SelectTrigger className="bg-white h-12 text-xs font-bold">
                         <SelectValue placeholder="Select headline font" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Playfair Display">Playfair Display (Standard)</SelectItem>
+                        <SelectItem value="Playfair Display">Standard Serif</SelectItem>
                         {sportsFonts.map(font => (
                           <SelectItem key={font} value={font} style={{ fontFamily: font }}>{font}</SelectItem>
                         ))}
@@ -223,13 +240,13 @@ export default function ThemeEnginePage() {
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Body Font (Sans-Serif)</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Body Font (System Standard)</Label>
                     <Select value={bodyFont} onValueChange={setBodyFont}>
                       <SelectTrigger className="bg-white h-12 text-xs font-bold">
                         <SelectValue placeholder="Select body font" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Inter">Inter (Standard)</SelectItem>
+                        <SelectItem value="Inter">Inter UI</SelectItem>
                         {sportsFonts.map(font => (
                           <SelectItem key={font} value={font} style={{ fontFamily: font }}>{font}</SelectItem>
                         ))}
@@ -309,7 +326,7 @@ export default function ThemeEnginePage() {
         </div>
 
         {/* Live Preview */}
-        <div className="xl:col-span-8 bg-[#f6f6f7] rounded-xl flex flex-col border border-[#e1e3e5] overflow-hidden">
+        <div id="theme-preview-root" className="xl:col-span-8 bg-[#f6f6f7] rounded-xl flex flex-col border border-[#e1e3e5] overflow-hidden">
           <div className="h-14 bg-white border-b flex items-center justify-between px-6 shrink-0">
             <div className="flex gap-1.5">
               <div className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></div>
@@ -332,7 +349,7 @@ export default function ThemeEnginePage() {
             </div>
             <div className="flex items-center gap-2 text-[10px] text-gray-400 uppercase font-bold tracking-widest">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              Live Archival Preview
+              Real-time Full View
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-8 lg:p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:24px_24px]">
@@ -351,7 +368,7 @@ export default function ThemeEnginePage() {
               )}
               {/* Fake Storefront Header */}
               <div className="h-16 bg-white border-b flex items-center justify-between px-8 shrink-0">
-                <span className="font-bold text-xl tracking-tighter" style={{ fontFamily: headlineFont, color: primaryColor }}>FSLNO</span>
+                <span className="font-bold text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span>
                 <div className="flex gap-6 items-center">
                   <div className="hidden md:flex gap-4">
                     <div className="w-8 h-0.5 bg-gray-100 rounded-full"></div>
@@ -368,16 +385,16 @@ export default function ThemeEnginePage() {
               </div>
               
               {/* Fake Storefront Content */}
-              <div className="flex-1 overflow-y-auto p-8 space-y-12" style={{ fontFamily: bodyFont }}>
+              <div className="flex-1 overflow-y-auto p-8 space-y-12 font-body">
                 {homepageLayout === 'bento' ? (
                   <div className="grid grid-cols-2 gap-6">
                     <div 
                       className="col-span-2 aspect-[21/9] bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500" 
                       style={{ borderRadius: `${borderRadius}px` }}
                     >
-                      <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4">Spring/Summer 2024 Collection</span>
-                      <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight leading-none" style={{ fontFamily: headlineFont, color: primaryColor }}>The Sculpted Archive</h2>
-                      <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer">
+                      <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 font-body">Editorial Collection</span>
+                      <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>The Sculpted Archive</h2>
+                      <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body">
                         Shop the drops <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>
@@ -393,8 +410,8 @@ export default function ThemeEnginePage() {
                       className="aspect-video w-full bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500" 
                       style={{ borderRadius: `${borderRadius}px` }}
                     >
-                      <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-6">Archive Dispatch Available</span>
-                      <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter leading-none" style={{ fontFamily: headlineFont, color: primaryColor }}>Sculptural Silhouettes</h2>
+                      <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-6 font-body">Archive Dispatch</span>
+                      <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter leading-none font-headline" style={{ color: primaryColor }}>Sculptural Pieces</h2>
                     </div>
                     <div className="grid grid-cols-2 gap-8">
                       {[1, 2].map(i => (
@@ -412,7 +429,7 @@ export default function ThemeEnginePage() {
 
                 <div className="flex justify-center pt-8">
                   <button 
-                    className="h-16 px-16 font-bold uppercase tracking-[0.3em] text-[11px] transition-all shadow-xl hover:scale-[1.02] active:scale-95"
+                    className="h-16 px-16 font-bold uppercase tracking-[0.3em] text-[11px] transition-all shadow-xl hover:scale-[1.02] active:scale-95 font-body"
                     style={{ backgroundColor: primaryColor, color: accentColor, borderRadius: `${borderRadius}px` }}
                   >
                     Discover All Archive Drops
