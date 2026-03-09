@@ -12,7 +12,6 @@ import {
 import { doc, collection } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -295,24 +294,41 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-            <div className="space-y-4 p-6 bg-gray-50 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Checkbox 
-                    id="custom" 
-                    checked={wantsCustomization} 
-                    onCheckedChange={(checked) => setWantsCustomization(!!checked)}
-                  />
-                  <Label htmlFor="custom" className="text-xs font-bold uppercase tracking-widest cursor-pointer">
-                    Tailored Customization
-                  </Label>
+            <div className="space-y-6 p-6 bg-gray-50 border border-gray-100">
+              <div className="space-y-4">
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                  Customization Service
+                </Label>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setWantsCustomization(false)}
+                    className={cn(
+                      "flex-1 h-12 border text-[10px] font-bold uppercase tracking-widest transition-all",
+                      !wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200 hover:border-black"
+                    )}
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => setWantsCustomization(true)}
+                    className={cn(
+                      "flex-1 h-12 border text-[10px] font-bold uppercase tracking-widest transition-all",
+                      wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200 hover:border-black"
+                    )}
+                  >
+                    Yes
+                  </button>
                 </div>
-                {wantsCustomization && (
-                  <span className="text-[10px] font-bold text-blue-600">
+              </div>
+
+              {wantsCustomization && (
+                <div className="flex items-center justify-between animate-in fade-in duration-300">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Customization Premium</span>
+                  <span className="text-xl font-bold text-black">
                     +${product.customizationFee || 0}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
               
               {wantsCustomization && (
                 <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
