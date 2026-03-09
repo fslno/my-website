@@ -97,7 +97,7 @@ export function Header() {
                   <div className="p-6 space-y-8">
                     {cart.map((item) => (
                       <div key={item.variantId} className="flex gap-4">
-                        <div className="w-24 h-32 relative bg-gray-100 overflow-hidden border shrink-0">
+                        <div className="w-24 h-24 relative bg-gray-100 overflow-hidden border shrink-0">
                           <Image src={item.image} alt={item.name} fill className="object-cover" />
                         </div>
                         <div className="flex-1 flex flex-col justify-between py-1">
@@ -151,8 +151,8 @@ export function Header() {
                       Tax and shipping will calculate at the checkout.
                     </p>
                   </div>
-                  <Button className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-black/90 transition-all flex items-center justify-center gap-3">
-                    Continue to Checkout <ArrowRight className="h-4 w-4" />
+                  <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-black/90 transition-all flex items-center justify-center gap-3">
+                    <Link href="/checkout">Continue to Checkout <ArrowRight className="h-4 w-4" /></Link>
                   </Button>
                 </SheetFooter>
               )}
