@@ -374,7 +374,7 @@ export default function ProductDetailPage() {
                     <div className="space-y-1.5">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Number</Label>
                       <Input 
-                        placeholder="01" 
+                        placeholder="1" 
                         maxLength={2}
                         value={customNumber}
                         onChange={(e) => setCustomNumber(e.target.value)}
