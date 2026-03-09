@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -18,6 +17,7 @@ import {
   Monitor,
   Smartphone
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function ThemeEnginePage() {
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
