@@ -1,8 +1,10 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/CartContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 
 export const metadata: Metadata = {
   title: 'FSLNO | Luxury Storefront',
@@ -24,10 +26,12 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background text-foreground">
         <FirebaseClientProvider>
-          <CartProvider>
-            {children}
-            <Toaster />
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              {children}
+              <Toaster />
+            </CartProvider>
+          </WishlistProvider>
         </FirebaseClientProvider>
       </body>
     </html>

@@ -1,19 +1,21 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import Image from 'next/image';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { cart, cartCount, cartSubtotal, removeFromCart } = useCart();
+  const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,11 +63,61 @@ export function Header() {
           <h1 className="text-3xl font-headline font-bold tracking-tighter">FSLNO</h1>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
             <Search className="h-5 w-5" />
           </Button>
+
+          {/* Wishlist Sheet */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Heart className="h-5 w-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
+              <SheetHeader className="p-6 border-b shrink-0">
+                <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center">Wishlist Archive ({wishlistCount})</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="flex-1">
+                {wishlist.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
+                    <Heart className="h-12 w-12 text-gray-200 mb-4" />
+                    <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Save pieces for later.</p>
+                  </div>
+                ) : (
+                  <div className="p-6 space-y-8">
+                    {wishlist.map((item) => (
+                      <div key={item.id} className="flex gap-4">
+                        <Link href={`/products/${item.id}`} className="w-20 h-20 relative bg-gray-100 border shrink-0">
+                          <Image src={item.image} alt={item.name} fill className="object-cover" />
+                        </Link>
+                        <div className="flex-1 flex flex-col justify-between py-1">
+                          <div className="space-y-1">
+                            <h3 className="text-xs font-bold uppercase tracking-tight leading-tight">{item.name}</h3>
+                            <p className="text-sm font-bold">${item.price.toLocaleString()} CAD</p>
+                          </div>
+                          <button 
+                            onClick={() => toggleWishlist(item)}
+                            className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:underline text-left"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
           
+          {/* Cart Sheet */}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -107,21 +159,6 @@ export function Header() {
                               <p className="text-sm font-bold">${(item.price * item.quantity).toLocaleString()} CAD</p>
                             </div>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
-                            
-                            {(item.customName || item.customNumber) && (
-                              <div className="mt-2 p-2 bg-gray-50 border border-gray-100 rounded-sm space-y-1">
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Customization</p>
-                                <div className="flex gap-3 text-[10px] font-bold">
-                                  {item.customName && <span>NAME: {item.customName}</span>}
-                                  {item.customNumber && <span>NO: {item.customNumber}</span>}
-                                </div>
-                                {item.specialNote && (
-                                  <p className="text-[9px] text-gray-500 italic mt-1 leading-relaxed">
-                                    "{item.specialNote}"
-                                  </p>
-                                )}
-                              </div>
-                            )}
                           </div>
                           
                           <div className="flex items-center justify-between pt-2">
@@ -159,7 +196,7 @@ export function Header() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/admin" className="text-xs uppercase tracking-widest font-semibold border-b border-transparent hover:border-black transition-all hidden md:inline">Admin</Link>
+          <Link href="/admin" className="text-xs uppercase tracking-widest font-semibold border-b border-transparent hover:border-black transition-all hidden md:inline ml-2">Admin</Link>
         </div>
       </div>
     </header>

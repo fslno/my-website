@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, use } from 'react';
@@ -40,6 +41,7 @@ import {
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ productId: string }> }) {
@@ -47,6 +49,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
   const productId = resolvedParams.productId;
   const db = useFirestore();
   const { cart, addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
 
   const productRef = useMemoFirebase(() => 
@@ -76,6 +79,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
   const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const isSaved = isInWishlist(productId);
 
   const totalPrice = useMemo(() => {
     if (!product) return 0;
@@ -130,6 +135,44 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
       title: "Added to Cart",
       description: `${product.name} (${selectedSize}) is ready for checkout.`,
     });
+  };
+
+  const handleWishlist = () => {
+    if (!product) return;
+    toggleWishlist({
+      id: product.id,
+      name: product.name,
+      price: Number(product.price),
+      image: product.media?.[0]?.url || '',
+      brand: product.brand
+    });
+    toast({
+      title: isSaved ? "Removed from Wishlist" : "Saved to Wishlist",
+      description: isSaved ? "Item removed from your archive." : "Piece added to your permanent archive wishlist.",
+    });
+  };
+
+  const handleShare = async () => {
+    if (!product) return;
+    const shareData = {
+      title: `FSLNO | ${product.name}`,
+      text: product.description || `Check out the ${product.name} from FSLNO Archive.`,
+      url: window.location.href,
+    };
+
+    if (navigator.share && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Share failed', err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link Copied",
+        description: "Archive entry link copied to clipboard.",
+      });
+    }
   };
 
   if (loading) {
@@ -406,10 +449,22 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
                 {!selectedSize ? 'Select Size' : isStockReached ? 'Limited Reached' : 'Add to Cart'}
               </button>
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm">
-                  <Heart className="h-3.5 w-3.5" /> Wishlist
+                <Button 
+                  onClick={handleWishlist}
+                  variant="outline" 
+                  className={cn(
+                    "h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm",
+                    isSaved && "bg-red-50 border-red-200 text-red-600"
+                  )}
+                >
+                  <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} /> 
+                  {isSaved ? 'Saved' : 'Wishlist'}
                 </Button>
-                <Button variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm">
+                <Button 
+                  onClick={handleShare}
+                  variant="outline" 
+                  className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm"
+                >
                   <Share2 className="h-3.5 w-3.5" /> Share
                 </Button>
               </div>

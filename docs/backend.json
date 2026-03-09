@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -107,6 +108,19 @@
         "size"
       ]
     },
+    "WishlistItem": {
+      "title": "WishlistItem",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" },
+        "brand": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "price", "image"]
+    },
     "Customer": {
       "title": "Customer",
       "type": "object",
@@ -143,6 +157,16 @@
               "description": "Unique variant identifier."
             }
           ]
+        }
+      },
+      {
+        "path": "/users/{userId}/wishlist/{productId}",
+        "definition": {
+          "entityName": "WishlistItem",
+          "schema": {
+            "$ref": "#/backend/entities/WishlistItem"
+          },
+          "description": "Personal product wishlist."
         }
       },
       {
