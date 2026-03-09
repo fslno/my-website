@@ -18,6 +18,30 @@
       },
       "required": ["name", "price", "status"]
     },
+    "SizeChart": {
+      "title": "Size Chart",
+      "description": "Garment measurements for specific product types.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "unit": { "type": "string", "enum": ["cm", "inch"] },
+        "measurements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "xs": { "type": "string" },
+              "s": { "type": "string" },
+              "m": { "type": "string" },
+              "l": { "type": "string" },
+              "xl": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["name", "unit"]
+    },
     "StoreConfig": {
       "title": "Store Configuration",
       "description": "Global settings and theme configurations for the storefront.",
@@ -110,6 +134,10 @@
     "/products/{productId}": {
       "schema": "Product",
       "description": "Collection of store products."
+    },
+    "/sizeCharts/{chartId}": {
+      "schema": "SizeChart",
+      "description": "Collection of garment size charts."
     },
     "/config/store": {
       "schema": "StoreConfig",

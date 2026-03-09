@@ -225,12 +225,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Size Chart">
-                    <Link href="/admin/size-chart">
-                      <Ruler />
-                      <span>Size Chart</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <Link href="/admin/size-chart">
+                            <Ruler />
+                            <span>Size Chart</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
+                        <div className="space-y-2">
+                          <p className="font-bold text-sm">Measurement Matrices</p>
+                          <p className="text-xs text-muted-foreground">• unit: Support for metric (cm) or imperial (inch).</p>
+                          <p className="text-xs text-muted-foreground">• measurements: Point-of-measure rows for XS through XL.</p>
+                          <p className="text-xs text-muted-foreground">• reuse: Link charts to multiple product variants.</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Customers">
