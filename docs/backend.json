@@ -29,6 +29,35 @@
         "bannerEnabled": { "type": "boolean" },
         "bannerBgColor": { "type": "string" }
       }
+    },
+    "GoogleSyncConfig": {
+      "title": "Google Sync Configuration",
+      "description": "Settings for Google Merchant Center and Product Studio.",
+      "type": "object",
+      "properties": {
+        "apiConnected": { "type": "boolean" },
+        "onDemandUpdates": { "type": "boolean" },
+        "partialSync": { "type": "boolean" },
+        "autoBackgroundRemoval": { "type": "boolean" },
+        "feedHealth": { "type": "number" },
+        "syncLatency": { "type": "string" },
+        "activeChannelsCount": { "type": "number" },
+        "lastSync": { "type": "string", "format": "date-time" },
+        "issues": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "SocialCommerceConfig": {
+      "title": "Social Commerce Configuration",
+      "description": "Settings for TikTok and Meta sales channels.",
+      "type": "object",
+      "properties": {
+        "tiktokInAppCheckout": { "type": "boolean" },
+        "tiktokAccessToken": { "type": "string" },
+        "metaPixelId": { "type": "string" },
+        "metaAccessToken": { "type": "string" },
+        "metaEmqEnabled": { "type": "boolean" },
+        "customIntegrations": { "type": "array", "items": { "type": "object" } }
+      }
     }
   },
   "auth": {
@@ -42,6 +71,14 @@
     "/config/store": {
       "schema": "StoreConfig",
       "description": "Global store configuration."
+    },
+    "/config/google-sync": {
+      "schema": "GoogleSyncConfig",
+      "description": "Google Merchant Center sync settings."
+    },
+    "/config/social-commerce": {
+      "schema": "SocialCommerceConfig",
+      "description": "Social commerce and CAPI settings."
     }
   }
 }

@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,27 +17,82 @@ import {
   Zap,
   BarChart3,
   Plus,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useFirestore, useDoc } from '@/firebase';
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SocialCommercePage() {
-  const [customIntegrations, setCustomIntegrations] = useState<{id: string, name: string, description: string}[]>([]);
-  const [newIntegration, setNewIntegration] = useState({ name: '', description: '' });
+  const db = useFirestore();
+  const configRef = db ? doc(db, 'config', 'social-commerce') : null;
+  const { data: config, loading } = useDoc(configRef);
+  const { toast } = useToast();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newIntegration, setNewIntegration] = useState({ name: '', description: '' });
+
+  // Initialize defaults if missing
+  useEffect(() => {
+    if (!loading && !config && configRef) {
+      setDoc(configRef, {
+        tiktokInAppCheckout: true,
+        tiktokAccessToken: 'u5w9XtYeVTmceUfOZLZwDQxF2',
+        metaPixelId: '9283746501293',
+        metaAccessToken: '',
+        metaEmqEnabled: true,
+        customIntegrations: []
+      });
+    }
+  }, [loading, config, configRef]);
+
+  const handleUpdate = (updates: any) => {
+    if (!configRef) return;
+    updateDoc(configRef, updates).catch((error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: configRef.path,
+        operation: 'update',
+        requestResourceData: updates
+      }));
+    });
+  };
 
   const handleAddIntegration = () => {
-    if (!newIntegration.name) return;
-    setCustomIntegrations([
-      ...customIntegrations, 
+    if (!newIntegration.name || !config) return;
+    const updatedIntegrations = [
+      ...(config.customIntegrations || []),
       { ...newIntegration, id: Math.random().toString(36).substr(2, 9) }
-    ]);
+    ];
+    handleUpdate({ customIntegrations: updatedIntegrations });
     setNewIntegration({ name: '', description: '' });
     setIsDialogOpen(false);
   };
 
   const removeIntegration = (id: string) => {
-    setCustomIntegrations(customIntegrations.filter(i => i.id !== id));
+    if (!config) return;
+    const updatedIntegrations = config.customIntegrations.filter((i: any) => i.id !== id);
+    handleUpdate({ customIntegrations: updatedIntegrations });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  const socialData = config || {
+    tiktokInAppCheckout: false,
+    tiktokAccessToken: '',
+    metaPixelId: '',
+    metaAccessToken: '',
+    metaEmqEnabled: false,
+    customIntegrations: []
   };
 
   return (
@@ -48,7 +104,7 @@ export default function SocialCommercePage() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="h-9 gap-2">
+            <Button variant="outline" className="h-9 gap-2 border-[#babfc3]">
               <Plus className="h-4 w-4" /> Add Channel
             </Button>
           </DialogTrigger>
@@ -80,7 +136,7 @@ export default function SocialCommercePage() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleAddIntegration}>Add Channel</Button>
+              <Button onClick={handleAddIntegration} className="bg-black text-white">Add Channel</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -108,19 +164,27 @@ export default function SocialCommercePage() {
                   <p className="text-sm font-bold">In-App Checkout</p>
                   <p className="text-xs text-[#5c5f62]">Allow customers to buy FSLNO gear without leaving TikTok.</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={socialData.tiktokInAppCheckout} 
+                  onCheckedChange={(checked) => handleUpdate({ tiktokInAppCheckout: checked })}
+                />
               </div>
               <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
                 <div className="space-y-1">
                   <p className="text-sm font-bold">Affiliate Sample Management</p>
                   <p className="text-xs text-[#5c5f62]">Automated dashboard to send samples to creators and track ROI.</p>
                 </div>
-                <Button variant="outline" size="sm" className="h-8">Configure</Button>
+                <Button variant="outline" size="sm" className="h-8 border-[#babfc3]">Configure</Button>
               </div>
             </div>
             <div className="grid gap-2">
               <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">TikTok Shop Access Token</Label>
-              <Input type="password" value="u5w9XtYeVTmceUfOZLZwDQxF2" readOnly className="bg-[#f1f2f3]" />
+              <Input 
+                type="password" 
+                value={socialData.tiktokAccessToken} 
+                onChange={(e) => handleUpdate({ tiktokAccessToken: e.target.value })}
+                className="bg-[#f1f2f3]" 
+              />
             </div>
           </CardContent>
         </Card>
@@ -151,11 +215,19 @@ export default function SocialCommercePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Pixel ID</Label>
-                <Input defaultValue="9283746501293" />
+                <Input 
+                  value={socialData.metaPixelId} 
+                  onChange={(e) => handleUpdate({ metaPixelId: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Access Token</Label>
-                <Input type="password" placeholder="Enter your system user token" />
+                <Input 
+                  type="password" 
+                  value={socialData.metaAccessToken}
+                  onChange={(e) => handleUpdate({ metaAccessToken: e.target.value })}
+                  placeholder="Enter your system user token" 
+                />
               </div>
             </div>
             <div className="flex items-center justify-between pt-4 border-t">
@@ -166,7 +238,10 @@ export default function SocialCommercePage() {
                 </div>
                 <p className="text-xs text-[#5c5f62]">Sends hashed email/phone data to help Meta find "Spot Closing" buyers.</p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={socialData.metaEmqEnabled} 
+                onCheckedChange={(checked) => handleUpdate({ metaEmqEnabled: checked })}
+              />
             </div>
           </CardContent>
         </Card>
@@ -201,7 +276,7 @@ export default function SocialCommercePage() {
         </Card>
 
         {/* Custom Integrations */}
-        {customIntegrations.map((integration) => (
+        {socialData.customIntegrations?.map((integration: any) => (
           <Card key={integration.id} className="border-[#e1e3e5] shadow-none border-dashed border-2">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -225,7 +300,9 @@ export default function SocialCommercePage() {
       </div>
       
       <div className="flex justify-end pt-4">
-        <Button className="bg-black text-white h-11 px-8 font-bold">Save Channel Settings</Button>
+        <Button className="bg-black text-white h-11 px-8 font-bold" onClick={() => toast({ title: "Settings Saved", description: "All social commerce configurations are live." })}>
+          Save Channel Settings
+        </Button>
       </div>
     </div>
   );
