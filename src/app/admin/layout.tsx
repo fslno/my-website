@@ -115,7 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Domain Name & Site Address: The primary URL for your store (e.g., fslno.com). Connect a custom domain and ensure all traffic is directed to the secure https version. Header Meta Tags & Site Verification: A central hub to inject custom code into the <head> of your site for verification strings. Sitemap: An automatically generated sitemap.xml file that lists every product, category, and page. Allow Search Engines to Index: A master 'Visibility Toggle' for public vs. maintenance mode.">
+                  <SidebarMenuButton asChild tooltip="Domain Name & Site Address: The primary URL for your store (e.g., fslno.com). Connect a custom domain and ensure all traffic is directed to the secure https version. Header Meta Tags & Site Verification: A central hub to inject custom code into the <head> of your site. Sitemap: An automatically generated sitemap.xml file that lists every product, category, and page. Allow Search Engines to Index: A master 'Visibility Toggle' for public vs. maintenance mode.">
                     <Link href="/admin/domain">
                       <Globe />
                       <span>Domain</span>
