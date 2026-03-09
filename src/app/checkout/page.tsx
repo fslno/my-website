@@ -217,10 +217,10 @@ export default function CheckoutPage() {
           </section>
 
           {/* Referral Section */}
-          <section className="space-y-6 bg-black text-white p-8 rounded-sm">
+          <section className="space-y-6 bg-gray-50 border border-gray-100 p-8 rounded-sm">
             <div className="flex items-center gap-3">
-              <Search className="h-5 w-5 text-gray-400" />
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em]">How did you find us?</h2>
+              <Search className="h-5 w-5 text-gray-500" />
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-black">How did you find us?</h2>
             </div>
             <RadioGroup defaultValue="google" className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
@@ -229,9 +229,9 @@ export default function CheckoutPage() {
                 { id: 'friend', label: 'From Friend' },
                 { id: 'repeat', label: 'Repeat Customer' }
               ].map((option) => (
-                <div key={option.id} className="flex items-center space-x-3 p-4 border border-white/10 rounded-sm hover:bg-white/5 transition-colors cursor-pointer">
-                  <RadioGroupItem value={option.id} id={option.id} className="border-white text-white" />
-                  <Label htmlFor={option.id} className="text-[10px] font-bold uppercase tracking-widest cursor-pointer">
+                <div key={option.id} className="flex items-center space-x-3 p-4 border border-gray-200 bg-white rounded-sm hover:bg-gray-100 transition-colors cursor-pointer">
+                  <RadioGroupItem value={option.id} id={option.id} className="border-black text-black" />
+                  <Label htmlFor={option.id} className="text-[10px] font-bold uppercase tracking-widest cursor-pointer text-gray-700">
                     {option.label}
                   </Label>
                 </div>
