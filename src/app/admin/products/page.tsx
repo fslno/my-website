@@ -93,7 +93,13 @@ export default function ProductsPage() {
   const [categoryId, setCategoryId] = useState('');
   
   // Variants State
-  const [variants, setVariants] = useState<Variant[]>([{ size: 'M', stock: 0, sku: '' }]);
+  const [variants, setVariants] = useState<Variant[]>([
+    { size: 'XS', stock: 0, sku: '' },
+    { size: 'S', stock: 0, sku: '' },
+    { size: 'M', stock: 0, sku: '' },
+    { size: 'L', stock: 0, sku: '' },
+    { size: 'XL', stock: 0, sku: '' }
+  ]);
   
   // SEO State
   const [seoTitle, setSeoTitle] = useState('');
@@ -111,15 +117,26 @@ export default function ProductsPage() {
   const [features, setFeatures] = useState('');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  // Auto-generate Root SKU
-  const handleAutoGenerateSku = () => {
-    if (!name) return;
+  // Auto-generate Root SKU helper
+  const generateSku = (productName: string) => {
+    if (!productName) return '';
     const prefix = 'FSL';
-    const namePart = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
+    const namePart = productName.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
     const randomPart = Math.floor(1000 + Math.random() * 9000);
-    const generated = `${prefix}-${namePart}-${randomPart}`;
-    setSku(generated);
+    return `${prefix}-${namePart}-${randomPart}`;
   };
+
+  // Manual trigger if user wants a different random SKU
+  const handleAutoGenerateSku = () => {
+    setSku(generateSku(name));
+  };
+
+  // Auto-generate SKU when name is entered if SKU is empty
+  useEffect(() => {
+    if (name && name.length >= 2 && !sku) {
+      setSku(generateSku(name));
+    }
+  }, [name, sku]);
 
   // Sync Variant SKUs when Root SKU changes
   useEffect(() => {
@@ -284,7 +301,13 @@ export default function ProductsPage() {
     setSizeFit('');
     setDescription('');
     setCategoryId('');
-    setVariants([{ size: 'M', stock: 0, sku: '' }]);
+    setVariants([
+      { size: 'XS', stock: 0, sku: '' },
+      { size: 'S', stock: 0, sku: '' },
+      { size: 'M', stock: 0, sku: '' },
+      { size: 'L', stock: 0, sku: '' },
+      { size: 'XL', stock: 0, sku: '' }
+    ]);
     setMedia([]);
     setFeatures('');
     setSeoTitle('');
@@ -341,7 +364,6 @@ export default function ProductsPage() {
               </div>
 
               <div className="flex-1 overflow-y-auto">
-                {/* General Content */}
                 <TabsContent value="general" className="p-8 m-0 space-y-12 max-w-5xl mx-auto">
                   <section className="space-y-6">
                     <div>
@@ -435,10 +457,10 @@ export default function ProductsPage() {
                               onClick={handleAutoGenerateSku}
                               className="h-6 px-2 text-[8px] uppercase font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                             >
-                              <RefreshCcw className="h-3 w-3 mr-1" /> Auto-Generate
+                              <RefreshCcw className="h-3 w-3 mr-1" /> Re-Generate
                             </Button>
                           </div>
-                          <Input placeholder="e.g. FSL-MN-001" value={sku} onChange={(e) => setSku(e.target.value)} />
+                          <Input placeholder="Automatic SKU..." value={sku} onChange={(e) => setSku(e.target.value)} />
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Collection / Category</Label>
@@ -473,7 +495,6 @@ export default function ProductsPage() {
                   </section>
                 </TabsContent>
 
-                {/* Inventory & Variants Content */}
                 <TabsContent value="inventory" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="flex items-center justify-between">
                     <div>
@@ -548,7 +569,6 @@ export default function ProductsPage() {
                   </div>
                 </TabsContent>
 
-                {/* SEO Content */}
                 <TabsContent value="seo" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
                     <h4 className="text-[10px] uppercase tracking-widest font-bold text-blue-600 mb-4 flex items-center gap-2">
@@ -578,7 +598,6 @@ export default function ProductsPage() {
                   </div>
                 </TabsContent>
 
-                {/* Logistics Content */}
                 <TabsContent value="logistics" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
