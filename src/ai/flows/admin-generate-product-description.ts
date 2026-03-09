@@ -2,7 +2,7 @@
 /**
  * @fileOverview A Genkit flow for generating product descriptions for administrators.
  *
- * - adminGenerateProductDescription - A function that generates product descriptions using AI.
+ * - adminGenerateProductDescription - A function that generates product descriptions using AI with retry logic.
  * - AdminGenerateProductDescriptionInput - The input type for the adminGenerateProductDescription function.
  * - AdminGenerateProductDescriptionOutput - The return type for the adminGenerateProductDescription function.
  */
@@ -32,10 +32,46 @@ export type AdminGenerateProductDescriptionOutput = z.infer<
   typeof AdminGenerateProductDescriptionOutputSchema
 >;
 
+/**
+ * Helper to notify admin of API failures.
+ */
+function notifyAdmin(email: string, message: string) {
+  // Logic to log to a central dashboard or send alert
+  console.error(`[ADMIN ALERT] Sent to ${email}: ${message}`);
+}
+
 export async function adminGenerateProductDescription(
   input: AdminGenerateProductDescriptionInput
 ): Promise<AdminGenerateProductDescriptionOutput> {
-  return generateProductDescriptionFlow(input);
+  let delay = 2000; // Start with a 2-second wait
+  const maxRetries = 3;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      // Calling the flow directly
+      return await generateProductDescriptionFlow(input);
+    } catch (error: any) {
+      // Check for rate limiting (429) or specific SDK error indicators
+      const isRateLimited = error.status === 429 || error.message?.includes('429');
+
+      if (isRateLimited && i < maxRetries - 1) {
+        console.warn(`Attempt ${i + 1}: Rate limited. Retrying in ${delay}ms...`);
+        await new Promise(res => setTimeout(res, delay));
+        delay *= 2; // Exponential backoff
+        continue;
+      }
+
+      if (i === maxRetries - 1) {
+        console.error("Critical: Gemini API exhausted after multiple tries.");
+        notifyAdmin("fslno.dev@gmail.com", "Gemini API Limit Reached");
+        throw error;
+      }
+
+      // If it's not a retryable error, throw immediately
+      if (!isRateLimited) throw error;
+    }
+  }
+  throw new Error("Failed to generate description after multiple attempts.");
 }
 
 const productDescriptionPrompt = ai.definePrompt({

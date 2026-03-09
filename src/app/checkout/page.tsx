@@ -181,7 +181,7 @@ export default function CheckoutPage() {
                   setDeliveryMethod('shipping'); 
                   setShippingRate(0); 
                   setErrors({});
-                  handleInputChange('courier', ''); // Reset courier on method switch
+                  handleInputChange('courier', ''); 
                 }}
                 className={cn(
                   "p-6 border-2 text-left flex flex-col gap-3 transition-all",
@@ -203,7 +203,7 @@ export default function CheckoutPage() {
                   setDeliveryMethod('pickup'); 
                   setShippingRate(0); 
                   setErrors({}); 
-                  handleInputChange('courier', ''); // Reset courier on method switch
+                  handleInputChange('courier', ''); 
                 }}
                 className={cn(
                   "p-6 border-2 text-left flex flex-col gap-3 transition-all",
@@ -278,20 +278,18 @@ export default function CheckoutPage() {
                     value={formData.address}
                     onChange={(e) => handleUppercaseInput('address', e.target.value)} 
                   />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input 
-                      placeholder="CITY" 
-                      className={cn("h-12 uppercase", errors.city && "border-red-500")}
-                      value={formData.city}
-                      onChange={(e) => handleUppercaseInput('city', e.target.value)}
-                    />
-                    <Input 
-                      placeholder="POSTAL CODE" 
-                      className={cn("h-12 uppercase", errors.postalCode && "border-red-500")}
-                      value={formData.postalCode}
-                      onChange={(e) => handleUppercaseInput('postalCode', e.target.value)}
-                    />
-                  </div>
+                  <Input 
+                    placeholder="CITY" 
+                    className={cn("h-12 uppercase", errors.city && "border-red-500")}
+                    value={formData.city}
+                    onChange={(e) => handleUppercaseInput('city', e.target.value)}
+                  />
+                  <Input 
+                    placeholder="POSTAL CODE" 
+                    className={cn("h-12 uppercase", errors.postalCode && "border-red-500")}
+                    value={formData.postalCode}
+                    onChange={(e) => handleUppercaseInput('postalCode', e.target.value)}
+                  />
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-red-500" : "text-gray-500")}>Province / State</Label>
@@ -335,20 +333,18 @@ export default function CheckoutPage() {
                         value={formData.billingAddress}
                         onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)}
                       />
-                      <div className="grid grid-cols-2 gap-4">
-                        <Input 
-                          placeholder="CITY" 
-                          className={cn("h-12 uppercase", errors.billingCity && "border-red-500")}
-                          value={formData.billingCity}
-                          onChange={(e) => handleUppercaseInput('billingCity', e.target.value)}
-                        />
-                        <Input 
-                          placeholder="POSTAL CODE" 
-                          className={cn("h-12 uppercase", errors.billingPostalCode && "border-red-500")}
-                          value={formData.billingPostalCode}
-                          onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)}
-                        />
-                      </div>
+                      <Input 
+                        placeholder="CITY" 
+                        className={cn("h-12 uppercase", errors.billingCity && "border-red-500")}
+                        value={formData.billingCity}
+                        onChange={(e) => handleUppercaseInput('billingCity', e.target.value)}
+                      />
+                      <Input 
+                        placeholder="POSTAL CODE" 
+                        className={cn("h-12 uppercase", errors.billingPostalCode && "border-red-500")}
+                        value={formData.billingPostalCode}
+                        onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)}
+                      />
                     </div>
                   </div>
                 )}
@@ -402,20 +398,18 @@ export default function CheckoutPage() {
                     value={formData.billingAddress}
                     onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} 
                   />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input 
-                      placeholder="CITY" 
-                      className={cn("h-12 uppercase", errors.billingCity && "border-red-500")}
-                      value={formData.billingCity}
-                      onChange={(e) => handleUppercaseInput('billingCity', e.target.value)}
-                    />
-                    <Input 
-                      placeholder="POSTAL CODE" 
-                      className={cn("h-12 uppercase", errors.billingPostalCode && "border-red-500")}
-                      value={formData.billingPostalCode}
-                      onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)}
-                    />
-                  </div>
+                  <Input 
+                    placeholder="CITY" 
+                    className={cn("h-12 uppercase", errors.billingCity && "border-red-500")}
+                    value={formData.billingCity}
+                    onChange={(e) => handleUppercaseInput('billingCity', e.target.value)}
+                  />
+                  <Input 
+                    placeholder="POSTAL CODE" 
+                    className={cn("h-12 uppercase", errors.billingPostalCode && "border-red-500")}
+                    value={formData.billingPostalCode}
+                    onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)}
+                  />
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-red-500" : "text-gray-500")}>Province / State</Label>
@@ -487,7 +481,7 @@ export default function CheckoutPage() {
             </div>
             
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
-              <SelectTrigger className={cn("h-12 bg-gray-50 border-gray-200 hover:bg-gray-100 transition-colors text-[10px] font-bold uppercase tracking-widest rounded-sm", errors.referral && "border-red-500")}>
+              <SelectTrigger className={cn("h-12 bg-secondary border-gray-200 hover:bg-gray-100 transition-colors text-[10px] font-bold uppercase tracking-widest rounded-sm", errors.referral && "border-red-500")}>
                 <SelectValue placeholder="SELECT AN OPTION" />
               </SelectTrigger>
               <SelectContent>
