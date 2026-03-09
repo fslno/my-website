@@ -51,7 +51,7 @@ export default function Home() {
                   key={product.id} 
                   id={product.id}
                   name={product.name}
-                  price={`$${Number(product.price).toLocaleString()}`}
+                  price={`$${Number(product.price).toLocaleString()} CAD`}
                   image={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/600/800'}
                   category={product.brand || 'FSLNO Archive'}
                 />
@@ -66,7 +66,7 @@ export default function Home() {
           <div className="col-span-1 md:col-span-2">
             <h2 className="text-4xl font-headline font-bold mb-6">FSLNO</h2>
             <p className="text-white/60 max-w-sm text-sm leading-relaxed mb-8">
-              Redefining luxury through minimalist architecture and sculpted fabrics. A testament to timeless design and modern silhouettes.
+              Redefining luxury through minimalist architecture and sculpted fabrics. A testament to timeless design and modern silhouettes. All prices in CAD.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-xs uppercase tracking-widest font-bold border-b border-white/20 hover:border-white transition-all">Instagram</a>

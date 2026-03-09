@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { 
   Truck, 
@@ -10,8 +10,8 @@ import {
   Clock, 
   CheckCircle2,
   Package,
-  CreditCard,
-  Search
+  Search,
+  ChevronDown
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
@@ -20,15 +20,53 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 type DeliveryMethod = 'shipping' | 'pickup';
 
+const TAX_RATES: Record<string, number> = {
+  // Canada
+  'ON': 0.13, // HST
+  'BC': 0.12, // PST + GST
+  'QC': 0.14975, // QST + GST
+  'AB': 0.05, // GST
+  'MB': 0.12,
+  'NB': 0.15,
+  'NL': 0.15,
+  'NS': 0.15,
+  'PE': 0.15,
+  'SK': 0.11,
+  // US (Simulated defaults)
+  'NY': 0.08875,
+  'CA': 0.0725,
+  'TX': 0.0625,
+  'FL': 0.06,
+  'DEFAULT': 0.10
+};
+
 export default function CheckoutPage() {
   const { cart, cartSubtotal, cartCount } = useCart();
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('shipping');
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
+  const [selectedProvince, setSelectedProvince] = useState<string>('');
+  const [shippingRate, setShippingRate] = useState<number>(0);
+
+  const calculatedTax = useMemo(() => {
+    const rate = TAX_RATES[selectedProvince] || 0;
+    return cartSubtotal * rate;
+  }, [cartSubtotal, selectedProvince]);
+
+  const total = useMemo(() => {
+    return cartSubtotal + calculatedTax + shippingRate;
+  }, [cartSubtotal, calculatedTax, shippingRate]);
 
   if (cartCount === 0) {
     return (
@@ -63,7 +101,7 @@ export default function CheckoutPage() {
             <h2 className="text-sm font-bold uppercase tracking-[0.2em]">01. Delivery Method</h2>
             <div className="grid grid-cols-2 gap-4">
               <button
-                onClick={() => setDeliveryMethod('shipping')}
+                onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); }}
                 className={cn(
                   "p-6 border-2 text-left flex flex-col gap-3 transition-all",
                   deliveryMethod === 'shipping' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50 hover:border-gray-300"
@@ -80,7 +118,7 @@ export default function CheckoutPage() {
               </button>
 
               <button
-                onClick={() => setDeliveryMethod('pickup')}
+                onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); }}
                 className={cn(
                   "p-6 border-2 text-left flex flex-col gap-3 transition-all",
                   deliveryMethod === 'pickup' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50 hover:border-gray-300"
@@ -127,6 +165,24 @@ export default function CheckoutPage() {
                     <Input placeholder="City" className="h-12" />
                     <Input placeholder="Postal Code" className="h-12" />
                   </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
+                    <Select onValueChange={setSelectedProvince}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select region for tax calculation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ON">Ontario (13% HST)</SelectItem>
+                        <SelectItem value="QC">Quebec (14.975% GST/QST)</SelectItem>
+                        <SelectItem value="BC">British Columbia (12% GST/PST)</SelectItem>
+                        <SelectItem value="AB">Alberta (5% GST)</SelectItem>
+                        <SelectItem value="NS">Nova Scotia (15% HST)</SelectItem>
+                        <SelectItem value="NB">New Brunswick (15% HST)</SelectItem>
+                        <SelectItem value="NY">New York (Simulated Tax)</SelectItem>
+                        <SelectItem value="CA">California (Simulated Tax)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-3 pt-2">
@@ -157,11 +213,11 @@ export default function CheckoutPage() {
                   <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
                     <Truck className="h-3 w-3" /> Select Courier
                   </h3>
-                  <RadioGroup defaultValue="fedex" className="grid grid-cols-1 gap-2">
+                  <RadioGroup defaultValue="fedex" onValueChange={(val) => setShippingRate(val === 'fedex' ? 25 : val === 'dhl' ? 45 : 0)} className="grid grid-cols-1 gap-2">
                     <div className="flex items-center justify-between p-4 border rounded-sm bg-gray-50/50">
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="usps" id="usps" />
-                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest">Standard (USPS/Economy)</Label>
+                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest">Standard (Canada Post / Economy)</Label>
                       </div>
                       <span className="text-[11px] font-bold">FREE</span>
                     </div>
@@ -184,31 +240,47 @@ export default function CheckoutPage() {
               </div>
             ) : (
               <div className="space-y-6 pt-4 border-t">
-                <h3 className="text-[10px] uppercase tracking-widest font-bold">Pickup Scheduling</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Pickup Date</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input type="date" className="pl-10 h-12" defaultValue={new Date().toISOString().split('T')[0]} />
-                    </div>
+                <h3 className="text-[10px] uppercase tracking-widest font-bold">Billing Address</h3>
+                <div className="grid gap-4">
+                  <Input placeholder="Billing Address" className="h-12" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input placeholder="City" className="h-12" />
+                    <Input placeholder="Postal Code" className="h-12" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Time Slot</Label>
-                    <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input type="time" className="pl-10 h-12" defaultValue="14:00" />
-                    </div>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
+                    <Select onValueChange={setSelectedProvince}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select region for tax calculation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ON">Ontario (13% HST)</SelectItem>
+                        <SelectItem value="QC">Quebec (14.975% GST/QST)</SelectItem>
+                        <SelectItem value="BC">British Columbia (12% GST/PST)</SelectItem>
+                        <SelectItem value="AB">Alberta (5% GST)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
-                <div className="space-y-4 pt-4 border-t">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold">Billing Address</h3>
-                  <div className="grid gap-4">
-                    <Input placeholder="Billing Address" className="h-12" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input placeholder="City" className="h-12" />
-                      <Input placeholder="Postal Code" className="h-12" />
+                <div className="space-y-6 pt-6 border-t bg-gray-50/50 p-6 rounded-sm">
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+                    <Calendar className="h-3 w-3" /> Pickup Scheduling
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Pickup Date</Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input type="date" className="pl-10 h-12" defaultValue={new Date().toISOString().split('T')[0]} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Time Slot</Label>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input type="time" className="pl-10 h-12" defaultValue="14:00" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -285,22 +357,26 @@ export default function CheckoutPage() {
             <div className="space-y-4 pt-8 border-t">
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Subtotal</span>
-                <span className="text-black">${cartSubtotal.toLocaleString()}</span>
+                <span className="text-black">${cartSubtotal.toLocaleString()} CAD</span>
               </div>
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Shipping</span>
-                <span className="text-black italic">Calculated at payment</span>
+                <span className="text-black">
+                  {shippingRate > 0 ? `$${shippingRate.toFixed(2)} CAD` : 'FREE'}
+                </span>
               </div>
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Tax</span>
-                <span className="text-black italic">Calculated at payment</span>
+                <span className={cn("text-black", !selectedProvince && "italic")}>
+                  {selectedProvince ? `$${calculatedTax.toLocaleString()} CAD` : 'Select province'}
+                </span>
               </div>
               <Separator />
               <div className="flex justify-between items-end pt-2">
                 <span className="text-[12px] font-bold uppercase tracking-[0.2em]">Total</span>
                 <div className="text-right">
-                  <p className="text-2xl font-bold font-headline tracking-tighter">${cartSubtotal.toLocaleString()}</p>
-                  <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">USD</p>
+                  <p className="text-2xl font-bold font-headline tracking-tighter">${total.toLocaleString()}</p>
+                  <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">CAD</p>
                 </div>
               </div>
             </div>

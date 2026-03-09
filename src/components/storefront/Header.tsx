@@ -104,7 +104,7 @@ export function Header() {
                           <div className="space-y-1">
                             <div className="flex justify-between items-start">
                               <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px]">{item.name}</h3>
-                              <p className="text-sm font-bold">${(item.price * item.quantity).toLocaleString()}</p>
+                              <p className="text-sm font-bold">${(item.price * item.quantity).toLocaleString()} CAD</p>
                             </div>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
                             
@@ -145,7 +145,7 @@ export function Header() {
                   <div className="space-y-2">
                     <div className="flex justify-between items-end">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Subtotal</span>
-                      <span className="text-xl font-bold">${cartSubtotal.toLocaleString()}</span>
+                      <span className="text-xl font-bold">${cartSubtotal.toLocaleString()} CAD</span>
                     </div>
                     <p className="text-[9px] text-gray-400 uppercase tracking-widest">
                       Tax and shipping will calculate at the checkout.

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, use } from 'react';
@@ -85,7 +84,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
     return base + fee;
   }, [product, wantsCustomization]);
 
-  // Dynamically calculate the displayed SKU based on selected size
   const displayedSku = useMemo(() => {
     if (!product) return 'N/A';
     if (selectedSize) {
@@ -95,7 +93,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
     return product.sku || 'N/A';
   }, [product, selectedSize]);
 
-  // Stock reaching logic
   const selectedVariant = useMemo(() => {
     return product?.variants?.find((v: any) => v.size === selectedSize);
   }, [product, selectedSize]);
@@ -113,7 +110,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
   const handleAddToCart = () => {
     if (!product || !selectedSize || isStockReached) return;
 
-    // Create a unique variant ID that includes customization hash if present
     const customizationSuffix = wantsCustomization ? `-${customName}-${customNumber}-${specialRequest}` : '';
     const uniqueVariantId = `${product.id}-${selectedSize}${customizationSuffix}`;
 
@@ -223,7 +219,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO Studio'}</p>
               <h1 className="text-2xl font-headline font-bold tracking-tight">{product.name}</h1>
               <div className="flex items-center gap-4">
-                <p className="text-lg font-bold">${totalPrice.toLocaleString()}</p>
+                <p className="text-lg font-bold">${totalPrice.toLocaleString()} CAD</p>
                 <div className="flex items-center gap-1 text-orange-400">
                   <Star className="h-2.5 w-2.5 fill-current" />
                   <Star className="h-2.5 w-2.5 fill-current" />
