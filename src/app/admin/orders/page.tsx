@@ -95,7 +95,7 @@ export default function OrdersPage() {
     if (!orders) return { total: 0, pending: 0, revenue: 0 };
     return orders.reduce((acc, order) => {
       acc.total += 1;
-      if (order.status === 'confirmed' || order.status === 'pending') acc.pending += 1;
+      if (order.status === 'awaiting_shipping' || order.status === 'confirmed' || order.status === 'pending') acc.pending += 1;
       acc.revenue += (Number(order.total) || 0);
       return acc;
     }, { total: 0, pending: 0, revenue: 0 });
@@ -109,7 +109,7 @@ export default function OrdersPage() {
     updateDoc(orderRef, { status: newStatus })
       .then(() => {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
-        toast({ title: "Order Updated", description: `Archival status changed to ${newStatus.toUpperCase()}.` });
+        toast({ title: "Order Updated", description: `Logistics status changed to ${newStatus.replace('_', ' ').toUpperCase()}.` });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -146,16 +146,22 @@ export default function OrdersPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'awaiting_shipping':
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100 uppercase text-[10px] font-bold">Awaiting Shipping</Badge>;
+      case 'shipped':
+        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[10px] font-bold">Shipped</Badge>;
+      case 'delivered':
+        return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100 uppercase text-[10px] font-bold">Delivered</Badge>;
+      case 'out_for_delivery':
+        return <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100 uppercase text-[10px] font-bold">Out for Delivery</Badge>;
+      case 'returned':
+        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-100 uppercase text-[10px] font-bold">Returned</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100 uppercase text-[10px] font-bold">Cancelled</Badge>;
       case 'confirmed':
         return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
-      case 'shipped':
-        return <Badge className="bg-purple-50 text-purple-700 border-purple-100 hover:bg-purple-100 uppercase text-[10px] font-bold">Shipped</Badge>;
-      case 'delivered':
-        return <Badge className="bg-green-50 text-green-700 border-green-100 hover:bg-green-100 uppercase text-[10px] font-bold">Delivered</Badge>;
-      case 'cancelled':
-        return <Badge className="bg-red-50 text-red-700 border-red-100 hover:bg-red-100 uppercase text-[10px] font-bold">Cancelled</Badge>;
       default:
-        return <Badge className="bg-gray-50 text-gray-700 border-gray-100 hover:bg-gray-100 uppercase text-[10px] font-bold">{status}</Badge>;
+        return <Badge className="bg-gray-50 text-gray-700 border-gray-100 hover:bg-gray-100 uppercase text-[10px] font-bold">{status.replace('_', ' ')}</Badge>;
     }
   };
 
@@ -246,13 +252,15 @@ export default function OrdersPage() {
           <div className="flex items-center gap-2 w-full md:w-auto">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-10 w-full md:w-[180px] bg-white border-[#e1e3e5] text-[10px] font-bold uppercase tracking-widest">
-                <Filter className="h-3 w-3 mr-2" /> {statusFilter === 'all' ? 'All Statuses' : statusFilter}
+                <Filter className="h-3 w-3 mr-2" /> {statusFilter === 'all' ? 'All Statuses' : statusFilter.replace('_', ' ')}
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="text-[10px] uppercase font-bold">All Statuses</SelectItem>
-                <SelectItem value="confirmed" className="text-[10px] uppercase font-bold">Confirmed</SelectItem>
+                <SelectItem value="awaiting_shipping" className="text-[10px] uppercase font-bold">Awaiting Shipping</SelectItem>
                 <SelectItem value="shipped" className="text-[10px] uppercase font-bold">Shipped</SelectItem>
+                <SelectItem value="out_for_delivery" className="text-[10px] uppercase font-bold">Out for Delivery</SelectItem>
                 <SelectItem value="delivered" className="text-[10px] uppercase font-bold">Delivered</SelectItem>
+                <SelectItem value="returned" className="text-[10px] uppercase font-bold">Returned</SelectItem>
                 <SelectItem value="cancelled" className="text-[10px] uppercase font-bold">Cancelled</SelectItem>
               </SelectContent>
             </Select>
@@ -265,7 +273,7 @@ export default function OrdersPage() {
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4">Order ID</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Date</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Customer</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Archival Status</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Logistics</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Financial</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] text-right">Total</TableHead>
               <TableHead className="w-[50px]"></TableHead>
@@ -352,13 +360,15 @@ export default function OrdersPage() {
                   </Select>
 
                   <Select value={selectedOrder.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
-                    <SelectTrigger className="h-10 w-[160px] bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
+                    <SelectTrigger className="h-10 w-[180px] bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
                       <SelectValue placeholder="Update Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="confirmed" className="text-[10px] font-bold uppercase">Confirmed</SelectItem>
+                      <SelectItem value="awaiting_shipping" className="text-[10px] font-bold uppercase">Awaiting Shipping</SelectItem>
                       <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
+                      <SelectItem value="out_for_delivery" className="text-[10px] font-bold uppercase">Out for Delivery</SelectItem>
                       <SelectItem value="delivered" className="text-[10px] font-bold uppercase">Delivered</SelectItem>
+                      <SelectItem value="returned" className="text-[10px] font-bold uppercase">Returned</SelectItem>
                       <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
