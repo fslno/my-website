@@ -85,6 +85,16 @@ export default function ProductDetailPage() {
     return base + fee;
   }, [product, wantsCustomization]);
 
+  // Dynamically calculate the displayed SKU based on selected size
+  const displayedSku = useMemo(() => {
+    if (!product) return 'N/A';
+    if (selectedSize) {
+      const variant = product.variants?.find((v: any) => v.size === selectedSize);
+      if (variant?.sku) return variant.sku;
+    }
+    return product.sku || 'N/A';
+  }, [product, selectedSize]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -185,9 +195,9 @@ export default function ProductDetailPage() {
                   <span className="text-[9px] text-gray-400 font-bold ml-1">(24 Reviews)</span>
                 </div>
               </div>
-              {/* SKU moved here */}
+              {/* Dynamic SKU Display */}
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
-                REF: {product.sku || 'N/A'}
+                REF: {displayedSku}
               </p>
             </div>
 
