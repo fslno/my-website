@@ -31,7 +31,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Layers,
-  Box
+  Box,
+  GripVertical
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -107,6 +108,7 @@ export default function ProductsPage() {
 
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [features, setFeatures] = useState('');
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // Real-time Inventory Calculation
   const totalInventory = useMemo(() => {
@@ -128,20 +130,51 @@ export default function ProductsPage() {
     setVariants(updated);
   };
 
-  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const type = file.type.startsWith('video/') ? 'video' : 'image';
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setMedia([...media, { url: reader.result as string, type }]);
-      };
-      reader.readAsDataURL(file);
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+    const newMediaPromises = fileArray.map(file => {
+      return new Promise<MediaItem>((resolve) => {
+        const type = file.type.startsWith('video/') ? 'video' : 'image';
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve({ url: reader.result as string, type });
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    try {
+      const results = await Promise.all(newMediaPromises);
+      setMedia(prev => [...prev, ...results]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (error) {
+      toast({ variant: "destructive", title: "Upload Error", description: "Failed to process files." });
     }
   };
 
   const removeMedia = (index: number) => {
     setMedia(media.filter((_, i) => i !== index));
+  };
+
+  const onDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const onDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+  };
+
+  const onDrop = (index: number) => {
+    if (draggedIndex === null || draggedIndex === index) return;
+    const newMedia = [...media];
+    const draggedItem = newMedia[draggedIndex];
+    newMedia.splice(draggedIndex, 1);
+    newMedia.splice(index, 0, draggedItem);
+    setMedia(newMedia);
+    setDraggedIndex(null);
   };
 
   const handleGenerate = async () => {
@@ -283,11 +316,18 @@ export default function ProductsPage() {
                   <section className="space-y-6">
                     <div>
                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1 text-foreground">Visual Content</h3>
-                      <p className="text-xs text-gray-500">Upload multiple images or videos for the product gallery.</p>
+                      <p className="text-xs text-gray-500">Upload multiple images or videos for the product gallery. Hold and drag to reorder.</p>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {media.map((item, index) => (
-                        <div key={index} className="relative aspect-square bg-gray-100 border rounded-lg overflow-hidden group">
+                        <div 
+                          key={index} 
+                          draggable
+                          onDragStart={() => onDragStart(index)}
+                          onDragOver={(e) => onDragOver(e, index)}
+                          onDrop={() => onDrop(index)}
+                          className={`relative aspect-square bg-gray-100 border rounded-lg overflow-hidden group cursor-move transition-opacity ${draggedIndex === index ? 'opacity-40' : 'opacity-100'}`}
+                        >
                           {item.type === 'video' ? (
                             <div className="w-full h-full flex items-center justify-center bg-black">
                               <Play className="h-8 w-8 text-white opacity-50" />
@@ -296,6 +336,9 @@ export default function ProductsPage() {
                           ) : (
                             <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />
                           )}
+                          <div className="absolute top-2 left-2 p-1 bg-black/40 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                            <GripVertical className="h-3 w-3 text-white" />
+                          </div>
                           <button 
                             onClick={() => removeMedia(index)}
                             className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
@@ -313,7 +356,14 @@ export default function ProductsPage() {
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Add Media</span>
                       </button>
-                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleMediaUpload} />
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        multiple
+                        accept="image/*,video/*" 
+                        onChange={handleMediaUpload} 
+                      />
                     </div>
                   </section>
 
@@ -577,7 +627,7 @@ export default function ProductsPage() {
 
       <div className="bg-white border border-[#e1e3e5] rounded-lg overflow-hidden shadow-sm">
         <div className="p-4 border-b border-[#e1e3e5] flex items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 max-sm:max-w-full max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
             <Input placeholder="Filter archive..." className="pl-10 h-9 border-[#babfc3] focus:ring-black" />
           </div>
