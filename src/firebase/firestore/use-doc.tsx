@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,6 +11,10 @@ import {
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
+/**
+ * Hook to listen to a single Firestore document.
+ * @param ref The DocumentReference to listen to.
+ */
 export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,19 +38,20 @@ export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
         }
         setLoading(false);
       },
-      async (err: FirestoreError) => {
-        const permissionError = new FirestorePermissionError({
-          path: ref.path,
-          operation: 'get',
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      (err: FirestoreError) => {
+        if (err.code === 'permission-denied') {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: ref.path,
+            operation: 'get',
+          }));
+        }
         setError(err);
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [ref?.path]); // Use path to stabilize the dependency
+  }, [ref]);
 
   return { data, loading, error };
 }

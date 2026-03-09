@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Query,
   onSnapshot,
@@ -12,13 +11,15 @@ import {
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
+/**
+ * Hook to listen to a Firestore collection or query.
+ * @param query The Firestore Query or CollectionReference to listen to.
+ */
 export function useCollection<T = DocumentData>(query: Query<T> | null) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | null>(null);
 
-  // We use a serialized version of the query for the effect dependency if needed,
-  // but generally relying on stable useMemoFirebase is better.
   useEffect(() => {
     if (!query) {
       setLoading(false);
@@ -33,16 +34,19 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
         const items = snapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
-        }));
-        setData(items);
+        } as T & { id: string }));
+        setData(items as T[]);
         setLoading(false);
       },
-      async (err: FirestoreError) => {
-        const permissionError = new FirestorePermissionError({
-          path: (query as any)._query?.path?.toString() || 'collection',
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      (err: FirestoreError) => {
+        if (err.code === 'permission-denied') {
+          // Attempt to extract path if possible safely
+          const path = (query as any)._query?.path?.toString() || 'collection';
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path,
+            operation: 'list',
+          }));
+        }
         setError(err);
         setLoading(false);
       }
@@ -54,6 +58,10 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
   return { data, loading, error };
 }
 
+/**
+ * Stabilizes a Firestore query or reference so it can be used as a dependency in hooks.
+ */
 export function useMemoFirebase<T>(factory: () => T, deps: any[]): T {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(factory, deps);
 }

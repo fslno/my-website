@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -11,7 +10,7 @@ export function FirebaseErrorListener() {
 
   useEffect(() => {
     const handlePermissionError = (error: FirestorePermissionError) => {
-      // Centrally handle the error without logging to console to avoid duplicate error screens or hydration mismatches
+      // Centrally handle the error without logging to console to avoid duplicate error screens
       toast({
         variant: 'destructive',
         title: 'Permission Denied',
