@@ -89,6 +89,7 @@ export default function ProductsPage() {
   const [brand, setBrand] = useState('');
   const [sku, setSku] = useState('');
   const [sizeFit, setSizeFit] = useState('');
+  const [badge, setBadge] = useState('none');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   
@@ -254,6 +255,7 @@ export default function ProductsPage() {
       brand,
       sku,
       sizeFit,
+      badge,
       categoryId,
       inventory: totalInventory,
       variants,
@@ -299,6 +301,7 @@ export default function ProductsPage() {
     setBrand('');
     setSku('');
     setSizeFit('');
+    setBadge('none');
     setDescription('');
     setCategoryId('');
     setVariants([
@@ -477,9 +480,27 @@ export default function ProductsPage() {
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size & Fit Description</Label>
-                        <Input placeholder="e.g. Oversized fit, models wears size M" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size & Fit Description</Label>
+                          <Input placeholder="e.g. Oversized fit, models wears size M" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Collection Badge</Label>
+                          <Select value={badge} onValueChange={setBadge}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a badge..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No Badge</SelectItem>
+                              <SelectItem value="new">New Arrival</SelectItem>
+                              <SelectItem value="best-seller">Best Seller</SelectItem>
+                              <SelectItem value="sale">Sale</SelectItem>
+                              <SelectItem value="clearance">Clearance</SelectItem>
+                              <SelectItem value="drop">In Drop List</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="space-y-4 pt-4 border-t">
