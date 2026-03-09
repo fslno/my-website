@@ -20,7 +20,6 @@ import {
   Share2,
   RefreshCw,
   BarChart,
-  RefreshCw as LoaderIcon,
   LogOut,
   Mail,
   Lock
@@ -53,7 +52,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         description: "Successfully signed into the Command Center.",
       });
     } catch (error: any) {
-      console.error('Login error:', error);
       toast({
         variant: "destructive",
         title: "Login Failed",
@@ -73,7 +71,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         description: "Successfully signed into the Command Center.",
       });
     } catch (error: any) {
-      console.error('Email login error:', error);
       toast({
         variant: "destructive",
         title: "Login Failed",
@@ -105,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f6f6f7]">
         <div className="flex flex-col items-center gap-4">
-          <LoaderIcon className="h-8 w-8 animate-spin text-gray-400" />
+          <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
           <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">Initializing FSLNO Admin...</p>
         </div>
       </div>
@@ -211,7 +208,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Inventory Management: Create 'Spot Closing' drops with real-time stock sync.">
+                  <SidebarMenuButton asChild tooltip="Products">
                     <Link href="/admin/products">
                       <BarChart3 />
                       <span>Products</span>
@@ -273,7 +270,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Domain & Visibility: Manage fslno.com address and Sitemap.xml generation.">
+                  <SidebarMenuButton asChild tooltip="Domain">
                     <Link href="/admin/domain">
                       <Globe />
                       <span>Domain</span>
@@ -295,7 +292,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Merchant API Integration: Real-time price/stock sync with Google Shopping.">
+                  <SidebarMenuButton asChild tooltip="Google Sync">
                     <Link href="/admin/sales-channels/google">
                       <RefreshCw />
                       <span>Google Sync</span>
@@ -303,7 +300,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="TikTok & Meta Sync: In-App Checkout and CAPI tracking.">
+                  <SidebarMenuButton asChild tooltip="Social Commerce">
                     <Link href="/admin/sales-channels/social">
                       <Share2 />
                       <span>Social Commerce</span>
@@ -311,7 +308,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="GA4 Analytics: Track 'Add to Cart' and 'Purchase' events.">
+                  <SidebarMenuButton asChild tooltip="GA4 Analytics">
                     <Link href="/admin/sales-channels/analytics">
                       <BarChart />
                       <span>Analytics</span>

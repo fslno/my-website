@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,18 +36,24 @@ export default function SocialCommercePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newIntegration, setNewIntegration] = useState({ name: '', description: '' });
 
-  useEffect(() => {
-    if (!loading && !config && configRef) {
-      setDoc(configRef, {
-        tiktokInAppCheckout: true,
-        tiktokAccessToken: 'u5w9XtYeVTmceUfOZLZwDQxF2',
-        metaPixelId: '9283746501293',
-        metaAccessToken: '',
-        metaEmqEnabled: true,
-        customIntegrations: []
-      });
-    }
-  }, [loading, config, configRef]);
+  const handleInitialize = () => {
+    if (!configRef) return;
+    const initialData = {
+      tiktokInAppCheckout: true,
+      tiktokAccessToken: 'u5w9XtYeVTmceUfOZLZwDQxF2',
+      metaPixelId: '9283746501293',
+      metaAccessToken: '',
+      metaEmqEnabled: true,
+      customIntegrations: []
+    };
+    setDoc(configRef, initialData).catch((error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: configRef.path,
+        operation: 'create',
+        requestResourceData: initialData
+      }));
+    });
+  };
 
   const handleUpdate = (updates: any) => {
     if (!configRef) return;
@@ -85,14 +92,16 @@ export default function SocialCommercePage() {
     );
   }
 
-  const socialData = config || {
-    tiktokInAppCheckout: false,
-    tiktokAccessToken: '',
-    metaPixelId: '',
-    metaAccessToken: '',
-    metaEmqEnabled: false,
-    customIntegrations: []
-  };
+  if (!config) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
+        <Share2 className="h-12 w-12 text-gray-300" />
+        <h2 className="text-xl font-bold text-gray-900">Social Commerce Not Initialized</h2>
+        <p className="text-gray-500 max-w-sm">Sync your luxury catalog with TikTok and Meta for cross-channel sales.</p>
+        <Button onClick={handleInitialize} className="bg-black text-white px-8">Initialize Channels</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -163,7 +172,7 @@ export default function SocialCommercePage() {
                   <p className="text-xs text-[#5c5f62]">Allow customers to buy FSLNO gear without leaving TikTok.</p>
                 </div>
                 <Switch 
-                  checked={socialData.tiktokInAppCheckout} 
+                  checked={config.tiktokInAppCheckout} 
                   onCheckedChange={(checked) => handleUpdate({ tiktokInAppCheckout: checked })}
                 />
               </div>
@@ -179,7 +188,7 @@ export default function SocialCommercePage() {
               <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">TikTok Shop Access Token</Label>
               <Input 
                 type="password" 
-                value={socialData.tiktokAccessToken} 
+                value={config.tiktokAccessToken} 
                 onChange={(e) => handleUpdate({ tiktokAccessToken: e.target.value })}
                 className="bg-[#f1f2f3]" 
               />
@@ -213,7 +222,7 @@ export default function SocialCommercePage() {
               <div className="space-y-2">
                 <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Pixel ID</Label>
                 <Input 
-                  value={socialData.metaPixelId} 
+                  value={config.metaPixelId} 
                   onChange={(e) => handleUpdate({ metaPixelId: e.target.value })}
                 />
               </div>
@@ -221,7 +230,7 @@ export default function SocialCommercePage() {
                 <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Access Token</Label>
                 <Input 
                   type="password" 
-                  value={socialData.metaAccessToken}
+                  value={config.metaAccessToken}
                   onChange={(e) => handleUpdate({ metaAccessToken: e.target.value })}
                   placeholder="Enter your token" 
                 />
@@ -236,7 +245,7 @@ export default function SocialCommercePage() {
                 <p className="text-xs text-[#5c5f62]">Sends hashed email/phone data to help find buyers.</p>
               </div>
               <Switch 
-                checked={socialData.metaEmqEnabled} 
+                checked={config.metaEmqEnabled} 
                 onCheckedChange={(checked) => handleUpdate({ metaEmqEnabled: checked })}
               />
             </div>
@@ -271,7 +280,7 @@ export default function SocialCommercePage() {
           </CardContent>
         </Card>
 
-        {socialData.customIntegrations?.map((integration: any) => (
+        {config.customIntegrations?.map((integration: any) => (
           <Card key={integration.id} className="border-[#e1e3e5] shadow-none border-dashed border-2">
             <CardHeader>
               <div className="flex items-center justify-between">
