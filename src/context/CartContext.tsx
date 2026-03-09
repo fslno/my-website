@@ -1,8 +1,7 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { 
   doc, 
   setDoc, 
@@ -58,9 +57,6 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const THRESHOLD_VALUE = 1000;
-const THRESHOLD_DISCOUNT = 100;
-
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const db = useFirestore();
   const { user } = useUser();
@@ -87,13 +83,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [localCart, isInitialized, user]);
 
-  // Firestore Persistence
+  // Firestore Persistence & Config
   const cartQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'cart');
   }, [db, user]);
 
+  const promoConfigRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'config', 'promotions');
+  }, [db]);
+
   const { data: dbItems, isLoading: isSyncing } = useCollection(cartQuery);
+  const { data: promoConfig } = useDoc(promoConfigRef);
 
   const cartData = user 
     ? (dbItems || []).map(item => ({
@@ -104,46 +106,51 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // --- BOGO & PROMO LOGIC ---
   const cart = useMemo(() => {
-    // 1. Identify "Jersey" items
-    // For this prototype, we'll look for items with category name containing "Jersey" 
-    // or specific logic. In production, this would be categoryId based.
-    const jerseyCount = cartData.reduce((acc, item) => {
-      if (item.name.toLowerCase().includes('jersey') || item.categoryId === 'jerseys-cat-id') {
+    if (!promoConfig || !promoConfig.bogoEnabled) {
+      return cartData.filter(i => !i.isPromo);
+    }
+
+    const { bogoMinQty, bogoCategoryId, bogoItemName } = promoConfig;
+
+    // Identify qualifying items
+    const qualifyingCount = cartData.reduce((acc, item) => {
+      // Check if item belongs to the BOGO category
+      if (item.categoryId === bogoCategoryId) {
         return acc + item.quantity;
       }
       return acc;
     }, 0);
 
-    const hasBogoQualify = jerseyCount >= 2;
+    const hasBogoQualify = qualifyingCount >= (bogoMinQty || 2);
     const existingPromo = cartData.find(i => i.isPromo);
 
-    // If qualify but no promo in cart, we inject it visually here (context level)
-    // or we could force a write. For non-blocking responsiveness, we'll handle it in the calc.
     if (hasBogoQualify && !existingPromo) {
       return [...cartData, {
-        id: 'promo-scarf',
-        variantId: 'promo-scarf-free',
-        name: 'Technical Archive Scarf (BOGO Reward)',
+        id: 'promo-reward',
+        variantId: 'promo-reward-free',
+        name: bogoItemName || 'Archive Reward',
         price: 0,
         quantity: 1,
-        image: 'https://picsum.photos/seed/scarf/400/400',
+        image: 'https://picsum.photos/seed/promo/400/400',
         size: 'OS',
         isPromo: true
       }];
     }
 
-    // If not qualify but promo exists, filter it out
     if (!hasBogoQualify && existingPromo) {
       return cartData.filter(i => !i.isPromo);
     }
 
     return cartData;
-  }, [cartData]);
+  }, [cartData, promoConfig]);
 
   const cartSubtotal = useMemo(() => cart.reduce((acc, item) => acc + (item.price * item.quantity), 0), [cart]);
 
   // Threshold Discount Logic
-  const thresholdDiscount = cartSubtotal >= THRESHOLD_VALUE ? THRESHOLD_DISCOUNT : 0;
+  const thresholdValue = promoConfig?.thresholdEnabled ? (promoConfig.thresholdValue || 1000) : Infinity;
+  const thresholdDiscountValue = promoConfig?.thresholdEnabled ? (promoConfig.thresholdDiscount || 100) : 0;
+  
+  const thresholdDiscount = cartSubtotal >= thresholdValue ? thresholdDiscountValue : 0;
 
   // Coupon Calculation
   const couponDiscount = useMemo(() => {
@@ -157,7 +164,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const discountTotal = thresholdDiscount + couponDiscount;
   const totalBeforeTax = Math.max(0, cartSubtotal - discountTotal);
   
-  const thresholdProgress = Math.min(100, (cartSubtotal / THRESHOLD_VALUE) * 100);
+  // Progress tracking for UI
+  const effectiveThreshold = promoConfig?.thresholdEnabled ? (promoConfig.thresholdValue || 1000) : 1000;
+  const thresholdProgress = Math.min(100, (cartSubtotal / effectiveThreshold) * 100);
 
   const addToCart = (newItem: CartItem) => {
     if (user && db) {
@@ -233,7 +242,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       cart, addToCart, removeFromCart, clearCart, 
       cartCount, cartSubtotal, discountTotal, totalBeforeTax, 
       isSyncing, appliedCoupon, applyCoupon: setAppliedCoupon,
-      thresholdProgress, THRESHOLD_VALUE
+      thresholdProgress, THRESHOLD_VALUE: effectiveThreshold
     }}>
       {children}
     </CartContext.Provider>
