@@ -1,16 +1,36 @@
 'use client';
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 import { firebaseConfig } from './config';
 
-export function initializeFirebase() {
-  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  const firestore = getFirestore(app);
-  const auth = getAuth(app);
+let firebaseApp: FirebaseApp | undefined;
+let firestore: Firestore | undefined;
+let auth: Auth | undefined;
 
-  return { app, firestore, auth };
+/**
+ * Initializes Firebase App and services as singletons to prevent multiple initialization 
+ * issues during development and HMR.
+ */
+export function initializeFirebase() {
+  if (typeof window === 'undefined') {
+    return { app: null as any, firestore: null as any, auth: null as any };
+  }
+
+  if (!firebaseApp) {
+    firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  }
+
+  if (!firestore) {
+    firestore = getFirestore(firebaseApp);
+  }
+
+  if (!auth) {
+    auth = getAuth(firebaseApp);
+  }
+
+  return { app: firebaseApp, firestore, auth };
 }
 
 export * from './provider';
