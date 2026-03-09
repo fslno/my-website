@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -257,7 +256,7 @@ export default function ProductsPage() {
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {media.map((item, index) => (
-                        <div key={index} className="relative aspect-[3/4] bg-gray-100 border rounded-lg overflow-hidden group">
+                        <div key={index} className="relative aspect-square bg-gray-100 border rounded-lg overflow-hidden group">
                           {item.type === 'video' ? (
                             <div className="w-full h-full flex items-center justify-center bg-black">
                               <Play className="h-8 w-8 text-white opacity-50" />
@@ -276,7 +275,7 @@ export default function ProductsPage() {
                       ))}
                       <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className="aspect-[3/4] border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group"
+                        className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group"
                       >
                         <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors">
                           <PlusCircle className="h-5 w-5" />
