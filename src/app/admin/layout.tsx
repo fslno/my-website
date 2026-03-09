@@ -269,12 +269,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="space-y-3">
                           <p className="font-bold text-sm">Global Carrier Integration</p>
                           <p className="text-[11px] text-muted-foreground">• North America: USPS, UPS, FedEx, Canada Post.</p>
-                          <p className="text-[11px] text-muted-foreground">• Europe & UK: DHL, Royal Mail, DPD, Evri.</p>
-                          <p className="text-[11px] text-muted-foreground">• Luxury: DHL GoGreen Plus (Carbon-neutral).</p>
+                          <p className="text-[11px] text-muted-foreground">• Europe & UK: DHL Express, Royal Mail, DPD, Evri.</p>
+                          <p className="text-[11px] text-muted-foreground">• Luxury Express: DHL Express GoGreen Plus (Carbon-neutral).</p>
                           
                           <p className="font-bold text-sm mt-2">Advanced Pickup Logic</p>
-                          <p className="text-[11px] text-muted-foreground">• In-Store/Pop-Up: Real-time inventory-based pickup.</p>
-                          <p className="text-[11px] text-muted-foreground">• Secure Lockers: UPS Access Point & FedEx OnSite.</p>
+                          <p className="text-[11px] text-muted-foreground">• In-Store/Pop-Up: Real-time inventory-based pickup (Google Local Inventory API).</p>
+                          <p className="text-[11px] text-muted-foreground">• Locker Integration: UPS Access Point & FedEx OnSite.</p>
                           
                           <p className="font-bold text-sm mt-2">Real-Time Shipping Features</p>
                           <p className="text-[11px] text-muted-foreground">• Address Validation: Prevent RTO with typo correction.</p>
@@ -285,12 +285,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </TooltipProvider>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Payments">
-                    <Link href="/admin/payments">
-                      <CreditCard />
-                      <span>Payments</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <Link href="/admin/payments">
+                            <CreditCard />
+                            <span>Payments</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl">
+                        <div className="space-y-3">
+                          <p className="font-bold text-sm">Stripe (The Core)</p>
+                          <p className="text-[11px] text-muted-foreground">• 135+ currencies and 20+ payment methods (iDEAL, Klarna, Bancontact).</p>
+                          
+                          <p className="font-bold text-sm mt-2">PayPal Commerce Platform</p>
+                          <p className="text-[11px] text-muted-foreground">• Smart Payment Buttons including "PayPal Pay Later" (4 interest-free payments).</p>
+                          
+                          <p className="font-bold text-sm mt-2">Apple Pay & Google Pay (Express)</p>
+                          <p className="text-[11px] text-muted-foreground">• High-priority "Buy Now" buttons that bypass the entire address form.</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Domain">
@@ -329,13 +347,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="space-y-2">
                           <p className="font-bold text-sm">Merchant API (V1) Integration</p>
                           <p className="text-xs text-muted-foreground">• On-Demand Updates: Price/stock changes sync in minutes.</p>
-                          <p className="text-xs text-muted-foreground">• Partial Sync: Only update specific fields (Price/Availability).</p>
+                          <p className="text-xs text-muted-foreground">• Partial Sync: Only update Price or Availability for specific SKUs.</p>
                           <p className="font-bold text-sm mt-2">Google Product Studio</p>
                           <p className="text-xs text-muted-foreground">• AI Enhancement: Background removal and image upscaling.</p>
                           <p className="font-bold text-sm mt-2">YouTube Shopping</p>
                           <p className="text-xs text-muted-foreground">• Product Tagging: Real-time sync for shoppable content.</p>
-                          <p className="font-bold text-sm mt-2">Local Inventory Ads</p>
-                          <p className="text-xs text-muted-foreground">• Real-time stock visibility for physical "Spots".</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -355,13 +371,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
                         <div className="space-y-2">
                           <p className="font-bold text-sm">TikTok Shop Seller API</p>
-                          <p className="text-xs text-muted-foreground">• In-App Checkout: Customers buy without leaving TikTok.</p>
+                          <p className="text-xs text-muted-foreground">• In-App Checkout: Buy gear without leaving TikTok.</p>
                           <p className="text-xs text-muted-foreground">• Affiliate Management: Dashboard for creator samples/ROI.</p>
                           <p className="font-bold text-sm mt-2">Meta Conversions API (CAPI)</p>
-                          <p className="text-xs text-muted-foreground">• Server-to-Server Tracking: Bypasses iOS ad-blockers.</p>
-                          <p className="text-xs text-muted-foreground">• Event Match Quality: Hashed data for better targeting.</p>
-                          <p className="font-bold text-sm mt-2">Instagram Shopping</p>
-                          <p className="text-xs text-muted-foreground">• Product Tags: Sync Bento Grid into Guides/Reels.</p>
+                          <p className="text-xs text-muted-foreground">• Server-to-Server Tracking: Bypasses iOS privacy restrictions.</p>
+                          <p className="text-xs text-muted-foreground">• Event Match Quality (EMQ): Sends hashed data to find buyers.</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -381,13 +395,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
                         <div className="space-y-2">
                           <p className="font-bold text-sm">Custom Funnel Tracking</p>
-                          <p className="text-xs text-muted-foreground">• view_item_list: Track most popular categories.</p>
-                          <p className="text-xs text-muted-foreground">• Checkout Drop-off: Pinpoint exactly where users exit.</p>
+                          <p className="text-xs text-muted-foreground">• view_item_list: Track popular FSLNO categories.</p>
+                          <p className="text-xs text-muted-foreground">• Drop-off Analysis: add_to_cart vs begin_checkout.</p>
                           <p className="font-bold text-sm mt-2">Predictive Audiences</p>
                           <p className="text-xs text-muted-foreground">• Churn Probability: Identify users likely to stop visiting.</p>
-                          <p className="text-xs text-muted-foreground">• 7-day Purchasers: Target high-intent buyers via Google Ads.</p>
+                          <p className="text-xs text-muted-foreground">• 7-day Purchasers: Target high-intent buyers.</p>
                           <p className="font-bold text-sm mt-2">User ID Tracking</p>
-                          <p className="text-xs text-muted-foreground">• Cross-Device: Connect mobile browsing to desktop purchase.</p>
+                          <p className="text-xs text-muted-foreground">• Cross-Device: Unified mobile and desktop journey.</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>

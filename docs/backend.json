@@ -84,6 +84,23 @@
         "addressValidation": { "type": "boolean" },
         "ddpEnabled": { "type": "boolean" }
       }
+    },
+    "PaymentConfig": {
+      "title": "Payment Configuration",
+      "description": "Stripe, PayPal, and Express Checkout settings.",
+      "type": "object",
+      "properties": {
+        "stripeEnabled": { "type": "boolean" },
+        "stripeMode": { "type": "string", "enum": ["test", "live"] },
+        "stripePublishableKey": { "type": "string" },
+        "stripeSecretKey": { "type": "string" },
+        "paypalEnabled": { "type": "boolean" },
+        "paypalMode": { "type": "string", "enum": ["sandbox", "live"] },
+        "paypalClientId": { "type": "string" },
+        "paypalPayLaterEnabled": { "type": "boolean" },
+        "applePayEnabled": { "type": "boolean" },
+        "googlePayEnabled": { "type": "boolean" }
+      }
     }
   },
   "auth": {
@@ -113,6 +130,10 @@
     "/config/shipping": {
       "schema": "ShippingConfig",
       "description": "Global logistics and shipping settings."
+    },
+    "/config/payments": {
+      "schema": "PaymentConfig",
+      "description": "Global payment gateway settings."
     }
   }
 }
