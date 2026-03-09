@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -29,7 +29,9 @@ import {
   Truck,
   LayoutGrid,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Layers,
+  Box
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,6 +55,11 @@ import Image from 'next/image';
 interface MediaItem {
   url: string;
   type: 'image' | 'video';
+}
+
+interface Variant {
+  size: string;
+  stock: number;
 }
 
 export default function ProductsPage() {
@@ -82,9 +89,9 @@ export default function ProductsPage() {
   const [sizeFit, setSizeFit] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [inventory, setInventory] = useState('');
-  const [media, setMedia] = useState<MediaItem[]>([]);
-  const [features, setFeatures] = useState('');
+  
+  // Variants State
+  const [variants, setVariants] = useState<Variant[]>([{ size: 'M', stock: 0 }]);
   
   // SEO State
   const [seoTitle, setSeoTitle] = useState('');
@@ -97,6 +104,29 @@ export default function ProductsPage() {
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
   const [shippingClass, setShippingClass] = useState('standard');
+
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [features, setFeatures] = useState('');
+
+  // Real-time Inventory Calculation
+  const totalInventory = useMemo(() => {
+    return variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
+  }, [variants]);
+
+  const handleAddVariant = () => {
+    setVariants([...variants, { size: 'NEW', stock: 0 }]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    if (variants.length <= 1) return;
+    setVariants(variants.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateVariant = (index: number, field: keyof Variant, value: string | number) => {
+    const updated = [...variants];
+    updated[index] = { ...updated[index], [field]: value };
+    setVariants(updated);
+  };
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -145,7 +175,8 @@ export default function ProductsPage() {
       sku,
       sizeFit,
       categoryId,
-      inventory: parseInt(inventory) || 0,
+      inventory: totalInventory,
+      variants,
       media,
       features: features.split(',').map(f => f.trim()),
       seo: {
@@ -190,7 +221,7 @@ export default function ProductsPage() {
     setSizeFit('');
     setDescription('');
     setCategoryId('');
-    setInventory('');
+    setVariants([{ size: 'M', stock: 0 }]);
     setMedia([]);
     setFeatures('');
     setSeoTitle('');
@@ -202,6 +233,13 @@ export default function ProductsPage() {
     setHeight('');
     setActiveTab('general');
   };
+
+  const tabs = [
+    { id: 'general', label: '01. General & Media', icon: LayoutGrid },
+    { id: 'inventory', label: '02. Inventory & Sizes', icon: Layers },
+    { id: 'seo', label: '03. SEO Settings', icon: Globe },
+    { id: 'logistics', label: '04. Logistics', icon: Truck },
+  ];
 
   return (
     <div className="space-y-6">
@@ -216,44 +254,37 @@ export default function ProductsPage() {
               <Plus className="h-4 w-4" /> Add Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-[95vw] w-full h-[95vh] bg-white flex flex-col p-0 border-none shadow-2xl rounded-xl">
+          <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
               <DialogTitle className="text-xl font-headline font-bold">New Archive Entry</DialogTitle>
+              <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
+                <X className="h-5 w-5" />
+              </Button>
             </DialogHeader>
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
               <div className="px-6 border-b bg-gray-50/50 shrink-0">
                 <TabsList className="bg-transparent h-14 p-0 gap-8">
-                  <TabsTrigger 
-                    value="general" 
-                    className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[10px]"
-                  >
-                    <LayoutGrid className="h-4 w-4" /> 01. General Info
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="seo" 
-                    className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[10px]"
-                  >
-                    <Globe className="h-4 w-4" /> 02. SEO Settings
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="logistics" 
-                    className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[10px]"
-                  >
-                    <Truck className="h-4 w-4" /> 03. Logistics
-                  </TabsTrigger>
+                  {tabs.map((tab) => (
+                    <TabsTrigger 
+                      key={tab.id}
+                      value={tab.id} 
+                      className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[10px]"
+                    >
+                      <tab.icon className="h-4 w-4" /> {tab.label}
+                    </TabsTrigger>
+                  ))}
                 </TabsList>
               </div>
 
               <div className="flex-1 overflow-y-auto">
+                {/* General Content */}
                 <TabsContent value="general" className="p-8 m-0 space-y-12 max-w-5xl mx-auto">
-                  {/* Media Section */}
                   <section className="space-y-6">
                     <div>
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Visual Content</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1 text-foreground">Visual Content</h3>
                       <p className="text-xs text-gray-500">Upload multiple images or videos for the product gallery.</p>
                     </div>
-                    
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {media.map((item, index) => (
                         <div key={index} className="relative aspect-square bg-gray-100 border rounded-lg overflow-hidden group">
@@ -282,17 +313,10 @@ export default function ProductsPage() {
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Add Media</span>
                       </button>
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        className="hidden" 
-                        accept="image/*,video/*" 
-                        onChange={handleMediaUpload} 
-                      />
+                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleMediaUpload} />
                     </div>
                   </section>
 
-                  {/* Specifications */}
                   <section className="space-y-8 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
                     <div className="grid gap-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -341,15 +365,9 @@ export default function ProductsPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size & Fit Description</Label>
-                          <Input placeholder="e.g. Oversized fit" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Available Inventory</Label>
-                          <Input type="number" placeholder="24" value={inventory} onChange={(e) => setInventory(e.target.value)} />
-                        </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size & Fit Description</Label>
+                        <Input placeholder="e.g. Oversized fit, models wears size M" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} />
                       </div>
 
                       <div className="space-y-4 pt-4 border-t">
@@ -365,6 +383,73 @@ export default function ProductsPage() {
                   </section>
                 </TabsContent>
 
+                {/* Inventory & Variants Content */}
+                <TabsContent value="inventory" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-foreground">Sizing & Availability</h3>
+                      <p className="text-xs text-gray-500 mt-1">Manage individual stock for each size variant.</p>
+                    </div>
+                    <div className="bg-black text-white px-4 py-2 rounded flex items-center gap-4">
+                      <Box className="h-4 w-4" />
+                      <div className="flex flex-col">
+                        <span className="text-[8px] uppercase tracking-[0.2em] font-bold opacity-70">Total Stock</span>
+                        <span className="text-sm font-bold">{totalInventory} PCS</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border rounded-xl overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-gray-50">
+                        <TableRow>
+                          <TableHead className="text-[10px] font-bold uppercase tracking-widest">Size Label</TableHead>
+                          <TableHead className="text-[10px] font-bold uppercase tracking-widest">Available Units</TableHead>
+                          <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {variants.map((v, i) => (
+                          <TableRow key={i}>
+                            <TableCell>
+                              <Input 
+                                value={v.size} 
+                                onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)}
+                                className="h-9 font-bold text-xs"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                type="number"
+                                value={v.stock} 
+                                onChange={(e) => handleUpdateVariant(i, 'stock', e.target.value)}
+                                className="h-9 text-xs"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleRemoveVariant(i)}
+                                disabled={variants.length <= 1}
+                                className="h-8 w-8 text-red-500 hover:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <div className="p-4 bg-gray-50/50 border-t">
+                      <Button variant="outline" onClick={handleAddVariant} className="w-full gap-2 border-dashed h-11 uppercase tracking-widest font-bold text-[10px]">
+                        <Plus className="h-4 w-4" /> Add Size Variant
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* SEO Content */}
                 <TabsContent value="seo" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
                     <h4 className="text-[10px] uppercase tracking-widest font-bold text-blue-600 mb-4 flex items-center gap-2">
@@ -378,7 +463,6 @@ export default function ProductsPage() {
                       <p className="text-gray-600 text-sm line-clamp-2">{seoDescription || (description || 'Meta description will appear here...')}</p>
                     </div>
                   </div>
-
                   <div className="grid gap-6">
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Meta Title</Label>
@@ -395,11 +479,12 @@ export default function ProductsPage() {
                   </div>
                 </TabsContent>
 
+                {/* Logistics Content */}
                 <TabsContent value="logistics" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
                       <div>
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Physical Attributes</h3>
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-foreground mb-1">Physical Attributes</h3>
                         <p className="text-xs text-gray-500">Define weight and dimensions for real-time rates.</p>
                       </div>
                       <div className="grid gap-6">
@@ -423,10 +508,9 @@ export default function ProductsPage() {
                         </div>
                       </div>
                     </div>
-
                     <div className="space-y-6">
                       <div>
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Fulfillment Logic</h3>
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-foreground mb-1">Fulfillment Logic</h3>
                         <p className="text-xs text-gray-500">Assign shipping rules and classes.</p>
                       </div>
                       <div className="space-y-2">
@@ -454,7 +538,10 @@ export default function ProductsPage() {
                 {activeTab !== 'general' && (
                   <Button 
                     variant="outline" 
-                    onClick={() => setActiveTab(activeTab === 'logistics' ? 'seo' : 'general')}
+                    onClick={() => {
+                      const idx = tabs.findIndex(t => t.id === activeTab);
+                      setActiveTab(tabs[idx-1].id);
+                    }}
                     className="gap-2 h-11 px-6 font-bold uppercase tracking-widest text-[10px]"
                   >
                     <ChevronLeft className="h-4 w-4" /> Previous
@@ -464,7 +551,10 @@ export default function ProductsPage() {
               <div className="flex gap-3">
                 {activeTab !== 'logistics' ? (
                   <Button 
-                    onClick={() => setActiveTab(activeTab === 'general' ? 'seo' : 'logistics')}
+                    onClick={() => {
+                      const idx = tabs.findIndex(t => t.id === activeTab);
+                      setActiveTab(tabs[idx+1].id);
+                    }}
                     className="gap-2 h-11 px-6 bg-black text-white font-bold uppercase tracking-widest text-[10px]"
                   >
                     Next Step <ChevronRight className="h-4 w-4" />
@@ -489,10 +579,7 @@ export default function ProductsPage() {
         <div className="p-4 border-b border-[#e1e3e5] flex items-center justify-between gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
-            <Input 
-              placeholder="Filter archive..." 
-              className="pl-10 h-9 border-[#babfc3] focus:ring-black" 
-            />
+            <Input placeholder="Filter archive..." className="pl-10 h-9 border-[#babfc3] focus:ring-black" />
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-9 border-[#babfc3] text-xs font-bold uppercase tracking-widest">
@@ -506,7 +593,7 @@ export default function ProductsPage() {
               <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Preview</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Product</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Collection</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Stock</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Total Stock</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Price</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -520,24 +607,17 @@ export default function ProductsPage() {
               </TableRow>
             ) : products?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-20 text-gray-400">
-                  No archive entries found.
-                </TableCell>
+                <TableCell colSpan={6} className="text-center py-20 text-gray-400">No archive entries found.</TableCell>
               </TableRow>
             ) : (
               products?.map((product: any) => {
                 const category = categories?.find((c: any) => c.id === product.categoryId);
                 const firstMedia = product.media?.[0]?.url;
-                
                 return (
                   <TableRow key={product.id} className="hover:bg-[#f6f6f7]/50 transition-colors border-[#e1e3e5] group">
                     <TableCell>
                       <div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">
-                        {firstMedia ? (
-                          <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" />
-                        ) : (
-                          <ImageIcon className="h-4 w-4 text-gray-300" />
-                        )}
+                        {firstMedia ? <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" /> : <ImageIcon className="h-4 w-4 text-gray-300" />}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -548,12 +628,11 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
-                        <Tag className="h-3 w-3" />
-                        {category?.name || 'Unlinked'}
+                        <Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">{product.inventory} PCS</TableCell>
-                    <TableCell className="text-sm font-semibold">${product.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
+                    <TableCell className="text-sm font-semibold">${Number(product.price).toFixed(2)}</TableCell>
                     <TableCell>
                       <button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                         <MoreHorizontal className="h-4 w-4 text-[#5c5f62]" />
