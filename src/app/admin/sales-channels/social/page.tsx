@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -21,7 +20,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useFirestore, useDoc } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -29,7 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function SocialCommercePage() {
   const db = useFirestore();
-  const configRef = db ? doc(db, 'config', 'social-commerce') : null;
+  const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'social-commerce') : null, [db]);
   const { data: config, loading } = useDoc(configRef);
   const { toast } = useToast();
 
@@ -232,10 +231,10 @@ export default function SocialCommercePage() {
             </div>
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="space-y-1">
-                <div className="text-sm font-bold flex items-center gap-2">
+                <span className="text-sm font-bold flex items-center gap-2">
                   <span>Event Match Quality (EMQ)</span>
                   <Badge variant="secondary" className="text-[10px] h-4">Advanced</Badge>
-                </div>
+                </span>
                 <p className="text-xs text-[#5c5f62]">Sends hashed email/phone data to help Meta find "Spot Closing" buyers.</p>
               </div>
               <Switch 

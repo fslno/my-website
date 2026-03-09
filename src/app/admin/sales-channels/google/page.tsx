@@ -15,7 +15,7 @@ import {
   Settings2,
   Loader2
 } from 'lucide-react';
-import { useFirestore, useDoc } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function GoogleSyncPage() {
   const db = useFirestore();
-  const configRef = db ? doc(db, 'config', 'google-sync') : null;
+  const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'google-sync') : null, [db]);
   const { data: config, loading } = useDoc(configRef);
   const { toast } = useToast();
   
@@ -171,7 +171,6 @@ export default function GoogleSyncPage() {
       </div>
 
       <div className="grid gap-6">
-        {/* Merchant API Section */}
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -213,7 +212,6 @@ export default function GoogleSyncPage() {
           </CardContent>
         </Card>
 
-        {/* Google Product Studio Section */}
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -242,7 +240,6 @@ export default function GoogleSyncPage() {
           </CardContent>
         </Card>
 
-        {/* YouTube & Local Ads Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="border-[#e1e3e5] shadow-none">
             <CardHeader>

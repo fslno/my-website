@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -24,14 +23,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function ProductsPage() {
   const db = useFirestore();
-  const { data: products, loading } = useCollection(db ? collection(db, 'products') : null);
+  const productsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
+  const { data: products, loading } = useCollection(productsQuery);
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
