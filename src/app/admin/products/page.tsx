@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -24,7 +25,12 @@ import {
   Image as ImageIcon,
   Play,
   X,
-  PlusCircle
+  PlusCircle,
+  Globe,
+  Truck,
+  LayoutGrid,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -36,6 +42,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -64,6 +71,7 @@ export default function ProductsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
 
   // Product Form State
   const [name, setName] = useState('');
@@ -78,6 +86,18 @@ export default function ProductsPage() {
   const [inventory, setInventory] = useState('');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [features, setFeatures] = useState('');
+  
+  // SEO State
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+  const [seoHandle, setSeoHandle] = useState('');
+
+  // Logistics State
+  const [weight, setWeight] = useState('');
+  const [length, setLength] = useState('');
+  const [width, setWidth] = useState('');
+  const [height, setHeight] = useState('');
+  const [shippingClass, setShippingClass] = useState('standard');
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -129,6 +149,18 @@ export default function ProductsPage() {
       inventory: parseInt(inventory) || 0,
       media,
       features: features.split(',').map(f => f.trim()),
+      seo: {
+        title: seoTitle || name,
+        description: seoDescription || description,
+        handle: seoHandle || name.toLowerCase().replace(/\s+/g, '-')
+      },
+      logistics: {
+        weight: parseFloat(weight) || 0,
+        length: parseFloat(length) || 0,
+        width: parseFloat(width) || 0,
+        height: parseFloat(height) || 0,
+        shippingClass
+      },
       status: 'active',
       createdAt: serverTimestamp(),
     };
@@ -162,6 +194,14 @@ export default function ProductsPage() {
     setInventory('');
     setMedia([]);
     setFeatures('');
+    setSeoTitle('');
+    setSeoDescription('');
+    setSeoHandle('');
+    setWeight('');
+    setLength('');
+    setWidth('');
+    setHeight('');
+    setActiveTab('general');
   };
 
   return (
@@ -177,156 +217,270 @@ export default function ProductsPage() {
               <Plus className="h-4 w-4" /> Add Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl bg-white max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl">
-            <DialogHeader className="p-6 border-b">
+          <DialogContent className="max-w-[95vw] w-full h-[95vh] bg-white flex flex-col p-0 border-none shadow-2xl rounded-xl">
+            <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
               <DialogTitle className="text-xl font-headline font-bold">New Archive Entry</DialogTitle>
             </DialogHeader>
             
-            <div className="p-8 space-y-12">
-              {/* Media Section - Comes First */}
-              <section className="space-y-6">
-                <div>
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Visual Content</h3>
-                  <p className="text-xs text-gray-500">Upload multiple images or videos for the product gallery.</p>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {media.map((item, index) => (
-                    <div key={index} className="relative aspect-[3/4] bg-gray-100 border rounded-lg overflow-hidden group">
-                      {item.type === 'video' ? (
-                        <div className="w-full h-full flex items-center justify-center bg-black">
-                          <Play className="h-8 w-8 text-white opacity-50" />
-                          <video src={item.url} className="absolute inset-0 w-full h-full object-cover opacity-60" muted loop />
-                        </div>
-                      ) : (
-                        <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />
-                      )}
-                      <button 
-                        onClick={() => removeMedia(index)}
-                        className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="aspect-[3/4] border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group"
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+              <div className="px-6 border-b bg-gray-50/50 shrink-0">
+                <TabsList className="bg-transparent h-14 p-0 gap-8">
+                  <TabsTrigger 
+                    value="general" 
+                    className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[10px]"
                   >
-                    <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors">
-                      <PlusCircle className="h-5 w-5" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Add Media</span>
-                  </button>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*,video/*" 
-                    onChange={handleMediaUpload} 
-                  />
-                </div>
-              </section>
+                    <LayoutGrid className="h-4 w-4" /> 01. General Info
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="seo" 
+                    className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[10px]"
+                  >
+                    <Globe className="h-4 w-4" /> 02. SEO Settings
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="logistics" 
+                    className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[10px]"
+                  >
+                    <Truck className="h-4 w-4" /> 03. Logistics
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-              {/* Product Details Section - "One Topic" */}
-              <section className="space-y-8 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
-                <div>
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Product Specifications</h3>
-                  <p className="text-xs text-gray-500">Define the core attributes and narrative of this piece.</p>
-                </div>
-
-                <div className="grid gap-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Name</Label>
-                      <Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} />
+              <div className="flex-1 overflow-y-auto">
+                <TabsContent value="general" className="p-8 m-0 space-y-12 max-w-5xl mx-auto">
+                  {/* Media Section */}
+                  <section className="space-y-6">
+                    <div>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Visual Content</h3>
+                      <p className="text-xs text-gray-500">Upload multiple images or videos for the product gallery.</p>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Attribution</Label>
-                      <Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sale Price ($)</Label>
-                      <Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Compared Price ($)</Label>
-                      <Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Customization Fee ($)</Label>
-                      <Input type="number" placeholder="0.00" value={customizationFee} onChange={(e) => setCustomizationFee(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">SKU Number</Label>
-                      <Input placeholder="e.g. FSL-MN-001" value={sku} onChange={(e) => setSku(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Collection / Category</Label>
-                      <Select value={categoryId} onValueChange={setCategoryId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Link to a collection..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories?.map((cat: any) => (
-                            <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size & Fit Description</Label>
-                      <Input placeholder="e.g. Oversized fit, model is 6'2\" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Available Inventory</Label>
-                      <Input type="number" placeholder="24" value={inventory} onChange={(e) => setInventory(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-4 border-t border-gray-100">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Narrative / Description</Label>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleGenerate} 
-                        disabled={isGenerating || !name}
-                        className="h-8 text-[10px] uppercase font-bold tracking-wider gap-2 bg-white"
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {media.map((item, index) => (
+                        <div key={index} className="relative aspect-[3/4] bg-gray-100 border rounded-lg overflow-hidden group">
+                          {item.type === 'video' ? (
+                            <div className="w-full h-full flex items-center justify-center bg-black">
+                              <Play className="h-8 w-8 text-white opacity-50" />
+                              <video src={item.url} className="absolute inset-0 w-full h-full object-cover opacity-60" muted loop />
+                            </div>
+                          ) : (
+                            <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />
+                          )}
+                          <button 
+                            onClick={() => removeMedia(index)}
+                            className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-[3/4] border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group"
                       >
-                        {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                        Generate Narrative
-                      </Button>
+                        <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors">
+                          <PlusCircle className="h-5 w-5" />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Add Media</span>
+                      </button>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*,video/*" 
+                        onChange={handleMediaUpload} 
+                      />
                     </div>
-                    <Textarea 
-                      className="h-40 resize-none bg-white" 
-                      placeholder="Craft a compelling story for this piece..." 
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </section>
-            </div>
+                  </section>
 
-            <DialogFooter className="p-6 border-t bg-gray-50/50">
-              <Button 
-                onClick={handleSaveProduct} 
-                disabled={isSaving || !name || !price || !categoryId}
-                className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px]"
-              >
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Commit to Archive
-              </Button>
+                  {/* Specifications */}
+                  <section className="space-y-8 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
+                    <div className="grid gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Name</Label>
+                          <Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Attribution</Label>
+                          <Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sale Price ($)</Label>
+                          <Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Compared Price ($)</Label>
+                          <Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Customization Fee ($)</Label>
+                          <Input type="number" placeholder="0.00" value={customizationFee} onChange={(e) => setCustomizationFee(e.target.value)} />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">SKU Number</Label>
+                          <Input placeholder="e.g. FSL-MN-001" value={sku} onChange={(e) => setSku(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Collection / Category</Label>
+                          <Select value={categoryId} onValueChange={setCategoryId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Link to a collection..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories?.map((cat: any) => (
+                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size & Fit Description</Label>
+                          <Input placeholder="e.g. Oversized fit" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Available Inventory</Label>
+                          <Input type="number" placeholder="24" value={inventory} onChange={(e) => setInventory(e.target.value)} />
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Narrative</Label>
+                          <Button variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating || !name} className="h-8 gap-2 uppercase tracking-widest font-bold text-[10px]">
+                            {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} AI Generate
+                          </Button>
+                        </div>
+                        <Textarea className="h-32 resize-none" placeholder="Craft a story..." value={description} onChange={(e) => setDescription(e.target.value)} />
+                      </div>
+                    </div>
+                  </section>
+                </TabsContent>
+
+                <TabsContent value="seo" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                    <h4 className="text-[10px] uppercase tracking-widest font-bold text-blue-600 mb-4 flex items-center gap-2">
+                      <Globe className="h-3 w-3" /> Search Results Preview
+                    </h4>
+                    <div className="space-y-1">
+                      <p className="text-blue-700 text-lg hover:underline cursor-pointer font-medium line-clamp-1">
+                        {seoTitle || (name || 'New Product Title')} | FSLNO
+                      </p>
+                      <p className="text-green-800 text-sm line-clamp-1">https://fslno.com/products/{seoHandle || (name || 'product').toLowerCase().replace(/\s+/g, '-')}</p>
+                      <p className="text-gray-600 text-sm line-clamp-2">{seoDescription || (description || 'Meta description will appear here...')}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Meta Title</Label>
+                      <Input placeholder="Luxury Merino Knit | FSLNO" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">URL Handle / Slug</Label>
+                      <Input placeholder="sculpted-merino-knit" value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Meta Description</Label>
+                      <Textarea className="h-24" placeholder="Discover the sculpted Merino Knit..." value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="logistics" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Physical Attributes</h3>
+                        <p className="text-xs text-gray-500">Define weight and dimensions for real-time rates.</p>
+                      </div>
+                      <div className="grid gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Weight (kg)</Label>
+                          <Input type="number" placeholder="1.2" value={weight} onChange={(e) => setWeight(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Length (cm)</Label>
+                            <Input type="number" placeholder="40" value={length} onChange={(e) => setLength(e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Width (cm)</Label>
+                            <Input type="number" placeholder="30" value={width} onChange={(e) => setWidth(e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Height (cm)</Label>
+                            <Input type="number" placeholder="10" value={height} onChange={(e) => setHeight(e.target.value)} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Fulfillment Logic</h3>
+                        <p className="text-xs text-gray-500">Assign shipping rules and classes.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Shipping Class</Label>
+                        <Select value={shippingClass} onValueChange={setShippingClass}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="standard">Standard Archive</SelectItem>
+                            <SelectItem value="heavy">Heavy Items (Outerwear)</SelectItem>
+                            <SelectItem value="fragile">Fragile Accessories</SelectItem>
+                            <SelectItem value="express">Priority Drop Only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
+            </Tabs>
+
+            <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
+              <div className="flex gap-2">
+                {activeTab !== 'general' && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setActiveTab(activeTab === 'logistics' ? 'seo' : 'general')}
+                    className="gap-2 h-11 px-6 font-bold uppercase tracking-widest text-[10px]"
+                  >
+                    <ChevronLeft className="h-4 w-4" /> Previous
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-3">
+                {activeTab !== 'logistics' ? (
+                  <Button 
+                    onClick={() => setActiveTab(activeTab === 'general' ? 'seo' : 'logistics')}
+                    className="gap-2 h-11 px-6 bg-black text-white font-bold uppercase tracking-widest text-[10px]"
+                  >
+                    Next Step <ChevronRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleSaveProduct} 
+                    disabled={isSaving || !name || !price || !categoryId}
+                    className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px]"
+                  >
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Commit to Archive
+                  </Button>
+                )}
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>

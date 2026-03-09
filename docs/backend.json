@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -27,6 +28,24 @@
           }
         },
         "features": { "type": "array", "items": { "type": "string" } },
+        "seo": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "handle": { "type": "string" }
+          }
+        },
+        "logistics": {
+          "type": "object",
+          "properties": {
+            "weight": { "type": "number", "description": "Weight in kg" },
+            "length": { "type": "number" },
+            "width": { "type": "number" },
+            "height": { "type": "number" },
+            "shippingClass": { "type": "string" }
+          }
+        },
         "createdAt": { "type": "object" }
       },
       "required": ["name", "price", "status", "categoryId"]
