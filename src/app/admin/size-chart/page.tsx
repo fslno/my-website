@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -17,8 +16,7 @@ import {
   Trash2, 
   Loader2, 
   Ruler, 
-  MoreHorizontal,
-  ChevronRight
+  MoreHorizontal
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -37,7 +35,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -54,11 +52,14 @@ interface Measurement {
 export default function SizeChartPage() {
   const db = useFirestore();
   const { toast } = useToast();
+  
   const chartsQuery = useMemoFirebase(() => db ? collection(db, 'sizeCharts') : null, [db]);
   const { data: charts, loading } = useCollection(chartsQuery);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Form State
   const [name, setName] = useState('');
   const [unit, setUnit] = useState<'cm' | 'inch'>('cm');
   const [measurements, setMeasurements] = useState<Measurement[]>([
@@ -71,6 +72,7 @@ export default function SizeChartPage() {
   };
 
   const removeMeasurementRow = (index: number) => {
+    if (measurements.length <= 1) return;
     setMeasurements(measurements.filter((_, i) => i !== index));
   };
 
@@ -84,13 +86,17 @@ export default function SizeChartPage() {
     if (!db || !name) return;
     setIsSaving(true);
     
-    const chartData = { name, unit, measurements };
+    const chartData = { 
+      name, 
+      unit, 
+      measurements: measurements.filter(m => m.label.trim() !== '') 
+    };
 
     addDoc(collection(db, 'sizeCharts'), chartData)
       .then(() => {
         setIsDialogOpen(false);
         resetForm();
-        toast({ title: "Size Chart Created", description: `${name} has been added to the library.` });
+        toast({ title: "Size Chart Created", description: `${name} has been added to your library.` });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -139,19 +145,20 @@ export default function SizeChartPage() {
               <DialogTitle className="text-xl font-headline">New Measurement Guide</DialogTitle>
             </DialogHeader>
             <div className="grid gap-6 py-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-widest font-bold text-gray-500">Template Name</Label>
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Template Name</Label>
                   <Input 
                     placeholder="e.g. Oversized Heavyweight Hoodie" 
                     value={name} 
                     onChange={(e) => setName(e.target.value)} 
+                    className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-widest font-bold text-gray-500">Unit of Measure</Label>
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Unit of Measure</Label>
                   <Select value={unit} onValueChange={(v: any) => setUnit(v)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -163,38 +170,43 @@ export default function SizeChartPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-xs uppercase tracking-widest font-bold text-gray-500">Measurement Matrix</Label>
-                <div className="border rounded-md overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Matrix</Label>
+                  <Button variant="ghost" size="sm" onClick={addMeasurementRow} className="text-[10px] uppercase tracking-widest font-bold gap-2">
+                    <Plus className="h-3 w-3" /> Add Row
+                  </Button>
+                </div>
+                <div className="border rounded-md overflow-hidden bg-gray-50/30">
                   <Table>
-                    <TableHeader className="bg-gray-50">
-                      <TableRow>
-                        <TableHead className="w-[180px]">Point of Measure</TableHead>
-                        <TableHead>XS</TableHead>
-                        <TableHead>S</TableHead>
-                        <TableHead>M</TableHead>
-                        <TableHead>L</TableHead>
-                        <TableHead>XL</TableHead>
+                    <TableHeader className="bg-gray-50/50">
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="w-[200px] text-[10px] font-bold uppercase tracking-widest">Point of Measure</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">XS</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">S</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">M</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">L</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">XL</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {measurements.map((m, idx) => (
-                        <TableRow key={idx}>
+                        <TableRow key={idx} className="bg-white hover:bg-white">
                           <TableCell>
                             <Input 
                               placeholder="e.g. Sleeve Length" 
                               value={m.label} 
                               onChange={(e) => updateMeasurement(idx, 'label', e.target.value)}
-                              className="h-8 text-xs font-bold"
+                              className="h-9 text-xs font-bold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
                             />
                           </TableCell>
-                          <TableCell><Input className="h-8 text-xs" value={m.xs} onChange={(e) => updateMeasurement(idx, 'xs', e.target.value)} /></TableCell>
-                          <TableCell><Input className="h-8 text-xs" value={m.s} onChange={(e) => updateMeasurement(idx, 's', e.target.value)} /></TableCell>
-                          <TableCell><Input className="h-8 text-xs" value={m.m} onChange={(e) => updateMeasurement(idx, 'm', e.target.value)} /></TableCell>
-                          <TableCell><Input className="h-8 text-xs" value={m.l} onChange={(e) => updateMeasurement(idx, 'l', e.target.value)} /></TableCell>
-                          <TableCell><Input className="h-8 text-xs" value={m.xl} onChange={(e) => updateMeasurement(idx, 'xl', e.target.value)} /></TableCell>
+                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.xs} onChange={(e) => updateMeasurement(idx, 'xs', e.target.value)} /></TableCell>
+                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.s} onChange={(e) => updateMeasurement(idx, 's', e.target.value)} /></TableCell>
+                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.m} onChange={(e) => updateMeasurement(idx, 'm', e.target.value)} /></TableCell>
+                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.l} onChange={(e) => updateMeasurement(idx, 'l', e.target.value)} /></TableCell>
+                          <TableCell><Input className="h-9 text-xs text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black" value={m.xl} onChange={(e) => updateMeasurement(idx, 'xl', e.target.value)} /></TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => removeMeasurementRow(idx)} className="h-8 w-8 text-red-500">
+                            <Button variant="ghost" size="icon" onClick={() => removeMeasurementRow(idx)} className="h-8 w-8 text-gray-400 hover:text-red-500">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -202,22 +214,17 @@ export default function SizeChartPage() {
                       ))}
                     </TableBody>
                   </Table>
-                  <div className="p-2 bg-gray-50 border-t">
-                    <Button variant="ghost" size="sm" onClick={addMeasurementRow} className="text-xs gap-2">
-                      <Plus className="h-3 w-3" /> Add Measurement Row
-                    </Button>
-                  </div>
                 </div>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="sm:justify-start">
               <Button 
                 onClick={handleSave} 
                 disabled={isSaving || !name}
-                className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-xs"
+                className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Save Template
+                Save Template to Library
               </Button>
             </DialogFooter>
           </DialogContent>

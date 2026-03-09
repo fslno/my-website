@@ -236,10 +236,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
                         <div className="space-y-2">
-                          <p className="font-bold text-sm">Measurement Matrices</p>
+                          <p className="font-bold text-sm text-black">Measurement Library</p>
                           <p className="text-xs text-muted-foreground">• unit: Support for metric (cm) or imperial (inch).</p>
                           <p className="text-xs text-muted-foreground">• measurements: Point-of-measure rows for XS through XL.</p>
-                          <p className="text-xs text-muted-foreground">• reuse: Link charts to multiple product variants.</p>
+                          <p className="text-xs text-muted-foreground">• reuse: Link charts to multiple categories.</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -257,7 +257,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </SidebarGroup>
 
             <SidebarGroup className="mt-4">
-              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Store Management</SidebarGroupLabel>
+              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Store Management</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Theme Engine">
@@ -278,7 +278,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           </Link>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl">
+                      <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
                         <div className="space-y-3 text-xs">
                           <p className="font-bold text-sm">Global Carrier Integration</p>
                           <p className="text-muted-foreground">North America: USPS, UPS, FedEx, Canada Post.</p>
@@ -306,7 +306,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           </Link>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl">
+                      <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
                         <div className="space-y-3 text-xs">
                           <p className="font-bold text-sm">Stripe (The Core)</p>
                           <p className="text-muted-foreground">135+ currencies and 20+ methods (iDEAL, Klarna, Bancontact).</p>
@@ -339,7 +339,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </SidebarGroup>
 
             <SidebarGroup className="mt-4">
-              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
+              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <TooltipProvider>
@@ -352,7 +352,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           </Link>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
+                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
                         <div className="space-y-2 text-xs">
                           <p className="font-bold text-sm">Merchant API (V1)</p>
                           <p className="text-muted-foreground">On-Demand Updates: Price/stock changes sync in minutes.</p>
@@ -377,7 +377,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           </Link>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
+                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
                         <div className="space-y-2 text-xs">
                           <p className="font-bold text-sm">TikTok Shop Seller API</p>
                           <p className="text-muted-foreground">In-App Checkout: Buy gear without leaving TikTok.</p>
@@ -395,11 +395,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <SidebarMenuButton asChild>
                           <Link href="/admin/sales-channels/analytics">
                             <BarChart />
-                            <span>Analytics</span>
+                            <span>Analytics (GA4)</span>
                           </Link>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl">
+                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
                         <div className="space-y-2 text-xs">
                           <p className="font-bold text-sm">Custom Funnel Tracking</p>
                           <p className="text-muted-foreground">view_item_list: Track popular FSLNO categories.</p>
