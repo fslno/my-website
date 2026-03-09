@@ -19,20 +19,53 @@ import {
   Share2,
   RefreshCw,
   BarChart,
-  RefreshCw as LoaderIcon
+  RefreshCw as LoaderIcon,
+  LogOut
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUser, useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
   const auth = useAuth();
+  const { toast } = useToast();
 
-  const handleLogin = () => {
-    if (auth) {
-      signInWithPopup(auth, new GoogleAuthProvider());
+  const handleLogin = async () => {
+    if (!auth) return;
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast({
+        title: "Welcome back",
+        description: "Successfully signed into the Command Center.",
+      });
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "Could not verify credentials. Check authorized domains in Firebase Console.",
+      });
+    }
+  };
+
+  const handleLogout = async () => {
+    if (!auth) return;
+    try {
+      await signOut(auth);
+      toast({
+        title: "Signed out",
+        description: "You have been logged out of the admin session.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign out.",
+      });
     }
   };
 
@@ -50,12 +83,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f6f7] p-4 text-center">
-        <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl mb-6">F</div>
-        <h1 className="text-2xl font-headline font-bold mb-2">Access Denied</h1>
-        <p className="text-gray-500 text-sm mb-8 max-w-xs">Authentication required to access the FSLNO Admin Command Center.</p>
-        <Button onClick={handleLogin} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest">
+        <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-8 shadow-2xl">F</div>
+        <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Command Center</h1>
+        <p className="text-gray-500 text-sm mb-10 max-w-xs leading-relaxed">
+          Authentication required to access the FSLNO luxury operations suite.
+        </p>
+        <Button 
+          onClick={handleLogin} 
+          className="bg-black text-white px-10 h-14 font-bold uppercase tracking-[0.2em] text-xs hover:bg-black/90 transition-all rounded-none shadow-xl"
+        >
           Sign in with Google
         </Button>
+        <p className="mt-8 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Secure Environment V1.0</p>
       </div>
     );
   }
@@ -90,7 +129,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Bundle Builder: Create 'Spot Closing' sets (e.g., Hoodie + Matching Sweatpants) with a single click. SEO Automation: Auto-generate Google-friendly Meta Titles and Descriptions based on the product name and category. Pre-Order Toggle: For 'Drops,' allow customers to buy before the stock arrives, with a countdown timer pulled from the drop_date in Firestore.">
+                  <SidebarMenuButton asChild tooltip="Inventory Management: Create 'Spot Closing' drops with real-time stock sync.">
                     <Link href="/admin/products">
                       <BarChart3 />
                       <span>Products</span>
@@ -152,7 +191,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Domain Name & Site Address: The primary URL for your store (e.g., fslno.com). Connect a custom domain and ensure all traffic is directed to the secure https version. Header Meta Tags & Site Verification: A central hub to inject custom code into the <head> of your site. Sitemap: An automatically generated sitemap.xml file that lists every product, category, and page. Allow Search Engines to Index: A master 'Visibility Toggle' for public vs. maintenance mode.">
+                  <SidebarMenuButton asChild tooltip="Domain & Visibility: Manage fslno.com address and Sitemap.xml generation.">
                     <Link href="/admin/domain">
                       <Globe />
                       <span>Domain</span>
@@ -174,7 +213,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Merchant API (V1) Integration: On-Demand Updates pushes price or stock changes to Google in minutes. Partial Sync allows updating specific attributes without re-sending the entire catalog. Google Product Studio: AI Enhancement integrated tools to remove backgrounds or upscale photos. YouTube Shopping enables product tagging in videos. Local Inventory Ads tells users exactly what is in stock at your physical Spot address.">
+                  <SidebarMenuButton asChild tooltip="Merchant API Integration: Real-time price/stock sync with Google Shopping and Product Studio AI tools.">
                     <Link href="/admin/sales-channels/google">
                       <RefreshCw />
                       <span>Google Sync</span>
@@ -182,7 +221,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="TikTok Shop Seller API: In-App Checkout allows purchases without leaving TikTok. Affiliate Management tracks samples and creator-led sales. Meta Conversions API (CAPI): Server-to-Server Tracking bypasses ad-blockers for direct 'Purchase' data. Event Match Quality (EMQ) sends hashed data to optimize targeting. Instagram Shopping: Real-time sync of Bento Grid categories into shoppable Reels.">
+                  <SidebarMenuButton asChild tooltip="TikTok & Meta Sync: In-App Checkout, Server-to-Server CAPI tracking, and Instagram Shoppable Reels.">
                     <Link href="/admin/sales-channels/social">
                       <Share2 />
                       <span>Social Commerce</span>
@@ -190,7 +229,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="GA4 Analytics: Automatically track 'Add to Cart', 'Begin Checkout', and 'Purchase' events to optimize Google Ads and marketing conversion data.">
+                  <SidebarMenuButton asChild tooltip="GA4 Analytics: Track 'Add to Cart' and 'Purchase' events across the storefront.">
                     <Link href="/admin/sales-channels/analytics">
                       <BarChart />
                       <span>Analytics (GA4)</span>
@@ -208,6 +247,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <Settings />
                       <span>Settings</span>
                     </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={handleLogout} tooltip="Sign Out">
+                    <LogOut />
+                    <span>Sign Out</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
              </SidebarMenu>
@@ -232,7 +277,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Bell className="h-5 w-5 text-[#5c5f62]" />
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden">
-                <img src={user.photoURL || `https://picsum.photos/seed/admin/40/40`} alt="Admin" />
+                <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} alt="Admin" />
               </div>
             </div>
           </header>
