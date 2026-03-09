@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { 
   Palette, 
   Layout, 
   Megaphone, 
@@ -18,6 +25,13 @@ import {
   Smartphone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const sportsFonts = [
+  "Gameday", "Hyper Oxide", "Quarterback", "Rushblade", "Cricket", 
+  "Crossfly", "Bancher", "Racing", "Zonex", "Microsport", 
+  "Promesh", "Reach Sports", "Aguante", "MADE Soulmaze", "Backed", 
+  "Claymale", "Slam Dunk", "Holigan", "Jaguar", "New Varsity"
+];
 
 export default function ThemeEnginePage() {
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
@@ -83,11 +97,31 @@ export default function ThemeEnginePage() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-2">
                     <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Headline Font</Label>
-                    <Input defaultValue="Playfair Display" disabled />
+                    <Select defaultValue="New Varsity">
+                      <SelectTrigger className="bg-white h-10">
+                        <SelectValue placeholder="Select headline font" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Playfair Display">Playfair Display (Standard)</SelectItem>
+                        {sportsFonts.map(font => (
+                          <SelectItem key={font} value={font}>{font}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Body Font</Label>
-                    <Input defaultValue="Inter" disabled />
+                    <Select defaultValue="Inter">
+                      <SelectTrigger className="bg-white h-10">
+                        <SelectValue placeholder="Select body font" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Inter">Inter (Standard)</SelectItem>
+                        {sportsFonts.map(font => (
+                          <SelectItem key={font} value={font}>{font}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Global Border Radius</Label>
