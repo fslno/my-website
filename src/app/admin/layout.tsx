@@ -55,7 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Products">
+                  <SidebarMenuButton asChild tooltip="Bundle Builder: Create 'Spot Closing' sets (e.g., Hoodie + Matching Sweatpants) with a single click. SEO Automation: Auto-generate Google-friendly Meta Titles and Descriptions based on the product name and category. Pre-Order Toggle: For 'Drops,' allow customers to buy before the stock arrives, with a countdown timer pulled from the drop_date in Firestore.">
                     <Link href="/admin/products">
                       <BarChart3 />
                       <span>Products</span>
