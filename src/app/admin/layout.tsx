@@ -15,7 +15,8 @@ import {
   Bell,
   HelpCircle,
   Tag,
-  Ruler
+  Ruler,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -109,6 +110,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link href="/admin/payments">
                       <CreditCard />
                       <span>Payments</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Domain">
+                    <Link href="/admin/domain">
+                      <Globe />
+                      <span>Domain</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="SEO">
+                    <Link href="/admin/seo">
+                      <Search />
+                      <span>SEO</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
