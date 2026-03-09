@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { use, useState, useEffect, useRef } from 'react';
@@ -63,8 +62,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
-export default function OrderDetailPage({ params }: { params: Promise<{ orderId: string }> }) {
-  const resolvedParams = use(params);
+export default function OrderDetailPage(props: { params: Promise<{ orderId: string }> }) {
+  const resolvedParams = use(props.params);
   const orderId = resolvedParams.orderId;
   const db = useFirestore();
   const { toast } = useToast();

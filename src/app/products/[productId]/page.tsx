@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, use } from 'react';
@@ -44,8 +43,8 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage({ params }: { params: Promise<{ productId: string }> }) {
-  const resolvedParams = use(params);
+export default function ProductDetailPage(props: { params: Promise<{ productId: string }> }) {
+  const resolvedParams = use(props.params);
   const productId = resolvedParams.productId;
   const db = useFirestore();
   const { cart, addToCart } = useCart();
