@@ -72,7 +72,7 @@ export default function CheckoutPage() {
     billingPostalCode: '',
     billingProvince: '',
     billingCountry: '',
-    courier: 'fedex', // Default set but validated on submit
+    courier: '', // Unselected by default
     pickupDate: new Date().toISOString().split('T')[0],
     pickupTime: '14:00',
     referral: ''
@@ -177,7 +177,12 @@ export default function CheckoutPage() {
             <h2 className="text-sm font-bold uppercase tracking-[0.2em]">01. Delivery Method</h2>
             <div className="grid grid-cols-2 gap-4">
               <button
-                onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }}
+                onClick={() => { 
+                  setDeliveryMethod('shipping'); 
+                  setShippingRate(0); 
+                  setErrors({});
+                  handleInputChange('courier', ''); // Reset courier on method switch
+                }}
                 className={cn(
                   "p-6 border-2 text-left flex flex-col gap-3 transition-all",
                   deliveryMethod === 'shipping' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50 hover:border-gray-300"
@@ -194,7 +199,12 @@ export default function CheckoutPage() {
               </button>
 
               <button
-                onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); setErrors({}); }}
+                onClick={() => { 
+                  setDeliveryMethod('pickup'); 
+                  setShippingRate(0); 
+                  setErrors({}); 
+                  handleInputChange('courier', ''); // Reset courier on method switch
+                }}
                 className={cn(
                   "p-6 border-2 text-left flex flex-col gap-3 transition-all",
                   deliveryMethod === 'pickup' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50 hover:border-gray-300"
@@ -213,7 +223,9 @@ export default function CheckoutPage() {
           </section>
 
           <section className="space-y-8 bg-white p-8 border shadow-sm rounded-sm">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em]">02. Personal Details</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em]">02. Personal Details</h2>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -342,35 +354,38 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="space-y-4 pt-6 border-t">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
-                    <Truck className="h-3 w-3" /> Select Courier
-                  </h3>
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+                      <Truck className="h-3 w-3" /> Select Courier
+                    </h3>
+                    {errors.courier && <span className="text-[8px] font-bold text-red-500 uppercase tracking-tighter">Please select a courier</span>}
+                  </div>
                   <RadioGroup 
-                    defaultValue="fedex" 
+                    value={formData.courier} 
                     onValueChange={(val) => {
                       setShippingRate(val === 'fedex' ? 25 : val === 'dhl' ? 45 : 0);
                       handleInputChange('courier', val);
                     }} 
                     className="grid grid-cols-1 gap-2"
                   >
-                    <div className="flex items-center justify-between p-4 border rounded-sm bg-gray-50/50">
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'usps' ? "bg-white border-black" : "bg-gray-50/50 border-gray-200")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="usps" id="usps" />
-                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest">Standard (USPS / Economy)</Label>
+                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Standard (USPS / Economy)</Label>
                       </div>
                       <span className="text-[11px] font-bold">FREE</span>
                     </div>
-                    <div className="flex items-center justify-between p-4 border rounded-sm bg-white">
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'fedex' ? "bg-white border-black" : "bg-gray-50/50 border-gray-200")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="fedex" id="fedex" />
-                        <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest">Priority (FedEx Express)</Label>
+                        <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Priority (FedEx Express)</Label>
                       </div>
                       <span className="text-[11px] font-bold">$25.00</span>
                     </div>
-                    <div className="flex items-center justify-between p-4 border rounded-sm bg-white">
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'dhl' ? "bg-white border-black" : "bg-gray-50/50 border-gray-200")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="dhl" id="dhl" />
-                        <Label htmlFor="dhl" className="text-[11px] font-bold uppercase tracking-widest">International (DHL Luxury)</Label>
+                        <Label htmlFor="dhl" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">International (DHL Luxury)</Label>
                       </div>
                       <span className="text-[11px] font-bold">$45.00</span>
                     </div>
@@ -429,24 +444,28 @@ export default function CheckoutPage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupDate ? "text-red-500" : "text-gray-500")}>Pickup Date</Label>
+                      <div className="flex justify-between items-center">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupDate ? "text-red-500" : "text-gray-500")}>Pickup Date</Label>
+                      </div>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
                           type="date" 
-                          className={cn("pl-10 h-12", errors.pickupDate && "border-red-500")}
+                          className={cn("pl-10 h-12", errors.pickupDate && "border-red-500 focus-visible:ring-red-500")}
                           value={formData.pickupDate}
                           onChange={(e) => handleInputChange('pickupDate', e.target.value)}
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupTime ? "text-red-500" : "text-gray-500")}>Time Slot</Label>
+                      <div className="flex justify-between items-center">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupTime ? "text-red-500" : "text-gray-500")}>Time Slot</Label>
+                      </div>
                       <div className="relative">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
                           type="time" 
-                          className={cn("pl-10 h-12", errors.pickupTime && "border-red-500")}
+                          className={cn("pl-10 h-12", errors.pickupTime && "border-red-500 focus-visible:ring-red-500")}
                           value={formData.pickupTime}
                           onChange={(e) => handleInputChange('pickupTime', e.target.value)}
                         />
@@ -525,7 +544,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Shipping</span>
                 <span className="text-black">
-                  {shippingRate > 0 ? `$${shippingRate.toFixed(2)} CAD` : 'FREE'}
+                  {shippingRate > 0 ? `$${shippingRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD` : 'FREE'}
                 </span>
               </div>
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
