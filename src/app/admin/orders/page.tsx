@@ -19,8 +19,7 @@ import {
   ShoppingBag,
   Clock,
   CheckCircle2,
-  ChevronRight,
-  ExternalLink
+  ChevronRight
 } from 'lucide-react';
 import { 
   Select, 
@@ -231,7 +230,7 @@ export default function OrdersPage() {
                   onClick={() => router.push(`/admin/orders/${order.id}`)}
                 >
                   <TableCell className="font-mono text-[11px] font-bold">
-                    #{order.id.substring(0, 8).toUpperCase()}
+                    #{order.id.substring(0, 6).toUpperCase()}
                   </TableCell>
                   <TableCell className="text-[11px] text-[#5c5f62]">
                     {formatDate(order.createdAt)}

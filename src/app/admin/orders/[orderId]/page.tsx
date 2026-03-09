@@ -17,7 +17,8 @@ import {
   CreditCard as PaymentIcon,
   Printer,
   Send,
-  ArrowLeft
+  ArrowLeft,
+  ExternalLink
 } from 'lucide-react';
 import { 
   Table, 
@@ -38,6 +39,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -157,14 +159,14 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
 
   return (
     <div className="space-y-8 print:space-y-4">
-      {/* Header - Hidden during print if necessary, but keep for now */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="space-y-1">
           <Link href="/admin/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
             <ArrowLeft className="h-3 w-3" /> Back to Archive
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Order #{order.id.substring(0, 8).toUpperCase()}</h1>
+            <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Order #{order.id.substring(0, 6).toUpperCase()}</h1>
             {getPaymentStatusBadge(order.paymentStatus || 'pending')}
           </div>
           <p className="text-[10px] font-mono text-gray-400 font-bold uppercase tracking-widest">Global ID: {order.id}</p>
@@ -315,7 +317,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
 
             <Card className="border-[#e1e3e5] shadow-sm rounded-none bg-black text-white print:bg-gray-100 print:text-black">
               <CardHeader className="border-b border-white/10 py-4 print:border-gray-200">
-                <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400 print:text-gray-500 flex items-center gap-2">
+                <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                   <AlertCircle className="h-3 w-3" /> Operational Meta
                 </CardTitle>
               </CardHeader>
