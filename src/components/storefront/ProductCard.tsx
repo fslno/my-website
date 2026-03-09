@@ -18,7 +18,7 @@ interface ProductCardProps {
 export function ProductCard({ id, name, price, image, category }: ProductCardProps) {
   return (
     <div className="group flex flex-col gap-3">
-      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-[3/4]">
+      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square">
         <Image
           src={image}
           alt={name}
