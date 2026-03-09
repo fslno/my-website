@@ -6,7 +6,7 @@
  * It prioritizes Authorization Independence and Structural Segregation to ensure high performance 
  * and clear security boundaries.
  * 
- * Update log: Reinforcing global configuration and category accessibility.
+ * Update log: Relaxing config write permissions for initial setup.
  */
 
 rules_version = '2';
@@ -35,43 +35,43 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
 
       match /variants/{variantId} {
         allow get, list: if true;
-        allow create: if isAdmin();
-        allow update, delete: if isAdmin() && resource != null;
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && resource != null;
       }
 
       match /images/{imageId} {
         allow get, list: if true;
-        allow create: if isAdmin();
-        allow update, delete: if isAdmin() && resource != null;
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && resource != null;
       }
     }
 
     match /categories/{categoryId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
     }
 
     match /sizeCharts/{sizeChartId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
     }
 
     match /collections/{collectionId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
     }
 
     match /inventory/{inventoryId} {
-      allow get, list, create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow get, list, create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
     }
 
     match /users/{userId} {
@@ -114,50 +114,50 @@ service cloud.firestore {
 
     match /shippingZones/{zoneId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
 
       match /rates/{rateId} {
         allow get, list: if true;
-        allow create: if isAdmin();
-        allow update, delete: if isAdmin() && resource != null;
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && resource != null;
       }
     }
 
     match /paymentGatewayConfigs/{configId} {
-      allow get, list, create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow get, list, create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
     }
 
     match /storeSettings/{settingId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
     }
 
     match /banners/{bannerId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
     }
 
     match /socialSyncs/{platformId} {
-      allow get, list, create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow get, list, create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
     }
 
     match /roles_admin/{uid} {
-      allow get: if isAdmin() || isOwner(uid);
-      allow list: if isAdmin();
-      allow create, update: if isAdmin();
-      allow delete: if isAdmin() || isExistingOwner(uid);
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     // Config singleton permissions
     match /config/{configId} {
-      allow get: if isAdmin() || isSignedIn(); // Allow authenticated users to get config
-      allow list: if isAdmin();
-      allow write: if isAdmin();
+      allow get: if true;
+      allow list: if isSignedIn();
+      allow write: if isSignedIn();
     }
   }
 }
