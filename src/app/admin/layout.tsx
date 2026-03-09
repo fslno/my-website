@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -108,7 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Payments: * Apple/Google Pay: One-touch checkout integration. Klarna/Afterpay: Toggle for 'Buy Now, Pay Later' (essential for clothing stores).">
+                  <SidebarMenuButton asChild tooltip="Payments">
                     <Link href="/admin/payments">
                       <CreditCard />
                       <span>Payments</span>
