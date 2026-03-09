@@ -210,8 +210,8 @@ export default function ProductDetailPage() {
                 {sizeChart ? (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <button className="flex items-center gap-1.5 text-gray-400 hover:text-black transition-colors">
-                        <Ruler className="h-2.5 w-2.5" /> Size Guide
+                      <button className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors text-[11px] font-bold">
+                        <Ruler className="h-4 w-4" /> Size Guide
                       </button>
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-xl bg-white border-l p-0 overflow-hidden flex flex-col">
@@ -260,8 +260,8 @@ export default function ProductDetailPage() {
                     </SheetContent>
                   </Sheet>
                 ) : (
-                  <button className="flex items-center gap-1.5 text-gray-300 cursor-not-allowed text-[9px] uppercase font-bold">
-                    <Ruler className="h-2.5 w-2.5" /> No chart linked
+                  <button className="flex items-center gap-2 text-gray-300 cursor-not-allowed text-[11px] uppercase font-bold">
+                    <Ruler className="h-4 w-4" /> No chart linked
                   </button>
                 )}
               </div>
@@ -360,9 +360,9 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="space-y-3 pt-2">
-              <Button className="w-full h-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 rounded-sm">
+              <button className="w-full h-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 rounded-sm">
                 Add to Cart
-              </Button>
+              </button>
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm">
                   <Heart className="h-3.5 w-3.5" /> Wishlist
