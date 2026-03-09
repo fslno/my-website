@@ -117,7 +117,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Domain name and site address, Header meta tags and site verification, Sitemap, Allow search engines to index Instant Site">
+                  <SidebarMenuButton asChild tooltip="Domain Name & Site Address: The primary URL for your store (e.g., fslno.com). This section allows you to connect a custom domain and ensures all traffic is directed to the secure https version of your Next.js site. Header Meta Tags & Site Verification: A central hub to inject custom code into the <head> of your site. This is where you paste verification strings for Google Search Console, Pinterest, and Facebook Business Manager to prove you own the domain. Sitemap: An automatically generated sitemap.xml file that lists every product, category, and page on Fslno. It acts as a roadmap for Google’s crawlers to find and index your new clothing drops instantly. Allow Search Engines to Index Instant Site: A master Visibility Toggle. When ON, it tells Google and Bing that your store is live and ready to appear in search results. When OFF (Maintenance Mode), it hides your site while you are building or updating a Spot Closing drop.">
                     <Link href="/admin/domain">
                       <Globe />
                       <span>Domain</span>
@@ -139,7 +139,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Google Sync (GMC): Auto-Feed & Attribute Mapping for Shopping/YouTube">
+                  <SidebarMenuButton asChild tooltip="Google Merchant Center (GMC) Sync: Auto-Feed real-time Content API feed for Search, Shopping, and YouTube. Attribute Mapping: Map Firestore fields (Color, Size, Material) to Google's specific requirements.">
                     <Link href="/admin/sales-channels/google">
                       <RefreshCw />
                       <span>Google Sync</span>
@@ -147,7 +147,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Social Commerce: TikTok & Instagram Webhooks & Inventory Buffer">
+                  <SidebarMenuButton asChild tooltip="Social Commerce Webhooks: TikTok & Instagram Access Tokens and Pixel ID management. Inventory Buffer: 'Safety Stock' feature to prevent overselling on social platforms by setting stock thresholds.">
                     <Link href="/admin/sales-channels/social">
                       <Share2 />
                       <span>Social Commerce</span>
@@ -155,7 +155,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="GA4 Analytics: Automatic Event Tracking for Add to Cart & Purchase">
+                  <SidebarMenuButton asChild tooltip="GA4 Analytics: Automatically track 'Add to Cart', 'Begin Checkout', and 'Purchase' events to optimize Google Ads and marketing conversion data.">
                     <Link href="/admin/sales-channels/analytics">
                       <BarChart />
                       <span>Analytics (GA4)</span>
