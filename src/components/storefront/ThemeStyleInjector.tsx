@@ -19,7 +19,6 @@ export function ThemeStyleInjector() {
     // Apply global CSS variables to :root
     const root = document.documentElement;
     
-    // Primary color (converts hex to HSL if needed, but here we'll use hex for direct overrides)
     if (theme.primaryColor) {
       root.style.setProperty('--primary', theme.primaryColor);
       root.style.setProperty('--foreground', theme.primaryColor);
@@ -33,9 +32,6 @@ export function ThemeStyleInjector() {
       root.style.setProperty('--radius', `${theme.borderRadius}px`);
     }
 
-    // Dynamic Font Faces
-    // For a real production app, we would load these from a CDN or self-host.
-    // For the prototype, we apply the family name and fallback to standards.
     const styleId = 'fslno-theme-overrides';
     let styleTag = document.getElementById(styleId) as HTMLStyleElement;
     
@@ -48,12 +44,13 @@ export function ThemeStyleInjector() {
     const headlineFont = theme.headlineFont || 'Playfair Display';
     const bodyFont = theme.bodyFont || 'Inter';
 
+    // We use fallback families to ensure it works even if specific sports fonts are still loading
     styleTag.innerHTML = `
       :root {
-        --font-headline: "${headlineFont}", serif;
-        --font-body: "${bodyFont}", sans-serif;
+        --font-headline: "${headlineFont}", "Playfair Display", serif;
+        --font-body: "${bodyFont}", "Inter", sans-serif;
       }
-      body {
+      body, html, .font-body {
         font-family: var(--font-body) !important;
       }
       h1, h2, h3, h4, h5, h6, .font-headline {
