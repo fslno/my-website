@@ -113,14 +113,21 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product || !selectedSize || isStockReached) return;
 
+    // Create a unique variant ID that includes customization hash if present
+    const customizationSuffix = wantsCustomization ? `-${customName}-${customNumber}-${specialRequest}` : '';
+    const uniqueVariantId = `${product.id}-${selectedSize}${customizationSuffix}`;
+
     addToCart({
       id: product.id,
-      variantId: `${product.id}-${selectedSize}`,
+      variantId: uniqueVariantId,
       name: product.name,
       price: totalPrice,
       quantity: 1,
       image: product.media?.[0]?.url || '',
-      size: selectedSize
+      size: selectedSize,
+      customName: wantsCustomization ? customName : undefined,
+      customNumber: wantsCustomization ? customNumber : undefined,
+      specialNote: wantsCustomization ? specialRequest : undefined
     });
 
     toast({

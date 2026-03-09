@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Menu, Search, X } from 'lucide-react';
+import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { useCart } from '@/context/CartContext';
+import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { cartCount } = useCart();
+  const { cart, cartCount, cartSubtotal, removeFromCart } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,14 +65,100 @@ export function Header() {
           <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
             <Search className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="relative">
-            <ShoppingBag className="h-5 w-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
-                {cartCount}
-              </span>
-            )}
-          </Button>
+          
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingBag className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                    {cartCount}
+                  </span>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
+              <SheetHeader className="p-6 border-b shrink-0">
+                <div className="flex items-center justify-between">
+                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase">Your Bag ({cartCount})</SheetTitle>
+                </div>
+              </SheetHeader>
+
+              <ScrollArea className="flex-1">
+                {cart.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
+                    <ShoppingBag className="h-12 w-12 text-gray-200 mb-4" />
+                    <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Your archive is empty.</p>
+                    <Button asChild variant="outline" className="mt-6 border-black text-black font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none">
+                      <Link href="/">Discover Pieces</Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="p-6 space-y-8">
+                    {cart.map((item) => (
+                      <div key={item.variantId} className="flex gap-4">
+                        <div className="w-24 h-32 relative bg-gray-100 overflow-hidden border shrink-0">
+                          <Image src={item.image} alt={item.name} fill className="object-cover" />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between py-1">
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-start">
+                              <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px]">{item.name}</h3>
+                              <p className="text-sm font-bold">${(item.price * item.quantity).toLocaleString()}</p>
+                            </div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
+                            
+                            {(item.customName || item.customNumber) && (
+                              <div className="mt-2 p-2 bg-gray-50 border border-gray-100 rounded-sm space-y-1">
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Customization</p>
+                                <div className="flex gap-3 text-[10px] font-bold">
+                                  {item.customName && <span>NAME: {item.customName}</span>}
+                                  {item.customNumber && <span>NO: {item.customNumber}</span>}
+                                </div>
+                                {item.specialNote && (
+                                  <p className="text-[9px] text-gray-500 italic mt-1 leading-relaxed">
+                                    "{item.specialNote}"
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center justify-between pt-2">
+                            <p className="text-[10px] font-bold uppercase text-gray-400">Qty: {item.quantity}</p>
+                            <button 
+                              onClick={() => removeFromCart(item.variantId)}
+                              className="text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+
+              {cart.length > 0 && (
+                <SheetFooter className="p-6 border-t bg-gray-50/50 flex-col sm:flex-col items-stretch gap-4 shrink-0">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Subtotal</span>
+                      <span className="text-xl font-bold">${cartSubtotal.toLocaleString()}</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 uppercase tracking-widest">
+                      Tax and shipping will calculate at the checkout.
+                    </p>
+                  </div>
+                  <Button className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-black/90 transition-all flex items-center justify-center gap-3">
+                    Continue to Checkout <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </SheetFooter>
+              )}
+            </SheetContent>
+          </Sheet>
+
           <Link href="/admin" className="text-xs uppercase tracking-widest font-semibold border-b border-transparent hover:border-black transition-all hidden md:inline">Admin</Link>
         </div>
       </div>

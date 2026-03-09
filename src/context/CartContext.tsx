@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-interface CartItem {
+export interface CartItem {
   id: string;
   variantId: string;
   name: string;
@@ -10,12 +10,17 @@ interface CartItem {
   quantity: number;
   image: string;
   size: string;
+  customName?: string;
+  customNumber?: string;
+  specialNote?: string;
 }
 
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
+  removeFromCart: (variantId: string) => void;
   cartCount: number;
+  cartSubtotal: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -25,8 +30,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = (newItem: CartItem) => {
     setCart(prev => {
+      // Find item with same product ID, size AND customization details
       const existingIndex = prev.findIndex(
-        i => i.id === newItem.id && i.variantId === newItem.variantId
+        i => i.id === newItem.id && 
+             i.size === newItem.size && 
+             i.customName === newItem.customName && 
+             i.customNumber === newItem.customNumber &&
+             i.specialNote === newItem.specialNote
       );
       
       if (existingIndex > -1) {
@@ -42,10 +52,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const removeFromCart = (variantId: string) => {
+    setCart(prev => prev.filter(item => item.variantId !== variantId));
+  };
+
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const cartSubtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, cartCount }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, cartCount, cartSubtotal }}>
       {children}
     </CartContext.Provider>
   );
