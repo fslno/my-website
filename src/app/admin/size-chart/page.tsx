@@ -76,7 +76,7 @@ export default function SizeChartPage() {
   ]);
 
   const addColumn = () => {
-    setColumns([...columns, 'New Point']);
+    setColumns([...columns, '']);
     setRows(rows.map(row => ({ ...row, values: [...row.values, ''] })));
   };
 
@@ -90,7 +90,7 @@ export default function SizeChartPage() {
   };
 
   const addRow = () => {
-    setRows([...rows, { label: 'New Size', values: new Array(columns.length).fill('') }]);
+    setRows([...rows, { label: '', values: new Array(columns.length).fill('') }]);
   };
 
   const removeRow = (index: number) => {
@@ -276,6 +276,7 @@ export default function SizeChartPage() {
                                 <Input 
                                   value={col} 
                                   onChange={(e) => updateColumnLabel(colIdx, e.target.value)}
+                                  placeholder="e.g. Chest"
                                   className="h-10 text-[10px] font-bold uppercase tracking-[0.1em] text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
                                 />
                                 <Button 
@@ -300,6 +301,7 @@ export default function SizeChartPage() {
                                 <Input 
                                   value={row.label} 
                                   onChange={(e) => updateRowLabel(rowIdx, e.target.value)}
+                                  placeholder="e.g. XXL"
                                   className="h-10 text-xs font-bold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
                                 />
                               </div>
