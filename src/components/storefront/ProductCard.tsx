@@ -1,10 +1,8 @@
-
 'use client';
 
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
@@ -26,9 +24,6 @@ export function ProductCard({ id, name, price, image, category }: ProductCardPro
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-        <button className="absolute bottom-4 left-4 right-4 bg-white text-black text-xs font-bold uppercase tracking-widest py-3 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-          Quick Add
-        </button>
       </Link>
       
       <div className="flex flex-col gap-1">
