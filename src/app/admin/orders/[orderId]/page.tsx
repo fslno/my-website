@@ -425,14 +425,14 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                   </div>
                 )}
 
-                <div className="pt-4 border-t border-white/10 space-y-2 opacity-50">
-                  <div className="flex justify-between items-center text-[8px] uppercase font-bold tracking-widest text-gray-500">
+                <div className="pt-4 border-t border-white/10 space-y-2">
+                  <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-white">
                     <span>Transaction Ref:</span>
-                    <span className="text-white">{order.transactionId || 'STUDIO-TXN-INTERNAL'}</span>
+                    <span className="font-mono">{order.transactionId || 'STUDIO-TXN-INTERNAL'}</span>
                   </div>
-                  <div className="flex justify-between items-center text-[8px] uppercase font-bold tracking-widest text-gray-500">
+                  <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-white">
                     <span>Origin IP:</span>
-                    <span className="text-white">{order.ipAddress || '127.0.0.1'}</span>
+                    <span className="font-mono">{order.ipAddress || '127.0.0.1'}</span>
                   </div>
                 </div>
 
