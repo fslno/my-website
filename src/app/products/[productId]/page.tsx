@@ -169,7 +169,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Right Column: Actions & Configuration (Non-sticky for compact flow) */}
+          {/* Right Column: Actions & Configuration */}
           <div className="space-y-6">
             <div className="space-y-1">
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO Studio'}</p>
@@ -185,6 +185,10 @@ export default function ProductDetailPage() {
                   <span className="text-[9px] text-gray-400 font-bold ml-1">(24 Reviews)</span>
                 </div>
               </div>
+              {/* SKU moved here */}
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
+                REF: {product.sku || 'N/A'}
+              </p>
             </div>
 
             <Separator />
@@ -368,10 +372,6 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="pt-4 space-y-3">
-              <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest border-b pb-2">
-                <span className="text-gray-400">SKU Reference</span>
-                <span>{product.sku || 'N/A'}</span>
-              </div>
               <div className="flex items-center gap-2 text-gray-400">
                 <Check className="h-3 w-3 text-green-500" />
                 <span className="text-[9px] font-bold uppercase tracking-widest">Archive Ready for Dispatch</span>
