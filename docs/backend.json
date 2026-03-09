@@ -71,6 +71,19 @@
         "churnProbabilityEnabled": { "type": "boolean" },
         "purchaseProbabilityEnabled": { "type": "boolean" }
       }
+    },
+    "ShippingConfig": {
+      "title": "Shipping Configuration",
+      "description": "Global carrier and pickup settings.",
+      "type": "object",
+      "properties": {
+        "carriers": { "type": "array", "items": { "type": "string" } },
+        "goGreenPlus": { "type": "boolean" },
+        "localPickup": { "type": "boolean" },
+        "lockerIntegration": { "type": "boolean" },
+        "addressValidation": { "type": "boolean" },
+        "ddpEnabled": { "type": "boolean" }
+      }
     }
   },
   "auth": {
@@ -96,6 +109,10 @@
     "/config/analytics": {
       "schema": "AnalyticsConfig",
       "description": "GA4 and analytics settings."
+    },
+    "/config/shipping": {
+      "schema": "ShippingConfig",
+      "description": "Global logistics and shipping settings."
     }
   }
 }
