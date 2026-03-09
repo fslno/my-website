@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -22,7 +22,8 @@ import {
   Image as ImageIcon,
   Search,
   Globe,
-  Upload
+  Upload,
+  Link as LinkIcon
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -42,7 +43,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +52,7 @@ import Image from 'next/image';
 export default function CategoriesPage() {
   const db = useFirestore();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Stable references for queries
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
@@ -70,6 +72,17 @@ export default function CategoriesPage() {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async () => {
     if (!db || !name) return;
     setIsSaving(true);
@@ -80,7 +93,8 @@ export default function CategoriesPage() {
       imageUrl: imageUrl || `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/600/400`,
       sizeChartId,
       seoTitle: seoTitle || name,
-      seoDescription: seoDescription || description
+      seoDescription: seoDescription || description,
+      createdAt: new Date().toISOString()
     };
 
     addDoc(collection(db, 'categories'), categoryData)
@@ -168,15 +182,28 @@ export default function CategoriesPage() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Image</Label>
-                      <div className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 bg-gray-50 group hover:border-black transition-colors min-h-[120px]">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={handleFileChange} 
+                      />
+                      <div 
+                        onClick={() => !imageUrl && fileInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 bg-gray-50 group hover:border-black transition-colors min-h-[120px] ${!imageUrl ? 'cursor-pointer' : ''}`}
+                      >
                         {imageUrl ? (
                           <div className="relative w-full aspect-video rounded overflow-hidden">
                             <Image src={imageUrl} alt="Preview" fill className="object-cover" />
                             <Button 
                               variant="destructive" 
                               size="icon" 
-                              className="absolute top-2 right-2 h-6 w-6"
-                              onClick={() => setImageUrl('')}
+                              className="absolute top-2 right-2 h-6 w-6 z-10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setImageUrl('');
+                              }}
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -186,16 +213,24 @@ export default function CategoriesPage() {
                             <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors">
                               <Upload className="h-5 w-5" />
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Add Category Visual</span>
-                            <Input 
-                              placeholder="Paste Image URL" 
-                              value={imageUrl} 
-                              onChange={(e) => setImageUrl(e.target.value)}
-                              className="h-8 text-xs mt-2"
-                            />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Click to upload visual</span>
                           </>
                         )}
                       </div>
+                      
+                      {!imageUrl && (
+                        <div className="relative mt-2">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                            <LinkIcon className="h-3 w-3" />
+                          </div>
+                          <Input 
+                            placeholder="Or paste image URL..." 
+                            value={imageUrl} 
+                            onChange={(e) => setImageUrl(e.target.value)}
+                            className="h-8 text-[10px] pl-8"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Guide</Label>
