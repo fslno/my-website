@@ -63,7 +63,7 @@ export default function CategoriesPage() {
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
   const chartsQuery = useMemoFirebase(() => db ? collection(db, 'sizeCharts') : null, [db]);
 
-  const { data: categories, loading: categoriesLoading } = useCollection(categoriesQuery);
+  const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
   const { data: sizeCharts } = useCollection(chartsQuery);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -85,7 +85,7 @@ export default function CategoriesPage() {
     return query(collection(db, 'products'), where('categoryId', '==', editingId));
   }, [db, editingId]);
 
-  const { data: assignedProducts, loading: productsLoading } = useCollection(assignedProductsQuery);
+  const { data: assignedProducts, isLoading: productsLoading } = useCollection(assignedProductsQuery);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -392,7 +392,7 @@ export default function CategoriesPage() {
                     <div className="flex justify-center py-20">
                       <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
                     </div>
-                  ) : assignedProducts?.length === 0 ? (
+                  ) : !assignedProducts || assignedProducts.length === 0 ? (
                     <div className="text-center py-20 border-2 border-dashed rounded-xl bg-gray-50/50">
                       <ShoppingBag className="h-12 w-12 text-gray-200 mx-auto mb-4" />
                       <p className="text-sm font-bold uppercase tracking-widest text-gray-400">No products assigned yet.</p>
@@ -410,7 +410,7 @@ export default function CategoriesPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {assignedProducts?.map((product: any) => (
+                          {assignedProducts.map((product: any) => (
                             <TableRow key={product.id} className="hover:bg-gray-50/30">
                               <TableCell>
                                 <div className="w-12 h-16 bg-gray-100 relative rounded border overflow-hidden">
@@ -425,8 +425,8 @@ export default function CategoriesPage() {
                               </TableCell>
                               <TableCell className="font-medium">${Number(product.price).toFixed(2)}</TableCell>
                               <TableCell>
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded ${product.inventory > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                                  {product.inventory > 0 ? `${product.inventory} IN STOCK` : 'OUT OF STOCK'}
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded ${Number(product.inventory) > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                  {Number(product.inventory) > 0 ? `${product.inventory} IN STOCK` : 'OUT OF STOCK'}
                                 </span>
                               </TableCell>
                               <TableCell>
@@ -491,7 +491,7 @@ export default function CategoriesPage() {
           <div className="flex justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
           </div>
-        ) : categories?.length === 0 ? (
+        ) : !categories || categories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-gray-50/50">
             <Tag className="h-12 w-12 text-gray-300 mb-4" />
             <p className="text-sm font-medium text-gray-500">No categories found. Start by adding your first drop.</p>
@@ -509,7 +509,7 @@ export default function CategoriesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {categories?.map((category: any) => {
+                {categories.map((category: any) => {
                   const chart = sizeCharts?.find((c: any) => c.id === category.sizeChartId);
                   const isSeoComplete = category.seoTitle && category.seoDescription;
                   
@@ -562,7 +562,10 @@ export default function CategoriesPage() {
                             variant="ghost" 
                             size="icon" 
                             className="h-8 w-8 hover:bg-red-50" 
-                            onClick={(e) => handleDelete(category.id, e)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(category.id, e);
+                            }}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
