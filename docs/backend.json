@@ -18,6 +18,18 @@
       },
       "required": ["name", "price", "status"]
     },
+    "Category": {
+      "title": "Category",
+      "description": "A product classification that can be linked to a size chart.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "sizeChartId": { "type": "string" }
+      },
+      "required": ["name"]
+    },
     "SizeChart": {
       "title": "Size Chart",
       "description": "Garment measurements for specific product types.",
@@ -134,6 +146,10 @@
     "/products/{productId}": {
       "schema": "Product",
       "description": "Collection of store products."
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Collection of product categories."
     },
     "/sizeCharts/{chartId}": {
       "schema": "SizeChart",
