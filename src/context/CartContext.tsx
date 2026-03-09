@@ -65,15 +65,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [localCart, isInitialized, user]);
 
   // Firestore Persistence for Authenticated Users
+  // Valid 3-segment path: users/{uid}/cart
   const cartQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return collection(db, 'users', user.uid, 'cart', 'items');
+    return collection(db, 'users', user.uid, 'cart');
   }, [db, user]);
 
   const { data: dbItems, isLoading: isSyncing } = useCollection(cartQuery);
 
   // Effective Cart: Prefer Firestore data if logged in, otherwise use local state.
-  // We map the Firestore 'id' (doc ID is variantId) back to product 'id' for UI compatibility.
   const cart = user 
     ? (dbItems || []).map(item => ({
         ...item,
@@ -83,7 +83,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = (newItem: CartItem) => {
     if (user && db) {
-      const itemRef = doc(db, 'users', user.uid, 'cart', 'items', newItem.variantId);
+      const itemRef = doc(db, 'users', user.uid, 'cart', newItem.variantId);
       const existing = (dbItems || []).find(i => i.id === newItem.variantId);
       
       if (existing) {
@@ -133,7 +133,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const removeFromCart = (variantId: string) => {
     if (user && db) {
-      const itemRef = doc(db, 'users', user.uid, 'cart', 'items', variantId);
+      const itemRef = doc(db, 'users', user.uid, 'cart', variantId);
       deleteDoc(itemRef).catch(async () => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: itemRef.path,

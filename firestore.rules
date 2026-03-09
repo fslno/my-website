@@ -97,12 +97,9 @@ service cloud.firestore {
         }
       }
 
-      match /cart {
-        allow get, write: if isOwner(userId) || isAdmin();
-
-        match /items/{cartItemId} {
-          allow read, write: if isOwner(userId) || isAdmin();
-        }
+      // Simplified cart structure: users/{userId}/cart/{itemId}
+      match /cart/{itemId} {
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
@@ -147,7 +144,7 @@ service cloud.firestore {
       allow delete: if isSignedIn();
     }
 
-    // Config singleton permissions
+    // Config singleton permissions - relaxed for development
     match /config/{configId} {
       allow get: if true;
       allow list: if isSignedIn();
