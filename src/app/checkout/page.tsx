@@ -20,6 +20,13 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -53,7 +60,6 @@ export default function CheckoutPage() {
   const [shippingRate, setShippingRate] = useState<number>(0);
 
   const calculatedTax = useMemo(() => {
-    // Attempt to match the manual input (e.g. "ON") to tax rates
     const rate = TAX_RATES[selectedProvince.toUpperCase()] || 0;
     return cartSubtotal * rate;
   }, [cartSubtotal, selectedProvince]);
@@ -75,9 +81,12 @@ export default function CheckoutPage() {
     );
   }
 
+  const handleUppercaseInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.target.value = e.target.value.toUpperCase();
+  };
+
   return (
     <main className="min-h-screen bg-[#F9F9F9] flex flex-col">
-      {/* Mini Header */}
       <header className="h-20 bg-white border-b flex items-center px-4 lg:px-12 sticky top-0 z-50">
         <Link href="/" className="flex items-center gap-2 group">
           <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
@@ -87,10 +96,8 @@ export default function CheckoutPage() {
       </header>
 
       <div className="max-w-[1440px] mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12">
-        {/* Left Column: Forms */}
         <div className="lg:col-span-7 p-6 lg:p-12 space-y-12">
           
-          {/* Delivery Methods */}
           <section className="space-y-6">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em]">01. Delivery Method</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -130,14 +137,13 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          {/* Contact & Address Form */}
           <section className="space-y-8 bg-white p-8 border shadow-sm rounded-sm">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em]">02. Personal Details</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Email Address</Label>
-                <Input type="email" placeholder="archive@fslno.com" className="h-12 bg-[#F9F9F9]" />
+                <Input type="email" placeholder="ARCHIVE@FSLNO.COM" className="h-12 bg-[#F9F9F9] uppercase" onChange={handleUppercaseInput} />
               </div>
               <div className="space-y-2">
                 <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Phone Number</Label>
@@ -145,7 +151,7 @@ export default function CheckoutPage() {
               </div>
               <div className="md:col-span-2 space-y-2">
                 <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Full Name</Label>
-                <Input placeholder="Enter your full name" className="h-12 bg-[#F9F9F9]" />
+                <Input placeholder="ENTER YOUR FULL NAME" className="h-12 bg-[#F9F9F9] uppercase" onChange={handleUppercaseInput} />
               </div>
             </div>
 
@@ -153,25 +159,25 @@ export default function CheckoutPage() {
               <div className="space-y-6 pt-4 border-t">
                 <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Destination</h3>
                 <div className="grid gap-4">
-                  <Input placeholder="Address" className="h-12" />
-                  <Input placeholder="Apartment, suite, etc. (optional)" className="h-12" />
+                  <Input placeholder="ADDRESS" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                  <Input placeholder="APARTMENT, SUITE, ETC. (OPTIONAL)" className="h-12 uppercase" onChange={handleUppercaseInput} />
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder="City" className="h-12" />
-                    <Input placeholder="Postal Code" className="h-12" />
+                    <Input placeholder="CITY" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                    <Input placeholder="POSTAL CODE" className="h-12 uppercase" onChange={handleUppercaseInput} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
                       <Input 
-                        placeholder="e.g. Ontario or ON" 
-                        className="h-12"
+                        placeholder="E.G. ON" 
+                        className="h-12 uppercase"
                         value={selectedProvince}
-                        onChange={(e) => setSelectedProvince(e.target.value)}
+                        onChange={(e) => setSelectedProvince(e.target.value.toUpperCase())}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Country</Label>
-                      <Input placeholder="e.g. Canada" className="h-12" />
+                      <Input placeholder="E.G. CANADA" className="h-12 uppercase" onChange={handleUppercaseInput} />
                     </div>
                   </div>
                 </div>
@@ -191,10 +197,10 @@ export default function CheckoutPage() {
                   <div className="space-y-4 pt-4 animate-in fade-in duration-300">
                     <h3 className="text-[10px] uppercase tracking-widest font-bold">Billing Address</h3>
                     <div className="grid gap-4">
-                      <Input placeholder="Address" className="h-12" />
+                      <Input placeholder="ADDRESS" className="h-12 uppercase" onChange={handleUppercaseInput} />
                       <div className="grid grid-cols-2 gap-4">
-                        <Input placeholder="City" className="h-12" />
-                        <Input placeholder="Postal Code" className="h-12" />
+                        <Input placeholder="CITY" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                        <Input placeholder="POSTAL CODE" className="h-12 uppercase" onChange={handleUppercaseInput} />
                       </div>
                     </div>
                   </div>
@@ -233,24 +239,24 @@ export default function CheckoutPage() {
               <div className="space-y-6 pt-4 border-t">
                 <h3 className="text-[10px] uppercase tracking-widest font-bold">Billing Address</h3>
                 <div className="grid gap-4">
-                  <Input placeholder="Billing Address" className="h-12" />
+                  <Input placeholder="BILLING ADDRESS" className="h-12 uppercase" onChange={handleUppercaseInput} />
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder="City" className="h-12" />
-                    <Input placeholder="Postal Code" className="h-12" />
+                    <Input placeholder="CITY" className="h-12 uppercase" onChange={handleUppercaseInput} />
+                    <Input placeholder="POSTAL CODE" className="h-12 uppercase" onChange={handleUppercaseInput} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
                       <Input 
-                        placeholder="e.g. Ontario or ON" 
-                        className="h-12"
+                        placeholder="E.G. ON" 
+                        className="h-12 uppercase"
                         value={selectedProvince}
-                        onChange={(e) => setSelectedProvince(e.target.value)}
+                        onChange={(e) => setSelectedProvince(e.target.value.toUpperCase())}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Country</Label>
-                      <Input placeholder="e.g. Canada" className="h-12" />
+                      <Input placeholder="E.G. CANADA" className="h-12 uppercase" onChange={handleUppercaseInput} />
                     </div>
                   </div>
                 </div>
@@ -280,27 +286,23 @@ export default function CheckoutPage() {
             )}
           </section>
 
-          {/* Referral Section */}
           <section className="space-y-6 bg-gray-50 border border-gray-100 p-8 rounded-sm">
             <div className="flex items-center gap-3">
               <Search className="h-5 w-5 text-gray-500" />
               <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-black">How did you find us?</h2>
             </div>
-            <RadioGroup className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[
-                { id: 'google', label: 'Google / Pinterest' },
-                { id: 'social', label: 'Facebook / Instagram' },
-                { id: 'friend', label: 'From Friend' },
-                { id: 'repeat', label: 'Repeat Customer' }
-              ].map((option) => (
-                <div key={option.id} className="flex items-center space-x-3 p-4 border border-gray-200 bg-white rounded-sm hover:bg-gray-100 transition-colors cursor-pointer">
-                  <RadioGroupItem value={option.id} id={option.id} className="border-black text-black" />
-                  <Label htmlFor={option.id} className="text-[10px] font-bold uppercase tracking-widest cursor-pointer text-gray-700">
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+            
+            <Select>
+              <SelectTrigger className="h-12 bg-white border-gray-200 text-[10px] font-bold uppercase tracking-widest rounded-sm">
+                <SelectValue placeholder="SELECT AN OPTION" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="google" className="text-[10px] font-bold uppercase tracking-widest">Google / Pinterest</SelectItem>
+                <SelectItem value="social" className="text-[10px] font-bold uppercase tracking-widest">Facebook / Instagram</SelectItem>
+                <SelectItem value="friend" className="text-[10px] font-bold uppercase tracking-widest">From Friend</SelectItem>
+                <SelectItem value="repeat" className="text-[10px] font-bold uppercase tracking-widest">Repeat Customer</SelectItem>
+              </SelectContent>
+            </Select>
           </section>
 
           <div className="pt-8">
@@ -313,7 +315,6 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* Right Column: Order Summary */}
         <div className="lg:col-span-5 bg-white border-l p-6 lg:p-12 sticky lg:h-screen lg:top-20 overflow-y-auto">
           <div className="max-md:max-w-md mx-auto space-y-8">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4">Order Summary ({cartCount})</h2>
