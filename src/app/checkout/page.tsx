@@ -315,7 +315,7 @@ export default function CheckoutPage() {
 
         {/* Right Column: Order Summary */}
         <div className="lg:col-span-5 bg-white border-l p-6 lg:p-12 sticky lg:h-screen lg:top-20 overflow-y-auto">
-          <div className="max-w-md mx-auto space-y-8">
+          <div className="max-md:max-w-md mx-auto space-y-8">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4">Order Summary ({cartCount})</h2>
             
             <div className="space-y-6">
@@ -328,7 +328,7 @@ export default function CheckoutPage() {
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <h3 className="text-[10px] font-bold uppercase tracking-tight max-w-[180px] line-clamp-1">{item.name}</h3>
-                        <p className="text-[11px] font-bold">${(item.price * item.quantity).toLocaleString()}</p>
+                        <p className="text-[11px] font-bold">${(item.price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                       </div>
                       <div className="flex gap-3 text-[9px] text-gray-400 font-bold uppercase tracking-widest">
                         <span>Size: {item.size}</span>
@@ -349,7 +349,7 @@ export default function CheckoutPage() {
             <div className="space-y-4 pt-8 border-t">
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Subtotal</span>
-                <span className="text-black">${cartSubtotal.toLocaleString()} CAD</span>
+                <span className="text-black">${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD</span>
               </div>
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Shipping</span>
@@ -360,14 +360,14 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 <span>Tax</span>
                 <span className={cn("text-black", !selectedProvince && "italic")}>
-                  {selectedProvince ? `$${calculatedTax.toLocaleString()} CAD` : 'Region tax calculated'}
+                  {selectedProvince ? `$${calculatedTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD` : 'Region tax calculated'}
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between items-end pt-2">
                 <span className="text-[12px] font-bold uppercase tracking-[0.2em]">Total</span>
                 <div className="text-right">
-                  <p className="text-2xl font-bold font-headline tracking-tighter">${total.toLocaleString()}</p>
+                  <p className="text-2xl font-bold font-headline tracking-tighter">${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">CAD</p>
                 </div>
               </div>
