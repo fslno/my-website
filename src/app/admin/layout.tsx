@@ -117,7 +117,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Domain">
+                  <SidebarMenuButton asChild tooltip="Domain name and site address, Header meta tags and site verification, Sitemap, Allow search engines to index Instant Site">
                     <Link href="/admin/domain">
                       <Globe />
                       <span>Domain</span>
