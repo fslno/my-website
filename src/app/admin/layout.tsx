@@ -25,7 +25,7 @@ import {
   TicketPercent
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,11 +33,17 @@ import { Separator } from '@/components/ui/separator';
 import { signInWithPopup, GoogleAuthProvider, signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { doc } from 'firebase/firestore';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
+  const db = useFirestore();
+
+  // Fetch Store Config for Branding
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  const { data: storeConfig } = useDoc(storeConfigRef);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -113,10 +119,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f6f7] p-4 text-center">
-        <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-8 shadow-2xl">F</div>
+        <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-8 shadow-2xl overflow-hidden relative">
+          {storeConfig?.logoUrl ? (
+            <img src={storeConfig.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+          ) : (
+            "F"
+          )}
+        </div>
         <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Command Center</h1>
         <p className="text-gray-500 text-sm mb-10 max-w-xs leading-relaxed">
-          Authentication required to access the FSLNO luxury operations suite.
+          Authentication required to access the {storeConfig?.businessName || "FSLNO"} luxury operations suite.
         </p>
 
         <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
@@ -185,8 +197,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] bg-white">
           <SidebarHeader className="h-16 flex items-center px-6 border-b border-[#e1e3e5]">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm">F</div>
-              <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden">FSLNO Admin</span>
+              <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative">
+                {storeConfig?.logoUrl ? (
+                  <img src={storeConfig.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  "F"
+                )}
+              </div>
+              <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden">
+                {storeConfig?.businessName || "FSLNO"} Admin
+              </span>
             </Link>
           </SidebarHeader>
           <SidebarContent className="py-4">
@@ -429,8 +449,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <button className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors">
                 <Bell className="h-5 w-5 text-[#5c5f62]" />
               </button>
-              <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden">
-                <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} alt="Admin" />
+              <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
+                <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} alt="Admin" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                   <Settings className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </div>
             </div>
           </header>
