@@ -304,15 +304,6 @@ export default function CheckoutPage() {
               </SelectContent>
             </Select>
           </section>
-
-          <div className="pt-8">
-            <Button className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] hover:bg-black/90 transition-all rounded-none shadow-xl">
-              Pay Now & Confirm Archive
-            </Button>
-            <p className="text-center text-[9px] text-gray-400 mt-4 uppercase tracking-widest">
-              By confirming your order, you agree to the FSLNO Archive terms of service.
-            </p>
-          </div>
         </div>
 
         <div className="lg:col-span-5 bg-white border-l p-6 lg:p-12 sticky lg:h-screen lg:top-20 overflow-y-auto">
@@ -371,6 +362,15 @@ export default function CheckoutPage() {
                   <p className="text-2xl font-bold font-headline tracking-tighter">${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">CAD</p>
                 </div>
+              </div>
+
+              <div className="pt-8">
+                <Button className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] hover:bg-black/90 transition-all rounded-none shadow-xl">
+                  Pay Now & Confirm Archive
+                </Button>
+                <p className="text-center text-[9px] text-gray-400 mt-4 uppercase tracking-widest">
+                  By confirming your order, you agree to the FSLNO Archive terms of service.
+                </p>
               </div>
             </div>
 
