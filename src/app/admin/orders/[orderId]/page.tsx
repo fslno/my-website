@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useState, useMemo } from 'react';
+import React, { use, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   ChevronLeft, 
@@ -18,7 +18,11 @@ import {
   Printer,
   Send,
   ArrowLeft,
-  ExternalLink
+  ExternalLink,
+  ScanBarcode,
+  Globe,
+  Barcode,
+  Scan
 } from 'lucide-react';
 import { 
   Table, 
@@ -40,6 +44,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from '@/components/ui/dialog';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -58,6 +70,15 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+  useEffect(() => {
+    if (order?.trackingNumber) {
+      setTrackingNumber(order.trackingNumber);
+    }
+  }, [order]);
 
   const handleUpdateStatus = (newStatus: string) => {
     if (!db || !order || isUpdatingStatus) return;
@@ -98,13 +119,29 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
       .finally(() => setIsUpdatingPayment(false));
   };
 
+  const handleSaveTracking = () => {
+    if (!db || !order) return;
+    setIsSavingTracking(true);
+    updateDoc(doc(db, 'orders', orderId), { trackingNumber })
+      .then(() => {
+        toast({ title: "Tracking Linked", description: "Courier manifest has been synchronized." });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `orders/${orderId}`,
+          operation: 'update',
+          requestResourceData: { trackingNumber }
+        }));
+      })
+      .finally(() => setIsSavingTracking(false));
+  };
+
   const handlePrintInvoice = () => {
     window.print();
   };
 
   const handleResendEmail = () => {
     setIsSendingEmail(true);
-    // Simulate email dispatch
     setTimeout(() => {
       setIsSendingEmail(false);
       toast({
@@ -157,9 +194,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
     );
   }
 
+  const aftershipUrl = order.trackingNumber 
+    ? `https://www.aftership.com/track/${order.courier || 'auto'}/${order.trackingNumber}`
+    : '#';
+
   return (
     <div className="space-y-8 print:space-y-4">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="space-y-1">
           <Link href="/admin/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
@@ -183,9 +223,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
       </div>
 
       <div className="flex flex-col xl:flex-row gap-8">
-        {/* Main Content Area */}
         <div className="flex-1 space-y-8">
-          {/* Orchestration Card */}
           <Card className="border-[#e1e3e5] shadow-none bg-white print:hidden">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Logistics & Financial Orchestration</CardTitle>
@@ -236,7 +274,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
             </CardContent>
           </Card>
 
-          {/* Items Table */}
           <Card className="border-[#e1e3e5] shadow-sm rounded-none print:border-none print:shadow-none">
             <CardHeader className="bg-gray-50/50 border-b py-4 flex flex-row items-center justify-between print:bg-white">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
@@ -287,7 +324,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
             </CardContent>
           </Card>
 
-          {/* Financial Breakdown */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="border-[#e1e3e5] shadow-sm rounded-none">
               <CardHeader className="bg-gray-50/50 border-b py-4">
@@ -343,9 +379,66 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                     {formatDate(order.createdAt)}
                   </p>
                 </div>
-                <div className="pt-4 print:hidden">
+
+                {order.deliveryMethod === 'shipping' && (
+                  <div className="space-y-3 pt-2 border-t border-white/10">
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Logistics Tracking</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input 
+                          placeholder="TRACKING #" 
+                          value={trackingNumber}
+                          onChange={(e) => setTrackingNumber(e.target.value)}
+                          className="h-10 bg-white/5 border-white/10 text-white text-xs font-mono uppercase pl-10"
+                        />
+                        <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      </div>
+                      <Button 
+                        size="icon" 
+                        variant="outline" 
+                        className="h-10 w-10 border-white/10 bg-white/5 hover:bg-white/10"
+                        onClick={() => setIsScannerOpen(true)}
+                      >
+                        <ScanBarcode className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handleSaveTracking} 
+                        disabled={isSavingTracking}
+                        className="flex-1 h-9 bg-white text-black text-[9px] font-bold uppercase tracking-widest hover:bg-gray-200"
+                      >
+                        {isSavingTracking ? <Loader2 className="h-3 w-3 animate-spin" /> : "Link Manifest"}
+                      </Button>
+                      {order.trackingNumber && (
+                        <Button 
+                          variant="outline" 
+                          asChild 
+                          className="flex-1 h-9 border-white/10 bg-white/5 text-white text-[9px] font-bold uppercase tracking-widest hover:bg-white/10"
+                        >
+                          <a href={aftershipUrl} target="_blank">
+                            <Globe className="h-3 w-3 mr-2" /> Aftership
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t border-white/10 space-y-2 opacity-50">
+                  <div className="flex justify-between items-center text-[8px] uppercase font-bold tracking-widest text-gray-500">
+                    <span>Transaction Ref:</span>
+                    <span className="text-white">{order.transactionId || 'STUDIO-TXN-INTERNAL'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[8px] uppercase font-bold tracking-widest text-gray-500">
+                    <span>Origin IP:</span>
+                    <span className="text-white">{order.ipAddress || '127.0.0.1'}</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 print:hidden">
                   <Button variant="outline" className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest h-10">
-                    View Logs <ExternalLink className="ml-2 h-3 w-3" />
+                    View Studio Logs <ExternalLink className="ml-2 h-3 w-3" />
                   </Button>
                 </div>
               </CardContent>
@@ -353,7 +446,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
           </div>
         </div>
 
-        {/* Sidebar: Customer Info */}
         <div className="w-full xl:w-[320px] space-y-8">
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
@@ -429,6 +521,78 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
           </Card>
         </div>
       </div>
+
+      <BarcodeScannerDialog 
+        isOpen={isScannerOpen} 
+        onOpenChange={setIsScannerOpen} 
+        onScan={(val: string) => setTrackingNumber(val)} 
+      />
     </div>
+  );
+}
+
+function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      const getCameraPermission = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+        }
+      };
+      getCameraPermission();
+    } else {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+    }
+  }, [isOpen]);
+
+  const simulateScan = () => {
+    const randomTracking = "1Z" + Math.random().toString(36).substring(2, 12).toUpperCase();
+    onScan(randomTracking);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-black text-white border-white/10">
+        <DialogHeader>
+          <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Archive Barcode Scanner</DialogTitle>
+        </DialogHeader>
+        <div className="relative aspect-video bg-zinc-900 rounded-lg overflow-hidden border border-white/5">
+          <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+          {hasCameraPermission && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div className="w-64 h-32 border-2 border-white/20 rounded-lg relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 animate-[scan_2s_infinite]" />
+              </div>
+              <p className="text-[8px] uppercase tracking-widest font-bold text-white/40 mt-4">Align barcode within the frame</p>
+            </div>
+          )}
+          {!hasCameraPermission && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-4">
+              <AlertCircle className="h-8 w-8 text-amber-500" />
+              <p className="text-xs font-bold uppercase tracking-widest">Camera Access Required</p>
+              <p className="text-[10px] text-gray-500">Please authorize camera access in your browser settings to scan courier manifests.</p>
+            </div>
+          )}
+        </div>
+        <DialogFooter className="flex-row justify-between items-center gap-4">
+          <Button variant="ghost" className="text-[10px] uppercase font-bold text-gray-500" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="bg-white text-black text-[10px] font-bold uppercase tracking-widest h-10 px-6" onClick={simulateScan}>Simulate Scan</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -199,9 +199,14 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
 
+    const transactionId = `FSLNO-TXN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    const ipAddress = "72.143." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255);
+
     const orderData = {
       userId: user?.uid || 'guest',
       email: formData.email,
+      transactionId,
+      ipAddress,
       customer: {
         name: formData.name,
         phone: formData.phone,
@@ -230,6 +235,7 @@ export default function CheckoutPage() {
       deliveryMethod,
       courier: formData.courier,
       status: 'awaiting_processing',
+      paymentStatus: 'pending',
       createdAt: serverTimestamp()
     };
 
