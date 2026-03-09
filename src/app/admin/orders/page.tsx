@@ -32,7 +32,8 @@ import {
   Calendar,
   AlertCircle,
   BadgeCheck,
-  CreditCard as PaymentIcon
+  CreditCard as PaymentIcon,
+  Layers
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -95,7 +96,7 @@ export default function OrdersPage() {
     if (!orders) return { total: 0, pending: 0, revenue: 0 };
     return orders.reduce((acc, order) => {
       acc.total += 1;
-      if (order.status === 'awaiting_shipping' || order.status === 'confirmed' || order.status === 'pending') acc.pending += 1;
+      if (['awaiting_processing', 'processing', 'confirmed', 'pending'].includes(order.status)) acc.pending += 1;
       acc.revenue += (Number(order.total) || 0);
       return acc;
     }, { total: 0, pending: 0, revenue: 0 });
@@ -146,8 +147,10 @@ export default function OrdersPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'awaiting_shipping':
-        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100 uppercase text-[10px] font-bold">Awaiting Shipping</Badge>;
+      case 'awaiting_processing':
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100 uppercase text-[10px] font-bold">Awaiting Processing</Badge>;
+      case 'processing':
+        return <Badge className="bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100 uppercase text-[10px] font-bold">Processing</Badge>;
       case 'shipped':
         return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[10px] font-bold">Shipped</Badge>;
       case 'delivered':
@@ -251,12 +254,13 @@ export default function OrdersPage() {
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 w-full md:w-[180px] bg-white border-[#e1e3e5] text-[10px] font-bold uppercase tracking-widest">
+              <SelectTrigger className="h-10 w-full md:w-[200px] bg-white border-[#e1e3e5] text-[10px] font-bold uppercase tracking-widest">
                 <Filter className="h-3 w-3 mr-2" /> {statusFilter === 'all' ? 'All Statuses' : statusFilter.replace('_', ' ')}
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="text-[10px] uppercase font-bold">All Statuses</SelectItem>
-                <SelectItem value="awaiting_shipping" className="text-[10px] uppercase font-bold">Awaiting Shipping</SelectItem>
+                <SelectItem value="awaiting_processing" className="text-[10px] uppercase font-bold">Awaiting Processing</SelectItem>
+                <SelectItem value="processing" className="text-[10px] uppercase font-bold">Processing</SelectItem>
                 <SelectItem value="shipped" className="text-[10px] uppercase font-bold">Shipped</SelectItem>
                 <SelectItem value="out_for_delivery" className="text-[10px] uppercase font-bold">Out for Delivery</SelectItem>
                 <SelectItem value="delivered" className="text-[10px] uppercase font-bold">Delivered</SelectItem>
@@ -360,11 +364,12 @@ export default function OrdersPage() {
                   </Select>
 
                   <Select value={selectedOrder.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
-                    <SelectTrigger className="h-10 w-[180px] bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
+                    <SelectTrigger className="h-10 w-[200px] bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
                       <SelectValue placeholder="Update Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="awaiting_shipping" className="text-[10px] font-bold uppercase">Awaiting Shipping</SelectItem>
+                      <SelectItem value="awaiting_processing" className="text-[10px] font-bold uppercase">Awaiting Processing</SelectItem>
+                      <SelectItem value="processing" className="text-[10px] font-bold uppercase">Processing</SelectItem>
                       <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
                       <SelectItem value="out_for_delivery" className="text-[10px] font-bold uppercase">Out for Delivery</SelectItem>
                       <SelectItem value="delivered" className="text-[10px] font-bold uppercase">Delivered</SelectItem>
