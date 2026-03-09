@@ -1,10 +1,22 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  collection, 
+  increment,
+  serverTimestamp 
+} from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export interface CartItem {
-  id: string;
-  variantId: string;
+  id: string; // Product ID
+  variantId: string; // Unique ID (Product + Size + Customization)
   name: string;
   price: number;
   quantity: number;
@@ -13,6 +25,7 @@ export interface CartItem {
   customName?: string;
   customNumber?: string;
   specialNote?: string;
+  productId?: string; // Internal mapping for Firestore persistence
 }
 
 interface CartContextType {
@@ -21,46 +34,123 @@ interface CartContextType {
   removeFromCart: (variantId: string) => void;
   cartCount: number;
   cartSubtotal: number;
+  isSyncing: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const db = useFirestore();
+  const { user } = useUser();
+  const [localCart, setLocalCart] = useState<CartItem[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Persistence for Guest Users (Local Storage)
+  useEffect(() => {
+    const saved = localStorage.getItem('fslno_cart');
+    if (saved) {
+      try {
+        setLocalCart(JSON.parse(saved));
+      } catch (e) {
+        console.error("Guest cart hydration failed", e);
+      }
+    }
+    setIsInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    if (isInitialized && !user) {
+      localStorage.setItem('fslno_cart', JSON.stringify(localCart));
+    }
+  }, [localCart, isInitialized, user]);
+
+  // Firestore Persistence for Authenticated Users
+  const cartQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'cart', 'items');
+  }, [db, user]);
+
+  const { data: dbItems, isLoading: isSyncing } = useCollection(cartQuery);
+
+  // Effective Cart: Prefer Firestore data if logged in, otherwise use local state.
+  // We map the Firestore 'id' (doc ID is variantId) back to product 'id' for UI compatibility.
+  const cart = user 
+    ? (dbItems || []).map(item => ({
+        ...item,
+        id: item.productId || item.id 
+      })) as CartItem[]
+    : localCart;
 
   const addToCart = (newItem: CartItem) => {
-    setCart(prev => {
-      // Find item with same product ID, size AND customization details
-      const existingIndex = prev.findIndex(
-        i => i.id === newItem.id && 
-             i.size === newItem.size && 
-             i.customName === newItem.customName && 
-             i.customNumber === newItem.customNumber &&
-             i.specialNote === newItem.specialNote
-      );
+    if (user && db) {
+      const itemRef = doc(db, 'users', user.uid, 'cart', 'items', newItem.variantId);
+      const existing = (dbItems || []).find(i => i.id === newItem.variantId);
       
-      if (existingIndex > -1) {
-        const updated = [...prev];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + 1
+      if (existing) {
+        // Increment quantity for existing item
+        updateDoc(itemRef, { 
+          quantity: increment(1), 
+          updatedAt: serverTimestamp() 
+        }).catch(async () => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: itemRef.path,
+            operation: 'update',
+            requestResourceData: { quantity: existing.quantity + 1 }
+          }));
+        });
+      } else {
+        // Create new item entry
+        const payload = {
+          ...newItem,
+          productId: newItem.id, // Store original product ID separately
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
         };
-        return updated;
+        setDoc(itemRef, payload).catch(async () => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: itemRef.path,
+            operation: 'create',
+            requestResourceData: payload
+          }));
+        });
       }
-      
-      return [...prev, { ...newItem, quantity: 1 }];
-    });
+    } else {
+      // Guest logic: local state
+      setLocalCart(prev => {
+        const existingIndex = prev.findIndex(i => i.variantId === newItem.variantId);
+        if (existingIndex > -1) {
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            quantity: updated[existingIndex].quantity + 1
+          };
+          return updated;
+        }
+        return [...prev, { ...newItem, quantity: 1 }];
+      });
+    }
   };
 
   const removeFromCart = (variantId: string) => {
-    setCart(prev => prev.filter(item => item.variantId !== variantId));
+    if (user && db) {
+      const itemRef = doc(db, 'users', user.uid, 'cart', 'items', variantId);
+      deleteDoc(itemRef).catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: itemRef.path,
+          operation: 'delete'
+        }));
+      });
+    } else {
+      // Guest logic: local state
+      setLocalCart(prev => prev.filter(item => item.variantId !== variantId));
+    }
   };
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
   const cartSubtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, cartCount, cartSubtotal }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, cartCount, cartSubtotal, isSyncing }}>
       {children}
     </CartContext.Provider>
   );

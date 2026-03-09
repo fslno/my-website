@@ -5,8 +5,6 @@
  * This ruleset implements a dual-layer security model designed for a robust e-commerce platform. 
  * It prioritizes Authorization Independence and Structural Segregation to ensure high performance 
  * and clear security boundaries.
- * 
- * Update log: Relaxing config write permissions for initial setup.
  */
 
 rules_version = '2';
@@ -100,14 +98,10 @@ service cloud.firestore {
       }
 
       match /cart {
-        allow get: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update, delete: if isExistingOwner(userId);
+        allow get, write: if isOwner(userId) || isAdmin();
 
         match /items/{cartItemId} {
-          allow get, list: if isOwner(userId) || isAdmin();
-          allow create: if isOwner(userId);
-          allow update, delete: if isExistingOwner(userId);
+          allow read, write: if isOwner(userId) || isAdmin();
         }
       }
     }
