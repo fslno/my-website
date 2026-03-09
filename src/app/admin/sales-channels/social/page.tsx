@@ -35,7 +35,6 @@ export default function SocialCommercePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newIntegration, setNewIntegration] = useState({ name: '', description: '' });
 
-  // Initialize defaults if missing
   useEffect(() => {
     if (!loading && !config && configRef) {
       setDoc(configRef, {
@@ -69,6 +68,7 @@ export default function SocialCommercePage() {
     handleUpdate({ customIntegrations: updatedIntegrations });
     setNewIntegration({ name: '', description: '' });
     setIsDialogOpen(false);
+    toast({ title: "Channel Added", description: `${newIntegration.name} is now available.` });
   };
 
   const removeIntegration = (id: string) => {
@@ -142,7 +142,6 @@ export default function SocialCommercePage() {
       </div>
 
       <div className="grid gap-6">
-        {/* TikTok Section */}
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -188,7 +187,6 @@ export default function SocialCommercePage() {
           </CardContent>
         </Card>
 
-        {/* Meta Conversions API Section */}
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -225,7 +223,7 @@ export default function SocialCommercePage() {
                   type="password" 
                   value={socialData.metaAccessToken}
                   onChange={(e) => handleUpdate({ metaAccessToken: e.target.value })}
-                  placeholder="Enter your system user token" 
+                  placeholder="Enter your token" 
                 />
               </div>
             </div>
@@ -235,7 +233,7 @@ export default function SocialCommercePage() {
                   <span>Event Match Quality (EMQ)</span>
                   <Badge variant="secondary" className="text-[10px] h-4">Advanced</Badge>
                 </span>
-                <p className="text-xs text-[#5c5f62]">Sends hashed email/phone data to help Meta find "Spot Closing" buyers.</p>
+                <p className="text-xs text-[#5c5f62]">Sends hashed email/phone data to help find buyers.</p>
               </div>
               <Switch 
                 checked={socialData.metaEmqEnabled} 
@@ -245,7 +243,6 @@ export default function SocialCommercePage() {
           </CardContent>
         </Card>
 
-        {/* Instagram Shopping Section */}
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -261,20 +258,19 @@ export default function SocialCommercePage() {
               <div className="p-4 border rounded-md flex flex-col gap-3">
                 <BarChart3 className="h-5 w-5 text-[#5c5f62]" />
                 <h4 className="text-sm font-bold">Product Tagging</h4>
-                <p className="text-xs text-[#5c5f62]">Real-time sync of categories into Instagram "Guides" and Reels.</p>
+                <p className="text-xs text-[#5c5f62]">Real-time sync into Instagram "Guides" and Reels.</p>
                 <Button variant="link" className="p-0 h-auto text-xs justify-start font-bold">Sync Now</Button>
               </div>
               <div className="p-4 border rounded-md flex flex-col gap-3">
                 <Users className="h-5 w-5 text-[#5c5f62]" />
                 <h4 className="text-sm font-bold">Creator Marketplace</h4>
-                <p className="text-xs text-[#5c5f62]">Enable white-listed ads for FSLNO partner influencers.</p>
+                <p className="text-xs text-[#5c5f62]">Enable white-listed ads for FSLNO partners.</p>
                 <Button variant="link" className="p-0 h-auto text-xs justify-start font-bold">View Partners</Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Custom Integrations */}
         {socialData.customIntegrations?.map((integration: any) => (
           <Card key={integration.id} className="border-[#e1e3e5] shadow-none border-dashed border-2">
             <CardHeader>
@@ -299,7 +295,7 @@ export default function SocialCommercePage() {
       </div>
       
       <div className="flex justify-end pt-4">
-        <Button className="bg-black text-white h-11 px-8 font-bold" onClick={() => toast({ title: "Settings Saved", description: "All social commerce configurations are live." })}>
+        <Button className="bg-black text-white h-11 px-8 font-bold" onClick={() => toast({ title: "Settings Saved", description: "All configurations are live." })}>
           Save Channel Settings
         </Button>
       </div>

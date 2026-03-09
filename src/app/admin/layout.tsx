@@ -18,13 +18,13 @@ import {
   Globe,
   Share2,
   RefreshCw,
-  BarChart
+  BarChart,
+  RefreshCw as LoaderIcon
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUser, useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { RefreshCw as LoaderIcon } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
@@ -174,7 +174,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Merchant API (V1) Integration: On-Demand Updates pushes price or stock changes to Google in minutes. Partial Sync allows updating specific attributes without re-sending the entire catalog. Google Product Studio provides AI enhancement to remove backgrounds. YouTube Shopping enables product tagging in videos. Local Inventory Ads sync physical stock for localized results.">
+                  <SidebarMenuButton asChild tooltip="Merchant API (V1) Integration: On-Demand Updates pushes price or stock changes to Google in minutes. Partial Sync allows updating specific attributes without re-sending the entire catalog. Google Product Studio: AI Enhancement integrated tools to remove backgrounds or upscale photos. YouTube Shopping enables product tagging in videos. Local Inventory Ads tells users exactly what is in stock at your physical Spot address.">
                     <Link href="/admin/sales-channels/google">
                       <RefreshCw />
                       <span>Google Sync</span>
