@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -19,7 +18,13 @@ import {
   MoreHorizontal, 
   Sparkles,
   Loader2,
-  Tag
+  Tag,
+  Trash2,
+  Upload,
+  Image as ImageIcon,
+  Play,
+  X,
+  PlusCircle
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,10 +42,17 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
+
+interface MediaItem {
+  url: string;
+  type: 'image' | 'video';
+}
 
 export default function ProductsPage() {
   const db = useFirestore();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Stable queries
   const productsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
@@ -51,44 +63,73 @@ export default function ProductsPage() {
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [productName, setProductName] = useState('');
-  const [features, setFeatures] = useState('');
-  const [price, setPrice] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [inventory, setInventory] = useState('');
-  const [generatedDescription, setGeneratedDescription] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Product Form State
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [comparedPrice, setComparedPrice] = useState('');
+  const [customizationFee, setCustomizationFee] = useState('');
+  const [brand, setBrand] = useState('');
+  const [sku, setSku] = useState('');
+  const [sizeFit, setSizeFit] = useState('');
+  const [description, setDescription] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [inventory, setInventory] = useState('');
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [features, setFeatures] = useState('');
+
+  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const type = file.type.startsWith('video/') ? 'video' : 'image';
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMedia([...media, { url: reader.result as string, type }]);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeMedia = (index: number) => {
+    setMedia(media.filter((_, i) => i !== index));
+  };
+
   const handleGenerate = async () => {
-    if (!productName || !features) return;
+    if (!name || !features) return;
     setIsGenerating(true);
     try {
       const result = await adminGenerateProductDescription({
-        productName,
+        productName: name,
         features: features.split(',').map(f => f.trim()),
         tone: 'luxurious'
       });
-      setGeneratedDescription(result.description);
+      setDescription(result.description);
     } catch (error) {
-      console.error('Failed to generate description', error);
+      toast({ variant: "destructive", title: "AI Error", description: "Failed to generate description." });
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleSaveProduct = async () => {
-    if (!db || !productName || !price || !categoryId) return;
+    if (!db || !name || !price || !categoryId) return;
     setIsSaving(true);
     
     const productData = {
-      name: productName,
-      description: generatedDescription,
-      features: features.split(',').map(f => f.trim()),
+      name,
+      description,
       price: parseFloat(price),
-      categoryId: categoryId,
+      comparedPrice: comparedPrice ? parseFloat(comparedPrice) : null,
+      customizationFee: customizationFee ? parseFloat(customizationFee) : 0,
+      brand,
+      sku,
+      sizeFit,
+      categoryId,
       inventory: parseInt(inventory) || 0,
+      media,
+      features: features.split(',').map(f => f.trim()),
       status: 'active',
-      imageUrl: `https://picsum.photos/seed/${Math.random()}/600/800`,
       createdAt: serverTimestamp(),
     };
 
@@ -96,120 +137,199 @@ export default function ProductsPage() {
       .then(() => {
         setIsDialogOpen(false);
         resetForm();
-        toast({ title: "Product Created", description: `${productName} added to inventory.` });
+        toast({ title: "Product Created", description: `${name} has been committed to the archive.` });
       })
-      .catch(async (error) => {
+      .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: 'products',
           operation: 'create',
           requestResourceData: productData,
         }));
       })
-      .finally(() => {
-        setIsSaving(false);
-      });
+      .finally(() => setIsSaving(false));
   };
 
   const resetForm = () => {
-    setProductName('');
-    setFeatures('');
+    setName('');
     setPrice('');
+    setComparedPrice('');
+    setCustomizationFee('');
+    setBrand('');
+    setSku('');
+    setSizeFit('');
+    setDescription('');
     setCategoryId('');
     setInventory('');
-    setGeneratedDescription('');
+    setMedia([]);
+    setFeatures('');
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Inventory Management</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Add and curate your luxury product archive.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Archive Inventory</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Manage and curate your high-fidelity product catalog.</p>
         </div>
-        <div className="flex gap-2">
-          <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button className="bg-black hover:bg-black/90 text-white font-bold h-9 gap-2">
-                <Plus className="h-4 w-4" /> Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-headline">New Archive Entry</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-6 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Name</Label>
-                    <Input 
-                      placeholder="e.g. Sculpted Merino Knit" 
-                      value={productName} 
-                      onChange={(e) => setProductName(e.target.value)} 
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Selection</Label>
-                    <Select value={categoryId} onValueChange={setCategoryId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Link a collection..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories?.map((cat: any) => (
-                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+          <DialogTrigger asChild>
+            <Button className="bg-black hover:bg-black/90 text-white font-bold h-10 gap-2">
+              <Plus className="h-4 w-4" /> Add Product
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl bg-white max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl">
+            <DialogHeader className="p-6 border-b">
+              <DialogTitle className="text-xl font-headline font-bold">New Archive Entry</DialogTitle>
+            </DialogHeader>
+            
+            <div className="p-8 space-y-12">
+              {/* Media Section - Comes First */}
+              <section className="space-y-6">
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Visual Content</h3>
+                  <p className="text-xs text-gray-500">Upload multiple images or videos for the product gallery.</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Price ($)</Label>
-                    <Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Initial Inventory</Label>
-                    <Input type="number" placeholder="24" value={inventory} onChange={(e) => setInventory(e.target.value)} />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Features (comma separated)</Label>
-                  <Input placeholder="Raw edges, heavyweight wool, oversized fit" value={features} onChange={(e) => setFeatures(e.target.value)} />
-                </div>
-                <div className="grid gap-2">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Description</Label>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleGenerate} 
-                      disabled={isGenerating || !productName}
-                      className="h-8 text-[10px] uppercase font-bold tracking-wider gap-2"
-                    >
-                      {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                      Generate via AI
-                    </Button>
-                  </div>
-                  <Textarea 
-                    className="h-48 resize-none" 
-                    placeholder="Describe your masterpiece..." 
-                    value={generatedDescription}
-                    onChange={(e) => setGeneratedDescription(e.target.value)}
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {media.map((item, index) => (
+                    <div key={index} className="relative aspect-[3/4] bg-gray-100 border rounded-lg overflow-hidden group">
+                      {item.type === 'video' ? (
+                        <div className="w-full h-full flex items-center justify-center bg-black">
+                          <Play className="h-8 w-8 text-white opacity-50" />
+                          <video src={item.url} className="absolute inset-0 w-full h-full object-cover opacity-60" muted loop />
+                        </div>
+                      ) : (
+                        <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />
+                      )}
+                      <button 
+                        onClick={() => removeMedia(index)}
+                        className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="aspect-[3/4] border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors">
+                      <PlusCircle className="h-5 w-5" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Add Media</span>
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*,video/*" 
+                    onChange={handleMediaUpload} 
                   />
                 </div>
-              </div>
-              <DialogFooter>
-                <Button 
-                  onClick={handleSaveProduct} 
-                  disabled={isSaving || !productName || !price || !categoryId}
-                  className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px]"
-                >
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Commit to Archive
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </section>
+
+              {/* Product Details Section - "One Topic" */}
+              <section className="space-y-8 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Product Specifications</h3>
+                  <p className="text-xs text-gray-500">Define the core attributes and narrative of this piece.</p>
+                </div>
+
+                <div className="grid gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Name</Label>
+                      <Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Attribution</Label>
+                      <Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sale Price ($)</Label>
+                      <Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Compared Price ($)</Label>
+                      <Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Customization Fee ($)</Label>
+                      <Input type="number" placeholder="0.00" value={customizationFee} onChange={(e) => setCustomizationFee(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">SKU Number</Label>
+                      <Input placeholder="e.g. FSL-MN-001" value={sku} onChange={(e) => setSku(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Collection / Category</Label>
+                      <Select value={categoryId} onValueChange={setCategoryId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Link to a collection..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories?.map((cat: any) => (
+                            <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size & Fit Description</Label>
+                      <Input placeholder="e.g. Oversized fit, model is 6'2\" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Available Inventory</Label>
+                      <Input type="number" placeholder="24" value={inventory} onChange={(e) => setInventory(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-gray-100">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Narrative / Description</Label>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleGenerate} 
+                        disabled={isGenerating || !name}
+                        className="h-8 text-[10px] uppercase font-bold tracking-wider gap-2 bg-white"
+                      >
+                        {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        Generate Narrative
+                      </Button>
+                    </div>
+                    <Textarea 
+                      className="h-40 resize-none bg-white" 
+                      placeholder="Craft a compelling story for this piece..." 
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <DialogFooter className="p-6 border-t bg-gray-50/50">
+              <Button 
+                onClick={handleSaveProduct} 
+                disabled={isSaving || !name || !price || !categoryId}
+                className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px]"
+              >
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Commit to Archive
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-lg overflow-hidden shadow-sm">
@@ -230,10 +350,10 @@ export default function ProductsPage() {
         <Table>
           <TableHeader className="bg-[#f6f6f7]">
             <TableRow className="hover:bg-transparent border-[#e1e3e5]">
-              <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Image</TableHead>
+              <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Preview</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Product</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Collection</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Inventory</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Stock</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Price</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -254,17 +374,23 @@ export default function ProductsPage() {
             ) : (
               products?.map((product: any) => {
                 const category = categories?.find((c: any) => c.id === product.categoryId);
+                const firstMedia = product.media?.[0]?.url;
+                
                 return (
                   <TableRow key={product.id} className="hover:bg-[#f6f6f7]/50 transition-colors border-[#e1e3e5] group">
                     <TableCell>
-                      <div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100">
-                        <img src={product.imageUrl || `https://picsum.photos/seed/${product.id}/100/150`} alt={product.name} className="object-cover w-full h-full" />
+                      <div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">
+                        {firstMedia ? (
+                          <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" />
+                        ) : (
+                          <ImageIcon className="h-4 w-4 text-gray-300" />
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-bold text-sm">{product.name}</span>
-                        <span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.status}</span>
+                        <span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.brand || 'Unbranded'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
