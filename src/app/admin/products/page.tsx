@@ -85,8 +85,7 @@ export default function ProductsPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortBy, setSortBy] = useState<'name' | 'price' | 'stock'>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<string>('newest');
 
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
@@ -118,6 +117,13 @@ export default function ProductsPage() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [features, setFeatures] = useState('');
 
+  const getMillis = (date: any) => {
+    if (!date) return 0;
+    if (date.toMillis) return date.toMillis();
+    if (date.seconds) return date.seconds * 1000;
+    return new Date(date).getTime();
+  };
+
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     
@@ -129,20 +135,30 @@ export default function ProductsPage() {
     });
 
     result.sort((a, b) => {
-      let valA = a[sortBy];
-      let valB = b[sortBy];
-      if (sortBy === 'stock') {
-        valA = a.inventory || 0;
-        valB = b.inventory || 0;
+      switch (sortBy) {
+        case 'newest':
+          return getMillis(b.createdAt) - getMillis(a.createdAt);
+        case 'oldest':
+          return getMillis(a.createdAt) - getMillis(b.createdAt);
+        case 'name-asc':
+          return a.name.localeCompare(b.name);
+        case 'name-desc':
+          return b.name.localeCompare(a.name);
+        case 'price-high':
+          return (Number(b.price) || 0) - (Number(a.price) || 0);
+        case 'price-low':
+          return (Number(a.price) || 0) - (Number(b.price) || 0);
+        case 'stock-high':
+          return (Number(b.inventory) || 0) - (Number(a.inventory) || 0);
+        case 'stock-low':
+          return (Number(a.inventory) || 0) - (Number(b.inventory) || 0);
+        default:
+          return 0;
       }
-      
-      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
     });
 
     return result;
-  }, [products, searchQuery, categoryFilter, sortBy, sortOrder]);
+  }, [products, searchQuery, categoryFilter, sortBy]);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -184,7 +200,7 @@ export default function ProductsPage() {
         batch.set(newRef, {
           ...data,
           name: `${data.name} - COPY`,
-          sku: `${data.sku}-COPY-${Math.floor(Math.random() * 1000)}`,
+          sku: `${data.sku}-COPY-${Math.floor(1000 + Math.random() * 9000)}`,
           createdAt: serverTimestamp(),
           status: 'draft'
         });
@@ -506,9 +522,32 @@ export default function ProductsPage() {
               <Input placeholder="Search archive by name or SKU..." className="pl-10 h-9 border-[#babfc3] focus:ring-black" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
             <div className="flex items-center gap-2">
-              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}><SelectTrigger className="h-9 w-[140px] text-[10px] font-bold uppercase tracking-widest"><ArrowUpDown className="h-3 w-3 mr-2" /> {sortBy}</SelectTrigger><SelectContent><SelectItem value="name" className="text-[10px] uppercase font-bold">Name</SelectItem><SelectItem value="price" className="text-[10px] uppercase font-bold">Price</SelectItem><SelectItem value="stock" className="text-[10px] uppercase font-bold">Stock</SelectItem></SelectContent></Select>
+              <Select value={sortBy} onValueChange={(v: string) => setSortBy(v)}>
+                <SelectTrigger className="h-9 w-[200px] text-[10px] font-bold uppercase tracking-widest">
+                  <ArrowUpDown className="h-3 w-3 mr-2" /> 
+                  <span className="truncate">
+                    {sortBy === 'newest' && 'New to Old'}
+                    {sortBy === 'oldest' && 'Old to New'}
+                    {sortBy === 'name-asc' && 'A - Z'}
+                    {sortBy === 'name-desc' && 'Z - A'}
+                    {sortBy === 'price-high' && 'Price: High to Low'}
+                    {sortBy === 'price-low' && 'Price: Low to High'}
+                    {sortBy === 'stock-high' && 'Stock: High to Low'}
+                    {sortBy === 'stock-low' && 'Stock: Low to High'}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest" className="text-[10px] uppercase font-bold">New to Old</SelectItem>
+                  <SelectItem value="oldest" className="text-[10px] uppercase font-bold">Old to New</SelectItem>
+                  <SelectItem value="name-asc" className="text-[10px] uppercase font-bold">A - Z</SelectItem>
+                  <SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Z - A</SelectItem>
+                  <SelectItem value="price-high" className="text-[10px] uppercase font-bold">Price: High to Low</SelectItem>
+                  <SelectItem value="price-low" className="text-[10px] uppercase font-bold">Price: Low to High</SelectItem>
+                  <SelectItem value="stock-high" className="text-[10px] uppercase font-bold">Stock: High to Low</SelectItem>
+                  <SelectItem value="stock-low" className="text-[10px] uppercase font-bold">Stock: Low to High</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}><SelectTrigger className="h-9 w-[160px] text-[10px] font-bold uppercase tracking-widest"><Filter className="h-3 w-3 mr-2" /> {categoryFilter === 'all' ? 'All Collections' : categories?.find(c => c.id === categoryFilter)?.name}</SelectTrigger><SelectContent><SelectItem value="all" className="text-[10px] uppercase font-bold">All Collections</SelectItem>{categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}</SelectContent></Select>
-              <Button variant="outline" size="icon" onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="h-9 w-9 border-[#babfc3]"><ArrowUpDown className="h-4 w-4" /></Button>
             </div>
           </div>
         </div>
