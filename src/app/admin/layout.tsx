@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -21,8 +22,44 @@ import {
   BarChart
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { useUser, useAuth } from '@/firebase';
+import { Button } from '@/components/ui/button';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useUser();
+  const auth = useAuth();
+
+  const handleLogin = () => {
+    if (auth) {
+      signInWithPopup(auth, new GoogleAuthProvider());
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f6f6f7]">
+        <div className="flex flex-col items-center gap-4">
+          <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">Initializing FSLNO Admin...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f6f7] p-4 text-center">
+        <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl mb-6">F</div>
+        <h1 className="text-2xl font-headline font-bold mb-2">Access Denied</h1>
+        <p className="text-gray-500 text-sm mb-8 max-w-xs">Authentication required to access the FSLNO Admin Command Center.</p>
+        <Button onClick={handleLogin} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest">
+          Sign in with Google
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-[#f6f6f7]">
@@ -158,9 +195,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <BarChart />
                       <span>Analytics (GA4)</span>
                     </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
+                  </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter className="border-t border-[#e1e3e5] p-4">
@@ -195,7 +231,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Bell className="h-5 w-5 text-[#5c5f62]" />
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden">
-                <img src="https://picsum.photos/seed/admin/40/40" alt="Admin" />
+                <img src={user.photoURL || `https://picsum.photos/seed/admin/40/40`} alt="Admin" />
               </div>
             </div>
           </header>

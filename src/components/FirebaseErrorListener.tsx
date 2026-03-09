@@ -11,7 +11,7 @@ export function FirebaseErrorListener() {
 
   useEffect(() => {
     const handlePermissionError = (error: FirestorePermissionError) => {
-      // Centrally handle the error without logging to console to avoid duplicate error screens
+      // Centrally handle the error without logging to console to avoid duplicate error screens or hydration mismatches
       toast({
         variant: 'destructive',
         title: 'Permission Denied',

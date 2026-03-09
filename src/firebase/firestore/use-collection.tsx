@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -16,9 +17,12 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | null>(null);
 
+  // We use a serialized version of the query for the effect dependency if needed,
+  // but generally relying on stable useMemoFirebase is better.
   useEffect(() => {
     if (!query) {
       setLoading(false);
+      setData([]);
       return;
     }
 
@@ -35,7 +39,7 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
       },
       async (err: FirestoreError) => {
         const permissionError = new FirestorePermissionError({
-          path: (query as any).path || 'unknown',
+          path: (query as any)._query?.path?.toString() || 'collection',
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,6 +20,7 @@ export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
   useEffect(() => {
     if (!ref) {
       setLoading(false);
+      setData(null);
       return;
     }
 
@@ -26,7 +28,11 @@ export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
     const unsubscribe = onSnapshot(
       ref,
       (snapshot: DocumentSnapshot<T>) => {
-        setData(snapshot.exists() ? { ...snapshot.data()!, id: snapshot.id } : null);
+        if (snapshot.exists()) {
+          setData({ ...snapshot.data()!, id: snapshot.id } as T);
+        } else {
+          setData(null);
+        }
         setLoading(false);
       },
       async (err: FirestoreError) => {
@@ -41,7 +47,7 @@ export function useDoc<T = DocumentData>(ref: DocumentReference<T> | null) {
     );
 
     return () => unsubscribe();
-  }, [ref]);
+  }, [ref?.path]); // Use path to stabilize the dependency
 
   return { data, loading, error };
 }

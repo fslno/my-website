@@ -14,7 +14,7 @@
         "inventory": { "type": "number" },
         "imageUrl": { "type": "string" },
         "features": { "type": "array", "items": { "type": "string" } },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "object" }
       },
       "required": ["name", "price", "status"]
     },
@@ -42,7 +42,7 @@
         "feedHealth": { "type": "number" },
         "syncLatency": { "type": "string" },
         "activeChannelsCount": { "type": "number" },
-        "lastSync": { "type": "string", "format": "date-time" },
+        "lastSync": { "type": "object" },
         "issues": { "type": "array", "items": { "type": "object" } }
       }
     },
