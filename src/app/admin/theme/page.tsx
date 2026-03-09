@@ -24,8 +24,10 @@ import {
   Monitor,
   Smartphone,
   Loader2,
-  ExternalLink,
-  MousePointer2
+  MousePointer2,
+  ChevronRight,
+  ShoppingBag,
+  Search as SearchIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -79,7 +81,7 @@ export default function ThemeEnginePage() {
       setAccentColor(themeData.accentColor || DEFAULT_THEME.accentColor);
       setHeadlineFont(themeData.headlineFont || DEFAULT_THEME.headlineFont);
       setBodyFont(themeData.bodyFont || DEFAULT_THEME.bodyFont);
-      setBorderRadius(themeData.borderRadius || DEFAULT_THEME.borderRadius);
+      setBorderRadius(themeData.borderRadius?.toString() || DEFAULT_THEME.borderRadius);
       setBannerEnabled(themeData.bannerEnabled ?? DEFAULT_THEME.bannerEnabled);
       setBannerText(themeData.bannerText || DEFAULT_THEME.bannerText);
       setBannerBgColor(themeData.bannerBgColor || DEFAULT_THEME.bannerBgColor);
@@ -136,7 +138,7 @@ export default function ThemeEnginePage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Loading Theme Engine...</p>
+          <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Initializing Theme Engine...</p>
         </div>
       </div>
     );
@@ -181,8 +183,8 @@ export default function ThemeEnginePage() {
                   <div className="grid gap-2">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Primary Color (Typography & Main Elements)</Label>
                     <div className="flex gap-2">
-                      <div className="w-12 h-12 rounded border p-1 bg-white">
-                        <Input type="color" className="w-full h-full border-none p-0 cursor-pointer" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
+                      <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
                       </div>
                       <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
                     </div>
@@ -190,8 +192,8 @@ export default function ThemeEnginePage() {
                   <div className="grid gap-2">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Accent Color (Interactive & Overlays)</Label>
                     <div className="flex gap-2">
-                      <div className="w-12 h-12 rounded border p-1 bg-white">
-                        <Input type="color" className="w-full h-full border-none p-0 cursor-pointer" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} />
+                      <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} />
                       </div>
                       <Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
                     </div>
@@ -215,7 +217,7 @@ export default function ThemeEnginePage() {
                       <SelectContent>
                         <SelectItem value="Playfair Display">Playfair Display (Standard)</SelectItem>
                         {sportsFonts.map(font => (
-                          <SelectItem key={font} value={font}>{font}</SelectItem>
+                          <SelectItem key={font} value={font} style={{ fontFamily: font }}>{font}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -229,7 +231,7 @@ export default function ThemeEnginePage() {
                       <SelectContent>
                         <SelectItem value="Inter">Inter (Standard)</SelectItem>
                         {sportsFonts.map(font => (
-                          <SelectItem key={font} value={font}>{font}</SelectItem>
+                          <SelectItem key={font} value={font} style={{ fontFamily: font }}>{font}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -256,8 +258,8 @@ export default function ThemeEnginePage() {
                   <div className="grid gap-2">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Bar Background Color</Label>
                     <div className="flex gap-2">
-                      <div className="w-12 h-12 rounded border p-1 bg-white">
-                        <Input type="color" value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="w-full h-full border-none p-0 cursor-pointer" />
+                      <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                        <Input type="color" value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" />
                       </div>
                       <Input value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
                     </div>
@@ -308,7 +310,7 @@ export default function ThemeEnginePage() {
 
         {/* Live Preview */}
         <div className="xl:col-span-8 bg-[#f6f6f7] rounded-xl flex flex-col border border-[#e1e3e5] overflow-hidden">
-          <div className="h-14 bg-white border-b flex items-center justify-between px-6">
+          <div className="h-14 bg-white border-b flex items-center justify-between px-6 shrink-0">
             <div className="flex gap-1.5">
               <div className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></div>
               <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-200"></div>
@@ -333,62 +335,87 @@ export default function ThemeEnginePage() {
               Live Archival Preview
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:20px_20px]">
+          <div className="flex-1 overflow-y-auto p-8 lg:p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:24px_24px]">
             <div className={cn(
-              "bg-[#f4f4f4] transition-all duration-500 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] overflow-hidden relative",
-              device === 'desktop' ? "w-full aspect-video" : "w-[375px] h-[667px]"
+              "bg-white transition-all duration-500 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] overflow-hidden relative flex flex-col",
+              device === 'desktop' ? "w-full max-w-4xl aspect-[16/10]" : "w-[375px] h-[667px]"
             )}>
               {/* Fake Storefront Banner */}
               {bannerEnabled && (
                 <div 
-                  className="h-8 flex items-center justify-center text-[9px] uppercase tracking-[0.3em] font-bold text-white transition-colors"
+                  className="h-8 flex items-center justify-center text-[9px] uppercase tracking-[0.3em] font-bold text-white transition-all shrink-0"
                   style={{ backgroundColor: bannerBgColor }}
                 >
                   {bannerText}
                 </div>
               )}
               {/* Fake Storefront Header */}
-              <div className="h-16 bg-white border-b flex items-center justify-between px-8">
+              <div className="h-16 bg-white border-b flex items-center justify-between px-8 shrink-0">
                 <span className="font-bold text-xl tracking-tighter" style={{ fontFamily: headlineFont, color: primaryColor }}>FSLNO</span>
                 <div className="flex gap-6 items-center">
-                  <div className="w-8 h-0.5 bg-gray-100 rounded"></div>
-                  <div className="w-8 h-0.5 bg-gray-100 rounded"></div>
-                  <div className="w-10 h-10 rounded-full border bg-gray-50 flex items-center justify-center">
-                    <MousePointer2 className="h-4 w-4 text-gray-300" />
+                  <div className="hidden md:flex gap-4">
+                    <div className="w-8 h-0.5 bg-gray-100 rounded-full"></div>
+                    <div className="w-8 h-0.5 bg-gray-100 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <SearchIcon className="h-4 w-4 text-gray-300" />
+                    <ShoppingBag className="h-4 w-4 text-gray-300" />
+                    <div className="w-10 h-10 rounded-full border bg-gray-50 flex items-center justify-center">
+                      <MousePointer2 className="h-4 w-4 text-gray-300" />
+                    </div>
                   </div>
                 </div>
               </div>
+              
               {/* Fake Storefront Content */}
-              <div className="p-8 space-y-8">
-                <div className="space-y-4">
-                  <div 
-                    className="aspect-[21/9] bg-gray-200 flex flex-col items-center justify-center text-center p-6 border shadow-sm transition-all duration-500" 
-                    style={{ borderRadius: `${borderRadius}px` }}
-                  >
-                    <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2">Editorial Collection</span>
-                    <h2 className="text-3xl font-bold uppercase tracking-tight" style={{ fontFamily: headlineFont }}>The Sculpted Archive</h2>
+              <div className="flex-1 overflow-y-auto p-8 space-y-12" style={{ fontFamily: bodyFont }}>
+                {homepageLayout === 'bento' ? (
+                  <div className="grid grid-cols-2 gap-6">
+                    <div 
+                      className="col-span-2 aspect-[21/9] bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500" 
+                      style={{ borderRadius: `${borderRadius}px` }}
+                    >
+                      <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4">Spring/Summer 2024 Collection</span>
+                      <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight leading-none" style={{ fontFamily: headlineFont, color: primaryColor }}>The Sculpted Archive</h2>
+                      <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer">
+                        Shop the drops <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                    <div className="aspect-square bg-gray-50 border shadow-sm flex flex-col justify-end p-6" style={{ borderRadius: `${borderRadius}px` }}>
+                       <div className="h-3 w-2/3 bg-gray-200 rounded-full mb-2"></div>
+                       <div className="h-3 w-1/3 bg-gray-100 rounded-full"></div>
+                    </div>
+                    <div className="aspect-square bg-gray-100 border shadow-sm transition-all" style={{ borderRadius: `${borderRadius}px` }}></div>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div className="aspect-square bg-white border shadow-sm transition-all" style={{ borderRadius: `${borderRadius}px` }}></div>
-                    <div className="h-2 w-2/3 bg-gray-200 rounded"></div>
-                    <div className="h-2 w-1/3 bg-gray-100 rounded"></div>
+                ) : (
+                  <div className="space-y-12">
+                    <div 
+                      className="aspect-video w-full bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500" 
+                      style={{ borderRadius: `${borderRadius}px` }}
+                    >
+                      <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-6">Archive Dispatch Available</span>
+                      <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter leading-none" style={{ fontFamily: headlineFont, color: primaryColor }}>Sculptural Silhouettes</h2>
+                    </div>
+                    <div className="grid grid-cols-2 gap-8">
+                      {[1, 2].map(i => (
+                        <div key={i} className="space-y-4">
+                          <div className="aspect-[3/4] bg-gray-50 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div>
+                          <div className="space-y-2">
+                            <div className="h-3 bg-gray-200 rounded-full w-full"></div>
+                            <div className="h-3 bg-gray-100 rounded-full w-1/4"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="aspect-square bg-white border shadow-sm transition-all" style={{ borderRadius: `${borderRadius}px` }}></div>
-                    <div className="h-2 w-2/3 bg-gray-200 rounded"></div>
-                    <div className="h-2 w-1/3 bg-gray-100 rounded"></div>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex justify-center pt-4">
+                <div className="flex justify-center pt-8">
                   <button 
-                    className="h-14 px-12 font-bold uppercase tracking-[0.2em] text-[10px] transition-all"
+                    className="h-16 px-16 font-bold uppercase tracking-[0.3em] text-[11px] transition-all shadow-xl hover:scale-[1.02] active:scale-95"
                     style={{ backgroundColor: primaryColor, color: accentColor, borderRadius: `${borderRadius}px` }}
                   >
-                    Discover All Drops
+                    Discover All Archive Drops
                   </button>
                 </div>
               </div>
