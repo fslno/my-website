@@ -97,10 +97,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Shipping Zones">
+                  <SidebarMenuButton asChild tooltip="Shipping & Pickup">
                     <Link href="/admin/shipping">
                       <Truck />
-                      <span>Shipping Zones</span>
+                      <span>Shipping & Pickup</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
