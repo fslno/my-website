@@ -1,7 +1,9 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Truck, 
   Store, 
@@ -11,9 +13,14 @@ import {
   CheckCircle2,
   Package,
   Search,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  ChevronRight,
+  ArrowRight
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,8 +35,17 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 type DeliveryMethod = 'shipping' | 'pickup';
 
@@ -52,11 +68,19 @@ const TAX_RATES: Record<string, number> = {
 };
 
 export default function CheckoutPage() {
-  const { cart, cartSubtotal, cartCount } = useCart();
+  const router = useRouter();
+  const db = useFirestore();
+  const { user } = useUser();
+  const { cart, cartSubtotal, cartCount, clearCart } = useCart();
+  
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('shipping');
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
   const [shippingRate, setShippingRate] = useState<number>(0);
   
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [confirmedOrder, setConfirmedOrder] = useState<any>(null);
+
   // Form State
   const [formData, setFormData] = useState({
     email: '',
@@ -72,7 +96,7 @@ export default function CheckoutPage() {
     billingPostalCode: '',
     billingProvince: '',
     billingCountry: '',
-    courier: '', // Unselected by default
+    courier: '', 
     pickupDate: new Date().toISOString().split('T')[0],
     pickupTime: '14:00',
     referral: ''
@@ -109,7 +133,6 @@ export default function CheckoutPage() {
   const validate = () => {
     const newErrors: Record<string, boolean> = {};
     
-    // Core requirements
     if (!formData.email) newErrors.email = true;
     if (!formData.phone) newErrors.phone = true;
     if (!formData.name) newErrors.name = true;
@@ -138,16 +161,69 @@ export default function CheckoutPage() {
     return !hasErrors;
   };
 
-  const handleSubmit = () => {
-    if (validate()) {
-      // Proceed to payment processing
-      console.log("Archive order valid:", formData);
-    } else {
+  const handleSubmit = async () => {
+    if (!db || isSubmitting) return;
+    if (!validate()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const orderData = {
+      userId: user?.uid || 'guest',
+      email: formData.email,
+      customer: {
+        name: formData.name,
+        phone: formData.phone,
+        shipping: deliveryMethod === 'shipping' ? {
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          province: formData.province,
+          country: formData.country
+        } : null,
+        billing: {
+          address: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.address : formData.billingAddress,
+          city: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.city : formData.billingCity,
+          postalCode: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.postalCode : formData.billingPostalCode,
+          province: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.province : formData.billingProvince,
+          country: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.country : formData.billingCountry,
+        }
+      },
+      items: cart,
+      subtotal: cartSubtotal,
+      tax: calculatedTax,
+      shipping: shippingRate,
+      total: total,
+      deliveryMethod,
+      courier: formData.courier,
+      pickup: deliveryMethod === 'pickup' ? {
+        date: formData.pickupDate,
+        time: formData.pickupTime
+      } : null,
+      referral: formData.referral,
+      status: 'confirmed',
+      createdAt: serverTimestamp()
+    };
+
+    try {
+      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      setConfirmedOrder({ ...orderData, id: docRef.id });
+      setShowSuccessDialog(true);
+      clearCart();
+    } catch (error) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'orders',
+        operation: 'create',
+        requestResourceData: orderData
+      }));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (cartCount === 0) {
+  if (cartCount === 0 && !showSuccessDialog) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
         <Package className="h-12 w-12 text-gray-200 mb-4" />
@@ -272,24 +348,33 @@ export default function CheckoutPage() {
               <div className="space-y-6 pt-4 border-t">
                 <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Destination</h3>
                 <div className="grid gap-4">
-                  <Input 
-                    placeholder="ADDRESS" 
-                    className={cn("h-12 uppercase", errors.address && "border-red-500")} 
-                    value={formData.address}
-                    onChange={(e) => handleUppercaseInput('address', e.target.value)} 
-                  />
-                  <Input 
-                    placeholder="CITY" 
-                    className={cn("h-12 uppercase", errors.city && "border-red-500")}
-                    value={formData.city}
-                    onChange={(e) => handleUppercaseInput('city', e.target.value)}
-                  />
-                  <Input 
-                    placeholder="POSTAL CODE" 
-                    className={cn("h-12 uppercase", errors.postalCode && "border-red-500")}
-                    value={formData.postalCode}
-                    onChange={(e) => handleUppercaseInput('postalCode', e.target.value)}
-                  />
+                  <div className="space-y-2">
+                    <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-red-500" : "text-gray-500")}>Address</Label>
+                    <Input 
+                      placeholder="STREET ADDRESS" 
+                      className={cn("h-12 uppercase", errors.address && "border-red-500")} 
+                      value={formData.address}
+                      onChange={(e) => handleUppercaseInput('address', e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-red-500" : "text-gray-500")}>City</Label>
+                    <Input 
+                      placeholder="CITY" 
+                      className={cn("h-12 uppercase", errors.city && "border-red-500")}
+                      value={formData.city}
+                      onChange={(e) => handleUppercaseInput('city', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-red-500" : "text-gray-500")}>Postal Code</Label>
+                    <Input 
+                      placeholder="POSTAL CODE" 
+                      className={cn("h-12 uppercase", errors.postalCode && "border-red-500")}
+                      value={formData.postalCode}
+                      onChange={(e) => handleUppercaseInput('postalCode', e.target.value)}
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-red-500" : "text-gray-500")}>Province / State</Label>
@@ -364,21 +449,21 @@ export default function CheckoutPage() {
                     }} 
                     className="grid grid-cols-1 gap-2"
                   >
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'usps' ? "bg-white border-black" : "bg-gray-50/50 border-gray-200")}>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'usps' ? "bg-white border-black shadow-sm" : "bg-gray-50/50 border-gray-200")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="usps" id="usps" />
                         <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Standard (USPS / Economy)</Label>
                       </div>
                       <span className="text-[11px] font-bold">FREE</span>
                     </div>
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'fedex' ? "bg-white border-black" : "bg-gray-50/50 border-gray-200")}>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'fedex' ? "bg-white border-black shadow-sm" : "bg-gray-50/50 border-gray-200")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="fedex" id="fedex" />
                         <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Priority (FedEx Express)</Label>
                       </div>
                       <span className="text-[11px] font-bold">$25.00</span>
                     </div>
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'dhl' ? "bg-white border-black" : "bg-gray-50/50 border-gray-200")}>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm transition-colors", formData.courier === 'dhl' ? "bg-white border-black shadow-sm" : "bg-gray-50/50 border-gray-200")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="dhl" id="dhl" />
                         <Label htmlFor="dhl" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">International (DHL Luxury)</Label>
@@ -525,7 +610,6 @@ export default function CheckoutPage() {
                         <span>Qty: {item.quantity}</span>
                       </div>
 
-                      {/* Customization Details */}
                       {(item.customName || item.customNumber) && (
                         <div className="flex gap-2 text-[8px] font-bold uppercase text-blue-600 mt-1">
                           {item.customName && <span>Name: {item.customName}</span>}
@@ -533,7 +617,6 @@ export default function CheckoutPage() {
                         </div>
                       )}
                       
-                      {/* Special Note */}
                       {item.specialNote && (
                         <div className="text-[8px] text-gray-500 mt-1 border-l-2 border-gray-200 pl-2">
                           Note: {item.specialNote}
@@ -574,9 +657,10 @@ export default function CheckoutPage() {
               <div className="pt-8">
                 <Button 
                   onClick={handleSubmit}
+                  disabled={isSubmitting}
                   className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] hover:bg-black/90 transition-all rounded-none shadow-xl"
                 >
-                  Secure Checkout
+                  {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Secure Checkout"}
                 </Button>
                 <p className="text-center text-[9px] text-gray-400 mt-4 uppercase tracking-widest">
                   By confirming your order, you agree to the FSLNO Archive terms of service.
@@ -596,6 +680,87 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* Success Confirmation Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-0 overflow-hidden">
+          <div className="p-8 lg:p-12 space-y-8">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="h-8 w-8 text-green-600" />
+              </div>
+              <h2 className="text-3xl font-headline font-bold tracking-tight uppercase">Order Confirmed</h2>
+              <p className="text-sm text-gray-500 uppercase tracking-[0.2em] font-medium">Thank you for your archive acquisition.</p>
+              <p className="text-[10px] font-mono text-gray-400">MANIFEST ID: {confirmedOrder?.id}</p>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[10px] uppercase tracking-widest">
+              <div className="space-y-4">
+                <h3 className="font-bold text-gray-400">Customer Details</h3>
+                <div className="space-y-1 font-bold">
+                  <p>{confirmedOrder?.customer?.name}</p>
+                  <p>{confirmedOrder?.email}</p>
+                  <p>{confirmedOrder?.customer?.phone}</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3 className="font-bold text-gray-400">Logistics</h3>
+                <div className="space-y-1 font-bold">
+                  {confirmedOrder?.deliveryMethod === 'shipping' ? (
+                    <>
+                      <p>Courier: {confirmedOrder?.courier}</p>
+                      <p>{confirmedOrder?.customer?.shipping?.address}</p>
+                      <p>{confirmedOrder?.customer?.shipping?.city}, {confirmedOrder?.customer?.shipping?.province}</p>
+                      <p>{confirmedOrder?.customer?.shipping?.postalCode}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>Method: In-Person Pickup</p>
+                      <p>Date: {confirmedOrder?.pickup?.date}</p>
+                      <p>Slot: {confirmedOrder?.pickup?.time}</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Order Manifest</h3>
+              <div className="max-h-[200px] overflow-y-auto space-y-4 pr-2">
+                {confirmedOrder?.items?.map((item: any) => (
+                  <div key={item.variantId} className="flex justify-between items-center text-[10px] font-bold">
+                    <div className="flex gap-3 items-center">
+                      <span className="w-8 h-8 bg-gray-100 relative border overflow-hidden shrink-0">
+                        <Image src={item.image} alt="" fill className="object-cover" />
+                      </span>
+                      <span>{item.quantity}x {item.name} ({item.size})</span>
+                    </div>
+                    <span>${(item.price * item.quantity).toLocaleString()} CAD</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex justify-between items-end">
+              <span className="text-[12px] font-bold uppercase tracking-[0.2em]">Archived Total</span>
+              <div className="text-right">
+                <p className="text-2xl font-bold font-headline tracking-tighter">${confirmedOrder?.total?.toLocaleString()} CAD</p>
+              </div>
+            </div>
+
+            <Button 
+              asChild
+              className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-black/90 transition-all"
+            >
+              <Link href="/">Return to Archive <ChevronRight className="h-4 w-4 ml-2" /></Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

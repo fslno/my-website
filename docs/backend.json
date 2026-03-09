@@ -121,6 +121,26 @@
       },
       "required": ["id", "name", "price", "image"]
     },
+    "Order": {
+      "title": "Order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "customer": { "type": "object" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "tax": { "type": "number" },
+        "shipping": { "type": "number" },
+        "total": { "type": "number" },
+        "deliveryMethod": { "type": "string" },
+        "courier": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "total", "status", "createdAt"]
+    },
     "Customer": {
       "title": "Customer",
       "type": "object",
@@ -167,6 +187,16 @@
             "$ref": "#/backend/entities/WishlistItem"
           },
           "description": "Personal product wishlist."
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Global store orders archive."
         }
       },
       {

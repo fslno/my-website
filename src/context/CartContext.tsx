@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -9,7 +10,9 @@ import {
   deleteDoc, 
   collection, 
   increment,
-  serverTimestamp 
+  serverTimestamp,
+  getDocs,
+  writeBatch
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -32,6 +35,7 @@ interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
   removeFromCart: (variantId: string) => void;
+  clearCart: () => void;
   cartCount: number;
   cartSubtotal: number;
   isSyncing: boolean;
@@ -65,7 +69,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [localCart, isInitialized, user]);
 
   // Firestore Persistence for Authenticated Users
-  // Valid 3-segment path: users/{uid}/cart
   const cartQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'cart');
@@ -87,7 +90,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const existing = (dbItems || []).find(i => i.id === newItem.variantId);
       
       if (existing) {
-        // Increment quantity for existing item
         updateDoc(itemRef, { 
           quantity: increment(1), 
           updatedAt: serverTimestamp() 
@@ -99,10 +101,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }));
         });
       } else {
-        // Create new item entry
         const payload = {
           ...newItem,
-          productId: newItem.id, // Store original product ID separately
+          productId: newItem.id,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
@@ -115,7 +116,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     } else {
-      // Guest logic: local state
       setLocalCart(prev => {
         const existingIndex = prev.findIndex(i => i.variantId === newItem.variantId);
         if (existingIndex > -1) {
@@ -141,8 +141,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
       });
     } else {
-      // Guest logic: local state
       setLocalCart(prev => prev.filter(item => item.variantId !== variantId));
+    }
+  };
+
+  const clearCart = async () => {
+    if (user && db) {
+      const cartRef = collection(db, 'users', user.uid, 'cart');
+      const snapshot = await getDocs(cartRef);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      batch.commit().catch(() => {
+        // Silently fail or log
+      });
+    } else {
+      setLocalCart([]);
+      localStorage.removeItem('fslno_cart');
     }
   };
 
@@ -150,7 +166,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const cartSubtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, cartCount, cartSubtotal, isSyncing }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, cartCount, cartSubtotal, isSyncing }}>
       {children}
     </CartContext.Provider>
   );
