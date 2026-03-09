@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -14,7 +13,9 @@ import {
   BarChart3,
   Search,
   Bell,
-  HelpCircle
+  HelpCircle,
+  Tag,
+  Ruler
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -54,6 +55,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link href="/admin/products">
                       <BarChart3 />
                       <span>Products</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Categories">
+                    <Link href="/admin/categories">
+                      <Tag />
+                      <span>Categories</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Size Chart">
+                    <Link href="/admin/size-chart">
+                      <Ruler />
+                      <span>Size Chart</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
