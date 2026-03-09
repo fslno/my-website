@@ -13,6 +13,7 @@ import { doc, collection } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -73,6 +74,8 @@ export default function ProductDetailPage() {
 
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
@@ -322,27 +325,49 @@ export default function ProductDetailPage() {
               </div>
 
               {wantsCustomization && (
-                <div className="flex items-center justify-between animate-in fade-in duration-300">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Customization Premium</span>
-                  <span className="text-xl font-bold text-black">
-                    +${product.customizationFee || 0}
-                  </span>
-                </div>
-              )}
-              
-              {wantsCustomization && (
-                <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Special Request / Measurements</Label>
-                  <Textarea 
-                    placeholder="Enter specific length or detail requests..."
-                    value={specialRequest}
-                    onChange={(e) => setSpecialRequest(e.target.value)}
-                    className="bg-white border-gray-200 min-h-[100px] text-xs resize-none"
-                  />
-                  <p className="text-[10px] text-gray-400 flex items-start gap-2">
-                    <Info className="h-3 w-3 shrink-0" />
-                    Customized items are final sale and require 2-3 additional days for processing.
-                  </p>
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Customization Premium</span>
+                    <span className="text-xl font-bold text-black">
+                      +${product.customizationFee || 0}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Custom Name</Label>
+                      <Input 
+                        placeholder="e.g. CASILLAS" 
+                        value={customName}
+                        onChange={(e) => setCustomName(e.target.value.toUpperCase())}
+                        className="bg-white h-11 text-xs font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Custom Number</Label>
+                      <Input 
+                        placeholder="e.g. 01" 
+                        maxLength={2}
+                        value={customNumber}
+                        onChange={(e) => setCustomNumber(e.target.value)}
+                        className="bg-white h-11 text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Special Request / Measurements</Label>
+                    <Textarea 
+                      placeholder="Enter specific length or detail requests..."
+                      value={specialRequest}
+                      onChange={(e) => setSpecialRequest(e.target.value)}
+                      className="bg-white border-gray-200 min-h-[100px] text-xs resize-none"
+                    />
+                    <p className="text-[10px] text-gray-400 flex items-start gap-2">
+                      <Info className="h-3 w-3 shrink-0" />
+                      Customized items are final sale and require 2-3 additional days for processing.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
