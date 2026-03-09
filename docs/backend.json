@@ -90,6 +90,10 @@
       "description": "Global settings and theme configurations for the storefront.",
       "type": "object",
       "properties": {
+        "businessName": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "logoUrl": { "type": "string" },
         "primaryColor": { "type": "string" },
         "accentColor": { "type": "string" },
         "bannerText": { "type": "string" },
