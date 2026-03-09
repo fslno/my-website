@@ -1,11 +1,14 @@
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import React from 'react';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   const db = useFirestore();
@@ -22,17 +25,47 @@ export default function Home() {
 
   const { data: products, isLoading } = useCollection(productsQuery);
 
+  // Fetch theme for layout decisions
+  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
+  const { data: theme } = useDoc(themeRef);
+
   return (
     <main className="min-h-screen bg-background">
       <Header />
-      <BentoHero />
+      
+      {/* Hero Selection based on Theme Config */}
+      {theme?.homepageLayout === 'classic' ? (
+        <section className="pt-24 pb-12">
+          <div className="max-w-[1440px] mx-auto px-4">
+            <div className="relative h-[70vh] w-full overflow-hidden bg-black">
+              <Image
+                src="https://picsum.photos/seed/classic/1920/1080"
+                alt="Classic Hero"
+                fill
+                className="object-cover opacity-80"
+                priority
+                data-ai-hint="luxury landscape"
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6">
+                <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">Permanent Archive</span>
+                <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">Scupltural Silhouettes</h2>
+                <Link href="/collections/all" className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-gray-100 transition-all">
+                  Discover All <ArrowRight className="ml-3 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <BentoHero />
+      )}
       
       <section className="py-20">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-end justify-between mb-12">
             <div>
               <span className="text-xs uppercase tracking-[0.3em] font-bold">The Archive</span>
-              <h2 className="text-4xl font-headline mt-2">LATEST RELEASES</h2>
+              <h2 className="text-4xl font-headline mt-2 uppercase font-bold">LATEST RELEASES</h2>
             </div>
           </div>
           
