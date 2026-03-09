@@ -548,7 +548,7 @@ export default function CheckoutPage() {
                   onClick={handleSubmit}
                   className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] hover:bg-black/90 transition-all rounded-none shadow-xl"
                 >
-                  Pay Now & Confirm Archive
+                  Secure Checkout
                 </Button>
                 <p className="text-center text-[9px] text-gray-400 mt-4 uppercase tracking-widest">
                   By confirming your order, you agree to the FSLNO Archive terms of service.
