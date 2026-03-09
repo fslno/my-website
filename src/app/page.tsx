@@ -20,7 +20,7 @@ export default function Home() {
     );
   }, [db]);
 
-  const { data: products, loading } = useCollection(productsQuery);
+  const { data: products, isLoading } = useCollection(productsQuery);
 
   return (
     <main className="min-h-screen bg-background">
@@ -36,11 +36,11 @@ export default function Home() {
             </div>
           </div>
           
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
             </div>
-          ) : products.length === 0 ? (
+          ) : !products || products.length === 0 ? (
             <div className="text-center py-20 border border-dashed rounded-xl bg-gray-50/50">
               <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">Archive is currently closed for curation.</p>
             </div>
