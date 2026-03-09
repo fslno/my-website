@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -5,9 +6,10 @@ import { useParams } from 'next/navigation';
 import { 
   useFirestore, 
   useDoc, 
-  useMemoFirebase 
+  useMemoFirebase,
+  useCollection
 } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, collection } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,8 +24,25 @@ import {
   ChevronRight, 
   Loader2,
   Info,
-  Check
+  Check,
+  X,
+  Table as TableIcon
 } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +57,20 @@ export default function ProductDetailPage() {
   );
   
   const { data: product, loading } = useDoc(productRef);
+
+  // Fetch Category to get Size Chart ID
+  const categoryRef = useMemoFirebase(() => 
+    db && product?.categoryId ? doc(db, 'categories', product.categoryId) : null,
+    [db, product?.categoryId]
+  );
+  const { data: category } = useDoc(categoryRef);
+
+  // Fetch Size Chart
+  const sizeChartRef = useMemoFirebase(() => 
+    db && category?.sizeChartId ? doc(db, 'sizeCharts', category.sizeChartId) : null,
+    [db, category?.sizeChartId]
+  );
+  const { data: sizeChart } = useDoc(sizeChartRef);
 
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
@@ -158,9 +191,86 @@ export default function ProductDetailPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-bold">
                 <span>Select Size</span>
-                <button className="flex items-center gap-1.5 text-gray-400 hover:text-black transition-colors">
-                  <Ruler className="h-3 w-3" /> Size Chart
-                </button>
+                
+                {sizeChart ? (
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <button className="flex items-center gap-1.5 text-gray-400 hover:text-black transition-colors">
+                        <Ruler className="h-3 w-3" /> Size Guide
+                      </button>
+                    </SheetTrigger>
+                    <SheetContent className="sm:max-w-xl bg-white border-l p-0 overflow-hidden flex flex-col">
+                      <SheetHeader className="p-8 border-b shrink-0">
+                        <div className="flex items-center gap-3 text-black mb-2">
+                          <Ruler className="h-5 w-5" />
+                          <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Technical Guide</SheetTitle>
+                        </div>
+                        <p className="text-sm text-gray-500 font-medium">Measurements for: <span className="text-black font-bold">{sizeChart.name}</span></p>
+                      </SheetHeader>
+                      
+                      <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <TableIcon className="h-4 w-4 text-gray-400" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Measurement Matrix</span>
+                          </div>
+                          <span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest">
+                            Units: {sizeChart.unit}
+                          </span>
+                        </div>
+
+                        <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
+                          <Table>
+                            <TableHeader className="bg-gray-50/50">
+                              <TableRow>
+                                <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-gray-400 px-6 py-4">Size</TableHead>
+                                {sizeChart.columns?.map((col: string, idx: number) => (
+                                  <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 py-4">{col}</TableHead>
+                                ))}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {sizeChart.rows?.map((row: any, rowIdx: number) => (
+                                <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
+                                  <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10">{row.label}</TableCell>
+                                  {row.values?.map((val: string, colIdx: number) => (
+                                    <TableCell key={colIdx} className="text-center text-sm font-medium text-gray-600 py-4">{val || '--'}</TableCell>
+                                  ))}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        <div className="space-y-4 pt-4">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">How to measure</h4>
+                          <div className="grid gap-4">
+                            {sizeChart.columns?.map((col: string, idx: number) => (
+                              <div key={idx} className="flex items-start gap-4">
+                                <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-[10px] font-bold">{idx + 1}</div>
+                                <div>
+                                  <p className="text-xs font-bold uppercase tracking-tight mb-1">{col}</p>
+                                  <p className="text-xs text-gray-500 leading-relaxed">
+                                    Measure the {col.toLowerCase()} of your garment laid flat from one edge to the other.
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-8 border-t bg-gray-50/50 text-[10px] text-gray-400 font-bold uppercase tracking-widest flex justify-between">
+                        <span>Last Updated: {sizeChart.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
+                        <span>FSLNO Archive Tech Dept.</span>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                ) : (
+                  <button className="flex items-center gap-1.5 text-gray-300 cursor-not-allowed text-[10px] uppercase font-bold">
+                    <Ruler className="h-3 w-3" /> No chart linked
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 {(product.variants || []).map((v: any) => (

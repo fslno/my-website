@@ -21,7 +21,8 @@ import {
   X,
   PlusCircle,
   Settings2,
-  Table as TableIcon
+  Table as TableIcon,
+  Tag
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -64,6 +65,7 @@ export default function SizeChartPage() {
   // Dynamic Form State
   const [name, setName] = useState('');
   const [unit, setUnit] = useState<'cm' | 'inch'>('cm');
+  const [category, setCategory] = useState('');
   const [columns, setColumns] = useState<string[]>(['Chest', 'Length', 'Shoulder']);
   const [rows, setRows] = useState<RowData[]>([
     { label: 'XS', values: ['', '', ''] },
@@ -121,6 +123,7 @@ export default function SizeChartPage() {
     const chartData = { 
       name, 
       unit, 
+      category,
       columns,
       rows,
       createdAt: serverTimestamp()
@@ -155,6 +158,7 @@ export default function SizeChartPage() {
   const resetForm = () => {
     setName('');
     setUnit('cm');
+    setCategory('');
     setColumns(['Chest', 'Length', 'Shoulder']);
     setRows([
       { label: 'XS', values: ['', '', ''] },
@@ -194,14 +198,28 @@ export default function SizeChartPage() {
                       <Settings2 className="h-4 w-4 text-gray-400" />
                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Guide Configuration</h3>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Template Name</Label>
-                      <Input 
-                        placeholder="e.g. Oversized Heavyweight Hoodie" 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)} 
-                        className="h-12 bg-white text-sm font-medium"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Template Name</Label>
+                        <Input 
+                          placeholder="e.g. Adult Male Jersey Guide" 
+                          value={name} 
+                          onChange={(e) => setName(e.target.value)} 
+                          className="h-12 bg-white text-sm font-medium"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category Tag (Internal)</Label>
+                        <div className="relative">
+                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            placeholder="e.g. Jerseys" 
+                            value={category} 
+                            onChange={(e) => setCategory(e.target.value)} 
+                            className="h-12 bg-white text-sm pl-10"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Unit of Measure</Label>
@@ -347,6 +365,7 @@ export default function SizeChartPage() {
                 <TableRow>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 p-6">Template Name</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Unit</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Internal Category</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Matrix Structure</TableHead>
                   <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
@@ -362,6 +381,9 @@ export default function SizeChartPage() {
                     </TableCell>
                     <TableCell>
                       <span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest">{chart.unit}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">{chart.category || 'N/A'}</span>
                     </TableCell>
                     <TableCell className="text-sm font-medium text-gray-500">
                       {chart.rows?.length || 0} Sizes × {chart.columns?.length || 0} Metrics
