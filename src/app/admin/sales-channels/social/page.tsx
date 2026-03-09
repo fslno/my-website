@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,15 +14,76 @@ import {
   ShieldCheck, 
   Users, 
   Zap,
-  BarChart3
+  BarChart3,
+  Plus,
+  Trash2
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function SocialCommercePage() {
+  const [customIntegrations, setCustomIntegrations] = useState<{id: string, name: string, description: string}[]>([]);
+  const [newIntegration, setNewIntegration] = useState({ name: '', description: '' });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleAddIntegration = () => {
+    if (!newIntegration.name) return;
+    setCustomIntegrations([
+      ...customIntegrations, 
+      { ...newIntegration, id: Math.random().toString(36).substr(2, 9) }
+    ]);
+    setNewIntegration({ name: '', description: '' });
+    setIsDialogOpen(false);
+  };
+
+  const removeIntegration = (id: string) => {
+    setCustomIntegrations(customIntegrations.filter(i => i.id !== id));
+  };
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Social Commerce</h1>
-        <p className="text-[#5c5f62] mt-1 text-sm">Sync your FSLNO inventory with TikTok and Meta platforms for cross-channel sales.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Social Commerce</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Sync your FSLNO inventory with TikTok and Meta platforms for cross-channel sales.</p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="h-9 gap-2">
+              <Plus className="h-4 w-4" /> Add Channel
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Sales Channel</DialogTitle>
+              <DialogDescription>
+                Configure a new platform or custom tool for social commerce.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="channel-name">Channel Name</Label>
+                <Input 
+                  id="channel-name" 
+                  placeholder="e.g. Pinterest Shopping" 
+                  value={newIntegration.name}
+                  onChange={(e) => setNewIntegration({...newIntegration, name: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="channel-desc">Description</Label>
+                <Input 
+                  id="channel-desc" 
+                  placeholder="e.g. Sync product catalog for visual search" 
+                  value={newIntegration.description}
+                  onChange={(e) => setNewIntegration({...newIntegration, description: e.target.value})}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleAddIntegration}>Add Channel</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-6">
@@ -100,7 +161,8 @@ export default function SocialCommercePage() {
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="space-y-1">
                 <div className="text-sm font-bold flex items-center gap-2">
-                  Event Match Quality (EMQ) <Badge variant="secondary" className="text-[10px] h-4">Advanced</Badge>
+                  <span>Event Match Quality (EMQ)</span>
+                  <Badge variant="secondary" className="text-[10px] h-4">Advanced</Badge>
                 </div>
                 <p className="text-xs text-[#5c5f62]">Sends hashed email/phone data to help Meta find "Spot Closing" buyers.</p>
               </div>
@@ -137,6 +199,29 @@ export default function SocialCommercePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Custom Integrations */}
+        {customIntegrations.map((integration) => (
+          <Card key={integration.id} className="border-[#e1e3e5] shadow-none border-dashed border-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Share2 className="h-5 w-5 text-[#5c5f62]" />
+                  <CardTitle className="text-lg">{integration.name}</CardTitle>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => removeIntegration(integration.id)} className="h-8 w-8 text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardDescription>{integration.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="p-4 bg-[#f6f6f7] rounded-md border text-center text-xs text-[#5c5f62]">
+                Integration configuration pending API key validation.
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
       
       <div className="flex justify-end pt-4">
