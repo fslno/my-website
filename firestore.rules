@@ -1,13 +1,4 @@
 
-/**
- * FIRESTORE SECURITY RULES
- * 
- * Core Philosophy:
- * This ruleset implements a dual-layer security model designed for a robust e-commerce platform. 
- * It prioritizes Authorization Independence and Structural Segregation to ensure high performance 
- * and clear security boundaries.
- */
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -19,20 +10,18 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) ||
+        request.auth.token.email == 'fslno.dev@gmail.com'
+      );
     }
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
     // --- COLLECTION RULES ---
 
-    // Top-level Orders Archive
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
@@ -40,65 +29,33 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    match /coupons/{code} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
     match /products/{productId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-
-      match /variants/{variantId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-      }
-
-      match /images/{imageId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-      }
+      allow write: if isAdmin();
     }
 
     match /categories/{categoryId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /sizeCharts/{sizeChartId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /collections/{collectionId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /inventory/{inventoryId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
-
-      match /addresses/{addressId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update, delete: if isExistingOwner(userId);
-      }
-
-      match /orders/{orderId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update, delete: if (isOwner(userId) || isAdmin()) && resource != null;
-
-        match /items/{orderItemId} {
-          allow get, list: if isOwner(userId) || isAdmin();
-          allow create: if isOwner(userId);
-          allow update, delete: if (isOwner(userId) || isAdmin()) && resource != null;
-        }
-      }
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
 
       match /cart/{itemId} {
         allow read, write: if isOwner(userId) || isAdmin();
@@ -109,47 +66,13 @@ service cloud.firestore {
       }
     }
 
-    match /shippingZones/{zoneId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-
-      match /rates/{rateId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-      }
-    }
-
-    match /paymentGatewayConfigs/{configId} {
-      allow get, list: if isAdmin();
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /storeSettings/{settingId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /banners/{bannerId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /socialSyncs/{platformId} {
-      allow get, list: if isAdmin();
-      allow create, update, delete: if isAdmin();
-    }
-
     match /roles_admin/{uid} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create, update: if isSignedIn();
-      allow delete: if isSignedIn();
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Config singleton permissions
     match /config/{configId} {
       allow get: if true;
-      allow list: if isSignedIn();
       allow write: if isAdmin();
     }
   }

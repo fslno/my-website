@@ -95,6 +95,10 @@
         "specialNote": {
           "type": "string"
         },
+        "isPromo": {
+          "type": "boolean",
+          "description": "Flag for automatically added BOGO items."
+        },
         "updatedAt": {
           "type": "string",
           "format": "date-time"
@@ -107,6 +111,19 @@
         "price",
         "size"
       ]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "type": { "type": "string", "enum": ["percent", "fixed"] },
+        "value": { "type": "number" },
+        "active": { "type": "boolean" },
+        "usageLimit": { "type": "number" },
+        "usedCount": { "type": "number" }
+      },
+      "required": ["code", "type", "value", "active"]
     },
     "WishlistItem": {
       "title": "WishlistItem",
@@ -131,6 +148,8 @@
         "customer": { "type": "object" },
         "items": { "type": "array" },
         "subtotal": { "type": "number" },
+        "discountTotal": { "type": "number" },
+        "couponCode": { "type": "string" },
         "tax": { "type": "number" },
         "shipping": { "type": "number" },
         "total": { "type": "number" },
@@ -140,15 +159,6 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "email", "total", "status", "createdAt"]
-    },
-    "Customer": {
-      "title": "Customer",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "email": { "type": "string", "format": "email" }
-      },
-      "required": ["id", "email"]
     }
   },
   "auth": {
@@ -165,28 +175,16 @@
           "entityName": "CartItem",
           "schema": {
             "$ref": "#/backend/entities/CartItem"
-          },
-          "description": "Stores items in the user's persistent shopping cart.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "Owner of the cart."
-            },
-            {
-              "name": "itemId",
-              "description": "Unique variant identifier."
-            }
-          ]
+          }
         }
       },
       {
-        "path": "/users/{userId}/wishlist/{productId}",
+        "path": "/coupons/{code}",
         "definition": {
-          "entityName": "WishlistItem",
+          "entityName": "Coupon",
           "schema": {
-            "$ref": "#/backend/entities/WishlistItem"
-          },
-          "description": "Personal product wishlist."
+            "$ref": "#/backend/entities/Coupon"
+          }
         }
       },
       {
@@ -195,21 +193,9 @@
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
-          },
-          "description": "Global store orders archive."
-        }
-      },
-      {
-        "path": "/products/{productId}",
-        "definition": {
-          "entityName": "Product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Publicly readable product catalog."
+          }
         }
       }
-    ],
-    "reasoning": "Standard 3-segment paths for collections are used to ensure valid Firestore references. User data is nested for path-based authorization."
+    ]
   }
 }

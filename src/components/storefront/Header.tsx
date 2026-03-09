@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight, Heart } from 'lucide-react';
+import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight, Heart, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
@@ -10,10 +11,11 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { cart, cartCount, cartSubtotal, removeFromCart } = useCart();
+  const { cart, cartCount, cartSubtotal, removeFromCart, thresholdProgress, THRESHOLD_VALUE } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
 
   useEffect(() => {
@@ -23,6 +25,8 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const remainingForThreshold = Math.max(0, THRESHOLD_VALUE - cartSubtotal);
 
   return (
     <header
@@ -67,7 +71,6 @@ export function Header() {
             <Search className="h-5 w-5" />
           </Button>
 
-          {/* Wishlist Sheet */}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -116,7 +119,6 @@ export function Header() {
             </SheetContent>
           </Sheet>
           
-          {/* Cart Sheet */}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -129,10 +131,21 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
-              <SheetHeader className="p-6 border-b shrink-0">
-                <div className="flex items-center justify-between">
-                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase">Your Bag ({cartCount})</SheetTitle>
-                </div>
+              <SheetHeader className="p-6 border-b shrink-0 space-y-4">
+                <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase">Your Bag ({cartCount})</SheetTitle>
+                
+                {cartSubtotal > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest">
+                      <span className="flex items-center gap-1.5">
+                        <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-gray-300")} />
+                        {thresholdProgress >= 100 ? "Archive Credit Unlocked" : `$${remainingForThreshold.toLocaleString()} more for $100 off`}
+                      </span>
+                      <span>{Math.round(thresholdProgress)}%</span>
+                    </div>
+                    <Progress value={thresholdProgress} className="h-1.5 bg-gray-100" />
+                  </div>
+                )}
               </SheetHeader>
 
               <ScrollArea className="flex-1">
@@ -155,19 +168,17 @@ export function Header() {
                           <div className="space-y-1">
                             <div className="flex justify-between items-start">
                               <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px]">{item.name}</h3>
-                              <p className="text-sm font-bold">${(item.price * item.quantity).toLocaleString()} CAD</p>
+                              <p className="text-sm font-bold">
+                                {item.price === 0 ? 'FREE' : `$${(item.price * item.quantity).toLocaleString()} CAD`}
+                              </p>
                             </div>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
-                            
-                            {/* Customization Details */}
                             {(item.customName || item.customNumber) && (
                               <div className="flex gap-2 text-[8px] font-bold uppercase text-blue-600 mt-1">
                                 {item.customName && <span>Name: {item.customName}</span>}
                                 {item.customNumber && <span>No: {item.customNumber}</span>}
                               </div>
                             )}
-                            
-                            {/* Special Note */}
                             {item.specialNote && (
                               <div className="text-[8px] text-gray-500 mt-1 border-l-2 border-gray-200 pl-2 line-clamp-2">
                                 Note: {item.specialNote}
@@ -177,12 +188,14 @@ export function Header() {
                           
                           <div className="flex items-center justify-between pt-2">
                             <p className="text-[10px] font-bold uppercase text-gray-400">Qty: {item.quantity}</p>
-                            <button 
-                              onClick={() => removeFromCart(item.variantId)}
-                              className="text-gray-400 hover:text-red-500 transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            {!item.isPromo && (
+                              <button 
+                                onClick={() => removeFromCart(item.variantId)}
+                                className="text-gray-400 hover:text-red-500 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
