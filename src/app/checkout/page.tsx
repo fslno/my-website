@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -43,7 +42,7 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogFooter 
-} from "@/dialog";
+} from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -305,15 +304,15 @@ export default function CheckoutPage() {
             <h2 className="text-sm font-bold uppercase tracking-[0.2em]">02. Personal Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Email Address</Label>
+                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-red-500" : "text-gray-500")}>Email Address {errors.email && "- REQUIRED"}</Label>
                 <Input type="email" placeholder="ARCHIVE@FSLNO.COM" className="h-12 bg-[#F9F9F9] uppercase" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Phone Number</Label>
+                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-red-500" : "text-gray-500")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
                 <Input type="tel" placeholder="+1 (555) 000-0000" className="h-12 bg-[#F9F9F9]" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Full Name</Label>
+                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-red-500" : "text-gray-500")}>Full Name {errors.name && "- REQUIRED"}</Label>
                 <Input placeholder="ENTER YOUR FULL NAME" className="h-12 bg-[#F9F9F9] uppercase" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} />
               </div>
             </div>
@@ -323,49 +322,56 @@ export default function CheckoutPage() {
                 <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Destination</h3>
                 <div className="grid gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Address</Label>
+                    <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-red-500" : "text-gray-500")}>Address {errors.address && "- REQUIRED"}</Label>
                     <Input placeholder="STREET ADDRESS" className="h-12 uppercase" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">City</Label>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-red-500" : "text-gray-500")}>City {errors.city && "- REQUIRED"}</Label>
                       <Input placeholder="CITY" className="h-12 uppercase" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Postal Code</Label>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.postalCode && "- REQUIRED"}</Label>
                       <Input placeholder="POSTAL CODE" className="h-12 uppercase" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Province / State</Label>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-red-500" : "text-gray-500")}>Province / State {errors.province && "- REQUIRED"}</Label>
                       <Input placeholder="E.G. ON" className="h-12 uppercase" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Country</Label>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-red-500" : "text-gray-500")}>Country {errors.country && "- REQUIRED"}</Label>
                       <Input placeholder="E.G. CANADA" className="h-12 uppercase" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4 pt-6 border-t">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
-                    <Truck className="h-3 w-3" /> Select Courier
+                  <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", errors.courier ? "text-red-500" : "text-gray-500")}>
+                    <Truck className="h-3 w-3" /> Select Courier {errors.courier && "- REQUIRED"}
                   </h3>
                   <RadioGroup value={formData.courier} onValueChange={(val) => { setShippingRate(val === 'fedex' ? 25 : val === 'dhl' ? 45 : 0); handleInputChange('courier', val); }} className="grid grid-cols-1 gap-2">
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm", formData.courier === 'usps' ? "bg-white border-black" : "bg-gray-50/50")}>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'usps' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="usps" id="usps" />
-                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest">Standard (USPS / Economy)</Label>
+                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Standard (USPS / Economy)</Label>
                       </div>
                       <span className="text-[11px] font-bold">FREE</span>
                     </div>
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm", formData.courier === 'fedex' ? "bg-white border-black" : "bg-gray-50/50")}>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'fedex' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="fedex" id="fedex" />
-                        <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest">Priority (FedEx Express)</Label>
+                        <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Priority (FedEx Express)</Label>
                       </div>
                       <span className="text-[11px] font-bold">$25.00</span>
+                    </div>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'dhl' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value="dhl" id="dhl" />
+                        <Label htmlFor="dhl" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">International (DHL Luxury)</Label>
+                      </div>
+                      <span className="text-[11px] font-bold">$45.00</span>
                     </div>
                   </RadioGroup>
                 </div>
@@ -374,10 +380,29 @@ export default function CheckoutPage() {
               <div className="space-y-6 pt-4 border-t">
                 <h3 className="text-[10px] uppercase tracking-widest font-bold">Billing Address</h3>
                 <div className="grid gap-4">
-                  <Input placeholder="BILLING ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                  <div className="space-y-2">
+                    <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
+                    <Input placeholder="BILLING ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder="CITY" className="h-12 uppercase" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
-                    <Input placeholder="POSTAL CODE" className="h-12 uppercase" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-red-500" : "text-gray-500")}>City {errors.billingCity && "- REQUIRED"}</Label>
+                      <Input placeholder="CITY" className="h-12 uppercase" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
+                      <Input placeholder="POSTAL CODE" className="h-12 uppercase" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-red-500" : "text-gray-500")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
+                      <Input placeholder="E.G. ON" className="h-12 uppercase" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-red-500" : "text-gray-500")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
+                      <Input placeholder="E.G. CANADA" className="h-12 uppercase" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -385,9 +410,9 @@ export default function CheckoutPage() {
           </section>
 
           <section className="space-y-6 bg-gray-50 border p-8 rounded-sm">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em]">How did you find us?</h2>
+            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-red-500" : "text-black")}>How did you find us? {errors.referral && "- REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
-              <SelectTrigger className="h-12 bg-secondary border-gray-200 text-[10px] font-bold uppercase tracking-widest rounded-sm">
+              <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:bg-gray-100 transition-colors text-[10px] font-bold uppercase tracking-widest rounded-sm">
                 <SelectValue placeholder="SELECT AN OPTION" />
               </SelectTrigger>
               <SelectContent>
@@ -401,6 +426,14 @@ export default function CheckoutPage() {
 
         <div className="lg:col-span-5 bg-white border-l p-6 lg:p-12 sticky lg:h-screen lg:top-20 overflow-y-auto">
           <div className="max-md:max-w-md mx-auto space-y-8">
+            {showErrorBanner && (
+              <Alert variant="destructive" className="rounded-none border-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Incomplete Archive Details</AlertTitle>
+                <AlertDescription className="text-[9px] uppercase font-medium">Please review the highlighted required fields to finalize your acquisition.</AlertDescription>
+              </Alert>
+            )}
+
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4">Order Summary ({cartCount})</h2>
             
             <div className="space-y-6">
@@ -422,6 +455,11 @@ export default function CheckoutPage() {
                       {(item.customName || item.customNumber) && (
                         <div className="text-[8px] font-bold uppercase text-blue-600">
                           {item.customName} {item.customNumber}
+                        </div>
+                      )}
+                      {item.specialNote && (
+                        <div className="text-[8px] text-gray-500 mt-1 border-l border-gray-200 pl-2">
+                          {item.specialNote}
                         </div>
                       )}
                     </div>
@@ -509,6 +547,47 @@ export default function CheckoutPage() {
               <h2 className="text-3xl font-headline font-bold uppercase tracking-tight">Archive Order Confirmed</h2>
               <p className="text-sm text-gray-500 uppercase tracking-[0.2em]">Thank you for your acquisition.</p>
             </div>
+
+            {confirmedOrder && (
+              <div className="space-y-6 border-y py-8">
+                <div className="grid grid-cols-2 gap-8 text-[10px] font-bold uppercase tracking-widest">
+                  <div className="space-y-2">
+                    <p className="text-gray-400">Order ID</p>
+                    <p className="text-black">{confirmedOrder.id}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-gray-400">Status</p>
+                    <p className="text-green-600">{confirmedOrder.status}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-gray-400">Recipient</p>
+                    <p className="text-black">{confirmedOrder.customer.name}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-gray-400">Dispatch via</p>
+                    <p className="text-black">{confirmedOrder.courier || confirmedOrder.deliveryMethod}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Archive Manifest</p>
+                  <div className="space-y-3">
+                    {confirmedOrder.items.map((item: any, i: number) => (
+                      <div key={i} className="flex justify-between text-[11px] font-bold uppercase">
+                        <span>{item.quantity}x {item.name} ({item.size})</span>
+                        <span>${(item.price * item.quantity).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t flex justify-between items-end">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Total Value</span>
+                  <span className="text-xl font-bold font-headline">${confirmedOrder.total.toLocaleString()} CAD</span>
+                </div>
+              </div>
+            )}
+
             <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none">
               <Link href="/">Return to Archive</Link>
             </Button>
