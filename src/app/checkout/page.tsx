@@ -94,7 +94,11 @@ export default function CheckoutPage() {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: false }));
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
     }
   };
 
@@ -464,7 +468,7 @@ export default function CheckoutPage() {
             </div>
             
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
-              <SelectTrigger className={cn("h-12 bg-white border-gray-200 text-[10px] font-bold uppercase tracking-widest rounded-sm", errors.referral && "border-red-500")}>
+              <SelectTrigger className={cn("h-12 bg-gray-50 border-gray-200 hover:bg-gray-100 transition-colors text-[10px] font-bold uppercase tracking-widest rounded-sm", errors.referral && "border-red-500")}>
                 <SelectValue placeholder="SELECT AN OPTION" />
               </SelectTrigger>
               <SelectContent>
