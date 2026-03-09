@@ -16,7 +16,10 @@ import {
   HelpCircle,
   Tag,
   Ruler,
-  Globe
+  Globe,
+  Share2,
+  RefreshCw,
+  BarChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -126,6 +129,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link href="/admin/seo">
                       <Search />
                       <span>SEO</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroup>
+
+            <SidebarGroup className="mt-4">
+              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Sales Channels</SidebarGroupLabel>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Google Sync (GMC): Auto-Feed & Attribute Mapping for Shopping/YouTube">
+                    <Link href="/admin/sales-channels/google">
+                      <RefreshCw />
+                      <span>Google Sync</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Social Commerce: TikTok & Instagram Webhooks & Inventory Buffer">
+                    <Link href="/admin/sales-channels/social">
+                      <Share2 />
+                      <span>Social Commerce</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="GA4 Analytics: Automatic Event Tracking for Add to Cart & Purchase">
+                    <Link href="/admin/sales-channels/analytics">
+                      <BarChart />
+                      <span>Analytics (GA4)</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
