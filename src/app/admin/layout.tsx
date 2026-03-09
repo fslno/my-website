@@ -21,7 +21,8 @@ import {
   BarChart,
   LogOut,
   Mail,
-  Lock
+  Lock,
+  TicketPercent
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUser, useAuth } from '@/firebase';
@@ -220,6 +221,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link href="/admin/categories">
                       <Tag />
                       <span>Categories</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Promotions">
+                    <Link href="/admin/promotions">
+                      <TicketPercent />
+                      <span>Promotions</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
