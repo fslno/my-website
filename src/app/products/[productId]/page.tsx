@@ -113,13 +113,13 @@ export default function ProductDetailPage() {
     <main className="min-h-screen bg-white">
       <Header />
       
-      <div className="max-w-[1440px] mx-auto px-4 pt-32 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="max-w-[1280px] mx-auto px-4 pt-24 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
-          {/* Left Column: Visuals & Narrative */}
-          <div className="lg:col-span-7 space-y-12">
+          {/* Left Column: Compact Visuals */}
+          <div className="space-y-6">
             <div className="space-y-4">
-              <div className="aspect-[3/4] relative bg-gray-100 overflow-hidden">
+              <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
                 <Image 
                   src={currentMedia.url} 
                   alt={product.name} 
@@ -130,13 +130,13 @@ export default function ProductDetailPage() {
               </div>
               
               {media.length > 1 && (
-                <div className="grid grid-cols-5 gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {media.map((item: any, idx: number) => (
                     <button 
                       key={idx}
                       onClick={() => setActiveImageIndex(idx)}
                       className={cn(
-                        "aspect-[3/4] relative border-2 transition-all",
+                        "w-16 h-16 shrink-0 relative border-2 transition-all rounded-sm",
                         activeImageIndex === idx ? "border-black" : "border-transparent opacity-60 hover:opacity-100"
                       )}
                     >
@@ -148,18 +148,18 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Narrative (Desktop Position) */}
-            <div className="hidden lg:block space-y-6 pt-12 border-t">
-              <h3 className="text-xs uppercase tracking-[0.3em] font-bold">Product Narrative</h3>
-              <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed">
+            <div className="hidden lg:block space-y-4 pt-6 border-t">
+              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Product Narrative</h3>
+              <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-sm">
                 {product.description || "No description provided for this archive entry."}
               </div>
               
               {product.features && product.features.length > 0 && (
-                <div className="pt-8">
-                  <h4 className="text-[10px] uppercase tracking-widest font-bold mb-4">Key Attributes</h4>
-                  <ul className="grid grid-cols-2 gap-x-8 gap-y-3">
+                <div className="pt-4">
+                  <h4 className="text-[10px] uppercase tracking-widest font-bold mb-3">Key Attributes</h4>
+                  <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
                     {product.features.map((feature: string, i: number) => (
-                      <li key={i} className="text-xs flex items-start gap-2 text-gray-500">
+                      <li key={i} className="text-[11px] flex items-start gap-2 text-gray-500">
                         <span className="w-1 h-1 rounded-full bg-black mt-1.5 shrink-0" />
                         {feature}
                       </li>
@@ -170,35 +170,35 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Right Column: Actions & Configuration */}
-          <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-32 h-fit">
-            <div className="space-y-2">
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO Studio'}</p>
-              <h1 className="text-3xl font-headline font-bold tracking-tight">{product.name}</h1>
+          {/* Right Column: Actions & Configuration (Non-sticky for compact flow) */}
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO Studio'}</p>
+              <h1 className="text-2xl font-headline font-bold tracking-tight">{product.name}</h1>
               <div className="flex items-center gap-4">
-                <p className="text-xl font-medium">${totalPrice.toLocaleString()}</p>
+                <p className="text-lg font-bold">${totalPrice.toLocaleString()}</p>
                 <div className="flex items-center gap-1 text-orange-400">
-                  <Star className="h-3 w-3 fill-current" />
-                  <Star className="h-3 w-3 fill-current" />
-                  <Star className="h-3 w-3 fill-current" />
-                  <Star className="h-3 w-3 fill-current" />
-                  <Star className="h-3 w-3 fill-current" />
-                  <span className="text-[10px] text-gray-400 font-bold ml-1">(24 Reviews)</span>
+                  <Star className="h-2.5 w-2.5 fill-current" />
+                  <Star className="h-2.5 w-2.5 fill-current" />
+                  <Star className="h-2.5 w-2.5 fill-current" />
+                  <Star className="h-2.5 w-2.5 fill-current" />
+                  <Star className="h-2.5 w-2.5 fill-current" />
+                  <span className="text-[9px] text-gray-400 font-bold ml-1">(24 Reviews)</span>
                 </div>
               </div>
             </div>
 
             <Separator />
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-bold">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold">
                 <span>Select Size</span>
                 
                 {sizeChart ? (
                   <Sheet>
                     <SheetTrigger asChild>
                       <button className="flex items-center gap-1.5 text-gray-400 hover:text-black transition-colors">
-                        <Ruler className="h-3 w-3" /> Size Guide
+                        <Ruler className="h-2.5 w-2.5" /> Size Guide
                       </button>
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-xl bg-white border-l p-0 overflow-hidden flex flex-col">
@@ -243,34 +243,12 @@ export default function ProductDetailPage() {
                             </TableBody>
                           </Table>
                         </div>
-
-                        <div className="space-y-4 pt-4">
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">How to measure</h4>
-                          <div className="grid gap-4">
-                            {sizeChart.columns?.map((col: string, idx: number) => (
-                              <div key={idx} className="flex items-start gap-4">
-                                <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-[10px] font-bold">{idx + 1}</div>
-                                <div>
-                                  <p className="text-xs font-bold uppercase tracking-tight mb-1">{col}</p>
-                                  <p className="text-xs text-gray-500 leading-relaxed">
-                                    Measure the {col.toLowerCase()} of your garment laid flat from one edge to the other.
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-8 border-t bg-gray-50/50 text-[10px] text-gray-400 font-bold uppercase tracking-widest flex justify-between">
-                        <span>Last Updated: {sizeChart.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
-                        <span>FSLNO Archive Tech Dept.</span>
                       </div>
                     </SheetContent>
                   </Sheet>
                 ) : (
-                  <button className="flex items-center gap-1.5 text-gray-300 cursor-not-allowed text-[10px] uppercase font-bold">
-                    <Ruler className="h-3 w-3" /> No chart linked
+                  <button className="flex items-center gap-1.5 text-gray-300 cursor-not-allowed text-[9px] uppercase font-bold">
+                    <Ruler className="h-2.5 w-2.5" /> No chart linked
                   </button>
                 )}
               </div>
@@ -281,7 +259,7 @@ export default function ProductDetailPage() {
                     onClick={() => setSelectedSize(v.size)}
                     disabled={Number(v.stock) === 0}
                     className={cn(
-                      "h-12 min-w-[3rem] px-4 border text-xs font-bold uppercase tracking-widest transition-all",
+                      "h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm",
                       selectedSize === v.size 
                         ? "bg-black text-white border-black" 
                         : "bg-white text-black border-gray-200 hover:border-black",
@@ -292,21 +270,21 @@ export default function ProductDetailPage() {
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-gray-400">
+              <p className="text-[9px] text-gray-400">
                 Fitting: <span className="text-black font-bold">{product.sizeFit || 'Standard Fit'}</span>
               </p>
             </div>
 
-            <div className="space-y-6 p-6 bg-gray-50 border border-gray-100">
-              <div className="space-y-4">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">
+            <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
+              <div className="space-y-2">
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">
                   Customization Service
                 </Label>
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <button
                     onClick={() => setWantsCustomization(false)}
                     className={cn(
-                      "flex-1 h-12 border text-[10px] font-bold uppercase tracking-widest transition-all",
+                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm",
                       !wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200 hover:border-black"
                     )}
                   >
@@ -315,7 +293,7 @@ export default function ProductDetailPage() {
                   <button
                     onClick={() => setWantsCustomization(true)}
                     className={cn(
-                      "flex-1 h-12 border text-[10px] font-bold uppercase tracking-widest transition-all",
+                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm",
                       wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200 hover:border-black"
                     )}
                   >
@@ -325,83 +303,79 @@ export default function ProductDetailPage() {
               </div>
 
               {wantsCustomization && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Customization Premium</span>
-                    <span className="text-xl font-bold text-black">
+                <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Customization Premium</span>
+                    <span className="text-lg font-bold text-black">
                       +${product.customizationFee || 0}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Custom Name</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Name</Label>
                       <Input 
                         placeholder="e.g. CASILLAS" 
                         value={customName}
                         onChange={(e) => setCustomName(e.target.value.toUpperCase())}
-                        className="bg-white h-11 text-xs font-bold"
+                        className="bg-white h-9 text-[10px] font-bold"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Custom Number</Label>
+                    <div className="space-y-1.5">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Number</Label>
                       <Input 
-                        placeholder="e.g. 01" 
+                        placeholder="01" 
                         maxLength={2}
                         value={customNumber}
                         onChange={(e) => setCustomNumber(e.target.value)}
-                        className="bg-white h-11 text-xs font-bold"
+                        className="bg-white h-9 text-[10px] font-bold text-center"
                       />
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Special Request / Measurements</Label>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Notes</Label>
                     <Textarea 
-                      placeholder="Enter specific length or detail requests..."
+                      placeholder="Special length requests..."
                       value={specialRequest}
                       onChange={(e) => setSpecialRequest(e.target.value)}
-                      className="bg-white border-gray-200 min-h-[100px] text-xs resize-none"
+                      className="bg-white border-gray-200 min-h-[60px] text-[10px] resize-none"
                     />
-                    <p className="text-[10px] text-gray-400 flex items-start gap-2">
-                      <Info className="h-3 w-3 shrink-0" />
-                      Customized items are final sale and require 2-3 additional days for processing.
-                    </p>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="space-y-3 pt-4">
-              <Button className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-xs hover:bg-black/90">
+            <div className="space-y-3 pt-2">
+              <Button className="w-full h-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 rounded-sm">
                 Add to Cart
               </Button>
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="h-12 font-bold uppercase tracking-widest text-[10px] gap-2 border-gray-200">
-                  <Heart className="h-4 w-4" /> Wishlist
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm">
+                  <Heart className="h-3.5 w-3.5" /> Wishlist
                 </Button>
-                <Button variant="outline" className="h-12 font-bold uppercase tracking-widest text-[10px] gap-2 border-gray-200">
-                  <Share2 className="h-4 w-4" /> Share
+                <Button variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm">
+                  <Share2 className="h-3.5 w-3.5" /> Share
                 </Button>
               </div>
             </div>
 
             {/* Mobile-only Narrative position */}
-            <div className="lg:hidden space-y-6 pt-12 border-t">
-              <h3 className="text-xs uppercase tracking-[0.3em] font-bold">Product Narrative</h3>
-              <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed">
+            <div className="lg:hidden space-y-4 pt-6 border-t">
+              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Product Narrative</h3>
+              <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-sm">
                 {product.description || "No description provided for this archive entry."}
               </div>
             </div>
 
-            <div className="pt-8 space-y-4">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest border-b pb-2">
+            <div className="pt-4 space-y-3">
+              <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest border-b pb-2">
                 <span className="text-gray-400">SKU Reference</span>
                 <span>{product.sku || 'N/A'}</span>
               </div>
-              <div className="flex items-center gap-3 text-gray-400">
+              <div className="flex items-center gap-2 text-gray-400">
                 <Check className="h-3 w-3 text-green-500" />
-                <span className="text-[10px] font-bold uppercase tracking-widest">In Stock & Ready for Archive Dispatch</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest">Archive Ready for Dispatch</span>
               </div>
             </div>
           </div>
