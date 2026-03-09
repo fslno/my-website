@@ -59,7 +59,7 @@ export default function SocialCommercePage() {
             </div>
             <div className="grid gap-2">
               <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">TikTok Shop Access Token</Label>
-              <Input type="password" value="••••••••••••••••••••••••" readOnly className="bg-[#f1f2f3]" />
+              <Input type="password" value="u5w9XtYeVTmceUfOZLZwDQxF2" readOnly className="bg-[#f1f2f3]" />
             </div>
           </CardContent>
         </Card>
@@ -99,9 +99,9 @@ export default function SocialCommercePage() {
             </div>
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="space-y-1">
-                <p className="text-sm font-bold flex items-center gap-2">
+                <div className="text-sm font-bold flex items-center gap-2">
                   Event Match Quality (EMQ) <Badge variant="secondary" className="text-[10px] h-4">Advanced</Badge>
-                </p>
+                </div>
                 <p className="text-xs text-[#5c5f62]">Sends hashed email/phone data to help Meta find "Spot Closing" buyers.</p>
               </div>
               <Switch defaultChecked />
