@@ -222,7 +222,7 @@ export default function CheckoutPage() {
               <Search className="h-5 w-5 text-gray-500" />
               <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-black">How did you find us?</h2>
             </div>
-            <RadioGroup defaultValue="google" className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <RadioGroup className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
                 { id: 'google', label: 'Google / Pinterest' },
                 { id: 'social', label: 'Facebook / Instagram' },
