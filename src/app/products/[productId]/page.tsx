@@ -1,7 +1,7 @@
+
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useMemo, use } from 'react';
 import { 
   useFirestore, 
   useDoc, 
@@ -43,9 +43,9 @@ import { cn } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage() {
-  const params = useParams();
-  const productId = params.productId as string;
+export default function ProductDetailPage({ params }: { params: Promise<{ productId: string }> }) {
+  const resolvedParams = use(params);
+  const productId = resolvedParams.productId;
   const db = useFirestore();
   const { cart, addToCart } = useCart();
   const { toast } = useToast();
