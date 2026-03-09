@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { use, useState, useEffect, useRef } from 'react';
@@ -25,7 +26,8 @@ import {
   Scan,
   ShieldCheck,
   Building2,
-  ShoppingBag
+  ShoppingBag,
+  Search
 } from 'lucide-react';
 import { 
   Table, 
@@ -531,6 +533,16 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                   <p className="text-xs font-bold uppercase flex items-center gap-2">
                     {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
                     {order.deliveryMethod} {order.courier && `• ${order.courier.toUpperCase()}`}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Discovery Source</p>
+                  <p className="text-xs font-bold uppercase flex items-center gap-2">
+                    <Search className="h-3 w-3" />
+                    {order.referral === 'google' ? 'Google / Pinterest' : 
+                     order.referral === 'social' ? 'Facebook / Instagram' : 
+                     order.referral === 'friend' ? 'Word of Mouth / Friend' : 
+                     order.referral || 'Not Specified'}
                   </p>
                 </div>
                 <div className="space-y-1">

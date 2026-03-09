@@ -156,6 +156,7 @@
         "deliveryMethod": { "type": "string" },
         "courier": { "type": "string" },
         "status": { "type": "string" },
+        "referral": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "email", "total", "status", "createdAt"]
