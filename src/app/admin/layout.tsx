@@ -213,7 +213,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               variant="outline"
               className="w-full max-w-sm border-[#e1e3e5] bg-white text-black px-10 h-12 font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-50 transition-all rounded-none flex items-center justify-center gap-2"
             >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
+              <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={16} height={16} />
               Authorized Google Access
             </Button>
           </>
@@ -228,7 +228,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-[#f6f6f7]">
         <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] bg-white">
-          <SidebarHeader className="h-16 flex items-center px-6 border-b border-[#e1e3e5]">
+          <SidebarHeader className="h-16 flex items-center px-6 border-b border-[#e1e3e5] bg-white">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative">
                 {storeConfig?.logoUrl ? (
@@ -242,7 +242,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </span>
             </Link>
           </SidebarHeader>
-          <SidebarContent className="py-4">
+          <SidebarContent className="py-4 bg-white">
             <SidebarGroup>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -283,7 +283,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <TicketPercent />
                       <span>Promotions</span>
                     </Link>
-                  </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <TooltipProvider>
@@ -453,7 +453,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="border-t border-[#e1e3e5] p-4">
+          <SidebarFooter className="border-t border-[#e1e3e5] p-4 bg-white">
              <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Settings">
