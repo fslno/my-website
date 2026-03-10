@@ -1,8 +1,22 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight, Heart, Zap, User as UserIcon, Loader2 } from 'lucide-react';
+import { 
+  ShoppingBag, 
+  Menu, 
+  Search, 
+  X, 
+  Trash2, 
+  ArrowRight, 
+  Heart, 
+  Zap, 
+  User as UserIcon, 
+  Loader2, 
+  Sparkles, 
+  MessageSquare 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
@@ -309,6 +323,23 @@ export function Header() {
                                 </p>
                               </div>
                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
+                              
+                              {(item.customName || item.customNumber || item.specialNote) && (
+                                <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100">
+                                  {(item.customName || item.customNumber) && (
+                                    <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                                      <Sparkles className="h-2.5 w-2.5" />
+                                      {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                    </p>
+                                  )}
+                                  {item.specialNote && (
+                                    <p className="text-[9px] text-gray-400 italic flex items-start gap-1.5 leading-tight">
+                                      <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
+                                      {item.specialNote}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             
                             <div className="flex items-center justify-between pt-2">

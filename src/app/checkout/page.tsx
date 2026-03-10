@@ -14,7 +14,9 @@ import {
   X,
   CreditCard,
   CheckCircle2,
-  Calendar
+  Calendar,
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import { useCart, type Coupon } from '@/context/CartContext';
 import { useUser, useFirestore } from '@/firebase';
@@ -568,10 +570,27 @@ export default function CheckoutPage() {
                         <h3 className="text-[10px] font-bold uppercase tracking-tight line-clamp-1">{item.name}</h3>
                         <p className="text-[11px] font-bold">{item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)}`}</p>
                       </div>
-                      <div className="flex gap-3 text-[9px] text-gray-400 font-bold uppercase">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[9px] text-gray-400 font-bold uppercase">
                         <span>Size: {item.size}</span>
                         <span>Qty: {item.quantity}</span>
                       </div>
+                      
+                      {(item.customName || item.customNumber || item.specialNote) && (
+                        <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100">
+                          {(item.customName || item.customNumber) && (
+                            <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                              <Sparkles className="h-2.5 w-2.5" />
+                              {item.customName} {item.customNumber && `#${item.customNumber}`}
+                            </p>
+                          )}
+                          {item.specialNote && (
+                            <p className="text-[9px] text-gray-400 italic flex items-start gap-1.5 leading-tight">
+                              <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
+                              {item.specialNote}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -681,9 +700,27 @@ export default function CheckoutPage() {
                   <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Items</p>
                   <div className="space-y-3">
                     {confirmedOrder.items.map((item: any, i: number) => (
-                      <div key={i} className="flex justify-between text-[11px] font-bold uppercase">
-                        <span>{item.quantity}x {item.name} ({item.size})</span>
-                        <span>${formatCurrency(item.price * item.quantity)}</span>
+                      <div key={i} className="flex flex-col gap-1 border-b border-gray-50 pb-2 last:border-0">
+                        <div className="flex justify-between text-[11px] font-bold uppercase">
+                          <span>{item.quantity}x {item.name} ({item.size})</span>
+                          <span>${formatCurrency(item.price * item.quantity)}</span>
+                        </div>
+                        {(item.customName || item.customNumber || item.specialNote) && (
+                          <div className="flex flex-col gap-0.5 pl-4 border-l border-gray-100">
+                            {(item.customName || item.customNumber) && (
+                              <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                                <Sparkles className="h-2.5 w-2.5" />
+                                {item.customName} {item.customNumber && `#${item.customNumber}`}
+                              </p>
+                            )}
+                            {item.specialNote && (
+                              <p className="text-[9px] text-gray-400 italic flex items-start gap-1.5">
+                                <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
+                                {item.specialNote}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
