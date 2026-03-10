@@ -6,7 +6,7 @@ import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -23,7 +23,15 @@ export default function Home() {
     );
   }, [db]);
 
-  const { data: products, isLoading } = useCollection(productsQuery);
+  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+
+  // Fetch top 4 categories
+  const categoriesQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'categories'), limit(4));
+  }, [db]);
+
+  const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
 
   // Fetch theme for layout decisions
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
@@ -59,26 +67,75 @@ export default function Home() {
       ) : (
         <BentoHero />
       )}
+
+      {/* Shop by Category Section */}
+      <section className="py-20 border-b bg-white">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="mb-12">
+            <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Discover</span>
+            <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight">Shop by Category</h2>
+          </div>
+          
+          {categoriesLoading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
+            </div>
+          ) : !categories || categories.length === 0 ? (
+            <div className="py-10 text-center border border-dashed rounded bg-gray-50">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Categories coming soon.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {categories.map((cat: any) => (
+                <Link 
+                  key={cat.id} 
+                  href={`/collections/${cat.id}`} 
+                  className="group relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-sm"
+                >
+                  <Image 
+                    src={cat.imageUrl || 'https://picsum.photos/seed/cat/600/800'} 
+                    alt={cat.name} 
+                    fill 
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    data-ai-hint="fashion category"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6 text-center">
+                    <h3 className="text-xl font-headline font-bold uppercase tracking-widest">{cat.name}</h3>
+                    <span className="mt-4 text-[10px] uppercase font-bold tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 duration-300 flex items-center gap-2 border-b border-white pb-1">
+                      Explore <ChevronRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
       
+      {/* New Arrivals Section */}
       <section className="py-20">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-xs uppercase tracking-[0.3em] font-bold">New Arrivals</span>
-              <h2 className="text-4xl font-headline mt-2 uppercase font-bold">Latest Releases</h2>
+              <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">New Arrivals</span>
+              <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight">Latest Releases</h2>
             </div>
+            <Link href="/collections/all" className="hidden md:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:opacity-60 transition-opacity">
+              View All <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
           
-          {isLoading ? (
+          {productsLoading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
+              <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
             </div>
           ) : !products || products.length === 0 ? (
             <div className="text-center py-20 border border-dashed rounded-xl bg-gray-50/50">
-              <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">Our store is currently being updated.</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Our store is currently being updated.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
               {products.map((product: any) => (
                 <ProductCard 
                   key={product.id} 
@@ -91,38 +148,44 @@ export default function Home() {
               ))}
             </div>
           )}
+
+          <div className="mt-12 flex justify-center md:hidden">
+            <Link href="/collections/all" className="w-full h-12 flex items-center justify-center border border-black text-[10px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all">
+              View All Arrivals
+            </Link>
+          </div>
         </div>
       </section>
 
-      <footer className="bg-black text-white py-20 mt-20">
-        <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-2">
-            <h2 className="text-4xl font-headline font-bold mb-6">FSLNO</h2>
-            <p className="text-white/60 max-w-sm text-sm leading-relaxed mb-8">
+      <footer className="bg-black text-white py-24 mt-20">
+        <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-16">
+          <div className="col-span-1 md:col-span-2 space-y-8">
+            <h2 className="text-4xl font-headline font-bold tracking-tighter">FSLNO</h2>
+            <p className="text-white/40 max-w-sm text-sm leading-relaxed uppercase tracking-tight">
               Redefining luxury through minimalist architecture and sculpted fabrics. All prices in CAD.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-xs uppercase tracking-widest font-bold border-b border-white/20 hover:border-white transition-all">Instagram</a>
-              <a href="#" className="text-xs uppercase tracking-widest font-bold border-b border-white/20 hover:border-white transition-all">TikTok</a>
+            <div className="flex gap-8">
+              <a href="#" className="text-[10px] uppercase tracking-widest font-bold border-b border-white/10 hover:border-white transition-all pb-1">Instagram</a>
+              <a href="#" className="text-[10px] uppercase tracking-widest font-bold border-b border-white/10 hover:border-white transition-all pb-1">TikTok</a>
             </div>
           </div>
-          <div>
-            <h4 className="text-xs uppercase tracking-widest font-bold mb-6">Support</h4>
-            <ul className="flex flex-col gap-3 text-sm text-white/60">
+          <div className="space-y-8">
+            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40">Support</h4>
+            <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-white/60">
               <li><a href="#" className="hover:text-white transition-colors">Shipping & Returns</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Size Guide</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
             </ul>
           </div>
-          <div>
-            <h4 className="text-xs uppercase tracking-widest font-bold mb-6">Legal</h4>
-            <ul className="flex flex-col gap-3 text-sm text-white/60">
+          <div className="space-y-8">
+            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40">Legal</h4>
+            <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-white/60">
               <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
             </ul>
           </div>
         </div>
-        <div className="max-w-[1440px] mx-auto px-4 border-t border-white/10 mt-20 pt-8 flex justify-between items-center text-[10px] uppercase tracking-widest opacity-40">
+        <div className="max-w-[1440px] mx-auto px-4 border-t border-white/5 mt-24 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] uppercase tracking-[0.2em] text-white/20">
           <p>© 2024 FSLNO. ALL RIGHTS RESERVED.</p>
           <p>DESIGNED IN LONDON.</p>
         </div>
