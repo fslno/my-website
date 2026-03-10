@@ -63,8 +63,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
 export default function OrderDetailPage(props: { params: Promise<{ orderId: string }> }) {
-  const resolvedParams = use(props.params);
-  const orderId = resolvedParams.orderId;
+  const { orderId } = React.use(props.params);
   const db = useFirestore();
   const { toast } = useToast();
 
@@ -417,16 +416,11 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                     <SelectContent>
                       <SelectItem value="awaiting_processing" className="text-[10px] font-bold uppercase">Awaiting Processing</SelectItem>
                       <SelectItem value="processing" className="text-[10px] font-bold uppercase">Processing</SelectItem>
-                      {order.deliveryMethod === 'shipping' && (
-                        <>
-                          <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
-                          <SelectItem value="out_for_delivery" className="text-[10px] font-bold uppercase">Out for Delivery</SelectItem>
-                        </>
-                      )}
+                      <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
                       {order.deliveryMethod === 'pickup' && (
                         <SelectItem value="ready_for_pickup" className="text-[10px] font-bold uppercase">Ready for Pickup</SelectItem>
                       )}
-                      <SelectItem value="delivered" className="text-[10px] font-bold uppercase">{order.deliveryMethod === 'pickup' ? 'Picked Up' : 'Delivered'}</SelectItem>
+                      <SelectItem value="delivered" className="text-[10px] font-bold uppercase">Delivered</SelectItem>
                       <SelectItem value="returned" className="text-[10px] font-bold uppercase">Returned</SelectItem>
                       <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
                     </SelectContent>

@@ -44,8 +44,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ProductDetailPage(props: { params: Promise<{ productId: string }> }) {
-  const resolvedParams = use(props.params);
-  const productId = resolvedParams.productId;
+  const { productId } = React.use(props.params);
   const db = useFirestore();
   const { cart, addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
