@@ -26,7 +26,8 @@ import {
   ShieldCheck,
   Building2,
   ShoppingBag,
-  Search
+  Search,
+  Sparkles
 } from 'lucide-react';
 import { 
   Table, 
@@ -195,6 +196,15 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
       hour: '2-digit', 
       minute: '2-digit' 
     });
+  };
+
+  const getReferralLabel = (ref: string) => {
+    switch (ref) {
+      case 'google': return 'Google / Pinterest';
+      case 'social': return 'Facebook / Instagram';
+      case 'friend': return 'From Friend';
+      default: return ref || 'Direct / Organic';
+    }
   };
 
   if (loading) {
@@ -418,6 +428,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       <SelectItem value="awaiting_processing" className="text-[10px] font-bold uppercase">Awaiting Processing</SelectItem>
                       <SelectItem value="processing" className="text-[10px] font-bold uppercase">Processing</SelectItem>
                       <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
+                      <SelectItem value="out_for_delivery" className="text-[10px] font-bold uppercase">Out for Delivery</SelectItem>
                       <SelectItem value="delivered" className="text-[10px] font-bold uppercase">Delivered</SelectItem>
                       <SelectItem value="returned" className="text-[10px] font-bold uppercase">Returned</SelectItem>
                       <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
@@ -520,6 +531,10 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 <div className="space-y-1">
+                  <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Discovery Source</p>
+                  <p className="text-xs font-bold uppercase">{getReferralLabel(order.referral)}</p>
+                </div>
+                <div className="space-y-1">
                   <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Delivery Route</p>
                   <p className="text-xs font-bold uppercase flex items-center gap-2">
                     {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
@@ -614,7 +629,12 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 </div>
                 <div className="flex flex-col">
                   <span className="font-bold text-sm uppercase">{order.customer?.name || 'Guest User'}</span>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Status: Archive Member</span>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Status: Archive Member</span>
+                    <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tighter flex items-center gap-1">
+                      <Sparkles className="h-2 w-2" /> Total Acquisitions: {orderCount}
+                    </span>
+                  </div>
                 </div>
               </div>
               <Separator />
@@ -636,7 +656,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 <div className="flex items-start gap-3">
                   <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-[9px] uppercase font-bold text-gray-400">Archival Address</p>
+                    <p className="text-[9px] uppercase font-bold text-gray-400">Full Shipping Address</p>
                     {order.customer?.shipping ? (
                       <p className="text-xs font-bold uppercase leading-relaxed">
                         {order.customer.shipping.address}<br />
@@ -656,19 +676,19 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                <MapPin className="h-3 w-3" /> Destination Archive
+                <MapPin className="h-3 w-3" /> Billing Identity
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              {order.customer?.shipping ? (
+              {order.customer?.billing ? (
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <p className="text-[9px] uppercase font-bold text-gray-400">Shipping Address</p>
+                    <p className="text-[9px] uppercase font-bold text-gray-400">Verified Billing Address</p>
                     <p className="text-xs font-bold uppercase leading-relaxed">
-                      {order.customer.shipping.address}<br />
-                      {order.customer.shipping.city}, {order.customer.shipping.province}<br />
-                      {order.customer.shipping.postalCode}<br />
-                      {order.customer.shipping.country}
+                      {order.customer.billing.address}<br />
+                      {order.customer.billing.city}, {order.customer.billing.province}<br />
+                      {order.customer.billing.postalCode}<br />
+                      {order.customer.billing.country}
                     </p>
                   </div>
                   <Button variant="ghost" className="p-0 h-auto text-[10px] font-bold uppercase text-blue-600 underline hover:bg-transparent">
@@ -677,7 +697,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 </div>
               ) : (
                 <div className="py-4 text-center border-2 border-dashed rounded-lg bg-gray-50">
-                  <p className="text-[10px] font-bold uppercase text-gray-400">No Shipping (Local Pickup)</p>
+                  <p className="text-[10px] font-bold uppercase text-gray-400">No Billing Info Provided</p>
                 </div>
               )}
               <Separator />
