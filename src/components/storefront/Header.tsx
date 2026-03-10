@@ -45,9 +45,8 @@ export function Header() {
       )}
       <header
         className={cn(
-          'fixed left-0 right-0 z-50 transition-all duration-300 h-20 flex items-center',
-          theme?.bannerEnabled ? 'top-10' : 'top-0',
-          isScrolled ? 'bg-white shadow-sm border-b' : 'bg-transparent'
+          'fixed left-0 right-0 z-50 transition-all duration-300 h-20 flex items-center bg-white border-b shadow-sm',
+          theme?.bannerEnabled ? 'top-10' : 'top-0'
         )}
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between">

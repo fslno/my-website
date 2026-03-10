@@ -17,7 +17,8 @@ import {
   ChevronRight,
   ArrowRight,
   Tag,
-  X
+  X,
+  CreditCard
 } from 'lucide-react';
 import { useCart, type Coupon } from '@/context/CartContext';
 import { useUser, useFirestore } from '@/firebase';
@@ -114,10 +115,12 @@ export default function CheckoutPage() {
   const [showErrorBanner, setShowErrors] = useState(false);
 
   const calculatedTax = useMemo(() => {
-    const province = deliveryMethod === 'shipping' ? formData.province : formData.billingProvince;
-    const rate = TAX_RATES[province.toUpperCase()] || 0;
+    const province = deliveryMethod === 'shipping' ? 
+      (billingSameAsShipping ? formData.province : formData.billingProvince) : 
+      formData.billingProvince;
+    const rate = TAX_RATES[province.toUpperCase()] || TAX_RATES['DEFAULT'];
     return totalBeforeTax * rate;
-  }, [totalBeforeTax, formData.province, formData.billingProvince, deliveryMethod]);
+  }, [totalBeforeTax, formData.province, formData.billingProvince, deliveryMethod, billingSameAsShipping]);
 
   const finalTotal = useMemo(() => {
     return totalBeforeTax + calculatedTax + shippingRate;
@@ -152,6 +155,14 @@ export default function CheckoutPage() {
       if (!formData.province) newErrors.province = true;
       if (!formData.country) newErrors.country = true;
       if (!formData.courier) newErrors.courier = true;
+
+      if (!billingSameAsShipping) {
+        if (!formData.billingAddress) newErrors.billingAddress = true;
+        if (!formData.billingCity) newErrors.billingCity = true;
+        if (!formData.billingPostalCode) newErrors.billingPostalCode = true;
+        if (!formData.billingProvince) newErrors.billingProvince = true;
+        if (!formData.billingCountry) newErrors.billingCountry = true;
+      }
     } else {
       if (!formData.billingAddress) newErrors.billingAddress = true;
       if (!formData.billingCity) newErrors.billingCity = true;
@@ -324,33 +335,82 @@ export default function CheckoutPage() {
             </div>
 
             {deliveryMethod === 'shipping' ? (
-              <div className="space-y-6 pt-4 border-t">
-                <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Destination</h3>
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-red-500" : "text-gray-500")}>Address {errors.address && "- REQUIRED"}</Label>
-                    <Input placeholder="STREET ADDRESS" className="h-12 uppercase" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
+              <div className="space-y-10 pt-4 border-t">
+                <div className="space-y-6">
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Destination</h3>
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-red-500" : "text-gray-500")}>Address {errors.address && "- REQUIRED"}</Label>
+                      <Input placeholder="STREET ADDRESS" className="h-12 uppercase" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-red-500" : "text-gray-500")}>City {errors.city && "- REQUIRED"}</Label>
+                        <Input placeholder="CITY" className="h-12 uppercase" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.postalCode && "- REQUIRED"}</Label>
+                        <Input placeholder="POSTAL CODE" className="h-12 uppercase" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-red-500" : "text-gray-500")}>Province / State {errors.province && "- REQUIRED"}</Label>
+                        <Input placeholder="E.G. ON" className="h-12 uppercase" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-red-500" : "text-gray-500")}>Country {errors.country && "- REQUIRED"}</Label>
+                        <Input placeholder="E.G. CANADA" className="h-12 uppercase" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
+                      </div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-red-500" : "text-gray-500")}>City {errors.city && "- REQUIRED"}</Label>
-                      <Input placeholder="CITY" className="h-12 uppercase" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.postalCode && "- REQUIRED"}</Label>
-                      <Input placeholder="POSTAL CODE" className="h-12 uppercase" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
-                    </div>
+                </div>
+
+                <div className="space-y-6 pt-6 border-t">
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      id="billing-same" 
+                      checked={billingSameAsShipping} 
+                      onCheckedChange={(checked) => setBillingSameAsShipping(checked === true)} 
+                    />
+                    <Label htmlFor="billing-same" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer">
+                      Billing Address Same as Shipping
+                    </Label>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-red-500" : "text-gray-500")}>Province / State {errors.province && "- REQUIRED"}</Label>
-                      <Input placeholder="E.G. ON" className="h-12 uppercase" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
+
+                  {!billingSameAsShipping && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+                        <CreditCard className="h-3 w-3" /> Billing Information
+                      </h3>
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Billing Address {errors.billingAddress && "- REQUIRED"}</Label>
+                          <Input placeholder="BILLING STREET ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-red-500" : "text-gray-500")}>City {errors.billingCity && "- REQUIRED"}</Label>
+                            <Input placeholder="CITY" className="h-12 uppercase" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
+                            <Input placeholder="POSTAL CODE" className="h-12 uppercase" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-red-500" : "text-gray-500")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
+                            <Input placeholder="E.G. ON" className="h-12 uppercase" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-red-500" : "text-gray-500")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
+                            <Input placeholder="E.G. CANADA" className="h-12 uppercase" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-red-500" : "text-gray-500")}>Country {errors.country && "- REQUIRED"}</Label>
-                      <Input placeholder="E.G. CANADA" className="h-12 uppercase" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="space-y-4 pt-6 border-t">
@@ -384,7 +444,9 @@ export default function CheckoutPage() {
               </div>
             ) : (
               <div className="space-y-6 pt-4 border-t">
-                <h3 className="text-[10px] uppercase tracking-widest font-bold">Billing Address</h3>
+                <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+                  <CreditCard className="h-3 w-3" /> Billing Address
+                </h3>
                 <div className="grid gap-4">
                   <div className="space-y-2">
                     <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Address {errors.billingAddress && "- REQUIRED"}</Label>

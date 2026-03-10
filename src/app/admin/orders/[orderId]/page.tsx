@@ -63,7 +63,8 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
 export default function OrderDetailPage(props: { params: Promise<{ orderId: string }> }) {
-  const { orderId } = React.use(props.params);
+  const params = use(props.params);
+  const orderId = params.orderId;
   const db = useFirestore();
   const { toast } = useToast();
 
@@ -417,9 +418,6 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       <SelectItem value="awaiting_processing" className="text-[10px] font-bold uppercase">Awaiting Processing</SelectItem>
                       <SelectItem value="processing" className="text-[10px] font-bold uppercase">Processing</SelectItem>
                       <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
-                      {order.deliveryMethod === 'pickup' && (
-                        <SelectItem value="ready_for_pickup" className="text-[10px] font-bold uppercase">Ready for Pickup</SelectItem>
-                      )}
                       <SelectItem value="delivered" className="text-[10px] font-bold uppercase">Delivered</SelectItem>
                       <SelectItem value="returned" className="text-[10px] font-bold uppercase">Returned</SelectItem>
                       <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
@@ -526,16 +524,6 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   <p className="text-xs font-bold uppercase flex items-center gap-2">
                     {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
                     {order.deliveryMethod} {order.courier && `• ${order.courier.toUpperCase()}`}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Discovery Source</p>
-                  <p className="text-xs font-bold uppercase flex items-center gap-2">
-                    <Search className="h-3 w-3" />
-                    {order.referral === 'google' ? 'Google / Pinterest' : 
-                     order.referral === 'social' ? 'Facebook / Instagram' : 
-                     order.referral === 'friend' ? 'Word of Mouth / Friend' : 
-                     order.referral || 'Not Specified'}
                   </p>
                 </div>
                 <div className="space-y-1">
@@ -646,16 +634,9 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <ShoppingBag className="h-4 w-4 text-gray-400 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-[9px] uppercase font-bold text-gray-400">Total Acquisitions</p>
-                    <p className="text-xs font-bold uppercase">{orderCount} {orderCount === 1 ? 'Order' : 'Orders'}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
                   <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-[9px] uppercase font-bold text-gray-400">Primary Address</p>
+                    <p className="text-[9px] uppercase font-bold text-gray-400">Archival Address</p>
                     {order.customer?.shipping ? (
                       <p className="text-xs font-bold uppercase leading-relaxed">
                         {order.customer.shipping.address}<br />

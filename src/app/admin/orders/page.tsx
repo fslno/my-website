@@ -87,10 +87,7 @@ export default function OrdersPage() {
       case 'processing':
         return <Badge className="bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100 uppercase text-[9px] font-bold">Processing</Badge>;
       case 'shipped':
-        if (deliveryMethod === 'pickup') return null;
         return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[9px] font-bold">Shipped</Badge>;
-      case 'ready_for_pickup':
-        return <Badge className="bg-orange-50 text-orange-700 border-orange-100 hover:bg-orange-100 uppercase text-[9px] font-bold">Ready for Pickup</Badge>;
       case 'delivered':
         return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100 uppercase text-[9px] font-bold">Delivered</Badge>;
       case 'out_for_delivery':
@@ -98,7 +95,7 @@ export default function OrdersPage() {
       case 'returned':
         return <Badge className="bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-100 uppercase text-[9px] font-bold">Returned</Badge>;
       case 'cancelled':
-        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100 uppercase text-[9px] font-bold">Cancelled</Badge>;
+        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[9px] font-bold">Cancelled</Badge>;
       case 'confirmed':
         return <Badge className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 uppercase text-[9px] font-bold">Confirmed</Badge>;
       default:
@@ -200,7 +197,6 @@ export default function OrdersPage() {
                 <SelectItem value="awaiting_processing" className="text-[10px] uppercase font-bold">Awaiting Processing</SelectItem>
                 <SelectItem value="processing" className="text-[10px] uppercase font-bold">Processing</SelectItem>
                 <SelectItem value="shipped" className="text-[10px] uppercase font-bold">Shipped</SelectItem>
-                <SelectItem value="ready_for_pickup" className="text-[10px] uppercase font-bold">Ready for Pickup</SelectItem>
                 <SelectItem value="out_for_delivery" className="text-[10px] uppercase font-bold">Out for Delivery</SelectItem>
                 <SelectItem value="delivered" className="text-[10px] uppercase font-bold">Delivered</SelectItem>
                 <SelectItem value="returned" className="text-[10px] uppercase font-bold">Returned</SelectItem>
