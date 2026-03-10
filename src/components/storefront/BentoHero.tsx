@@ -45,7 +45,7 @@ export function BentoHero({ categories, products, isLoading }: BentoHeroProps) {
               {featuredCategory?.name || "THE ARCHIVE"}
             </h2>
             <Link 
-              href={featuredCategory ? `/collections/${featuredCategory.id}` : "/collections/all"} 
+              href="#featured-products" 
               className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
             >
               Shop the Drops <ArrowRight className="ml-3 h-4 w-4" />
