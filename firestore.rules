@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -10,13 +9,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == 'fslno.dev@gmail.com' ||
-        request.auth.token.email == 'fslno.owner@gmail.com' ||
-        request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
-        request.auth.uid == 'vu6glqmWKBULFaqyvwhHzHu37ox1' ||
-        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
-      );
+      // Strictly restricted to UID 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
+      return isSignedIn() && request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
     }
 
     function isOwner(userId) {
@@ -28,7 +22,6 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      // Allow listing if user is admin OR if the query is strictly filtered to their own UID with a safe limit
       allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100 && resource.data.userId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
@@ -54,6 +47,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isOwner(userId) || isAdmin();
@@ -68,11 +66,6 @@ service cloud.firestore {
       match /wishlist/{productId} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
-    }
-
-    match /roles_admin/{uid} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
     }
 
     match /config/{configId} {

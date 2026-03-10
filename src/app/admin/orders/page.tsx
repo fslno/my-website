@@ -46,14 +46,8 @@ export default function OrdersPage() {
 
   const isAdmin = useMemo(() => {
     if (!user) return false;
-
-    return (
-      user.email === 'fslno.dev@gmail.com' ||
-      user.email === 'fslno.owner@gmail.com' ||
-      user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
-      user.uid === 'vu6glqmWKBULFaqyvwhHzHu37ox1'
-    );
-
+    // Strictly restricted to UID 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
+    return user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
   }, [user]);
 
   const ordersQuery = useMemoFirebase(() => {

@@ -125,7 +125,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <BarChart3 />
                   <span>Products</span>
                 </Link>
-              </SidebarMenuItem>
+              </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Categories" onClick={handleNavClick}>
@@ -334,12 +334,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  const isAdmin = user && (
-    user.email === 'fslno.dev@gmail.com' || 
-    user.email === 'fslno.owner@gmail.com' ||
-    user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
-    user.uid === 'vu6glqmWKBULFaqyvwhHzHu37ox1'
-  );
+  // Authoritatively restricted to strictly UID 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
+  const isAdmin = user && user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
   if (loading || !hasMounted) {
     return (
