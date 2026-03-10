@@ -15,7 +15,8 @@ import {
   User as UserIcon, 
   Loader2, 
   Sparkles, 
-  MessageSquare 
+  MessageSquare,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,13 @@ import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -154,8 +162,8 @@ export function Header() {
                               {cat.name}
                             </Link>
                           ))}
-                          <Link href="/#featured-products" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
-                            Featured Products
+                          <Link href="/collections/all" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
+                            All Drops
                           </Link>
                         </nav>
                       </div>
@@ -207,7 +215,31 @@ export function Header() {
               </Sheet>
 
               <nav className="hidden lg:flex items-center gap-8">
-                <Link href="/collections/all" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Collections</Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
+                    Archive Drops <ChevronDown className="h-3 w-3" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-white border-black/10 rounded-none min-w-[240px] p-0 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="p-4 bg-gray-50 border-b">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Select Collection</p>
+                    </div>
+                    <div className="py-1">
+                      <DropdownMenuItem asChild>
+                        <Link href="/collections/all" className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
+                          View Full Archive
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="m-0 bg-gray-100" />
+                      {categories?.map((cat: any) => (
+                        <DropdownMenuItem key={cat.id} asChild>
+                          <Link href={`/collections/${cat.id}`} className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
+                            {cat.name}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Link href="/about" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Our Story</Link>
               </nav>
             </div>
