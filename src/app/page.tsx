@@ -37,6 +37,8 @@ export default function Home() {
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
+  const isHeroLoading = productsLoading || categoriesLoading;
+
   return (
     <main className="min-h-screen bg-background">
       <Header />
@@ -56,7 +58,7 @@ export default function Home() {
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6">
                 <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">The Collection</span>
-                <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">Sculpted Silhouettes</h2>
+                <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">Modern Silhouettes</h2>
                 <Link href="/collections/all" className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-gray-100 transition-all">
                   Shop All <ArrowRight className="ml-3 h-4 w-4" />
                 </Link>
@@ -65,7 +67,11 @@ export default function Home() {
           </div>
         </section>
       ) : (
-        <BentoHero />
+        <BentoHero 
+          categories={categories} 
+          products={products} 
+          isLoading={isHeroLoading} 
+        />
       )}
 
       {/* Shop by Category Section */}
@@ -118,8 +124,8 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Featured Products</span>
-              <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight">Latest Releases</h2>
+              <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Curated Selection</span>
+              <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight">Featured Products</h2>
             </div>
           </div>
           
@@ -153,7 +159,7 @@ export default function Home() {
           <div className="col-span-1 md:col-span-2 space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter">FSLNO</h2>
             <p className="text-white/40 max-w-sm text-sm leading-relaxed uppercase tracking-tight">
-              Redefining luxury through minimalist architecture and sculpted fabrics. All prices in CAD.
+              Redefining luxury through minimalist design and high-quality fabrics. All prices in CAD.
             </p>
             <div className="flex gap-8">
               <a href="#" className="text-[10px] uppercase tracking-widest font-bold border-b border-white/10 hover:border-white transition-all pb-1">Instagram</a>

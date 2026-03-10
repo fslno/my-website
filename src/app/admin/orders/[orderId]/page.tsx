@@ -82,7 +82,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
 
-  // Fetch all orders for this customer to get the total count
+  // Fetch all orders for this customer
   const customerOrdersQuery = useMemoFirebase(() => {
     if (!db || !order?.email) return null;
     return query(collection(db, 'orders'), where('email', '==', order.email));
@@ -765,7 +765,7 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-black text-white border-white/10">
         <DialogHeader>
-          <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Archive Barcode Scanner</DialogTitle>
+          <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Barcode Scanner</DialogTitle>
         </DialogHeader>
         <div className="relative aspect-video bg-zinc-900 rounded-lg overflow-hidden border border-white/5">
           <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />

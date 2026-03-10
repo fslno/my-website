@@ -70,8 +70,8 @@ export function Header() {
             </Sheet>
 
             <nav className="hidden lg:flex items-center gap-8">
-              <Link href="/collections/new" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Collections</Link>
-              <Link href="/collections/about" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">About</Link>
+              <Link href="/collections/all" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Collections</Link>
+              <Link href="/about" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">About</Link>
             </nav>
           </div>
 
@@ -217,7 +217,7 @@ export function Header() {
                         Tax and shipping calculated at checkout.
                       </p>
                     </div>
-                    <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-black/90 transition-all flex items-center justify-center gap-3">
+                    <Button asChild className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-black/90 transition-all flex items-center justify-center gap-3">
                       <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
                     </Button>
                   </SheetFooter>
