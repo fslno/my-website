@@ -290,11 +290,11 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
 
           <div className="space-y-6">
             <div className="space-y-1">
-              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO'}</p>
               <h1 className="text-2xl font-headline font-bold tracking-tight">{product.name}</h1>
               <div className="flex items-center gap-4">
                 <p className="text-lg font-bold">${formatCurrency(totalPrice)} CAD</p>
               </div>
+              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO'}</p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
                 REF: {displayedSku}
               </p>

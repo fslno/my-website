@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -51,7 +50,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { signInWithPopup, GoogleAuthProvider, signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { doc } from 'firebase/firestore';
 
 /**
@@ -66,8 +64,6 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
   const handleNavClick = () => {
     if (isMobile) {
       setOpenMobile(false);
-    } else {
-      setOpen(false);
     }
   };
 
@@ -148,26 +144,12 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <SidebarMenuButton asChild onClick={handleNavClick}>
-                      <Link href="/admin/size-chart">
-                        <Ruler />
-                        <span>Size Chart</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
-                    <div className="space-y-2">
-                      <p className="font-bold text-sm">Measurement Library</p>
-                      <p className="text-xs text-muted-foreground">• unit: Support for metric (cm) or imperial (inch).</p>
-                      <p className="text-xs text-muted-foreground">• measurements: Point-of-measure rows for XS through XL.</p>
-                      <p className="text-xs text-muted-foreground">• reuse: Link charts to multiple categories.</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <SidebarMenuButton asChild tooltip="Size Chart" onClick={handleNavClick}>
+                <Link href="/admin/size-chart">
+                  <Ruler />
+                  <span>Size Chart</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Customers" onClick={handleNavClick}>
@@ -208,54 +190,20 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <SidebarMenuButton asChild onClick={handleNavClick}>
-                      <Link href="/admin/shipping">
-                        <Truck />
-                        <span>Shipping & Pickup</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
-                    <div className="space-y-3 text-xs">
-                      <p className="font-bold text-sm">Global Carrier Integration</p>
-                      <p className="text-muted-foreground">North America: USPS, UPS, FedEx, Canada Post.</p>
-                      <p className="text-muted-foreground">Europe & UK: DHL Express, Royal Mail, DPD, Evri.</p>
-                      <p className="font-bold text-sm mt-2">Advanced Pickup Logic</p>
-                      <p className="text-muted-foreground">In-Store/Pop-Up Pickup: Use Google Local Inventory API.</p>
-                      <p className="font-bold text-sm mt-2">Real-Time Shipping Features</p>
-                      <p className="text-muted-foreground">Address Validation: Automatically correct typos at checkout.</p>
-                      <p className="text-muted-foreground">DDP: Calculate and collect duties at checkout.</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <SidebarMenuButton asChild tooltip="Shipping & Pickup" onClick={handleNavClick}>
+                <Link href="/admin/shipping">
+                  <Truck />
+                  <span>Shipping & Pickup</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <SidebarMenuButton asChild onClick={handleNavClick}>
-                      <Link href="/admin/payments">
-                        <CreditCard />
-                        <span>Payments</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
-                    <div className="space-y-3 text-xs">
-                      <p className="font-bold text-sm">Stripe (The Core)</p>
-                      <p className="text-muted-foreground">Supports 135+ currencies and 20+ methods.</p>
-                      <p className="font-bold text-sm mt-2">PayPal Commerce</p>
-                      <p className="text-muted-foreground">Includes Smart Buttons and "PayPal Pay Later".</p>
-                      <p className="font-bold text-sm mt-2">Express Checkout</p>
-                      <p className="text-muted-foreground">Apple Pay & Google Pay (Express) enabled.</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <SidebarMenuButton asChild tooltip="Payments" onClick={handleNavClick}>
+                <Link href="/admin/payments">
+                  <CreditCard />
+                  <span>Payments</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick}>
@@ -296,29 +244,12 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <SidebarMenuButton asChild onClick={handleNavClick}>
-                      <Link href="/admin/sales-channels/analytics">
-                        <BarChart />
-                        <span>Analytics (GA4)</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
-                    <div className="space-y-2 text-xs">
-                      <p className="font-bold text-sm">Custom Funnel Tracking</p>
-                      <p className="text-muted-foreground">view_item_list: Tracks FSLNO category attention.</p>
-                      <p className="text-muted-foreground">Funnel: Analyze add_to_cart vs begin_checkout.</p>
-                      <p className="font-bold text-sm mt-2">Predictive Audiences</p>
-                      <p className="text-muted-foreground">Churn Probability: Identify users likely to stop visiting.</p>
-                      <p className="font-bold text-sm mt-2">User ID Tracking</p>
-                      <p className="text-muted-foreground">Cross-Device: Unified mobile and desktop journey.</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <SidebarMenuButton asChild tooltip="Analytics (GA4)" onClick={handleNavClick}>
+                <Link href="/admin/sales-channels/analytics">
+                  <BarChart />
+                  <span>Analytics (GA4)</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
