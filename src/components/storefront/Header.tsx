@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -33,7 +33,6 @@ import { useFirestore, useDoc, useMemoFirebase, useUser, useAuth, useCollection 
 import { doc, collection } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { 
   DropdownMenu, 
@@ -63,8 +62,9 @@ export function Header() {
   const productsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
   const { data: allProducts } = useCollection(productsQuery);
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const filteredProducts = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
@@ -79,8 +79,17 @@ export function Header() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearching(false);
+      }
+    };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const handleLogin = async () => {
@@ -242,14 +251,110 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="relative flex items-center mr-2">
+            <div className="relative flex items-center mr-2" ref={searchRef}>
               <Search className="absolute left-3 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
               <Input 
                 placeholder="SEARCH" 
-                className="pl-8 h-9 w-24 sm:w-32 md:w-40 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black cursor-pointer"
-                onClick={() => setIsSearchOpen(true)}
-                readOnly
+                className="pl-8 h-9 w-32 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (!isSearching) setIsSearching(true);
+                }}
+                onFocus={() => setIsSearching(true)}
               />
+              {searchQuery && (
+                <button 
+                  onClick={() => {
+                    setSearchQuery('');
+                    setIsSearching(false);
+                  }}
+                  className="absolute right-2 text-gray-400 hover:text-black transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+
+              {/* INLINE SEARCH RESULTS DROPDOWN */}
+              {isSearching && (
+                <div className="absolute top-full right-0 mt-2 w-[300px] md:w-[450px] bg-white border border-black/10 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">
+                      {searchQuery.length < 2 ? 'Discover drops' : `Results for "${searchQuery}"`}
+                    </p>
+                    {searchQuery.length >= 2 && (
+                      <span className="text-[9px] font-bold uppercase text-black">{filteredProducts.length} Pieces Found</span>
+                    )}
+                  </div>
+                  
+                  <ScrollArea className="max-h-[60vh]">
+                    {searchQuery.length < 2 ? (
+                      <div className="p-6 text-center space-y-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Popular drops</p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {categories?.slice(0, 4).map(cat => (
+                            <Link 
+                              key={cat.id} 
+                              href={`/collections/${cat.id}`}
+                              onClick={() => setIsSearching(false)}
+                              className="px-3 py-1.5 bg-white border text-[9px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all duration-300"
+                            >
+                              {cat.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ) : filteredProducts.length === 0 ? (
+                      <div className="p-12 text-center">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No archival pieces found.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 divide-y">
+                        {filteredProducts.map((product: any) => (
+                          <Link 
+                            key={product.id}
+                            href={`/products/${product.id}`}
+                            onClick={() => {
+                              setIsSearching(false);
+                              setSearchQuery('');
+                            }}
+                            className="group flex gap-4 p-4 hover:bg-gray-50 transition-all duration-300"
+                          >
+                            <div className="w-16 h-16 relative bg-gray-100 shrink-0 overflow-hidden border">
+                              <Image 
+                                src={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/400/400'} 
+                                alt={product.name} 
+                                fill 
+                                className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                              />
+                            </div>
+                            <div className="flex-1 flex flex-col justify-center gap-0.5 overflow-hidden">
+                              <p className="text-[8px] uppercase tracking-widest font-bold text-gray-400 truncate">{product.brand || 'FSLNO ARCHIVE'}</p>
+                              <h3 className="text-xs font-headline font-bold uppercase tracking-tight truncate group-hover:underline">{product.name}</h3>
+                              <p className="text-[10px] font-bold">${formatCurrency(Number(product.price))} CAD</p>
+                            </div>
+                            <div className="flex items-center text-gray-300 group-hover:text-black transition-colors">
+                              <ArrowRight className="h-4 w-4" />
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                  
+                  {searchQuery.length >= 2 && filteredProducts.length > 0 && (
+                    <div className="p-3 border-t bg-gray-50/50 text-center">
+                      <Link 
+                        href="/collections/all" 
+                        onClick={() => setIsSearching(false)}
+                        className="text-[9px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
+                      >
+                        View Full Archive
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <DropdownMenu>
@@ -468,83 +573,6 @@ export function Header() {
           </div>
         </div>
       </header>
-
-      {/* SEARCH DIALOG */}
-      <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-        <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-0 overflow-hidden shadow-2xl">
-          <div className="p-8 space-y-8">
-            <DialogHeader className="p-0">
-              <div className="flex items-center gap-4 border-b-2 border-black pb-4">
-                <Search className="h-6 w-6 text-black" />
-                <Input 
-                  autoFocus
-                  placeholder="SEARCH THE ARCHIVE..." 
-                  className="border-none bg-transparent text-xl font-headline font-bold uppercase tracking-tight shadow-none focus-visible:ring-0 p-0"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="hover:rotate-90 transition-transform duration-300">
-                    <X className="h-5 w-5 text-gray-400" />
-                  </button>
-                )}
-              </div>
-            </DialogHeader>
-
-            <ScrollArea className="max-h-[60vh]">
-              {!searchQuery || searchQuery.length < 2 ? (
-                <div className="py-12 text-center space-y-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Discover recent drops</p>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    {categories?.slice(0, 4).map(cat => (
-                      <Link 
-                        key={cat.id} 
-                        href={`/collections/${cat.id}`}
-                        onClick={() => setIsSearchOpen(false)}
-                        className="px-4 py-2 bg-gray-50 border text-[10px] font-bold uppercase tracking-widest hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300"
-                      >
-                        {cat.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="py-20 text-center">
-                  <p className="text-sm font-bold uppercase tracking-widest text-gray-400">No pieces match your search.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-6 pb-8">
-                  {filteredProducts.map((product: any) => (
-                    <Link 
-                      key={product.id}
-                      href={`/products/${product.id}`}
-                      onClick={() => setIsSearchOpen(false)}
-                      className="group flex gap-6 p-4 hover:bg-gray-50 transition-all duration-300 border border-transparent hover:border-gray-100"
-                    >
-                      <div className="w-24 h-24 relative bg-gray-100 shrink-0 overflow-hidden">
-                        <Image 
-                          src={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/400/400'} 
-                          alt={product.name} 
-                          fill 
-                          className="object-cover group-hover:scale-110 transition-transform duration-700" 
-                        />
-                      </div>
-                      <div className="flex-1 flex flex-col justify-center gap-1">
-                        <p className="text-[9px] uppercase tracking-widest font-bold text-gray-400">{product.brand || 'FSLNO'}</p>
-                        <h3 className="text-lg font-headline font-bold uppercase tracking-tight group-hover:underline">{product.name}</h3>
-                        <p className="text-sm font-bold">${formatCurrency(Number(product.price))} CAD</p>
-                      </div>
-                      <div className="flex items-center text-gray-300 group-hover:text-black transition-colors pr-4">
-                        <ArrowRight className="h-5 w-5" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
