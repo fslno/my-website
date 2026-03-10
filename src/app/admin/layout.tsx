@@ -23,7 +23,8 @@ import {
   Mail,
   Lock,
   TicketPercent,
-  MailWarning
+  MailWarning,
+  ShieldAlert
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -62,8 +63,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       toast({
-        title: "Welcome back",
-        description: "Successfully signed into the Command Center.",
+        title: "Authenticated",
+        description: "Credentials verified. Enforcing studio role...",
       });
     } catch (error: any) {
       toast({
@@ -81,8 +82,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     try {
       await signInWithEmailAndPassword(auth, email, password);
       toast({
-        title: "Welcome back",
-        description: "Successfully signed into the Command Center.",
+        title: "Authenticated",
+        description: "Credentials verified. Enforcing studio role...",
       });
     } catch (error: any) {
       toast({
@@ -101,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       await signOut(auth);
       toast({
         title: "Signed out",
-        description: "You have been logged out of the admin session.",
+        description: "Admin session terminated.",
       });
     } catch (error: any) {
       toast({
@@ -112,88 +113,112 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
+  const isAdmin = user && (user.email === 'fslno.dev@gmail.com' || user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2');
+
   if (loading || !hasMounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f6f6f7]">
         <div className="flex flex-col items-center gap-4">
           <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">Initializing FSLNO Admin...</p>
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-widest text-[10px]">Initializing Studio Shell...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
+  if (!user || !isAdmin) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f6f7] p-4 text-center">
         <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-8 shadow-2xl overflow-hidden relative">
           {storeConfig?.logoUrl ? (
-            <img src={storeConfig.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+            <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
           ) : (
             "F"
           )}
         </div>
-        <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Command Center</h1>
-        <p className="text-gray-500 text-sm mb-10 max-w-xs leading-relaxed">
-          Authentication required to access the {storeConfig?.businessName || "FSLNO"} luxury operations suite.
-        </p>
-
-        <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
-          <div className="space-y-2 text-left">
-            <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email Address</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="admin@fslno.com" 
-                className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <div className="space-y-2 text-left">
-            <Label htmlFor="password" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="••••••••" 
-                className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <Button 
-            type="submit"
-            disabled={isLoggingIn}
-            className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 transition-all rounded-none"
-          >
-            {isLoggingIn ? "Authenticating..." : "Sign in to Dashboard"}
-          </Button>
-        </form>
-
-        <div className="flex items-center gap-4 w-full max-w-sm mb-8">
-          <Separator className="flex-1 bg-gray-200" />
-          <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">or</span>
-          <Separator className="flex-1 bg-gray-200" />
-        </div>
-
-        <Button 
-          onClick={handleGoogleLogin} 
-          variant="outline"
-          className="w-full max-w-sm border-[#e1e3e5] bg-white text-black px-10 h-12 font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-50 transition-all rounded-none flex items-center justify-center gap-2"
-        >
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
-          Continue with Google
-        </Button>
         
-        <p className="mt-8 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Secure Environment V1.0</p>
+        {user && !isAdmin ? (
+          <div className="max-w-sm space-y-6">
+            <div className="bg-red-50 border border-red-100 p-8 rounded-sm">
+              <ShieldAlert className="h-12 w-12 text-red-600 mx-auto mb-4" />
+              <h1 className="text-xl font-headline font-bold mb-2 uppercase tracking-tight">Access Denied</h1>
+              <p className="text-gray-500 text-xs leading-relaxed uppercase tracking-widest font-bold">
+                Your account ({user.email}) does not have authorized studio privileges.
+              </p>
+            </div>
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full border-black font-bold uppercase text-[10px] tracking-widest"
+            >
+              Sign Out & Return
+            </Button>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Command Center</h1>
+            <p className="text-gray-500 text-sm mb-10 max-w-xs leading-relaxed uppercase tracking-widest font-bold text-[10px]">
+              Authentication required to access studio operations.
+            </p>
+
+            <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
+              <div className="space-y-2 text-left">
+                <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Staff Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="admin@fslno.com" 
+                    className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="password" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Passkey</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <Button 
+                type="submit"
+                disabled={isLoggingIn}
+                className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 transition-all rounded-none"
+              >
+                {isLoggingIn ? "Authorizing..." : "Enter Dashboard"}
+              </Button>
+            </form>
+
+            <div className="flex items-center gap-4 w-full max-w-sm mb-8">
+              <Separator className="flex-1 bg-gray-200" />
+              <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">or</span>
+              <Separator className="flex-1 bg-gray-200" />
+            </div>
+
+            <Button 
+              onClick={handleGoogleLogin} 
+              variant="outline"
+              className="w-full max-w-sm border-[#e1e3e5] bg-white text-black px-10 h-12 font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-50 transition-all rounded-none flex items-center justify-center gap-2"
+            >
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
+              Authorized Google Access
+            </Button>
+          </>
+        )}
+        
+        <p className="mt-8 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Security Level V1.0</p>
       </div>
     );
   }
@@ -206,13 +231,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative">
                 {storeConfig?.logoUrl ? (
-                  <img src={storeConfig.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                  <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                 ) : (
                   "F"
                 )}
               </div>
               <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden">
-                {storeConfig?.businessName || "FSLNO"} Admin
+                {storeConfig?.businessName || "FSLNO"} Studio
               </span>
             </Link>
           </SidebarHeader>
@@ -455,7 +480,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
                 <input 
                   type="text" 
-                  placeholder="Search admin..." 
+                  placeholder="Search studio..." 
                   className="w-full h-9 pl-10 pr-4 bg-[#f1f2f3] border-none rounded-md text-sm focus:ring-1 focus:ring-black outline-none" 
                 />
               </div>
@@ -465,7 +490,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Bell className="h-5 w-5 text-[#5c5f62]" />
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
-                <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} alt="Admin" className="w-full h-full object-cover" />
+                <Image src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} alt="Admin" fill className="object-cover" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                    <Settings className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>

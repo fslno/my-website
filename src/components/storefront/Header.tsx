@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight, Heart, Zap } from 'lucide-react';
+import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight, Heart, Zap, User as UserIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
@@ -11,17 +11,24 @@ import { useWishlist } from '@/context/WishlistContext';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useUser, useAuth, useCollection } from '@/firebase';
+import { doc, collection } from 'firebase/firestore';
+import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { Separator } from '@/components/ui/separator';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { cart, cartCount, cartSubtotal, removeFromCart, thresholdProgress, THRESHOLD_VALUE } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
+  const { user } = useUser();
+  const auth = useAuth();
   
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
+
+  const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
+  const { data: categories } = useCollection(categoriesQuery);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +38,22 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLogin = async () => {
+    if (!auth) return;
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Auth failed", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (!auth) return;
+    await signOut(auth);
+  };
+
+  const isAdmin = user && (user.email === 'fslno.dev@gmail.com' || user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2');
   const remainingForThreshold = Math.max(0, THRESHOLD_VALUE - cartSubtotal);
 
   return (
@@ -57,15 +80,74 @@ export function Header() {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] bg-white">
-                <SheetHeader className="sr-only">
-                  <SheetTitle>Menu</SheetTitle>
+              <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
+                <SheetHeader className="p-8 border-b shrink-0">
+                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Navigation</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col gap-6 mt-12">
-                  <Link href="/collections/all" className="text-xl font-headline">New Arrivals</Link>
-                  <Link href="/collections/all" className="text-xl font-headline">Collections</Link>
-                  <Link href="/about" className="text-xl font-headline">Our Story</Link>
-                </nav>
+                
+                <ScrollArea className="flex-1">
+                  <div className="p-8 space-y-12">
+                    <div className="space-y-6">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Shop Collections</h3>
+                      <nav className="flex flex-col gap-6">
+                        {categories?.map((cat: any) => (
+                          <Link 
+                            key={cat.id} 
+                            href={`/collections/${cat.id}`} 
+                            className="text-xl font-headline uppercase hover:opacity-60 transition-opacity"
+                          >
+                            {cat.name}
+                          </Link>
+                        ))}
+                        <Link href="/collections/all" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
+                          Explore All
+                        </Link>
+                      </nav>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-6">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Account</h3>
+                      {user ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                              <UserIcon className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold uppercase">{user.displayName || 'Client'}</span>
+                              <span className="text-[9px] text-gray-400 truncate max-w-[150px]">{user.email}</span>
+                            </div>
+                          </div>
+                          <Button 
+                            onClick={handleLogout} 
+                            variant="outline" 
+                            className="w-full h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em]"
+                          >
+                            Sign Out
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-2">
+                          <Button 
+                            onClick={handleLogin} 
+                            className="bg-black text-white h-12 rounded-none font-bold uppercase text-[10px] tracking-[0.2em]"
+                          >
+                            Sign In
+                          </Button>
+                          <Button 
+                            onClick={handleLogin} 
+                            variant="outline" 
+                            className="h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em]"
+                          >
+                            Create Account
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </ScrollArea>
               </SheetContent>
             </Sheet>
 
@@ -225,7 +307,14 @@ export function Header() {
               </SheetContent>
             </Sheet>
 
-            <Link href="/admin" className="text-xs uppercase tracking-widest font-semibold border-b border-transparent hover:border-black transition-all hidden md:inline ml-2">Admin</Link>
+            {isAdmin && (
+              <Link 
+                href="/admin" 
+                className="text-xs uppercase tracking-widest font-semibold border-b border-transparent hover:border-black transition-all hidden md:inline ml-2"
+              >
+                Admin
+              </Link>
+            )}
           </div>
         </div>
       </header>
