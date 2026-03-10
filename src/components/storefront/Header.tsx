@@ -16,7 +16,10 @@ import {
   Loader2, 
   Sparkles, 
   MessageSquare,
-  ChevronDown
+  ChevronDown,
+  ShieldCheck,
+  History,
+  TicketPercent
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -249,6 +252,52 @@ export function Header() {
               />
             </div>
 
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+                  <UserIcon className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white border-black/10 rounded-none min-w-[200px] p-0 shadow-2xl">
+                <div className="p-4 bg-gray-50 border-b">
+                  {user ? (
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black line-clamp-1">{user.displayName || 'Client'}</p>
+                      <p className="text-[9px] font-medium text-gray-400 line-clamp-1">{user.email}</p>
+                    </div>
+                  ) : (
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Guest Archive Account</p>
+                  )}
+                </div>
+                <div className="py-1">
+                  {user ? (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/account/history" className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
+                          <History className="h-3.5 w-3.5" /> Order History
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/account/promotions" className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
+                          <TicketPercent className="h-3.5 w-3.5" /> Rewards & Perks
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer text-red-600 hover:bg-red-50 transition-all duration-300">
+                        Sign Out
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem onClick={handleLogin} className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
+                        Sign In / Join Archive
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
@@ -410,9 +459,10 @@ export function Header() {
             {isAdmin && (
               <Link 
                 href="/admin" 
-                className="text-xs uppercase tracking-widest font-semibold border-b border-transparent hover:border-black transition-all hidden md:inline ml-2"
+                className="hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out p-2 rounded-sm"
+                title="Admin Command Center"
               >
-                Admin
+                <ShieldCheck className="h-5 w-5" />
               </Link>
             )}
           </div>
