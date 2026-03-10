@@ -133,7 +133,7 @@ export default function SizeChartPage() {
         .then(() => {
           setIsDialogOpen(false);
           resetForm();
-          toast({ title: "Chart Updated", description: `${name} has been updated.` });
+          toast({ title: "Chart Updated", description: `${name} template has been synchronized.` });
         })
         .catch((error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -148,7 +148,7 @@ export default function SizeChartPage() {
         .then(() => {
           setIsDialogOpen(false);
           resetForm();
-          toast({ title: "Chart Created", description: `${name} has been added.` });
+          toast({ title: "Chart Created", description: `${name} has been added to the library.` });
         })
         .catch((error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -373,7 +373,7 @@ export default function SizeChartPage() {
                 className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-black/90 transition-all shadow-xl"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : null}
-                {isSaving ? 'Saving Changes...' : 'Save Size Guide'}
+                {isSaving ? 'Synchronizing...' : 'Save Size Guide'}
               </Button>
             </DialogFooter>
           </DialogContent>

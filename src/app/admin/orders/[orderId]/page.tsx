@@ -78,11 +78,11 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
   const orderRef = useMemoFirebase(() => db ? doc(db, 'orders', orderId) : null, [db, orderId]);
   const { data: order, loading } = useDoc(orderRef);
 
-  // Fetch Store Config
+  // Fetch Store Config for Branding
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
 
-  // Fetch all orders for this customer
+  // Fetch all orders for this customer email
   const customerOrdersQuery = useMemoFirebase(() => {
     if (!db || !order?.email) return null;
     return query(collection(db, 'orders'), where('email', '==', order.email));
@@ -110,7 +110,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
 
     updateDoc(doc(db, 'orders', orderId), { status: newStatus })
       .then(() => {
-        toast({ title: "Order Updated", description: `Status changed to ${newStatus.replace('_', ' ').toUpperCase()}.` });
+        toast({ title: "Status Updated", description: `Order status changed to ${newStatus.replace('_', ' ').toUpperCase()}.` });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -148,7 +148,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
     setIsSavingTracking(true);
     updateDoc(doc(db, 'orders', orderId), { trackingNumber })
       .then(() => {
-        toast({ title: "Tracking Saved", description: "Tracking number has been updated." });
+        toast({ title: "Tracking Saved", description: "Logistics ID has been updated." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -169,8 +169,8 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
     setTimeout(() => {
       setIsSendingEmail(false);
       toast({
-        title: "Email Sent",
-        description: `Order confirmation resent to ${order?.email}.`
+        title: "Notification Sent",
+        description: `Confirmation email resent to ${order?.email}.`
       });
     }, 1500);
   };
@@ -208,8 +208,8 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
     switch (ref) {
       case 'google': return 'Google / Pinterest';
       case 'social': return 'Social Media';
-      case 'friend': return 'Friend Recommendation';
-      default: return ref || 'Direct Visit';
+      case 'friend': return 'Friend Referral';
+      default: return ref || 'Direct Traffic';
     }
   };
 
@@ -225,9 +225,9 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
     return (
       <div className="text-center py-20">
         <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-        <h2 className="text-xl font-bold">Order Not Found</h2>
+        <h2 className="text-xl font-bold">Order Record Missing</h2>
         <Button asChild variant="link" className="mt-4">
-          <Link href="/admin/orders">Back to Orders</Link>
+          <Link href="/admin/orders">Return to Orders</Link>
         </Button>
       </div>
     );
@@ -239,7 +239,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
 
   return (
     <div className="space-y-8">
-      {/* Printable Invoice Section - Only visible during printing */}
+      {/* Professional A4 Invoice - Visible only during print */}
       <div id="printable-invoice" className="hidden print:block w-[210mm] mx-auto bg-white text-black p-12 font-sans min-h-[297mm]">
         <style type="text/css" dangerouslySetInnerHTML={{ __html: `
           @media print {
@@ -256,7 +256,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
               <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl overflow-hidden">
                 {storeConfig?.logoUrl ? <img src={storeConfig.logoUrl} className="w-full h-full object-cover" alt="logo" /> : (storeConfig?.businessName?.[0] || 'S')}
               </div>
-              <h1 className="text-3xl font-headline font-bold tracking-tighter uppercase">{storeConfig?.businessName || 'STORE'}</h1>
+              <h1 className="text-3xl font-headline font-bold tracking-tighter uppercase">{storeConfig?.businessName || 'FSLNO STUDIO'}</h1>
             </div>
           </div>
           <div className="text-right">
@@ -270,9 +270,9 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <div className="space-y-4">
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">From</h3>
             <div className="space-y-1">
-              <p className="font-bold uppercase text-sm">{storeConfig?.businessName || 'STORE'}</p>
+              <p className="font-bold uppercase text-sm">{storeConfig?.businessName || 'FSLNO STUDIO'}</p>
               <p className="text-xs uppercase leading-relaxed text-gray-600 whitespace-pre-wrap">
-                {storeConfig?.address || '123 Store Address\nUSA'}
+                {storeConfig?.address || '123 Luxury Way\nLondon, UK'}
               </p>
               <p className="text-xs font-bold mt-2">{storeConfig?.phone || '+1 (555) 000-0000'}</p>
             </div>
@@ -280,7 +280,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <div className="space-y-4">
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">To</h3>
             <div className="space-y-1">
-              <p className="font-bold uppercase text-sm">{order.customer?.name || 'Guest'}</p>
+              <p className="font-bold uppercase text-sm">{order.customer?.name || 'Valued Client'}</p>
               {order.customer?.shipping ? (
                 <p className="text-xs uppercase leading-relaxed text-gray-600">
                   {order.customer.shipping.address}<br />
@@ -289,7 +289,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   {order.customer.shipping.country}
                 </p>
               ) : (
-                <p className="text-xs uppercase italic text-gray-400">Store Pickup</p>
+                <p className="text-xs uppercase italic text-gray-400">In-Store Pickup</p>
               )}
               <p className="text-xs font-bold mt-2">{order.email}</p>
             </div>
@@ -297,7 +297,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
         </div>
 
         <div className="space-y-4 mb-12">
-          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Purchased Items</h3>
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Items Purchased</h3>
           <Table className="border-none shadow-none">
             <TableHeader className="bg-gray-50">
               <TableRow className="border-black border-b">
@@ -343,24 +343,24 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
               <span className="text-black">${(Number(order.shipping) || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
-              <span>Tax</span>
+              <span>Sales Tax</span>
               <span className="text-black">${(Number(order.tax) || 0).toLocaleString()}</span>
             </div>
             <div className="h-px bg-black my-2" />
             <div className="flex justify-between items-end">
-              <span className="text-[12px] font-bold uppercase tracking-widest">Total</span>
+              <span className="text-[12px] font-bold uppercase tracking-widest">Grand Total</span>
               <span className="text-2xl font-headline font-bold">${(Number(order.total) || 0).toLocaleString()} CAD</span>
             </div>
           </div>
         </div>
         
         <div className="mt-auto pt-12 border-t text-[9px] uppercase tracking-widest text-gray-400 text-center">
-          <p>Thank you for your purchase from {storeConfig?.businessName || 'our store'}.</p>
+          <p>Thank you for shopping with {storeConfig?.businessName || 'FSLNO'}.</p>
           <p className="mt-1">© {new Date().getFullYear()} {storeConfig?.businessName || 'FSLNO'}. ALL RIGHTS RESERVED.</p>
         </div>
       </div>
 
-      {/* Screen-only UI */}
+      {/* Admin UI Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="space-y-1">
           <Link href="/admin/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
@@ -389,6 +389,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Order Management</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-8">
+              {/* Payment and Shipping Status Selectors Side-by-Side */}
               <div className="grid grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Payment Status</Label>
@@ -428,7 +429,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
               {order.deliveryMethod === 'shipping' && (
                 <div className="space-y-4 pt-6 border-t">
                   <div className="flex items-center justify-between">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Logistics & Tracking</Label>
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Tracking & Logistics</Label>
                     {order.trackingNumber && (
                       <Link 
                         href={aftershipUrl} 
@@ -439,11 +440,11 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       </Link>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Input 
-                          placeholder="ENTER TRACKING #" 
+                          placeholder="ENTER LOGISTICS ID" 
                           value={trackingNumber}
                           onChange={(e) => setTrackingNumber(e.target.value)}
                           className="h-12 bg-gray-50 border-gray-200 text-black text-xs font-mono uppercase pl-10"
@@ -465,7 +466,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       className="w-full h-12 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-black/90"
                     >
                       {isSavingTracking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      Save Tracking Information
+                      Update Tracking Number
                     </Button>
                   </div>
                 </div>
@@ -476,7 +477,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <Card className="border-[#e1e3e5] shadow-sm rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                <Package className="h-3 w-3" /> Ordered Items ({(order.items || []).length})
+                <Package className="h-3 w-3" /> Items Summary ({(order.items || []).length})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -534,7 +535,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   <span className="text-black">{Number(order.shipping) > 0 ? `$${Number(order.shipping).toLocaleString()}` : 'FREE'}</span>
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
-                  <span>Estimated Tax</span>
+                  <span>Sales Tax</span>
                   <span className="text-black">${(Number(order.tax) || 0).toLocaleString()}</span>
                 </div>
                 <Separator className="my-2" />
@@ -562,7 +563,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Order Date</p>
+                  <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Created At</p>
                   <p className="text-xs font-bold uppercase flex items-center gap-2">
                     <Calendar className="h-3 w-3" />
                     {formatDate(order.createdAt)}
@@ -583,7 +584,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                           <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">Studio Logs</SheetTitle>
                         </div>
                         <SheetDescription className="text-gray-400 text-xs">
-                          Technical metadata for order {order.id}
+                          Forensic metadata for transaction {order.id}
                         </SheetDescription>
                       </SheetHeader>
                       <div className="space-y-8 font-mono">
@@ -598,10 +599,10 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                             </div>
                             <div className="flex justify-between border-b border-white/5 pb-2">
                               <span className="text-[10px] text-gray-400">ORIGIN_IP</span>
-                              <span className="text-[10px] text-white">{order.ipAddress || 'REDACTED'}</span>
+                              <span className="text-[10px] text-white">{order.ipAddress || 'AUTHENTICATED'}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-[10px] text-gray-400">ORDER_HASH</span>
+                              <span className="text-[10px] text-gray-400">PROTOCOL_HASH</span>
                               <span className="text-[10px] text-zinc-500 truncate max-w-[180px]">sha256:{(order.id || '').split('').reverse().join('')}</span>
                             </div>
                           </div>
@@ -614,13 +615,13 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                           <div className="space-y-4 border-l border-white/10 ml-1 pl-4">
                             <div className="relative">
                               <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-green-500" />
-                              <p className="text-[10px] text-white font-bold uppercase">Order Finalized</p>
+                              <p className="text-[10px] text-white font-bold uppercase">Acquisition Finalized</p>
                               <p className="text-[9px] text-gray-500">{formatDate(order.createdAt)}</p>
                             </div>
                             <div className="relative">
-                              <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-purple-500" />
-                              <p className="text-[10px] text-white font-bold uppercase">Status Update: {order.status?.replace('_', ' ').toUpperCase()}</p>
-                              <p className="text-[9px] text-gray-500">{formatDate(new Date())}</p>
+                              <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-blue-500" />
+                              <p className="text-[10px] text-white font-bold uppercase">Logistics Status: {order.status?.replace('_', ' ').toUpperCase()}</p>
+                              <p className="text-[9px] text-gray-500">Live Synchronization Active</p>
                             </div>
                           </div>
                         </section>
@@ -633,6 +634,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           </div>
         </div>
 
+        {/* Customer Sidebar Profile */}
         <div className="w-full xl:w-[320px] space-y-8 print:hidden">
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
@@ -646,10 +648,10 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   {(order.customer?.name || 'G')[0].toUpperCase()}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-sm uppercase">{order.customer?.name || 'Guest'}</span>
+                  <span className="font-bold text-sm uppercase">{order.customer?.name || 'Client'}</span>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tighter flex items-center gap-1">
-                      <Sparkles className="h-2 w-2" /> Total Orders: {orderCount}
+                      <Sparkles className="h-2 w-2" /> Purchase Count: {orderCount}
                     </span>
                   </div>
                 </div>
@@ -659,7 +661,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 <div className="flex items-start gap-3">
                   <Mail className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-[9px] uppercase font-bold text-gray-400">Email</p>
+                    <p className="text-[9px] uppercase font-bold text-gray-400">Email Address</p>
                     <p className="text-xs font-bold uppercase break-all">{order.email}</p>
                   </div>
                 </div>
@@ -673,7 +675,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 <div className="flex items-start gap-3">
                   <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-[9px] uppercase font-bold text-gray-400">Address</p>
+                    <p className="text-[9px] uppercase font-bold text-gray-400">Delivery Address</p>
                     {order.customer?.shipping ? (
                       <p className="text-xs font-bold uppercase leading-relaxed">
                         {order.customer.shipping.address}<br />
@@ -682,7 +684,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                         {order.customer.shipping.country}
                       </p>
                     ) : (
-                      <p className="text-xs font-bold uppercase text-gray-400 italic">Store Pickup</p>
+                      <p className="text-xs font-bold uppercase text-gray-400 italic">In-Store Pickup</p>
                     )}
                   </div>
                 </div>
@@ -693,7 +695,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                <MapPin className="h-3 w-3" /> Billing Address
+                <MapPin className="h-3 w-3" /> Billing Profile
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
@@ -711,7 +713,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 </div>
               ) : (
                 <div className="py-4 text-center border-2 border-dashed rounded-lg bg-gray-50">
-                  <p className="text-[10px] font-bold uppercase text-gray-400">No Billing Info</p>
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Missing Billing Info</p>
                 </div>
               )}
             </CardContent>
@@ -765,7 +767,7 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-black text-white border-white/10">
         <DialogHeader>
-          <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Barcode Scanner</DialogTitle>
+          <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Logistics Scanner</DialogTitle>
         </DialogHeader>
         <div className="relative aspect-video bg-zinc-900 rounded-lg overflow-hidden border border-white/5">
           <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />

@@ -43,8 +43,11 @@ export function Header() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Auth failed", error);
+    } catch (error: any) {
+      // Gracefully handle cancellation errors from the Firebase popup
+      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+        console.error("Authentication failed:", error);
+      }
     }
   };
 
@@ -82,7 +85,7 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="p-8 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Navigation</SheetTitle>
+                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Menu</SheetTitle>
                 </SheetHeader>
                 
                 <ScrollArea className="flex-1">
@@ -100,7 +103,7 @@ export function Header() {
                           </Link>
                         ))}
                         <Link href="/collections/all" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
-                          Explore All
+                          View All
                         </Link>
                       </nav>
                     </div>
@@ -108,7 +111,7 @@ export function Header() {
                     <Separator />
 
                     <div className="space-y-6">
-                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Account</h3>
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Your Account</h3>
                       {user ? (
                         <div className="space-y-4">
                           <div className="flex items-center gap-3">

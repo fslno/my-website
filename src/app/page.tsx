@@ -74,7 +74,7 @@ export default function Home() {
         />
       )}
 
-      {/* Shop by Category Section */}
+      {/* Shop by Category Section - Positioned above featured products */}
       <section className="py-20 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="mb-12">
@@ -119,7 +119,7 @@ export default function Home() {
         </div>
       </section>
       
-      {/* Featured Products Section */}
+      {/* Featured Products Section - High density responsive grid */}
       <section className="py-20">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-end justify-between mb-12">
@@ -148,7 +148,7 @@ export default function Home() {
                     name={product.name}
                     price={`$${Number(product.price).toLocaleString()} CAD`}
                     image={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/600/800'}
-                    category={category?.name || product.brand || 'Collection'}
+                    category={category?.name || product.brand || 'Featured Piece'}
                   />
                 );
               })}
