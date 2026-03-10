@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -48,7 +49,12 @@ export default function OrdersPage() {
 
   // Client-side admin verification to guard the query and avoid permission race conditions
   const isAdmin = useMemo(() => {
-    return user && (user.email === 'fslno.dev@gmail.com' || user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2');
+    return user && (
+      user.email === 'fslno.dev@gmail.com' || 
+      user.email === 'fslno.owner@gmail.com' ||
+      user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
+      user.uid === 'vu6glqmWKBULFaqyvwhHzHu37ox1'
+    );
   }, [user]);
 
   // Optimized query with admin guard and safe result limit
