@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 interface ProductCardProps {
   id: string;
   name: string;
-  price: string;
+  price: string; // Already formatted string from parent
   image: string;
   category: string;
 }

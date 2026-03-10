@@ -93,7 +93,7 @@ export default function OrdersPage() {
       case 'out_for_delivery':
         return <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100 uppercase text-[9px] font-bold">Out for Delivery</Badge>;
       case 'returned':
-        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-100 uppercase text-[9px] font-bold">Returned</Badge>;
+        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[9px] font-bold">Returned</Badge>;
       case 'cancelled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[9px] font-bold">Cancelled</Badge>;
       case 'confirmed':
@@ -126,6 +126,13 @@ export default function OrdersPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-end">
@@ -148,7 +155,7 @@ export default function OrdersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1a1c1e]">${stats.revenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-[#1a1c1e]">${formatCurrency(stats.revenue)}</div>
             <p className="text-xs text-[#8c9196] mt-1">Gross sales to date</p>
           </CardContent>
         </Card>
@@ -316,7 +323,7 @@ export default function OrdersPage() {
                       <div className="flex flex-col items-end gap-1.5">
                         {getPaymentStatusBadge(order.paymentStatus || 'pending')}
                         <span className="text-sm font-bold tracking-tighter">
-                          ${(Number(order.total) || 0).toLocaleString()}
+                          ${formatCurrency(Number(order.total) || 0)}
                         </span>
                       </div>
                     </TableCell>

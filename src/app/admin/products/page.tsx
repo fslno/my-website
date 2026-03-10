@@ -166,6 +166,13 @@ export default function ProductsPage() {
     return result;
   }, [products, searchQuery, categoryFilter, sortBy]);
 
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
+
   // Selection Logic
   const isAllFilteredSelected = useMemo(() => {
     return filteredProducts.length > 0 && filteredProducts.every(p => selectedIds.includes(p.id));
@@ -709,7 +716,7 @@ export default function ProductsPage() {
                     <TableCell><div className="flex flex-col"><span className="font-bold text-sm">{product.name}</span><span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.sku || 'No SKU'}</span></div></TableCell>
                     <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
                     <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
-                    <TableCell className="text-sm font-semibold">${Number(product.price).toFixed(2)}</TableCell>
+                    <TableCell className="text-sm font-semibold">${formatCurrency(Number(product.price))}</TableCell>
                     <TableCell><button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4 text-[#5c5f62]" /></button></TableCell>
                   </TableRow>
                 );

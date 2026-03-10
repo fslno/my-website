@@ -55,6 +55,13 @@ export function Header() {
     await signOut(auth);
   };
 
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
+
   const isAdmin = user && (user.email === 'fslno.dev@gmail.com' || user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2');
   const remainingForThreshold = Math.max(0, THRESHOLD_VALUE - cartSubtotal);
 
@@ -199,7 +206,7 @@ export function Header() {
                           <div className="flex-1 flex flex-col justify-between py-1">
                             <div className="space-y-1">
                               <h3 className="text-xs font-bold uppercase tracking-tight leading-tight">{item.name}</h3>
-                              <p className="text-sm font-bold">${item.price.toLocaleString()} CAD</p>
+                              <p className="text-sm font-bold">${formatCurrency(item.price)} CAD</p>
                             </div>
                             <button 
                               onClick={() => toggleWishlist(item)}
@@ -236,7 +243,7 @@ export function Header() {
                       <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest">
                         <span className="flex items-center gap-1.5">
                           <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-gray-300")} />
-                          {thresholdProgress >= 100 ? "Discount Unlocked" : `$${remainingForThreshold.toLocaleString()} more for $100 off`}
+                          {thresholdProgress >= 100 ? "Discount Unlocked" : `$${formatCurrency(remainingForThreshold)} more for $100 off`}
                         </span>
                         <span>{Math.round(thresholdProgress)}%</span>
                       </div>
@@ -266,7 +273,7 @@ export function Header() {
                               <div className="flex justify-between items-start">
                                 <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px]">{item.name}</h3>
                                 <p className="text-sm font-bold">
-                                  {item.price === 0 ? 'FREE' : `$${(item.price * item.quantity).toLocaleString()} CAD`}
+                                  {item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)} CAD`}
                                 </p>
                               </div>
                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
@@ -295,7 +302,7 @@ export function Header() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-end">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Subtotal</span>
-                        <span className="text-xl font-bold">${cartSubtotal.toLocaleString()} CAD</span>
+                        <span className="text-xl font-bold">${formatCurrency(cartSubtotal)} CAD</span>
                       </div>
                       <p className="text-[9px] text-gray-400 uppercase tracking-widest">
                         Tax and shipping calculated at checkout.

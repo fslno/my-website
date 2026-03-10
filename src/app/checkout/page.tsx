@@ -261,6 +261,13 @@ export default function CheckoutPage() {
       .finally(() => setIsSubmitting(false));
   };
 
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
+
   if (cartCount === 0 && !showSuccessDialog) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
@@ -542,7 +549,7 @@ export default function CheckoutPage() {
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <h3 className="text-[10px] font-bold uppercase tracking-tight line-clamp-1">{item.name}</h3>
-                        <p className="text-[11px] font-bold">{item.price === 0 ? 'FREE' : `$${(item.price * item.quantity).toLocaleString()}`}</p>
+                        <p className="text-[11px] font-bold">{item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)}`}</p>
                       </div>
                       <div className="flex gap-3 text-[9px] text-gray-400 font-bold uppercase">
                         <span>Size: {item.size}</span>
@@ -588,26 +595,26 @@ export default function CheckoutPage() {
               <div className="space-y-3 pt-4">
                 <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
                   <span>Subtotal</span>
-                  <span className="text-black">${cartSubtotal.toLocaleString()}</span>
+                  <span className="text-black">${formatCurrency(cartSubtotal)}</span>
                 </div>
                 {discountTotal > 0 && (
                   <div className="flex justify-between text-[10px] font-bold uppercase text-red-600">
                     <span>Discounts</span>
-                    <span>-${discountTotal.toLocaleString()}</span>
+                    <span>-${formatCurrency(discountTotal)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
                   <span>Shipping</span>
-                  <span className="text-black">{shippingRate > 0 ? `$${shippingRate}` : 'FREE'}</span>
+                  <span className="text-black">{shippingRate > 0 ? `$${formatCurrency(shippingRate)}` : 'FREE'}</span>
                 </div>
                 <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
                   <span>Tax</span>
-                  <span className="text-black">${calculatedTax.toLocaleString()}</span>
+                  <span className="text-black">${formatCurrency(calculatedTax)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[12px] font-bold uppercase tracking-[0.2em]">Total</span>
-                  <p className="text-2xl font-bold font-headline tracking-tighter">${finalTotal.toLocaleString()} CAD</p>
+                  <p className="text-2xl font-bold font-headline tracking-tighter">${formatCurrency(finalTotal)} CAD</p>
                 </div>
               </div>
 
@@ -653,7 +660,7 @@ export default function CheckoutPage() {
                     {confirmedOrder.items.map((item: any, i: number) => (
                       <div key={i} className="flex justify-between text-[11px] font-bold uppercase">
                         <span>{item.quantity}x {item.name} ({item.size})</span>
-                        <span>${(item.price * item.quantity).toLocaleString()}</span>
+                        <span>${formatCurrency(item.price * item.quantity)}</span>
                       </div>
                     ))}
                   </div>
@@ -661,7 +668,7 @@ export default function CheckoutPage() {
 
                 <div className="pt-4 border-t flex justify-between items-end">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Total</span>
-                  <span className="text-xl font-bold font-headline">${confirmedOrder.total.toLocaleString()} CAD</span>
+                  <span className="text-xl font-bold font-headline">${formatCurrency(confirmedOrder.total)} CAD</span>
                 </div>
               </div>
             )}

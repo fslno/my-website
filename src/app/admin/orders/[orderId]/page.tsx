@@ -175,6 +175,13 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
     }, 1500);
   };
 
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
+
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
@@ -319,8 +326,8 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   </TableCell>
                   <TableCell className="text-center font-bold text-xs uppercase">{item.size}</TableCell>
                   <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
-                  <TableCell className="text-right text-xs">${(Number(item.price) || 0).toLocaleString()}</TableCell>
-                  <TableCell className="text-right font-bold text-xs">${((Number(item.price) || 0) * item.quantity).toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-xs">${formatCurrency(Number(item.price) || 0)}</TableCell>
+                  <TableCell className="text-right font-bold text-xs">${formatCurrency((Number(item.price) || 0) * item.quantity)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -331,26 +338,26 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <div className="w-[300px] space-y-3">
             <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
               <span>Subtotal</span>
-              <span className="text-black">${(Number(order.subtotal) || 0).toLocaleString()}</span>
+              <span className="text-black">${formatCurrency(Number(order.subtotal) || 0)}</span>
             </div>
             {Number(order.discountTotal) > 0 && (
               <div className="flex justify-between text-[10px] font-bold uppercase text-red-600">
                 <span>Discounts</span>
-                <span>-${(Number(order.discountTotal) || 0).toLocaleString()}</span>
+                <span>-${formatCurrency(Number(order.discountTotal) || 0)}</span>
               </div>
             )}
             <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
               <span>Shipping</span>
-              <span className="text-black">${(Number(order.shipping) || 0).toLocaleString()}</span>
+              <span className="text-black">${formatCurrency(Number(order.shipping) || 0)}</span>
             </div>
             <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
               <span>Sales Tax</span>
-              <span className="text-black">${(Number(order.tax) || 0).toLocaleString()}</span>
+              <span className="text-black">${formatCurrency(Number(order.tax) || 0)}</span>
             </div>
             <div className="h-px bg-black my-2" />
             <div className="flex justify-between items-end">
               <span className="text-[12px] font-bold uppercase tracking-widest">Grand Total</span>
-              <span className="text-2xl font-headline font-bold">${(Number(order.total) || 0).toLocaleString()} CAD</span>
+              <span className="text-2xl font-headline font-bold">${formatCurrency(Number(order.total) || 0)} CAD</span>
             </div>
           </div>
         </div>
@@ -506,8 +513,8 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                         </div>
                       </TableCell>
                       <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
-                      <TableCell className="text-right text-xs">${(Number(item.price) || 0).toLocaleString()}</TableCell>
-                      <TableCell className="text-right text-xs font-bold">${((Number(item.price) || 0) * item.quantity).toLocaleString()}</TableCell>
+                      <TableCell className="text-right text-xs">${formatCurrency(Number(item.price) || 0)}</TableCell>
+                      <TableCell className="text-right text-xs font-bold">${formatCurrency((Number(item.price) || 0) * item.quantity)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -523,26 +530,26 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
               <CardContent className="p-6 space-y-3">
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Subtotal</span>
-                  <span className="text-black">${(Number(order.subtotal) || 0).toLocaleString()}</span>
+                  <span className="text-black">${formatCurrency(Number(order.subtotal) || 0)}</span>
                 </div>
                 {Number(order.discountTotal) > 0 && (
                   <div className="flex justify-between text-[11px] font-bold text-red-600 uppercase">
                     <span>Discounts</span>
-                    <span>-${(Number(order.discountTotal) || 0).toLocaleString()}</span>
+                    <span>-${formatCurrency(Number(order.discountTotal) || 0)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Shipping</span>
-                  <span className="text-black">{Number(order.shipping) > 0 ? `$${Number(order.shipping).toLocaleString()}` : 'FREE'}</span>
+                  <span className="text-black">{Number(order.shipping) > 0 ? `$${formatCurrency(Number(order.shipping))}` : 'FREE'}</span>
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Sales Tax</span>
-                  <span className="text-black">${(Number(order.tax) || 0).toLocaleString()}</span>
+                  <span className="text-black">${formatCurrency(Number(order.tax) || 0)}</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[13px] font-bold uppercase tracking-[0.1em]">Total</span>
-                  <span className="text-xl font-bold font-headline">${(Number(order.total) || 0).toLocaleString()} CAD</span>
+                  <span className="text-xl font-bold font-headline">${formatCurrency(Number(order.total) || 0)} CAD</span>
                 </div>
               </CardContent>
             </Card>
@@ -660,7 +667,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   <span className="font-bold text-sm uppercase">{order.customer?.name || 'Client'}</span>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tighter flex items-center gap-1">
-                      <Sparkles className="h-2 w-2" /> Purchase Count: {orderCount}
+                      <Sparkles className="h-2.5 w-2.5" /> Purchase Count: {orderCount}
                     </span>
                   </div>
                 </div>

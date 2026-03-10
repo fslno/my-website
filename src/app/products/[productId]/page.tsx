@@ -88,6 +88,13 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
     return base + fee;
   }, [product, wantsCustomization]);
 
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
+
   const displayedSku = useMemo(() => {
     if (!product) return 'N/A';
     if (selectedSize) {
@@ -262,7 +269,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO'}</p>
               <h1 className="text-2xl font-headline font-bold tracking-tight">{product.name}</h1>
               <div className="flex items-center gap-4">
-                <p className="text-lg font-bold">${totalPrice.toLocaleString()} CAD</p>
+                <p className="text-lg font-bold">${formatCurrency(totalPrice)} CAD</p>
               </div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
                 REF: {displayedSku}
@@ -388,7 +395,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                   <div className="flex items-center justify-between border-b pb-2">
                     <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Customization Fee</span>
                     <span className="text-lg font-bold text-black">
-                      +${product.customizationFee || 0}
+                      +${formatCurrency(product.customizationFee || 0)}
                     </span>
                   </div>
 

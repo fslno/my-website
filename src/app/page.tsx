@@ -39,6 +39,13 @@ export default function Home() {
 
   const isHeroLoading = productsLoading || categoriesLoading;
 
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
+
   return (
     <main className="min-h-screen bg-background">
       <Header />
@@ -146,7 +153,7 @@ export default function Home() {
                     key={product.id} 
                     id={product.id}
                     name={product.name}
-                    price={`$${Number(product.price).toLocaleString()} CAD`}
+                    price={`$${formatCurrency(Number(product.price))} CAD`}
                     image={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/600/800'}
                     category={category?.name || product.brand || 'Featured Piece'}
                   />
