@@ -108,7 +108,7 @@ export function Header() {
                             {cat.name}
                           </Link>
                         ))}
-                        <Link href="/collections/all" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
+                        <Link href="/#featured-products" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
                           View All
                         </Link>
                       </nav>
