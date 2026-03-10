@@ -27,7 +27,21 @@ import {
   MailWarning,
   ShieldAlert
 } from 'lucide-react';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarFooter, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarHeader, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarProvider, 
+  SidebarTrigger,
+  useSidebar 
+} from '@/components/ui/sidebar';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +51,289 @@ import { signInWithPopup, GoogleAuthProvider, signOut, signInWithEmailAndPasswor
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { doc } from 'firebase/firestore';
+
+/**
+ * High-fidelity sidebar component that consumes the sidebar context
+ * to handle auto-closing logic on navigation.
+ */
+function AppSidebar({ storeConfig }: { storeConfig: any }) {
+  const { setOpen, setOpenMobile, isMobile } = useSidebar();
+  const auth = useAuth();
+  const { toast } = useToast();
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      setOpen(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (!auth) return;
+    try {
+      await signOut(auth);
+      toast({
+        title: "Signed out",
+        description: "Admin session terminated.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign out.",
+      });
+    }
+  };
+
+  return (
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] bg-white">
+      <SidebarHeader className="h-16 flex items-center px-6 border-b border-[#e1e3e5] bg-white">
+        <Link href="/" className="flex items-center gap-2" onClick={handleNavClick}>
+          <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative">
+            {storeConfig?.logoUrl ? (
+              <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
+            ) : (
+              "F"
+            )}
+          </div>
+          <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden">
+            {storeConfig?.businessName || "FSLNO"} Studio
+          </span>
+        </Link>
+      </SidebarHeader>
+      <SidebarContent className="py-4 bg-white">
+        <SidebarGroup>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Home" onClick={handleNavClick}>
+                <Link href="/admin">
+                  <LayoutDashboard />
+                  <span>Home</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Orders" onClick={handleNavClick}>
+                <Link href="/admin/orders">
+                  <ShoppingBag />
+                  <span>Orders</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Products" onClick={handleNavClick}>
+                <Link href="/admin/products">
+                  <BarChart3 />
+                  <span>Products</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Categories" onClick={handleNavClick}>
+                <Link href="/admin/categories">
+                  <Tag />
+                  <span>Categories</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Promotions" onClick={handleNavClick}>
+                <Link href="/admin/promotions">
+                  <TicketPercent />
+                  <span>Promotions</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton asChild onClick={handleNavClick}>
+                      <Link href="/admin/size-chart">
+                        <Ruler />
+                        <span>Size Chart</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
+                    <div className="space-y-2">
+                      <p className="font-bold text-sm">Measurement Library</p>
+                      <p className="text-xs text-muted-foreground">• unit: Support for metric (cm) or imperial (inch).</p>
+                      <p className="text-xs text-muted-foreground">• measurements: Point-of-measure rows for XS through XL.</p>
+                      <p className="text-xs text-muted-foreground">• reuse: Link charts to multiple categories.</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Customers" onClick={handleNavClick}>
+                <Link href="/admin/customers">
+                  <Users />
+                  <span>Customers</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Store Management</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Theme Engine" onClick={handleNavClick}>
+                <Link href="/admin/theme">
+                  <Palette />
+                  <span>Theme Engine</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Notifications" onClick={handleNavClick}>
+                <Link href="/admin/notifications">
+                  <MailWarning />
+                  <span>Notifications</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton asChild onClick={handleNavClick}>
+                      <Link href="/admin/shipping">
+                        <Truck />
+                        <span>Shipping & Pickup</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
+                    <div className="space-y-3 text-xs">
+                      <p className="font-bold text-sm">Global Carrier Integration</p>
+                      <p className="text-muted-foreground">North America: USPS, UPS, FedEx, Canada Post.</p>
+                      <p className="text-muted-foreground">Europe & UK: DHL Express, Royal Mail, DPD, Evri.</p>
+                      <p className="font-bold text-sm mt-2">Advanced Pickup Logic</p>
+                      <p className="text-muted-foreground">In-Store/Pop-Up Pickup: Use Google Local Inventory API.</p>
+                      <p className="font-bold text-sm mt-2">Real-Time Shipping Features</p>
+                      <p className="text-muted-foreground">Address Validation: Automatically correct typos at checkout.</p>
+                      <p className="text-muted-foreground">DDP: Calculate and collect duties at checkout.</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton asChild onClick={handleNavClick}>
+                      <Link href="/admin/payments">
+                        <CreditCard />
+                        <span>Payments</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
+                    <div className="space-y-3 text-xs">
+                      <p className="font-bold text-sm">Stripe (The Core)</p>
+                      <p className="text-muted-foreground">Supports 135+ currencies and 20+ methods.</p>
+                      <p className="font-bold text-sm mt-2">PayPal Commerce</p>
+                      <p className="text-muted-foreground">Includes Smart Buttons and "PayPal Pay Later".</p>
+                      <p className="font-bold text-sm mt-2">Express Checkout</p>
+                      <p className="text-muted-foreground">Apple Pay & Google Pay (Express) enabled.</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick}>
+                <Link href="/admin/domain">
+                  <Globe />
+                  <span>Domain</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="SEO" onClick={handleNavClick}>
+                <Link href="/admin/seo">
+                  <Search />
+                  <span>SEO</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Sales Channels</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Google Sync" onClick={handleNavClick}>
+                <Link href="/admin/sales-channels/google">
+                  <RefreshCw />
+                  <span>Google Sync</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Social Commerce" onClick={handleNavClick}>
+                <Link href="/admin/sales-channels/social">
+                  <Share2 />
+                  <span>Social Commerce</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton asChild onClick={handleNavClick}>
+                      <Link href="/admin/sales-channels/analytics">
+                        <BarChart />
+                        <span>Analytics (GA4)</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
+                    <div className="space-y-2 text-xs">
+                      <p className="font-bold text-sm">Custom Funnel Tracking</p>
+                      <p className="text-muted-foreground">view_item_list: Tracks FSLNO category attention.</p>
+                      <p className="text-muted-foreground">Funnel: Analyze add_to_cart vs begin_checkout.</p>
+                      <p className="font-bold text-sm mt-2">Predictive Audiences</p>
+                      <p className="text-muted-foreground">Churn Probability: Identify users likely to stop visiting.</p>
+                      <p className="font-bold text-sm mt-2">User ID Tracking</p>
+                      <p className="text-muted-foreground">Cross-Device: Unified mobile and desktop journey.</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="border-t border-[#e1e3e5] p-4 bg-white">
+         <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick}>
+                <Link href="/admin/settings">
+                  <Settings />
+                  <span>Settings</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out">
+                <LogOut />
+                <span>Sign Out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+         </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
@@ -132,7 +429,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f6f7] p-4 text-center">
         <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-8 shadow-2xl overflow-hidden relative">
           {storeConfig?.logoUrl ? (
-            <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
+            <Image src={storeConfig.logoUrl} alt="Logo" width={64} height={64} className="object-cover" />
           ) : (
             "F"
           )}
@@ -227,251 +524,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-[#f6f6f7]">
-        <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] bg-white">
-          <SidebarHeader className="h-16 flex items-center px-6 border-b border-[#e1e3e5] bg-white">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative">
-                {storeConfig?.logoUrl ? (
-                  <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
-                ) : (
-                  "F"
-                )}
-              </div>
-              <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden">
-                {storeConfig?.businessName || "FSLNO"} Studio
-              </span>
-            </Link>
-          </SidebarHeader>
-          <SidebarContent className="py-4 bg-white">
-            <SidebarGroup>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Home">
-                    <Link href="/admin">
-                      <LayoutDashboard />
-                      <span>Home</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Orders">
-                    <Link href="/admin/orders">
-                      <ShoppingBag />
-                      <span>Orders</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Products">
-                    <Link href="/admin/products">
-                      <BarChart3 />
-                      <span>Products</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Categories">
-                    <Link href="/admin/categories">
-                      <Tag />
-                      <span>Categories</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Promotions">
-                    <Link href="/admin/promotions">
-                      <TicketPercent />
-                      <span>Promotions</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <Link href="/admin/size-chart">
-                            <Ruler />
-                            <span>Size Chart</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
-                        <div className="space-y-2">
-                          <p className="font-bold text-sm">Measurement Library</p>
-                          <p className="text-xs text-muted-foreground">• unit: Support for metric (cm) or imperial (inch).</p>
-                          <p className="text-xs text-muted-foreground">• measurements: Point-of-measure rows for XS through XL.</p>
-                          <p className="text-xs text-muted-foreground">• reuse: Link charts to multiple categories.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Customers">
-                    <Link href="/admin/customers">
-                      <Users />
-                      <span>Customers</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroup>
-
-            <SidebarGroup className="mt-4">
-              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Store Management</SidebarGroupLabel>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Theme Engine">
-                    <Link href="/admin/theme">
-                      <Palette />
-                      <span>Theme Engine</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Notifications">
-                    <Link href="/admin/notifications">
-                      <MailWarning />
-                      <span>Notifications</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <Link href="/admin/shipping">
-                            <Truck />
-                            <span>Shipping & Pickup</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
-                        <div className="space-y-3 text-xs">
-                          <p className="font-bold text-sm">Global Carrier Integration</p>
-                          <p className="text-muted-foreground">North America: USPS, UPS, FedEx, Canada Post.</p>
-                          <p className="text-muted-foreground">Europe & UK: DHL Express, Royal Mail, DPD, Evri.</p>
-                          <p className="font-bold text-sm mt-2">Advanced Pickup Logic</p>
-                          <p className="text-muted-foreground">In-Store/Pop-Up Pickup: Use Google Local Inventory API.</p>
-                          <p className="font-bold text-sm mt-2">Real-Time Shipping Features</p>
-                          <p className="text-muted-foreground">Address Validation: Automatically correct typos at checkout.</p>
-                          <p className="text-muted-foreground">DDP: Calculate and collect duties at checkout.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <Link href="/admin/payments">
-                            <CreditCard />
-                            <span>Payments</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[340px] p-4 bg-white border shadow-xl text-black">
-                        <div className="space-y-3 text-xs">
-                          <p className="font-bold text-sm">Stripe (The Core)</p>
-                          <p className="text-muted-foreground">Supports 135+ currencies and 20+ methods.</p>
-                          <p className="font-bold text-sm mt-2">PayPal Commerce</p>
-                          <p className="text-muted-foreground">Includes Smart Buttons and "PayPal Pay Later".</p>
-                          <p className="font-bold text-sm mt-2">Express Checkout</p>
-                          <p className="text-muted-foreground">Apple Pay & Google Pay (Express) enabled.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Domain">
-                    <Link href="/admin/domain">
-                      <Globe />
-                      <span>Domain</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="SEO">
-                    <Link href="/admin/seo">
-                      <Search />
-                      <span>SEO</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroup>
-
-            <SidebarGroup className="mt-4">
-              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Sales Channels</SidebarGroupLabel>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Google Sync">
-                    <Link href="/admin/sales-channels/google">
-                      <RefreshCw />
-                      <span>Google Sync</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Social Commerce">
-                    <Link href="/admin/sales-channels/social">
-                      <Share2 />
-                      <span>Social Commerce</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <Link href="/admin/sales-channels/analytics">
-                            <BarChart />
-                            <span>Analytics (GA4)</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[300px] p-4 bg-white border shadow-xl text-black">
-                        <div className="space-y-2 text-xs">
-                          <p className="font-bold text-sm">Custom Funnel Tracking</p>
-                          <p className="text-muted-foreground">view_item_list: Tracks FSLNO category attention.</p>
-                          <p className="text-muted-foreground">Funnel: Analyze add_to_cart vs begin_checkout.</p>
-                          <p className="font-bold text-sm mt-2">Predictive Audiences</p>
-                          <p className="text-muted-foreground">Churn Probability: Identify users likely to stop visiting.</p>
-                          <p className="font-bold text-sm mt-2">User ID Tracking</p>
-                          <p className="text-muted-foreground">Cross-Device: Unified mobile and desktop journey.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroup>
-          </SidebarContent>
-          <SidebarFooter className="border-t border-[#e1e3e5] p-4 bg-white">
-             <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Settings">
-                    <Link href="/admin/settings">
-                      <Settings />
-                      <span>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton onClick={handleLogout} tooltip="Sign Out">
-                    <LogOut />
-                    <span>Sign Out</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-             </SidebarMenu>
-          </SidebarFooter>
-        </Sidebar>
+        <AppSidebar storeConfig={storeConfig} />
 
         <main className="flex-1 flex flex-col overflow-hidden">
           <header className="h-16 bg-white border-b border-[#e1e3e5] flex items-center justify-between px-8 sticky top-0 z-10">
