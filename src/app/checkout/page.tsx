@@ -310,15 +310,15 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-red-500" : "text-gray-500")}>Email Address {errors.email && "- REQUIRED"}</Label>
-                <Input placeholder="EMAIL@EXAMPLE.COM" className="h-12 bg-[#F9F9F9] uppercase" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
+                <Input placeholder="EMAIL" className="h-12 bg-[#F9F9F9] uppercase" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-red-500" : "text-gray-500")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
-                <Input placeholder="+1 (555) 000-0000" className="h-12 bg-[#F9F9F9]" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                <Input placeholder="PHONE" className="h-12 bg-[#F9F9F9]" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
                 <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-red-500" : "text-gray-500")}>Full Name {errors.name && "- REQUIRED"}</Label>
-                <Input placeholder="ENTER YOUR FULL NAME" className="h-12 bg-[#F9F9F9] uppercase" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} />
+                <Input placeholder="FULL NAME" className="h-12 bg-[#F9F9F9] uppercase" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} />
               </div>
             </div>
 
@@ -329,7 +329,7 @@ export default function CheckoutPage() {
                   <div className="grid gap-4">
                     <div className="space-y-2">
                       <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-red-500" : "text-gray-500")}>Address {errors.address && "- REQUIRED"}</Label>
-                      <Input placeholder="STREET ADDRESS" className="h-12 uppercase" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
+                      <Input placeholder="ADDRESS" className="h-12 uppercase" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -374,7 +374,7 @@ export default function CheckoutPage() {
                       <div className="grid gap-4">
                         <div className="space-y-2">
                           <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
-                          <Input placeholder="BILLING ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                          <Input placeholder="ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
@@ -438,7 +438,7 @@ export default function CheckoutPage() {
                 <div className="grid gap-4">
                   <div className="space-y-2">
                     <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
-                    <Input placeholder="BILLING ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                    <Input placeholder="ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
