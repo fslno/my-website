@@ -160,9 +160,6 @@ export function Header() {
                             {cat.name}
                           </Link>
                         ))}
-                        <Link href="/collections/all" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
-                          All Drops
-                        </Link>
                       </nav>
                     </div>
 
@@ -183,7 +180,7 @@ export function Header() {
                           </div>
                           
                           <nav className="flex flex-col gap-4">
-                            <Link href="/account/history" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
+                            <Link href="/account/orders" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
                               <History className="h-3.5 w-3.5" /> Order History
                             </Link>
                             <Link href="/account/promotions" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
@@ -250,14 +247,6 @@ export function Header() {
                         </Link>
                       </DropdownMenuItem>
                     ))}
-                    <DropdownMenuItem asChild>
-                      <Link 
-                        href="/collections/all"
-                        className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300 border-t"
-                      >
-                        All Archive Drops
-                      </Link>
-                    </DropdownMenuItem>
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -365,7 +354,7 @@ export function Header() {
                       </div>
                       <Separator />
                       <div className="flex flex-col gap-4">
-                        <Link href="/account/history" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
+                        <Link href="/account/orders" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
                           <History className="h-3.5 w-3.5" /> Order History
                         </Link>
                         <Link href="/account/promotions" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
