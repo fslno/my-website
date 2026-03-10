@@ -244,7 +244,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
         <style type="text/css" dangerouslySetInnerHTML={{ __html: `
           @media print {
             body { background: white !important; padding: 0 !important; margin: 0 !important; }
-            header, nav, aside, button, .print-hidden, footer { display: none !important; }
+            header, nav, aside, button, .print-hidden, footer, #theme-preview-root { display: none !important; }
             #printable-invoice { display: block !important; visibility: visible !important; position: absolute; left: 0; top: 0; }
             @page { size: A4; margin: 0; }
           }
