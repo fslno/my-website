@@ -44,7 +44,6 @@ export function Header() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      // Gracefully handle cancellation errors from the Firebase popup
       if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
         console.error("Authentication failed:", error);
       }
@@ -84,7 +83,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
-                <SheetHeader className="p-8 border-b shrink-0">
+                <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Menu</SheetTitle>
                 </SheetHeader>
                 
@@ -181,7 +180,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
-                <SheetHeader className="p-10 border-b shrink-0">
+                <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center">Wishlist ({wishlistCount})</SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1">
@@ -229,7 +228,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
-                <SheetHeader className="p-10 border-b shrink-0 space-y-4">
+                <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0 space-y-4">
                   <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase">Your Cart ({cartCount})</SheetTitle>
                   
                   {cartSubtotal > 0 && (
