@@ -10,9 +10,8 @@ import { Loader2, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-export default function CollectionPage(props: { params: Promise<{ categoryId: string }> }) {
-  const params = use(props.params);
-  const categoryId = params.categoryId;
+export default function CollectionPage({ params }: { params: Promise<{ categoryId: string }> }) {
+  const { categoryId } = use(params);
   const db = useFirestore();
 
   // Fetch Category Details - skip if 'all'

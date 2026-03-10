@@ -70,8 +70,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
-export default function OrderDetailPage(props: { params: Promise<{ orderId: string }> }) {
-  const { orderId } = use(props.params);
+export default function OrderDetailPage({ params }: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = use(params);
   const db = useFirestore();
   const { toast } = useToast();
 
