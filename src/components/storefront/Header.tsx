@@ -234,7 +234,6 @@ export function Header() {
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Link href="/about" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Our Story</Link>
               </nav>
             </div>
           </div>
