@@ -1,14 +1,32 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
+import { PushNotificationManager } from '@/components/storefront/PushNotificationManager';
 
 export const metadata: Metadata = {
-  title: 'FSLNO | Luxury Storefront',
-  description: 'High-end minimalist e-commerce experience.',
+  title: 'FSLNO | Luxury Archive Storefront',
+  description: 'High-end minimalist archive e-commerce experience.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'FSLNO Archive',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -27,6 +45,7 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background text-foreground">
         <FirebaseClientProvider>
           <ThemeStyleInjector />
+          <PushNotificationManager />
           <WishlistProvider>
             <CartProvider>
               {children}
