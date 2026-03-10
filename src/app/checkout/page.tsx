@@ -663,6 +663,16 @@ export default function CheckoutPage() {
                 )}
               </div>
             )}
+
+            <div className="pt-8 border-t mt-8">
+              <Button 
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+              >
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Complete Order"}
+              </Button>
+            </div>
           </section>
 
           <section className="space-y-6 bg-gray-50 border p-8 rounded-sm">
@@ -823,16 +833,6 @@ export default function CheckoutPage() {
                     {isSummaryReady ? `$${formatCurrency(finalTotal)} CAD` : '--'}
                   </p>
                 </div>
-              </div>
-
-              <div className="pt-8">
-                <Button 
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
-                >
-                  {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Complete Order"}
-                </Button>
               </div>
             </div>
           </div>
