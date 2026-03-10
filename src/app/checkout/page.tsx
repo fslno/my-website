@@ -701,26 +701,6 @@ export default function CheckoutPage() {
               </Alert>
             )}
 
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                <ShieldCheck className="h-3.5 w-3.5" /> Express Checkout Available
-              </div>
-              <div className="grid gap-3">
-                {paymentConfig?.applePayEnabled && (
-                  <Button className="h-14 w-full bg-black text-white hover:bg-black/90 rounded-none flex items-center justify-center gap-3">
-                    <Apple className="h-5 w-5" />
-                    <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Apple Pay</span>
-                  </Button>
-                )}
-                {paymentConfig?.googlePayEnabled && (
-                  <Button className="h-14 w-full bg-white border-2 border-black text-black hover:bg-gray-50 rounded-none flex items-center justify-center gap-3">
-                    <Smartphone className="h-5 w-5" />
-                    <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Google Pay</span>
-                  </Button>
-                )}
-              </div>
-            </div>
-
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4">Order Summary ({cartCount})</h2>
             
             <div className="space-y-6">
@@ -832,6 +812,27 @@ export default function CheckoutPage() {
                   <p className="text-2xl font-bold font-headline tracking-tighter">
                     {isSummaryReady ? `$${formatCurrency(finalTotal)} CAD` : '--'}
                   </p>
+                </div>
+
+                {/* Express Checkout buttons relocated below Total price */}
+                <div className="space-y-4 pt-6 border-t mt-4">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <ShieldCheck className="h-3.5 w-3.5" /> Express Checkout
+                  </div>
+                  <div className="grid gap-3">
+                    {paymentConfig?.applePayEnabled && (
+                      <Button className="h-14 w-full bg-black text-white hover:bg-black/90 rounded-none flex items-center justify-center gap-3">
+                        <Apple className="h-5 w-5" />
+                        <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Apple Pay</span>
+                      </Button>
+                    )}
+                    {paymentConfig?.googlePayEnabled && (
+                      <Button className="h-14 w-full bg-white border-2 border-black text-black hover:bg-gray-50 rounded-none flex items-center justify-center gap-3">
+                        <Smartphone className="h-5 w-5" />
+                        <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Google Pay</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
