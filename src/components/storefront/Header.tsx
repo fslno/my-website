@@ -17,7 +17,6 @@ import {
   Sparkles, 
   MessageSquare,
   ChevronDown,
-  ShieldCheck,
   History,
   TicketPercent,
   Settings
@@ -35,6 +34,12 @@ import { doc, collection } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -110,7 +115,6 @@ export function Header() {
     });
   };
 
-  const isAdmin = user && (user.email === 'fslno.dev@gmail.com' || user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2');
   const remainingForThreshold = Math.max(0, THRESHOLD_VALUE - cartSubtotal);
 
   return (
@@ -185,11 +189,6 @@ export function Header() {
                             <Link href="/account/promotions" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
                               <TicketPercent className="h-3.5 w-3.5" /> Rewards & Perks
                             </Link>
-                            {isAdmin && (
-                              <Link href="/admin" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:opacity-70 transition-opacity">
-                                <ShieldCheck className="h-3.5 w-3.5" /> Studio Command Center
-                              </Link>
-                            )}
                           </nav>
 
                           <Button 
@@ -235,9 +234,33 @@ export function Header() {
             </Link>
 
             <nav className="hidden lg:flex items-center gap-8">
-              <Link href="/collections/all" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">
-                Explore All
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
+                  Categories <ChevronDown className="h-3 w-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 bg-white border border-black/10 shadow-xl rounded-none p-0 mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="py-2">
+                    {categories?.map((cat: any) => (
+                      <DropdownMenuItem key={cat.id} asChild>
+                        <Link 
+                          href={`/collections/${cat.id}`}
+                          className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300"
+                        >
+                          {cat.name}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuItem asChild>
+                      <Link 
+                        href="/collections/all"
+                        className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300 border-t"
+                      >
+                        All Archive Drops
+                      </Link>
+                    </DropdownMenuItem>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
           </div>
 
