@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight, Heart, Zap, User as UserIcon } from 'lucide-react';
+import { ShoppingBag, Menu, Search, X, Trash2, ArrowRight, Heart, Zap, User as UserIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
@@ -15,6 +15,8 @@ import { useFirestore, useDoc, useMemoFirebase, useUser, useAuth, useCollection 
 import { doc, collection } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -32,6 +34,21 @@ export function Header() {
 
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
   const { data: categories } = useCollection(categoriesQuery);
+
+  const productsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
+  const { data: allProducts } = useCollection(productsQuery);
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery || searchQuery.length < 2) return [];
+    return allProducts?.filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 6) || [];
+  }, [allProducts, searchQuery]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -181,7 +198,12 @@ export function Header() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setIsSearchOpen(true)}
+              className="hidden sm:inline-flex hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+            >
               <Search className="h-5 w-5" />
             </Button>
 
@@ -337,6 +359,83 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      {/* SEARCH DIALOG */}
+      <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-0 overflow-hidden shadow-2xl">
+          <div className="p-8 space-y-8">
+            <DialogHeader className="p-0">
+              <div className="flex items-center gap-4 border-b-2 border-black pb-4">
+                <Search className="h-6 w-6 text-black" />
+                <Input 
+                  autoFocus
+                  placeholder="SEARCH THE ARCHIVE..." 
+                  className="border-none bg-transparent text-xl font-headline font-bold uppercase tracking-tight shadow-none focus-visible:ring-0 p-0"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="hover:rotate-90 transition-transform duration-300">
+                    <X className="h-5 w-5 text-gray-400" />
+                  </button>
+                )}
+              </div>
+            </DialogHeader>
+
+            <ScrollArea className="max-h-[60vh]">
+              {!searchQuery || searchQuery.length < 2 ? (
+                <div className="py-12 text-center space-y-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Discover recent drops</p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {categories?.slice(0, 4).map(cat => (
+                      <Link 
+                        key={cat.id} 
+                        href={`/collections/${cat.id}`}
+                        onClick={() => setIsSearchOpen(false)}
+                        className="px-4 py-2 bg-gray-50 border text-[10px] font-bold uppercase tracking-widest hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300"
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="py-20 text-center">
+                  <p className="text-sm font-bold uppercase tracking-widest text-gray-400">No pieces match your search.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 pb-8">
+                  {filteredProducts.map((product: any) => (
+                    <Link 
+                      key={product.id}
+                      href={`/products/${product.id}`}
+                      onClick={() => setIsSearchOpen(false)}
+                      className="group flex gap-6 p-4 hover:bg-gray-50 transition-all duration-300 border border-transparent hover:border-gray-100"
+                    >
+                      <div className="w-24 h-24 relative bg-gray-100 shrink-0 overflow-hidden">
+                        <Image 
+                          src={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/400/400'} 
+                          alt={product.name} 
+                          fill 
+                          className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                        />
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center gap-1">
+                        <p className="text-[9px] uppercase tracking-widest font-bold text-gray-400">{product.brand || 'FSLNO'}</p>
+                        <h3 className="text-lg font-headline font-bold uppercase tracking-tight group-hover:underline">{product.name}</h3>
+                        <p className="text-sm font-bold">${formatCurrency(Number(product.price))} CAD</p>
+                      </div>
+                      <div className="flex items-center text-gray-300 group-hover:text-black transition-colors pr-4">
+                        <ArrowRight className="h-5 w-5" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
