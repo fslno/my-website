@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -43,7 +44,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -148,7 +149,7 @@ export default function NotificationsPage() {
   const handleToggle = (key: string, enabled: boolean) => {
     if (!configRef) return;
     const updates = { [key]: { ...(config?.[key] || DEFAULT_NOTIFICATIONS[key]), enabled } };
-    updateDoc(configRef, updates).catch(() => {
+    setDoc(configRef, updates, { merge: true }).catch(() => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: configRef.path,
         operation: 'update',
@@ -173,7 +174,7 @@ export default function NotificationsPage() {
         body: editBody 
       } 
     };
-    updateDoc(configRef, updates)
+    setDoc(configRef, updates, { merge: true })
       .then(() => {
         setEditingKey(null);
         toast({ title: "Notification Updated", description: "Subject line and content have been saved." });
@@ -200,6 +201,13 @@ export default function NotificationsPage() {
     setDoc(configRef, { global: globalData }, { merge: true })
       .then(() => {
         toast({ title: "Branding Saved", description: "Email templates have been synchronized with your identity." });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: configRef.path,
+          operation: 'update',
+          requestResourceData: { global: globalData }
+        }));
       })
       .finally(() => setIsSaving(false));
   };
