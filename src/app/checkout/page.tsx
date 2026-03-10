@@ -85,9 +85,12 @@ export default function CheckoutPage() {
     discountTotal, totalBeforeTax, appliedCoupon, applyCoupon 
   } = useCart();
   
-  // Fetch Global Payment Config
+  // Fetch Global Configs
   const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
   const { data: paymentConfig, loading: paymentsLoading } = useDoc(paymentConfigRef);
+
+  const shippingConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
+  const { data: shippingConfig, loading: shippingLoading } = useDoc(shippingConfigRef);
 
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('shipping');
   const [selectedPayment, setSelectedPayment] = useState<string>('');
@@ -316,6 +319,8 @@ export default function CheckoutPage() {
     );
   }
 
+  const enabledCarriers = shippingConfig?.carriers?.filter((c: any) => typeof c === 'string' ? true : c.active) || [];
+
   return (
     <main className="min-h-screen bg-[#F9F9F9] flex flex-col">
       <header className="h-20 bg-white border-b flex items-center px-4 lg:px-12 sticky top-0 z-50">
@@ -455,29 +460,35 @@ export default function CheckoutPage() {
                   <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", errors.courier ? "text-red-500" : "text-gray-500")}>
                     <Truck className="h-3 w-3" /> Select Shipping Method {errors.courier && "- REQUIRED"}
                   </h3>
-                  <RadioGroup value={formData.courier} onValueChange={(val) => { setShippingRate(val === 'fedex' ? 25 : val === 'dhl' ? 45 : 0); handleInputChange('courier', val); }} className="grid grid-cols-1 gap-2">
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", formData.courier === 'usps' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50")}>
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value="usps" id="usps" />
-                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Standard Shipping</Label>
-                      </div>
-                      <span className="text-[11px] font-bold">FREE</span>
+                  
+                  {shippingLoading ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-gray-200" />
                     </div>
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", formData.courier === 'fedex' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50")}>
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value="fedex" id="fedex" />
-                        <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Priority Express</Label>
-                      </div>
-                      <span className="text-[11px] font-bold">$25.00</span>
-                    </div>
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", formData.courier === 'dhl' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50")}>
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value="dhl" id="dhl" />
-                        <Label htmlFor="dhl" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">International Express</Label>
-                      </div>
-                      <span className="text-[11px] font-bold">$45.00</span>
-                    </div>
-                  </RadioGroup>
+                  ) : (
+                    <RadioGroup value={formData.courier} onValueChange={(val) => { 
+                      const isExpress = ['FEDEX', 'DHL', 'UPS'].some(e => val.toUpperCase().includes(e));
+                      setShippingRate(isExpress ? 25 : 0); 
+                      handleInputChange('courier', val); 
+                    }} className="grid grid-cols-1 gap-2">
+                      {enabledCarriers.map((carrier: any) => {
+                        const name = typeof carrier === 'string' ? carrier : carrier.name;
+                        const isExpress = ['FEDEX', 'DHL', 'UPS'].some(e => name.toUpperCase().includes(e));
+                        return (
+                          <div key={name} className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", formData.courier === name ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50")}>
+                            <div className="flex items-center space-x-3">
+                              <RadioGroupItem value={name} id={name} />
+                              <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">{name} {isExpress ? 'Express' : 'Standard'}</Label>
+                            </div>
+                            <span className="text-[11px] font-bold">{isExpress ? '$25.00' : 'FREE'}</span>
+                          </div>
+                        );
+                      })}
+                      {enabledCarriers.length === 0 && (
+                        <p className="text-[10px] text-gray-400 italic py-4">No shipping carriers currently authorized for this drop.</p>
+                      )}
+                    </RadioGroup>
+                  )}
                 </div>
               </div>
             ) : (
@@ -676,7 +687,7 @@ export default function CheckoutPage() {
               <Alert variant="destructive" className="rounded-none border-2">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Validation Error</AlertTitle>
-                <AlertDescription className="text-[9px] uppercase font-medium">Please review all required fields and select a payment method.</AlertDescription>
+                <AlertDescription className="text-[9px] uppercase font-medium">Please review all required fields and select valid delivery/payment methods.</AlertDescription>
               </Alert>
             )}
 
