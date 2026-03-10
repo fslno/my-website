@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, use } from 'react';
+import Link from 'next/link';
 import { 
   useFirestore, 
   useDoc, 
