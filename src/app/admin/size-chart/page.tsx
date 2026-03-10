@@ -42,7 +42,7 @@ import {
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
 interface RowData {
@@ -55,7 +55,7 @@ export default function SizeChartPage() {
   const { toast } = useToast();
   
   const chartsQuery = useMemoFirebase(() => db ? collection(db, 'sizeCharts') : null, [db]);
-  const { data: charts, loading } = useCollection(chartsQuery);
+  const { data: charts, isLoading: loading } = useCollection(chartsQuery);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);

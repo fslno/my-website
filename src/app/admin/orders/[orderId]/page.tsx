@@ -580,7 +580,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       <SheetHeader className="border-b border-white/10 pb-6 mb-6">
                         <div className="flex items-center gap-3 text-white">
                           <Terminal className="h-5 w-5 text-green-500" />
-                          <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">Studio Archive Logs</SheetTitle>
+                          <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">Studio Logs</SheetTitle>
                         </div>
                         <SheetDescription className="text-gray-400 text-xs">
                           Technical metadata for order {order.id}
@@ -601,7 +601,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                               <span className="text-[10px] text-white">{order.ipAddress || 'REDACTED'}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-[10px] text-gray-400">ARCHIVE_HASH</span>
+                              <span className="text-[10px] text-gray-400">ORDER_HASH</span>
                               <span className="text-[10px] text-zinc-500 truncate max-w-[180px]">sha256:{(order.id || '').split('').reverse().join('')}</span>
                             </div>
                           </div>
