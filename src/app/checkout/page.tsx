@@ -178,7 +178,7 @@ export default function CheckoutPage() {
         const data = couponDoc.data() as Coupon;
         if (data.active) {
           applyCoupon(data);
-          toast({ title: "Discount Code Applied", description: `Your discount has been applied.` });
+          toast({ title: "Discount Applied", description: `Your code has been validated.` });
           setCouponInput('');
         } else {
           toast({ variant: "destructive", title: "Invalid Code", description: "This code is no longer active." });
@@ -271,7 +271,7 @@ export default function CheckoutPage() {
       <header className="h-20 bg-white border-b flex items-center px-4 lg:px-12 sticky top-0 z-50">
         <Link href="/" className="flex items-center gap-2 group">
           <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Store</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Back to Shop</span>
         </Link>
         <h1 className="absolute left-1/2 -translate-x-1/2 text-2xl font-headline font-bold tracking-tighter">CHECKOUT</h1>
       </header>
@@ -289,7 +289,7 @@ export default function CheckoutPage() {
                 <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-black" : "text-gray-400")} />
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-widest">Shipping</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Ship to your address</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Deliver to my address</p>
                 </div>
               </button>
               <button
@@ -466,15 +466,15 @@ export default function CheckoutPage() {
           </section>
 
           <section className="space-y-6 bg-gray-50 border p-8 rounded-sm">
-            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-red-500" : "text-black")}>How did you find us? {errors.referral && "- REQUIRED"}</h2>
+            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-red-500" : "text-black")}>Discovery Source {errors.referral && "- REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
               <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:bg-gray-100 transition-colors text-[10px] font-bold uppercase tracking-widest rounded-sm">
-                <SelectValue placeholder="CHOOSE AN OPTION" />
+                <SelectValue placeholder="HOW DID YOU FIND US?" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="google" className="text-[10px] font-bold uppercase tracking-widest">Google / Pinterest</SelectItem>
                 <SelectItem value="social" className="text-[10px] font-bold uppercase tracking-widest">Social Media</SelectItem>
-                <SelectItem value="friend" className="text-[10px] font-bold uppercase tracking-widest">Friend Referral</SelectItem>
+                <SelectItem value="friend" className="text-[10px] font-bold uppercase tracking-widest">Friend Recommendation</SelectItem>
                 <SelectItem value="other" className="text-[10px] font-bold uppercase tracking-widest">Other</SelectItem>
               </SelectContent>
             </Select>
@@ -486,8 +486,8 @@ export default function CheckoutPage() {
             {showErrorBanner && (
               <Alert variant="destructive" className="rounded-none border-2">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Incomplete Information</AlertTitle>
-                <AlertDescription className="text-[9px] uppercase font-medium">Please review the highlighted fields to complete your order.</AlertDescription>
+                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Validation Error</AlertTitle>
+                <AlertDescription className="text-[9px] uppercase font-medium">Please review all required fields to proceed.</AlertDescription>
               </Alert>
             )}
 
@@ -609,7 +609,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Order Items</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Items</p>
                   <div className="space-y-3">
                     {confirmedOrder.items.map((item: any, i: number) => (
                       <div key={i} className="flex justify-between text-[11px] font-bold uppercase">
@@ -628,7 +628,7 @@ export default function CheckoutPage() {
             )}
 
             <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none">
-              <Link href="/">Back to Shop</Link>
+              <Link href="/">Return to Shop</Link>
             </Button>
           </div>
         </DialogContent>

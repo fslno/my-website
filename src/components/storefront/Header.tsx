@@ -62,16 +62,16 @@ export function Header() {
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-6 mt-12">
-                  <Link href="/collections/new" className="text-xl font-headline">New Arrivals</Link>
-                  <Link href="/collections/women" className="text-xl font-headline">Women</Link>
-                  <Link href="/collections/men" className="text-xl font-headline">Men</Link>
+                  <Link href="/collections/all" className="text-xl font-headline">New Arrivals</Link>
+                  <Link href="/collections/all" className="text-xl font-headline">Collections</Link>
+                  <Link href="/about" className="text-xl font-headline">Our Story</Link>
                 </nav>
               </SheetContent>
             </Sheet>
 
             <nav className="hidden lg:flex items-center gap-8">
               <Link href="/collections/all" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Collections</Link>
-              <Link href="/about" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">About</Link>
+              <Link href="/about" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Our Story</Link>
             </nav>
           </div>
 
@@ -96,7 +96,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
-                <SheetHeader className="p-6 border-b shrink-0">
+                <SheetHeader className="p-10 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center">Wishlist ({wishlistCount})</SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1">
@@ -144,7 +144,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
-                <SheetHeader className="p-6 border-b shrink-0 space-y-4">
+                <SheetHeader className="p-10 border-b shrink-0 space-y-4">
                   <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase">Your Cart ({cartCount})</SheetTitle>
                   
                   {cartSubtotal > 0 && (

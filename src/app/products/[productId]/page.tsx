@@ -58,14 +58,14 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
   
   const { data: product, loading } = useDoc(productRef);
 
-  // Fetch Category to get Size Chart ID
+  // Fetch Category to get Size Guide ID
   const categoryRef = useMemoFirebase(() => 
     db && product?.categoryId ? doc(db, 'categories', product.categoryId) : null,
     [db, product?.categoryId]
   );
   const { data: category } = useDoc(categoryRef);
 
-  // Fetch Size Chart
+  // Fetch Size Guide
   const sizeChartRef = useMemoFirebase(() => 
     db && category?.sizeChartId ? doc(db, 'sizeCharts', category.sizeChartId) : null,
     [db, category?.sizeChartId]
@@ -417,15 +417,15 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
               )}
             </div>
 
-            <div className="space-y-3 pt-2">
+            <div className="space-y-3 pt-4 border-t mt-4">
               <button 
                 onClick={handleAddToCart}
                 disabled={!selectedSize || isStockReached}
                 className={cn(
-                  "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-sm transition-all",
+                  "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-sm transition-all shadow-md",
                   isStockReached 
                     ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
-                    : "bg-black text-white hover:bg-black/90"
+                    : "bg-black text-white hover:bg-black/90 active:scale-95"
                 )}
               >
                 {!selectedSize ? 'Select Size' : isStockReached ? 'Sold Out' : 'Add to Cart'}

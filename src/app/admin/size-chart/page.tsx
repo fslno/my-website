@@ -201,19 +201,19 @@ export default function SizeChartPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Charts</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Guides</h1>
           <p className="text-[#5c5f62] mt-1 text-sm">Create reusable measurement guides for your products.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="bg-black text-white font-bold h-10 gap-2">
-              <Plus className="h-4 w-4" /> Create Chart
+              <Plus className="h-4 w-4" /> Create Guide
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
               <DialogTitle className="text-xl font-headline font-bold">
-                {editingId ? `Edit Guide: ${name}` : 'New Measurement Guide'}
+                {editingId ? `Edit Guide: ${name}` : 'New Size Guide'}
               </DialogTitle>
               <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
                 <X className="h-5 w-5" />
@@ -226,20 +226,20 @@ export default function SizeChartPage() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-2 mb-2">
                       <Settings2 className="h-4 w-4 text-gray-400" />
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Configuration</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Settings</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Chart Name</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Guide Name</Label>
                         <Input 
-                          placeholder="e.g. Mens Jersey Guide" 
+                          placeholder="e.g. Mens T-Shirt Guide" 
                           value={name} 
                           onChange={(e) => setName(e.target.value)} 
                           className="h-12 bg-white text-sm font-medium"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category Tag</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category</Label>
                         <div className="relative">
                           <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input 
@@ -270,7 +270,7 @@ export default function SizeChartPage() {
                         <Ruler className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold">Global Template</p>
+                        <p className="text-sm font-bold">Reusable Template</p>
                         <p className="text-xs text-gray-500">This guide can be linked to any category in your store.</p>
                       </div>
                     </div>
@@ -373,7 +373,7 @@ export default function SizeChartPage() {
                 className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-black/90 transition-all shadow-xl"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : null}
-                {isSaving ? 'Saving Changes...' : 'Save Size Chart'}
+                {isSaving ? 'Saving Changes...' : 'Save Size Guide'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -383,12 +383,12 @@ export default function SizeChartPage() {
       <div className="grid gap-4">
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
           </div>
         ) : charts?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-gray-50/50">
             <Ruler className="h-12 w-12 text-gray-300 mb-4" />
-            <p className="text-sm font-medium text-gray-500">No size charts found. Start by creating a template.</p>
+            <p className="text-sm font-medium text-gray-500">No size guides found. Start by creating a template.</p>
           </div>
         ) : (
           <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
