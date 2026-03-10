@@ -202,7 +202,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
     <main className="min-h-screen bg-white">
       <Header />
       
-      <div className="max-w-[1280px] mx-auto px-4 pt-24 pb-12">
+      <div className="max-w-[1280px] mx-auto px-4 pt-36 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
           <div className="space-y-6">
