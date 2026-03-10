@@ -217,7 +217,7 @@ export function Header() {
               <nav className="hidden lg:flex items-center gap-8">
                 <DropdownMenu>
                   <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
-                    Archive Drops <ChevronDown className="h-3 w-3" />
+                    Categories <ChevronDown className="h-3 w-3" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="bg-white border-black/10 rounded-none min-w-[240px] p-0 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="p-4 bg-gray-50 border-b">
