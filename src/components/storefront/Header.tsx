@@ -183,9 +183,6 @@ export function Header() {
                             <Link href="/account/orders" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
                               <History className="h-3.5 w-3.5" /> Order History
                             </Link>
-                            <Link href="/account/promotions" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
-                              <TicketPercent className="h-3.5 w-3.5" /> Rewards & Perks
-                            </Link>
                           </nav>
 
                           <Button 
@@ -356,9 +353,6 @@ export function Header() {
                       <div className="flex flex-col gap-4">
                         <Link href="/account/orders" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
                           <History className="h-3.5 w-3.5" /> Order History
-                        </Link>
-                        <Link href="/account/promotions" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
-                          <TicketPercent className="h-3.5 w-3.5" /> Rewards & Perks
                         </Link>
                       </div>
                       <Button 
