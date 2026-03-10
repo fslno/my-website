@@ -109,13 +109,30 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showErrorBanner, setShowErrors] = useState(false);
 
+  const isTaxReady = useMemo(() => {
+    if (deliveryMethod === 'shipping') {
+      return billingSameAsShipping ? !!formData.province : !!formData.billingProvince;
+    }
+    return !!formData.billingProvince;
+  }, [deliveryMethod, billingSameAsShipping, formData.province, formData.billingProvince]);
+
+  const isShippingReady = useMemo(() => {
+    if (deliveryMethod === 'shipping') {
+      return !!formData.courier;
+    }
+    return true; // Pickup is ready immediately
+  }, [deliveryMethod, formData.courier]);
+
+  const isSummaryReady = isTaxReady && isShippingReady;
+
   const calculatedTax = useMemo(() => {
+    if (!isTaxReady) return 0;
     const province = deliveryMethod === 'shipping' ? 
       (billingSameAsShipping ? formData.province : formData.billingProvince) : 
       formData.billingProvince;
     const rate = TAX_RATES[province.toUpperCase()] || TAX_RATES['DEFAULT'];
     return totalBeforeTax * rate;
-  }, [totalBeforeTax, formData.province, formData.billingProvince, deliveryMethod, billingSameAsShipping]);
+  }, [totalBeforeTax, formData.province, formData.billingProvince, deliveryMethod, billingSameAsShipping, isTaxReady]);
 
   const finalTotal = useMemo(() => {
     return totalBeforeTax + calculatedTax + shippingRate;
@@ -273,7 +290,7 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
         <Package className="h-12 w-12 text-gray-200 mb-4" />
         <h1 className="text-2xl font-headline font-bold mb-4 uppercase">Your cart is empty</h1>
-        <Button asChild className="bg-black text-white h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px]">
+        <Button asChild className="bg-black text-white h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
           <Link href="/">Shop Now</Link>
         </Button>
       </div>
@@ -575,7 +592,7 @@ export default function CheckoutPage() {
                     onClick={handleValidateCoupon}
                     disabled={isValidatingCoupon}
                     variant="outline" 
-                    className="h-10 px-4 rounded-none border-black text-[9px] font-bold uppercase tracking-widest"
+                    className="h-10 px-4 rounded-none border-black text-[9px] font-bold uppercase tracking-widest hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
                   >
                     {isValidatingCoupon ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
                   </Button>
@@ -605,16 +622,22 @@ export default function CheckoutPage() {
                 )}
                 <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
                   <span>Shipping</span>
-                  <span className="text-black">{shippingRate > 0 ? `$${formatCurrency(shippingRate)}` : 'FREE'}</span>
+                  <span className="text-black">
+                    {isShippingReady ? (shippingRate > 0 ? `$${formatCurrency(shippingRate)}` : 'FREE') : '--'}
+                  </span>
                 </div>
                 <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
                   <span>Tax</span>
-                  <span className="text-black">${formatCurrency(calculatedTax)}</span>
+                  <span className="text-black">
+                    {isTaxReady ? `$${formatCurrency(calculatedTax)}` : '--'}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[12px] font-bold uppercase tracking-[0.2em]">Total</span>
-                  <p className="text-2xl font-bold font-headline tracking-tighter">${formatCurrency(finalTotal)} CAD</p>
+                  <p className="text-2xl font-bold font-headline tracking-tighter">
+                    {isSummaryReady ? `$${formatCurrency(finalTotal)} CAD` : '--'}
+                  </p>
                 </div>
               </div>
 
@@ -622,7 +645,7 @@ export default function CheckoutPage() {
                 <Button 
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl"
+                  className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
                 >
                   {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Complete Order"}
                 </Button>
@@ -673,7 +696,7 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none">
+            <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
               <Link href="/">Return to Shop</Link>
             </Button>
           </div>
