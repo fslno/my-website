@@ -556,6 +556,14 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Referral Source</p>
                   <p className="text-xs font-bold uppercase">{getReferralLabel(order.referral)}</p>
                 </div>
+                {order.deliveryMethod === 'pickup' && order.pickupDate && (
+                  <div className="space-y-1">
+                    <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Pickup Schedule</p>
+                    <p className="text-xs font-bold uppercase flex items-center gap-2">
+                      <Calendar className="h-3 w-3" /> {order.pickupDate} at {order.pickupTime}
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Delivery Method</p>
                   <p className="text-xs font-bold uppercase flex items-center gap-2">
