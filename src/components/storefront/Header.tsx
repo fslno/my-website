@@ -239,14 +239,15 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setIsSearchOpen(true)}
-              className="hidden sm:inline-flex hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
+            <div className="relative flex items-center mr-2">
+              <Search className="absolute left-3 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+              <Input 
+                placeholder="SEARCH" 
+                className="pl-8 h-9 w-24 sm:w-32 md:w-40 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black cursor-pointer"
+                onClick={() => setIsSearchOpen(true)}
+                readOnly
+              />
+            </div>
 
             <Sheet>
               <SheetTrigger asChild>
