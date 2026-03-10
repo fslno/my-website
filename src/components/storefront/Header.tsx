@@ -136,7 +136,84 @@ export function Header() {
         )}
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 lg:gap-8">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
+                <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
+                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Menu</SheetTitle>
+                </SheetHeader>
+                
+                <ScrollArea className="flex-1">
+                  <div className="p-8 space-y-12">
+                    <div className="space-y-6">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Shop Collections</h3>
+                      <nav className="flex flex-col gap-6">
+                        {categories?.map((cat: any) => (
+                          <Link 
+                            key={cat.id} 
+                            href={`/collections/${cat.id}`} 
+                            className="text-xl font-headline uppercase hover:opacity-60 transition-opacity"
+                          >
+                            {cat.name}
+                          </Link>
+                        ))}
+                        <Link href="/collections/all" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
+                          All Drops
+                        </Link>
+                      </nav>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-6">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Your Account</h3>
+                      {user ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                              <UserIcon className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold uppercase">{user.displayName || 'Client'}</span>
+                              <span className="text-[9px] text-gray-400 truncate max-w-[150px]">{user.email}</span>
+                            </div>
+                          </div>
+                          <Button 
+                            onClick={handleLogout} 
+                            variant="outline" 
+                            className="w-full h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+                          >
+                            Sign Out
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-2">
+                          <Button 
+                            onClick={handleLogin} 
+                            className="bg-black text-white h-12 rounded-none font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+                          >
+                            Sign In
+                          </Button>
+                          <Button 
+                            onClick={handleLogin} 
+                            variant="outline" 
+                            className="h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+                          >
+                            Create Account
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
+
             <Link href="/" className="flex items-center gap-3 group">
               {storeConfig?.logoUrl ? (
                 <div className="relative w-8 h-8 rounded-sm overflow-hidden">
@@ -148,106 +225,27 @@ export function Header() {
               </h1>
             </Link>
 
-            <div className="flex items-center gap-8">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden">
-                    <Menu className="h-6 w-6" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
-                  <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Menu</SheetTitle>
-                  </SheetHeader>
-                  
-                  <ScrollArea className="flex-1">
-                    <div className="p-8 space-y-12">
-                      <div className="space-y-6">
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Shop Collections</h3>
-                        <nav className="flex flex-col gap-6">
-                          {categories?.map((cat: any) => (
-                            <Link 
-                              key={cat.id} 
-                              href={`/collections/${cat.id}`} 
-                              className="text-xl font-headline uppercase hover:opacity-60 transition-opacity"
-                            >
-                              {cat.name}
-                            </Link>
-                          ))}
-                          <Link href="/collections/all" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
-                            All Drops
-                          </Link>
-                        </nav>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-6">
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Your Account</h3>
-                        {user ? (
-                          <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                <UserIcon className="h-5 w-5 text-gray-400" />
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-sm font-bold uppercase">{user.displayName || 'Client'}</span>
-                                <span className="text-[9px] text-gray-400 truncate max-w-[150px]">{user.email}</span>
-                              </div>
-                            </div>
-                            <Button 
-                              onClick={handleLogout} 
-                              variant="outline" 
-                              className="w-full h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
-                            >
-                              Sign Out
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 gap-2">
-                            <Button 
-                              onClick={handleLogin} 
-                              className="bg-black text-white h-12 rounded-none font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
-                            >
-                              Sign In
-                            </Button>
-                            <Button 
-                              onClick={handleLogin} 
-                              variant="outline" 
-                              className="h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
-                            >
-                              Create Account
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </ScrollArea>
-                </SheetContent>
-              </Sheet>
-
-              <nav className="hidden lg:flex items-center gap-8">
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
-                    Categories <ChevronDown className="h-3 w-3" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="bg-white border-black/10 rounded-none min-w-[240px] p-0 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="p-4 bg-gray-50 border-b">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Select Collection</p>
-                    </div>
-                    <div className="py-1">
-                      {categories?.map((cat: any) => (
-                        <DropdownMenuItem key={cat.id} asChild>
-                          <Link href={`/collections/${cat.id}`} className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
-                            {cat.name}
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </nav>
-            </div>
+            <nav className="hidden lg:flex items-center gap-8">
+              <DropdownMenu>
+                <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
+                  Categories <ChevronDown className="h-3 w-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-white border-black/10 rounded-none min-w-[240px] p-0 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="p-4 bg-gray-50 border-b">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Select Collection</p>
+                  </div>
+                  <div className="py-1">
+                    {categories?.map((cat: any) => (
+                      <DropdownMenuItem key={cat.id} asChild>
+                        <Link href={`/collections/${cat.id}`} className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
+                          {cat.name}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </nav>
           </div>
 
           <div className="flex items-center gap-2">
