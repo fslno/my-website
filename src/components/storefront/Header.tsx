@@ -59,20 +59,19 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white">
                 <SheetHeader className="sr-only">
-                  <SheetTitle>Navigation Menu</SheetTitle>
+                  <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-6 mt-12">
-                  <Link href="/collections/new" className="text-xl font-headline">New Drops</Link>
+                  <Link href="/collections/new" className="text-xl font-headline">New Arrivals</Link>
                   <Link href="/collections/women" className="text-xl font-headline">Women</Link>
                   <Link href="/collections/men" className="text-xl font-headline">Men</Link>
-                  <Link href="/collections/accessories" className="text-xl font-headline">Accessories</Link>
                 </nav>
               </SheetContent>
             </Sheet>
 
             <nav className="hidden lg:flex items-center gap-8">
               <Link href="/collections/new" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Collections</Link>
-              <Link href="/collections/about" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">Archive</Link>
+              <Link href="/collections/about" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">About</Link>
             </nav>
           </div>
 
@@ -98,13 +97,13 @@ export function Header() {
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center">Wishlist Archive ({wishlistCount})</SheetTitle>
+                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center">Wishlist ({wishlistCount})</SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1">
                   {wishlist.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
                       <Heart className="h-12 w-12 text-gray-200 mb-4" />
-                      <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Save pieces for later.</p>
+                      <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Save your favorite items here.</p>
                     </div>
                   ) : (
                     <div className="p-6 space-y-8">
@@ -146,14 +145,14 @@ export function Header() {
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0 space-y-4">
-                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase">Your Bag ({cartCount})</SheetTitle>
+                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase">Your Cart ({cartCount})</SheetTitle>
                   
                   {cartSubtotal > 0 && (
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest">
                         <span className="flex items-center gap-1.5">
                           <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-gray-300")} />
-                          {thresholdProgress >= 100 ? "Archive Credit Unlocked" : `$${remainingForThreshold.toLocaleString()} more for $100 off`}
+                          {thresholdProgress >= 100 ? "Discount Unlocked" : `$${remainingForThreshold.toLocaleString()} more for $100 off`}
                         </span>
                         <span>{Math.round(thresholdProgress)}%</span>
                       </div>
@@ -166,9 +165,9 @@ export function Header() {
                   {cart.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
                       <ShoppingBag className="h-12 w-12 text-gray-200 mb-4" />
-                      <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Your archive is empty.</p>
+                      <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Your cart is empty.</p>
                       <Button asChild variant="outline" className="mt-6 border-black text-black font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none">
-                        <Link href="/">Discover Pieces</Link>
+                        <Link href="/">Shop Now</Link>
                       </Button>
                     </div>
                   ) : (
@@ -187,17 +186,6 @@ export function Header() {
                                 </p>
                               </div>
                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
-                              {(item.customName || item.customNumber) && (
-                                <div className="flex gap-2 text-[8px] font-bold uppercase text-blue-600 mt-1">
-                                  {item.customName && <span>Name: {item.customName}</span>}
-                                  {item.customNumber && <span>No: {item.customNumber}</span>}
-                                </div>
-                              )}
-                              {item.specialNote && (
-                                <div className="text-[8px] text-gray-500 mt-1 border-l-2 border-gray-200 pl-2 line-clamp-2">
-                                  Note: {item.specialNote}
-                                </div>
-                              )}
                             </div>
                             
                             <div className="flex items-center justify-between pt-2">
@@ -226,11 +214,11 @@ export function Header() {
                         <span className="text-xl font-bold">${cartSubtotal.toLocaleString()} CAD</span>
                       </div>
                       <p className="text-[9px] text-gray-400 uppercase tracking-widest">
-                        Tax and shipping will calculate at the checkout.
+                        Tax and shipping calculated at checkout.
                       </p>
                     </div>
                     <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-black/90 transition-all flex items-center justify-center gap-3">
-                      <Link href="/checkout">Continue to Checkout <ArrowRight className="h-4 w-4" /></Link>
+                      <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
                     </Button>
                   </SheetFooter>
                 )}

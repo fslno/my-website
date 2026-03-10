@@ -114,8 +114,9 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
   const handleAddToCart = () => {
     if (!product || !selectedSize || isStockReached) return;
 
-    const customizationSuffix = wantsCustomization ? `-${customName}-${customNumber}-${specialRequest}` : '';
-    const uniqueVariantId = `${product.id}-${selectedSize}${customizationSuffix}`;
+    const uniqueVariantId = wantsCustomization 
+      ? `${product.id}-${selectedSize}-${customName}-${customNumber}`
+      : `${product.id}-${selectedSize}`;
 
     addToCart({
       id: product.id,
@@ -132,7 +133,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
 
     toast({
       title: "Added to Cart",
-      description: `${product.name} (${selectedSize}) is ready for checkout.`,
+      description: `${product.name} (${selectedSize}) is in your cart.`,
     });
   };
 
@@ -147,7 +148,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
     });
     toast({
       title: isSaved ? "Removed from Wishlist" : "Saved to Wishlist",
-      description: isSaved ? "Item removed from your archive." : "Piece added to your permanent archive wishlist.",
+      description: isSaved ? "Item removed from your favorites." : "Item added to your favorites.",
     });
   };
 
@@ -155,7 +156,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
     if (!product) return;
     const shareData = {
       title: `FSLNO | ${product.name}`,
-      text: product.description || `Check out the ${product.name} from FSLNO Archive.`,
+      text: product.description || `Check out this ${product.name} from FSLNO.`,
       url: window.location.href,
     };
 
@@ -169,7 +170,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
       navigator.clipboard.writeText(window.location.href);
       toast({
         title: "Link Copied",
-        description: "Archive entry link copied to clipboard.",
+        description: "Product link copied to clipboard.",
       });
     }
   };
@@ -185,10 +186,10 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center p-4">
-        <h1 className="text-2xl font-headline font-bold mb-4">Entry Not Found</h1>
-        <p className="text-muted-foreground mb-8">This item may have been de-archived or moved.</p>
+        <h1 className="text-2xl font-headline font-bold mb-4">Product Not Found</h1>
+        <p className="text-muted-foreground mb-8">This item may no longer be available.</p>
         <Button asChild className="bg-black text-white">
-          <a href="/">Back to Archive</a>
+          <a href="/">Back to Shop</a>
         </Button>
       </div>
     );
@@ -235,14 +236,14 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
             </div>
 
             <div className="hidden lg:block space-y-4 pt-6 border-t">
-              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Product Narrative</h3>
+              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Description</h3>
               <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-sm">
-                {product.description || "No description provided for this archive entry."}
+                {product.description || "No description provided."}
               </div>
               
               {product.features && product.features.length > 0 && (
                 <div className="pt-4">
-                  <h4 className="text-[10px] uppercase tracking-widest font-bold mb-3">Key Attributes</h4>
+                  <h4 className="text-[10px] uppercase tracking-widest font-bold mb-3">Key Features</h4>
                   <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
                     {product.features.map((feature: string, i: number) => (
                       <li key={i} className="text-[11px] flex items-start gap-2 text-gray-500">
@@ -258,18 +259,10 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
 
           <div className="space-y-6">
             <div className="space-y-1">
-              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO Studio'}</p>
+              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO'}</p>
               <h1 className="text-2xl font-headline font-bold tracking-tight">{product.name}</h1>
               <div className="flex items-center gap-4">
                 <p className="text-lg font-bold">${totalPrice.toLocaleString()} CAD</p>
-                <div className="flex items-center gap-1 text-orange-400">
-                  <Star className="h-2.5 w-2.5 fill-current" />
-                  <Star className="h-2.5 w-2.5 fill-current" />
-                  <Star className="h-2.5 w-2.5 fill-current" />
-                  <Star className="h-2.5 w-2.5 fill-current" />
-                  <Star className="h-2.5 w-2.5 fill-current" />
-                  <span className="text-[9px] text-gray-400 font-bold ml-1">(24 Reviews)</span>
-                </div>
               </div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
                 REF: {displayedSku}
@@ -293,7 +286,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                       <SheetHeader className="p-8 border-b shrink-0">
                         <div className="flex items-center gap-3 text-black mb-2">
                           <Ruler className="h-5 w-5" />
-                          <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Technical Guide</SheetTitle>
+                          <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Size Guide</SheetTitle>
                         </div>
                         <p className="text-sm text-gray-500 font-medium">Measurements for: <span className="text-black font-bold">{sizeChart.name}</span></p>
                       </SheetHeader>
@@ -302,10 +295,10 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                         <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <TableIcon className="h-4 w-4 text-gray-400" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Measurement Matrix</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Dimensions</span>
                           </div>
                           <span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest">
-                            Units: {sizeChart.unit}
+                            Unit: {sizeChart.unit}
                           </span>
                         </div>
 
@@ -336,7 +329,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                   </Sheet>
                 ) : (
                   <button className="flex items-center gap-2 text-gray-300 cursor-not-allowed text-[11px] uppercase font-bold">
-                    <Ruler className="h-4 w-4" /> No chart linked
+                    <Ruler className="h-4 w-4" /> No size guide
                   </button>
                 )}
               </div>
@@ -359,14 +352,14 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                 ))}
               </div>
               <p className="text-[9px] text-gray-400">
-                Fitting: <span className="text-black font-bold">{product.sizeFit || 'Standard Fit'}</span>
+                Fit: <span className="text-black font-bold">{product.sizeFit || 'True to size'}</span>
               </p>
             </div>
 
             <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
               <div className="space-y-2">
                 <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">
-                  Customization Service
+                  Customization
                 </Label>
                 <div className="flex gap-2">
                   <button
@@ -393,7 +386,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
               {wantsCustomization && (
                 <div className="space-y-4 animate-in fade-in duration-300">
                   <div className="flex items-center justify-between border-b pb-2">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Customization Premium</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Customization Fee</span>
                     <span className="text-lg font-bold text-black">
                       +${product.customizationFee || 0}
                     </span>
@@ -403,7 +396,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                     <div className="space-y-1.5">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Name</Label>
                       <Input 
-                        placeholder="e.g. CASILLAS" 
+                        placeholder="ENTER NAME" 
                         value={customName}
                         onChange={(e) => setCustomName(e.target.value.toUpperCase())}
                         className="bg-white h-9 text-[10px] font-bold"
@@ -412,23 +405,13 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                     <div className="space-y-1.5">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Number</Label>
                       <Input 
-                        placeholder="1" 
+                        placeholder="00" 
                         maxLength={2}
                         value={customNumber}
                         onChange={(e) => setCustomNumber(e.target.value)}
                         className="bg-white h-9 text-[10px] font-bold text-center"
                       />
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Notes</Label>
-                    <Textarea 
-                      placeholder="any special note"
-                      value={specialRequest}
-                      onChange={(e) => setSpecialRequest(e.target.value)}
-                      className="bg-white border-gray-200 min-h-[60px] text-[10px] resize-none"
-                    />
                   </div>
                 </div>
               )}
@@ -445,7 +428,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                     : "bg-black text-white hover:bg-black/90"
                 )}
               >
-                {!selectedSize ? 'Select Size' : isStockReached ? 'Limited Reached' : 'Add to Cart'}
+                {!selectedSize ? 'Select Size' : isStockReached ? 'Sold Out' : 'Add to Cart'}
               </button>
               <div className="grid grid-cols-2 gap-2">
                 <Button 
@@ -470,16 +453,16 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
             </div>
 
             <div className="lg:hidden space-y-4 pt-6 border-t">
-              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Product Narrative</h3>
+              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Description</h3>
               <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-sm">
-                {product.description || "No description provided for this archive entry."}
+                {product.description || "No description provided."}
               </div>
             </div>
 
             <div className="pt-4 space-y-3">
               <div className="flex items-center gap-2 text-gray-400">
                 <Check className="h-3 w-3 text-green-500" />
-                <span className="text-[9px] font-bold uppercase tracking-widest">Archive Ready for Dispatch</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest">Ready to ship</span>
               </div>
             </div>
           </div>

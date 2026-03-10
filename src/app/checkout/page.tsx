@@ -7,18 +7,13 @@ import {
   Truck, 
   Store, 
   ChevronLeft, 
-  Calendar, 
-  Clock, 
-  CheckCircle2,
   Package,
-  Search,
   AlertCircle,
   Loader2,
-  ChevronRight,
-  ArrowRight,
   Tag,
   X,
-  CreditCard
+  CreditCard,
+  CheckCircle2
 } from 'lucide-react';
 import { useCart, type Coupon } from '@/context/CartContext';
 import { useUser, useFirestore } from '@/firebase';
@@ -41,13 +36,12 @@ import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+  DialogTitle 
 } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
 type DeliveryMethod = 'shipping' | 'pickup';
@@ -106,8 +100,6 @@ export default function CheckoutPage() {
     billingProvince: '',
     billingCountry: '',
     courier: '', 
-    pickupDate: new Date().toISOString().split('T')[0],
-    pickupTime: '14:00',
     referral: ''
   });
 
@@ -186,13 +178,13 @@ export default function CheckoutPage() {
         const data = couponDoc.data() as Coupon;
         if (data.active) {
           applyCoupon(data);
-          toast({ title: "Archive Code Applied", description: `Discount applied successfully.` });
+          toast({ title: "Discount Code Applied", description: `Your discount has been applied.` });
           setCouponInput('');
         } else {
-          toast({ variant: "destructive", title: "Invalid Code", description: "This coupon is no longer active." });
+          toast({ variant: "destructive", title: "Invalid Code", description: "This code is no longer active." });
         }
       } else {
-        toast({ variant: "destructive", title: "Not Found", description: "Archive code not recognized." });
+        toast({ variant: "destructive", title: "Not Found", description: "Discount code not recognized." });
       }
     } catch (e) {
       toast({ variant: "destructive", title: "Error", description: "Failed to validate code." });
@@ -210,14 +202,9 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
 
-    const transactionId = `FSLNO-TXN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-    const ipAddress = "72.143." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255);
-
     const orderData = {
       userId: user?.uid || 'guest',
       email: formData.email,
-      transactionId,
-      ipAddress,
       customer: {
         name: formData.name,
         phone: formData.phone,
@@ -245,6 +232,7 @@ export default function CheckoutPage() {
       total: finalTotal,
       deliveryMethod,
       courier: formData.courier,
+      referral: formData.referral,
       status: 'awaiting_processing',
       paymentStatus: 'pending',
       createdAt: serverTimestamp()
@@ -256,7 +244,7 @@ export default function CheckoutPage() {
         setShowSuccessDialog(true);
         clearCart();
       })
-      .catch(async (serverError) => {
+      .catch((serverError) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: 'orders',
           operation: 'create',
@@ -270,9 +258,9 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
         <Package className="h-12 w-12 text-gray-200 mb-4" />
-        <h1 className="text-2xl font-headline font-bold mb-4 uppercase">Bag is Empty</h1>
+        <h1 className="text-2xl font-headline font-bold mb-4 uppercase">Your cart is empty</h1>
         <Button asChild className="bg-black text-white h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px]">
-          <Link href="/">Discover Archive</Link>
+          <Link href="/">Shop Now</Link>
         </Button>
       </div>
     );
@@ -283,7 +271,7 @@ export default function CheckoutPage() {
       <header className="h-20 bg-white border-b flex items-center px-4 lg:px-12 sticky top-0 z-50">
         <Link href="/" className="flex items-center gap-2 group">
           <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">FSLNO ARCHIVE</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Store</span>
         </Link>
         <h1 className="absolute left-1/2 -translate-x-1/2 text-2xl font-headline font-bold tracking-tighter">CHECKOUT</h1>
       </header>
@@ -301,7 +289,7 @@ export default function CheckoutPage() {
                 <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-black" : "text-gray-400")} />
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-widest">Shipping</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Dispatch from studio</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Ship to your address</p>
                 </div>
               </button>
               <button
@@ -310,8 +298,8 @@ export default function CheckoutPage() {
               >
                 <Store className={cn("h-6 w-6", deliveryMethod === 'pickup' ? "text-black" : "text-gray-400")} />
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest">In-Person Pickup</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Select studio location</p>
+                  <p className="text-[11px] font-bold uppercase tracking-widest">Store Pickup</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Pick up in-person</p>
                 </div>
               </button>
             </div>
@@ -322,11 +310,11 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-red-500" : "text-gray-500")}>Email Address {errors.email && "- REQUIRED"}</Label>
-                <Input type="email" placeholder="ARCHIVE@FSLNO.COM" className="h-12 bg-[#F9F9F9] uppercase" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
+                <Input placeholder="EMAIL@EXAMPLE.COM" className="h-12 bg-[#F9F9F9] uppercase" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-red-500" : "text-gray-500")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
-                <Input type="tel" placeholder="+1 (555) 000-0000" className="h-12 bg-[#F9F9F9]" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                <Input placeholder="+1 (555) 000-0000" className="h-12 bg-[#F9F9F9]" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
                 <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-red-500" : "text-gray-500")}>Full Name {errors.name && "- REQUIRED"}</Label>
@@ -337,7 +325,7 @@ export default function CheckoutPage() {
             {deliveryMethod === 'shipping' ? (
               <div className="space-y-10 pt-4 border-t">
                 <div className="space-y-6">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Destination</h3>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Address</h3>
                   <div className="grid gap-4">
                     <div className="space-y-2">
                       <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-red-500" : "text-gray-500")}>Address {errors.address && "- REQUIRED"}</Label>
@@ -356,11 +344,11 @@ export default function CheckoutPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-red-500" : "text-gray-500")}>Province / State {errors.province && "- REQUIRED"}</Label>
-                        <Input placeholder="E.G. ON" className="h-12 uppercase" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
+                        <Input placeholder="PROVINCE" className="h-12 uppercase" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
                       </div>
                       <div className="space-y-2">
                         <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-red-500" : "text-gray-500")}>Country {errors.country && "- REQUIRED"}</Label>
-                        <Input placeholder="E.G. CANADA" className="h-12 uppercase" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
+                        <Input placeholder="COUNTRY" className="h-12 uppercase" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
                       </div>
                     </div>
                   </div>
@@ -374,19 +362,19 @@ export default function CheckoutPage() {
                       onCheckedChange={(checked) => setBillingSameAsShipping(checked === true)} 
                     />
                     <Label htmlFor="billing-same" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer">
-                      Billing Address Same as Shipping
+                      Billing address is same as shipping address
                     </Label>
                   </div>
 
                   {!billingSameAsShipping && (
                     <div className="space-y-6 animate-in fade-in duration-300">
                       <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
-                        <CreditCard className="h-3 w-3" /> Billing Information
+                        <CreditCard className="h-3 w-3" /> Billing Address
                       </h3>
                       <div className="grid gap-4">
                         <div className="space-y-2">
-                          <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Billing Address {errors.billingAddress && "- REQUIRED"}</Label>
-                          <Input placeholder="BILLING STREET ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                          <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
+                          <Input placeholder="BILLING ADDRESS" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
@@ -401,11 +389,11 @@ export default function CheckoutPage() {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-red-500" : "text-gray-500")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
-                            <Input placeholder="E.G. ON" className="h-12 uppercase" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                            <Input placeholder="PROVINCE" className="h-12 uppercase" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                           </div>
                           <div className="space-y-2">
                             <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-red-500" : "text-gray-500")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
-                            <Input placeholder="E.G. CANADA" className="h-12 uppercase" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                            <Input placeholder="COUNTRY" className="h-12 uppercase" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                           </div>
                         </div>
                       </div>
@@ -415,27 +403,27 @@ export default function CheckoutPage() {
 
                 <div className="space-y-4 pt-6 border-t">
                   <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", errors.courier ? "text-red-500" : "text-gray-500")}>
-                    <Truck className="h-3 w-3" /> Select Courier {errors.courier && "- REQUIRED"}
+                    <Truck className="h-3 w-3" /> Select Shipping Method {errors.courier && "- REQUIRED"}
                   </h3>
                   <RadioGroup value={formData.courier} onValueChange={(val) => { setShippingRate(val === 'fedex' ? 25 : val === 'dhl' ? 45 : 0); handleInputChange('courier', val); }} className="grid grid-cols-1 gap-2">
                     <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'usps' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="usps" id="usps" />
-                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Standard (USPS / Economy)</Label>
+                        <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Standard Shipping</Label>
                       </div>
                       <span className="text-[11px] font-bold">FREE</span>
                     </div>
                     <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'fedex' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="fedex" id="fedex" />
-                        <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Priority (FedEx Express)</Label>
+                        <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Priority Express</Label>
                       </div>
                       <span className="text-[11px] font-bold">$25.00</span>
                     </div>
                     <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'dhl' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="dhl" id="dhl" />
-                        <Label htmlFor="dhl" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">International (DHL Luxury)</Label>
+                        <Label htmlFor="dhl" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">International Express</Label>
                       </div>
                       <span className="text-[11px] font-bold">$45.00</span>
                     </div>
@@ -465,11 +453,11 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-red-500" : "text-gray-500")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
-                      <Input placeholder="E.G. ON" className="h-12 uppercase" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                      <Input placeholder="PROVINCE" className="h-12 uppercase" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                     </div>
                     <div className="space-y-2">
                       <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-red-500" : "text-gray-500")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
-                      <Input placeholder="E.G. CANADA" className="h-12 uppercase" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                      <Input placeholder="COUNTRY" className="h-12 uppercase" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                     </div>
                   </div>
                 </div>
@@ -481,12 +469,13 @@ export default function CheckoutPage() {
             <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-red-500" : "text-black")}>How did you find us? {errors.referral && "- REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
               <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:bg-gray-100 transition-colors text-[10px] font-bold uppercase tracking-widest rounded-sm">
-                <SelectValue placeholder="SELECT AN OPTION" />
+                <SelectValue placeholder="CHOOSE AN OPTION" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="google" className="text-[10px] font-bold uppercase tracking-widest">Google / Pinterest</SelectItem>
-                <SelectItem value="social" className="text-[10px] font-bold uppercase tracking-widest">Facebook / Instagram</SelectItem>
-                <SelectItem value="friend" className="text-[10px] font-bold uppercase tracking-widest">From Friend</SelectItem>
+                <SelectItem value="social" className="text-[10px] font-bold uppercase tracking-widest">Social Media</SelectItem>
+                <SelectItem value="friend" className="text-[10px] font-bold uppercase tracking-widest">Friend Referral</SelectItem>
+                <SelectItem value="other" className="text-[10px] font-bold uppercase tracking-widest">Other</SelectItem>
               </SelectContent>
             </Select>
           </section>
@@ -497,8 +486,8 @@ export default function CheckoutPage() {
             {showErrorBanner && (
               <Alert variant="destructive" className="rounded-none border-2">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Incomplete Archive Details</AlertTitle>
-                <AlertDescription className="text-[9px] uppercase font-medium">Please review the highlighted required fields to finalize your acquisition.</AlertDescription>
+                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Incomplete Information</AlertTitle>
+                <AlertDescription className="text-[9px] uppercase font-medium">Please review the highlighted fields to complete your order.</AlertDescription>
               </Alert>
             )}
 
@@ -520,16 +509,6 @@ export default function CheckoutPage() {
                         <span>Size: {item.size}</span>
                         <span>Qty: {item.quantity}</span>
                       </div>
-                      {(item.customName || item.customNumber) && (
-                        <div className="text-[8px] font-bold uppercase text-blue-600">
-                          {item.customName} {item.customNumber}
-                        </div>
-                      )}
-                      {item.specialNote && (
-                        <div className="text-[8px] text-gray-500 mt-1 border-l border-gray-200 pl-2">
-                          {item.specialNote}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -538,7 +517,7 @@ export default function CheckoutPage() {
 
             <div className="pt-8 border-t space-y-4">
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Archive Code</Label>
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Discount Code</Label>
                 <div className="flex gap-2">
                   <Input 
                     placeholder="ENTER CODE" 
@@ -574,7 +553,7 @@ export default function CheckoutPage() {
                 </div>
                 {discountTotal > 0 && (
                   <div className="flex justify-between text-[10px] font-bold uppercase text-red-600">
-                    <span>Archive Discounts</span>
+                    <span>Discounts</span>
                     <span>-${discountTotal.toLocaleString()}</span>
                   </div>
                 )}
@@ -599,7 +578,7 @@ export default function CheckoutPage() {
                   disabled={isSubmitting}
                   className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl"
                 >
-                  {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Secure Checkout"}
+                  {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Complete Order"}
                 </Button>
               </div>
             </div>
@@ -612,8 +591,8 @@ export default function CheckoutPage() {
           <div className="p-12 space-y-8">
             <div className="text-center space-y-4">
               <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
-              <h2 className="text-3xl font-headline font-bold uppercase tracking-tight">Archive Order Confirmed</h2>
-              <p className="text-sm text-gray-500 uppercase tracking-[0.2em]">Thank you for your acquisition.</p>
+              <h2 className="text-3xl font-headline font-bold uppercase tracking-tight">Order Confirmed</h2>
+              <p className="text-sm text-gray-500 uppercase tracking-[0.2em]">Thank you for your purchase.</p>
             </div>
 
             {confirmedOrder && (
@@ -625,20 +604,12 @@ export default function CheckoutPage() {
                   </div>
                   <div className="space-y-2">
                     <p className="text-gray-400">Status</p>
-                    <p className="text-green-600">{confirmedOrder.status}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-gray-400">Recipient</p>
-                    <p className="text-black">{confirmedOrder.customer.name}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-gray-400">Dispatch via</p>
-                    <p className="text-black">{confirmedOrder.courier || confirmedOrder.deliveryMethod}</p>
+                    <p className="text-green-600">Confirmed</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Archive Manifest</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Order Items</p>
                   <div className="space-y-3">
                     {confirmedOrder.items.map((item: any, i: number) => (
                       <div key={i} className="flex justify-between text-[11px] font-bold uppercase">
@@ -650,14 +621,14 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="pt-4 border-t flex justify-between items-end">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Total Value</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Total</span>
                   <span className="text-xl font-bold font-headline">${confirmedOrder.total.toLocaleString()} CAD</span>
                 </div>
               </div>
             )}
 
             <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none">
-              <Link href="/">Return to Archive</Link>
+              <Link href="/">Back to Shop</Link>
             </Button>
           </div>
         </DialogContent>
