@@ -37,18 +37,31 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
 export default function OrdersPage() {
   const db = useFirestore();
   const router = useRouter();
+  const { user } = useUser();
 
+  // Client-side admin verification to guard the query and avoid permission race conditions
+  const isAdmin = useMemo(() => {
+    return user && (user.email === 'fslno.dev@gmail.com' || user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2');
+  }, [user]);
+
+  // Optimized query with admin guard and safe result limit
   const ordersQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-  }, [db]);
+    // ONLY run the query if we are confident the user is an admin
+    // This prevents "Missing or insufficient permissions" errors during auth hydration
+    if (!db || !isAdmin) return null;
+    return query(
+      collection(db, 'orders'), 
+      orderBy('createdAt', 'desc'),
+      limit(100)
+    );
+  }, [db, isAdmin]);
 
   const { data: orders, loading } = useCollection(ordersQuery);
 
