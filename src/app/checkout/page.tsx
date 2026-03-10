@@ -558,123 +558,6 @@ export default function CheckoutPage() {
             )}
           </section>
 
-          <section className="space-y-8 bg-white p-8 border shadow-sm rounded-sm">
-            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.payment ? "text-red-500" : "text-black")}>03. Payment Method {errors.payment && "- REQUIRED"}</h2>
-            {paymentsLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
-              </div>
-            ) : !paymentConfig ? (
-              <Alert className="bg-amber-50 border-amber-100 rounded-none">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-[10px] font-bold uppercase text-amber-700">Payment system is currently in maintenance mode.</AlertDescription>
-              </Alert>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {paymentConfig.stripeEnabled && (
-                  <button 
-                    onClick={() => setSelectedPayment('stripe')}
-                    className={cn(
-                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
-                      selectedPayment === 'stripe' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <CreditCard className="h-6 w-6 text-black" />
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-widest">Credit Card</p>
-                        <p className="text-[9px] text-gray-400 mt-0.5">Secure Stripe Checkout</p>
-                      </div>
-                    </div>
-                    {selectedPayment === 'stripe' && <CheckCircle2 className="h-4 w-4 text-black" />}
-                  </button>
-                )}
-                {paymentConfig.paypalEnabled && (
-                  <button 
-                    onClick={() => setSelectedPayment('paypal')}
-                    className={cn(
-                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
-                      selectedPayment === 'paypal' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Globe className="h-6 w-6 text-[#0070BA]" />
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-widest">PayPal</p>
-                        <p className="text-[9px] text-gray-400 mt-0.5">Global Digital Wallet</p>
-                      </div>
-                    </div>
-                    {selectedPayment === 'paypal' && <CheckCircle2 className="h-4 w-4 text-black" />}
-                  </button>
-                )}
-                {paymentConfig.klarnaEnabled && (
-                  <button 
-                    onClick={() => setSelectedPayment('klarna')}
-                    className={cn(
-                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
-                      selectedPayment === 'klarna' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Coins className="h-6 w-6 text-[#FFB3C7]" />
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-widest">Klarna</p>
-                        <p className="text-[9px] text-gray-400 mt-0.5">Buy now, pay later</p>
-                      </div>
-                    </div>
-                    {selectedPayment === 'klarna' && <CheckCircle2 className="h-4 w-4 text-black" />}
-                  </button>
-                )}
-                {paymentConfig.afterpayEnabled && (
-                  <button 
-                    onClick={() => setSelectedPayment('afterpay')}
-                    className={cn(
-                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
-                      selectedPayment === 'afterpay' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <History className="h-6 w-6 text-[#B2FCE4]" />
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-widest">Afterpay</p>
-                        <p className="text-[9px] text-gray-400 mt-0.5">Interest-free installments</p>
-                      </div>
-                    </div>
-                    {selectedPayment === 'afterpay' && <CheckCircle2 className="h-4 w-4 text-black" />}
-                  </button>
-                )}
-                {paymentConfig.adyenEnabled && (
-                  <button 
-                    onClick={() => setSelectedPayment('adyen')}
-                    className={cn(
-                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
-                      selectedPayment === 'adyen' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Banknote className="h-6 w-6 text-[#00FF66]" />
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-widest">Adyen</p>
-                        <p className="text-[9px] text-gray-400 mt-0.5">Global merchant network</p>
-                      </div>
-                    </div>
-                    {selectedPayment === 'adyen' && <CheckCircle2 className="h-4 w-4 text-black" />}
-                  </button>
-                )}
-              </div>
-            )}
-
-            <div className="pt-8 border-t mt-8">
-              <Button 
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
-              >
-                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Complete Order"}
-              </Button>
-            </div>
-          </section>
-
           <section className="space-y-6 bg-gray-50 border p-8 rounded-sm">
             <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-red-500" : "text-black")}>Referral Source {errors.referral && "- REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
@@ -749,7 +632,7 @@ export default function CheckoutPage() {
                   placeholder="ADD ANY SPECIAL INSTRUCTIONS FOR YOUR ORDER..." 
                   className="bg-gray-50 border-gray-200 text-[10px] font-bold uppercase rounded-none resize-none min-h-[80px]"
                   value={orderNote}
-                  onChange={(e) => setOrderNote(e.target.value.toUpperCase())}
+                  onChange={(e) => setOrderNote(e.target.toUpperCase())}
                 />
               </div>
 
@@ -814,7 +697,123 @@ export default function CheckoutPage() {
                   </p>
                 </div>
 
-                {/* Express Checkout buttons relocated below Total price */}
+                <section className="space-y-8 pt-8 border-t mt-8">
+                  <h2 className={cn("text-xs font-bold uppercase tracking-[0.2em]", errors.payment ? "text-red-500" : "text-black")}>03. Payment Method {errors.payment && "- REQUIRED"}</h2>
+                  {paymentsLoading ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-gray-200" />
+                    </div>
+                  ) : !paymentConfig ? (
+                    <Alert className="bg-amber-50 border-amber-100 rounded-none">
+                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-[10px] font-bold uppercase text-amber-700">Payment system is currently in maintenance mode.</AlertDescription>
+                    </Alert>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3">
+                      {paymentConfig.stripeEnabled && (
+                        <button 
+                          onClick={() => setSelectedPayment('stripe')}
+                          className={cn(
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
+                            selectedPayment === 'stripe' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                          )}
+                        >
+                          <div className="flex items-center gap-4">
+                            <CreditCard className="h-5 w-5 text-black" />
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest">Credit Card</p>
+                              <p className="text-[8px] text-gray-400">Secure Stripe Checkout</p>
+                            </div>
+                          </div>
+                          {selectedPayment === 'stripe' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                        </button>
+                      )}
+                      {paymentConfig.paypalEnabled && (
+                        <button 
+                          onClick={() => setSelectedPayment('paypal')}
+                          className={cn(
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
+                            selectedPayment === 'paypal' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                          )}
+                        >
+                          <div className="flex items-center gap-4">
+                            <Globe className="h-5 w-5 text-[#0070BA]" />
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest">PayPal</p>
+                              <p className="text-[8px] text-gray-400">Global Digital Wallet</p>
+                            </div>
+                          </div>
+                          {selectedPayment === 'paypal' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                        </button>
+                      )}
+                      {paymentConfig.klarnaEnabled && (
+                        <button 
+                          onClick={() => setSelectedPayment('klarna')}
+                          className={cn(
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
+                            selectedPayment === 'klarna' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                          )}
+                        >
+                          <div className="flex items-center gap-4">
+                            <Coins className="h-5 w-5 text-[#FFB3C7]" />
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest">Klarna</p>
+                              <p className="text-[8px] text-gray-400">Buy now, pay later</p>
+                            </div>
+                          </div>
+                          {selectedPayment === 'klarna' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                        </button>
+                      )}
+                      {paymentConfig.afterpayEnabled && (
+                        <button 
+                          onClick={() => setSelectedPayment('afterpay')}
+                          className={cn(
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
+                            selectedPayment === 'afterpay' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                          )}
+                        >
+                          <div className="flex items-center gap-4">
+                            <History className="h-5 w-5 text-[#B2FCE4]" />
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest">Afterpay</p>
+                              <p className="text-[8px] text-gray-400">Interest-free installments</p>
+                            </div>
+                          </div>
+                          {selectedPayment === 'afterpay' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                        </button>
+                      )}
+                      {paymentConfig.adyenEnabled && (
+                        <button 
+                          onClick={() => setSelectedPayment('adyen')}
+                          className={cn(
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
+                            selectedPayment === 'adyen' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                          )}
+                        >
+                          <div className="flex items-center gap-4">
+                            <Banknote className="h-5 w-5 text-[#00FF66]" />
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest">Adyen</p>
+                              <p className="text-[8px] text-gray-400">Global merchant network</p>
+                            </div>
+                          </div>
+                          {selectedPayment === 'adyen' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="pt-6 border-t mt-6">
+                    <Button 
+                      onClick={handleSubmit}
+                      disabled={isSubmitting || !selectedPayment}
+                      className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+                    >
+                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Complete Order"}
+                    </Button>
+                  </div>
+                </section>
+
                 <div className="space-y-4 pt-6 border-t mt-4">
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
                     <ShieldCheck className="h-3.5 w-3.5" /> Express Checkout
