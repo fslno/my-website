@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -89,10 +88,8 @@ export function Footer() {
       </div>
       
       <div className="max-w-[1440px] mx-auto px-4 border-t border-white/10 mt-24 pt-12 flex flex-col items-center gap-10 text-[9px] uppercase tracking-[0.2em] text-white text-center">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 w-full">
-          <p className="order-2 md:order-1 text-white">{config?.copyrightText || defaultCopyright}</p>
-          
-          <div className="order-1 md:order-2 flex flex-col items-center gap-2 group cursor-default">
+        <div className="flex flex-col items-center justify-center gap-8 w-full">
+          <div className="flex flex-col items-center gap-2 group cursor-default">
             <span className="text-[7px] tracking-[0.5em] font-bold text-white">Powered by</span>
             <div className="flex items-center gap-2.5">
               <div className="w-6 h-6 bg-white/10 border border-white/20 rounded-sm flex items-center justify-center font-headline font-bold text-white text-[11px]">
@@ -102,7 +99,9 @@ export function Footer() {
             </div>
           </div>
 
-          <p className="order-3 md:order-3 text-white">{config?.systemVersion || defaultVersion}</p>
+          <p className="text-white">{config?.copyrightText || defaultCopyright}</p>
+          
+          <p className="text-white">{config?.systemVersion || defaultVersion}</p>
         </div>
       </div>
     </footer>
