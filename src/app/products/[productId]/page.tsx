@@ -294,6 +294,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
               <div className="flex items-center gap-4">
                 <p className="text-lg font-bold">${formatCurrency(totalPrice)} CAD</p>
               </div>
+              {/* Move brand identity below price per refined hierarchy */}
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO'}</p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
                 REF: {displayedSku}
