@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, use } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   useFirestore, 
   useDoc, 
@@ -84,7 +85,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
   const totalPrice = useMemo(() => {
     if (!product) return 0;
     const base = Number(product.price) || 0;
-    const fee = wantsCustomization ? (Number(product.customizationFee) || 0) : 0;
+    const fee = wantsCustomization ? (Number(product.customizationFee) || 10) : 0;
     return base + fee;
   }, [product, wantsCustomization]);
 
@@ -290,7 +291,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                         <Ruler className="h-5 w-5" /> Size Guide
                       </button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="w-full sm:max-w-xl bg-white border-l p-0 overflow-hidden flex flex-col">
+                    <SheetContent side="right" className="w-full bg-white border-l p-0 overflow-hidden flex flex-col">
                       <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                         <div className="flex items-center gap-3 text-black mb-2">
                           <Ruler className="h-5 w-5" />
@@ -366,9 +367,14 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
 
             <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">
-                  Customization
-                </Label>
+                <div className="flex justify-between items-center">
+                  <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">
+                    Customization
+                  </Label>
+                  <span className="text-[10px] font-bold text-black uppercase tracking-widest">
+                    ${formatCurrency(product.customizationFee || 10)}
+                  </span>
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setWantsCustomization(false)}
@@ -393,13 +399,6 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
 
               {wantsCustomization && (
                 <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="flex items-center justify-between border-b pb-2">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Customization Fee</span>
-                    <span className="text-lg font-bold text-black">
-                      +${formatCurrency(product.customizationFee || 0)}
-                    </span>
-                  </div>
-
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Name</Label>
