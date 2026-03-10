@@ -40,6 +40,13 @@
   button, a {
     @apply min-h-[44px] transition-all duration-300 ease-in-out;
   }
+  li {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  li:hover {
+    background-color: #D3D3D3 !important;
+    color: #333333 !important;
+  }
 }
 
 .bento-grid {
