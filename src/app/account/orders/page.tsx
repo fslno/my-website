@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { Loader2, Package, ChevronRight, ShoppingBag } from 'lucide-react';
@@ -15,13 +15,14 @@ export default function OrderHistoryPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
 
-  // Optimized query using userId for strict security rule alignment
+  // Optimized query using userId for strict security rule alignment with limit
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
       collection(db, 'orders'),
       where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      orderBy('createdAt', 'desc'),
+      limit(50)
     );
   }, [db, user]);
 

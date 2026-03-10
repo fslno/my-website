@@ -11,11 +11,11 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) ||
         request.auth.token.email == 'fslno.dev@gmail.com' ||
         request.auth.token.email == 'fslno.owner@gmail.com' ||
         request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
-        request.auth.uid == 'vu6glqmWKBULFaqyvwhHzHu37ox1'
+        request.auth.uid == 'vu6glqmWKBULFaqyvwhHzHu37ox1' ||
+        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
       );
     }
 
@@ -28,7 +28,7 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      // Allow listing if user is admin OR if the query is strictly filtered to their own UID
+      // Allow listing if user is admin OR if the query is strictly filtered to their own UID with a safe limit
       allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100 && resource.data.userId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
