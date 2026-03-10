@@ -184,7 +184,7 @@ export function Header() {
               <Search className="absolute left-3 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
               <Input 
                 placeholder="SEARCH" 
-                className="pl-8 h-9 w-28 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black"
+                className="pl-8 h-9 w-9 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-full sm:rounded-none focus-visible:ring-1 focus-visible:ring-black transition-all duration-300 focus:w-40 sm:focus:w-40 md:focus:w-56 placeholder:opacity-0 sm:placeholder:opacity-100 focus:placeholder:opacity-100"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
