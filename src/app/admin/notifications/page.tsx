@@ -24,7 +24,11 @@ import {
   Send,
   Globe,
   Palette,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  Zap,
+  Sparkles,
+  TicketPercent
 } from 'lucide-react';
 import { 
   Card, 
@@ -49,6 +53,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
 
 interface NotificationConfig {
   enabled: boolean;
@@ -100,20 +105,51 @@ const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
     enabled: true,
     subject: "Refund Processed: Order #{{order_id}}",
     body: "A refund has been initiated for your archival order..."
+  }
+};
+
+const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
+  favReminder: {
+    label: "Favorite Products Reminder",
+    description: "Sent 3 days after a customer adds items to their favorites without checking out.",
+    enabled: false,
+    subject: "Still thinking about these? {{product_list}}",
+    body: "Hi {{customer_name}}, we noticed you saved some pieces to your wishlist..."
   },
-  downloadEGoods: {
-    label: "Download E-goods",
-    description: "Sent automatically once a digital product order is marked as 'Paid.'",
+  cartRecovery: {
+    label: "Abandoned Cart Recovery",
+    description: "Automatically reminds shoppers about unfinished orders left in their cart.",
     enabled: true,
-    subject: "Your Digital Assets: Order #{{order_id}}",
-    body: "Click here to download your digital archive materials..."
+    subject: "You left something in your archive bag",
+    body: "Finish your acquisition before it returns to the vault..."
   },
-  giftCardPurchased: {
-    label: "Gift Card Purchased",
-    description: "Contains redemption codes and instructions for the purchaser.",
+  feedbackRequest: {
+    label: "Feedback Request",
+    description: "Sent after an order is marked 'Delivered' to gather reviews or star ratings.",
     enabled: true,
-    subject: "Your FSLNO Digital Gift Card",
-    body: "Your gift card code is: {{gift_card_code}}..."
+    subject: "How is your new FSLNO piece?",
+    body: "We would love to hear your thoughts on order #{{order_id}}..."
+  },
+  loyaltyAppreciation: {
+    label: "Loyalty Appreciation",
+    description: "Sent 1 day after a customer’s 2nd (or subsequent) paid order to say thanks.",
+    enabled: true,
+    subject: "A special thanks from FSLNO Studio",
+    body: "As a recurring archive member, we want to offer you..."
+  },
+  inactiveReminder: {
+    label: "Inactive Customer Reminder",
+    description: "Sent 6 months after a customer’s last purchase to re-spark interest.",
+    enabled: false,
+    subject: "It's been a while, {{customer_name}}",
+    body: "New drops have arrived in the archive since your last visit..."
+  },
+  anniversaryCelebration: {
+    label: "Purchase Anniversary",
+    description: "Sent 1 year after an order to celebrate the milestone and offer new products.",
+    enabled: false,
+    subject: "1 Year Anniversary: Your FSLNO Archive milestone",
+    body: "It's been exactly one year since your acquisition of..."
   }
 };
 
@@ -128,6 +164,7 @@ export default function NotificationsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [isMarketingEdit, setIsMarketingEdit] = useState(false);
   
   // Local form state for editing a specific notification
   const [editSubject, setEditingSubject] = useState('');
@@ -137,18 +174,21 @@ export default function NotificationsPage() {
   const [logoUrl, setLogoUrl] = useState('');
   const [accentColor, setAccentColor] = useState('#000000');
   const [footerContent, setFooterContent] = useState('');
+  const [attachInvoice, setAttachInvoice] = useState(true);
 
   useEffect(() => {
     if (config?.global) {
       setLogoUrl(config.global.logoUrl || '');
       setAccentColor(config.global.accentColor || '#000000');
       setFooterContent(config.global.footer || '');
+      setAttachInvoice(config.global.attachInvoice ?? true);
     }
   }, [config]);
 
-  const handleToggle = (key: string, enabled: boolean) => {
+  const handleToggle = (key: string, enabled: boolean, isMarketing = false) => {
     if (!configRef) return;
-    const updates = { [key]: { ...(config?.[key] || DEFAULT_NOTIFICATIONS[key]), enabled } };
+    const base = isMarketing ? (config?.[key] || DEFAULT_MARKETING[key]) : (config?.[key] || DEFAULT_NOTIFICATIONS[key]);
+    const updates = { [key]: { ...base, enabled } };
     setDoc(configRef, updates, { merge: true }).catch(() => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: configRef.path,
@@ -158,18 +198,20 @@ export default function NotificationsPage() {
     });
   };
 
-  const handleEdit = (key: string) => {
-    const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
+  const handleEdit = (key: string, isMarketing = false) => {
+    const data = isMarketing ? (config?.[key] || DEFAULT_MARKETING[key]) : (config?.[key] || DEFAULT_NOTIFICATIONS[key]);
     setEditingKey(key);
+    setIsMarketingEdit(isMarketing);
     setEditingSubject(data.subject);
     setEditingBody(data.body);
   };
 
   const saveNotificationEdit = () => {
     if (!configRef || !editingKey) return;
+    const base = isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey]);
     const updates = { 
       [editingKey]: { 
-        ...(config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey]), 
+        ...base,
         subject: editSubject, 
         body: editBody 
       } 
@@ -195,12 +237,13 @@ export default function NotificationsPage() {
       logoUrl,
       accentColor,
       footer: footerContent,
+      attachInvoice,
       updatedAt: new Date().toISOString()
     };
 
     setDoc(configRef, { global: globalData }, { merge: true })
       .then(() => {
-        toast({ title: "Branding Saved", description: "Email templates have been synchronized with your identity." });
+        toast({ title: "Settings Saved", description: "All configurations have been synchronized." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -216,7 +259,7 @@ export default function NotificationsPage() {
     setIsSendingTest(true);
     setTimeout(() => {
       setIsSendingTest(false);
-      toast({ title: "Test Email Dispatched", description: "Check your inbox for the FSLNO preview." });
+      toast({ title: "Test Email Dispatched", description: "Check your inbox for the studio preview." });
     }, 1500);
   };
 
@@ -238,11 +281,11 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Customer Order Notifications</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Keep fans informed about their acquisition progress with branded communications.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Customer Communication Center</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Manage high-fidelity automated touchpoints and re-engagement campaigns.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px]" onClick={handleSendTest} disabled={isSendingTest}>
@@ -251,76 +294,151 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-        <Table>
-          <TableHeader className="bg-gray-50/50">
-            <TableRow>
-              <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Notification Type</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Description</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
-              <TableHead className="w-[100px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
-              const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
-              return (
-                <TableRow key={key} className="hover:bg-gray-50/30">
-                  <TableCell className="pl-6 py-4">
-                    <span className="font-bold text-sm tracking-tight">{data.label}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-xs text-gray-500">{data.description}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-center">
-                      <Switch 
-                        checked={data.enabled} 
-                        onCheckedChange={(checked) => handleToggle(key, checked)}
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="pr-6">
-                    <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key)}>
-                      Edit
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+      <section className="space-y-6">
+        <div className="flex items-center gap-2">
+          <Mail className="h-5 w-5 text-gray-400" />
+          <h2 className="text-sm font-bold uppercase tracking-widest">Order Notifications</h2>
+        </div>
+        <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+          <Table>
+            <TableHeader className="bg-gray-50/50">
+              <TableRow>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Notification Type</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Description</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
+                <TableHead className="w-[100px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
+                const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
+                return (
+                  <TableRow key={key} className="hover:bg-gray-50/30">
+                    <TableCell className="pl-6 py-4">
+                      <span className="font-bold text-sm tracking-tight">{data.label}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-gray-500">{data.description}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-center">
+                        <Switch 
+                          checked={data.enabled} 
+                          onCheckedChange={(checked) => handleToggle(key, checked, false)}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="pr-6">
+                      <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, false)}>
+                        Edit
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <div className="flex items-center gap-2">
+          <Zap className="h-5 w-5 text-orange-500" />
+          <h2 className="text-sm font-bold uppercase tracking-widest">Customer Marketing Emails</h2>
+        </div>
+        <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+          <Table>
+            <TableHeader className="bg-gray-50/50">
+              <TableRow>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Campaign Type</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Trigger Logic</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
+                <TableHead className="w-[100px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.keys(DEFAULT_MARKETING).map((key) => {
+                const data = config?.[key] || DEFAULT_MARKETING[key];
+                return (
+                  <TableRow key={key} className="hover:bg-gray-50/30">
+                    <TableCell className="pl-6 py-4">
+                      <span className="font-bold text-sm tracking-tight">{data.label}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-gray-500">{data.description}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-center">
+                        <Switch 
+                          checked={data.enabled} 
+                          onCheckedChange={(checked) => handleToggle(key, checked, true)}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="pr-6">
+                      <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, true)}>
+                        Edit
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <Card className="xl:col-span-2 border-[#e1e3e5] shadow-none">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
-              <CardTitle className="text-lg">Global Customization</CardTitle>
-            </div>
-            <CardDescription>
-              Apply universal branding to all automated archival emails.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email Accent Color</Label>
-                <div className="flex gap-2">
-                  <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+        <div className="xl:col-span-2 space-y-8">
+          <Card className="border-[#e1e3e5] shadow-none">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                <CardTitle className="text-lg">Global Customization</CardTitle>
+              </div>
+              <CardDescription>
+                Apply universal studio branding to all automated correspondence.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email Accent Color</Label>
+                  <div className="flex gap-2">
+                    <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                      <Input 
+                        type="color" 
+                        className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
+                        value={accentColor} 
+                        onChange={(e) => setAccentColor(e.target.value)} 
+                      />
+                    </div>
                     <Input 
-                      type="color" 
-                      className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
                       value={accentColor} 
                       onChange={(e) => setAccentColor(e.target.value)} 
+                      className="h-12 font-mono text-xs uppercase" 
                     />
                   </div>
-                  <Input 
-                    value={accentColor} 
-                    onChange={(e) => setAccentColor(e.target.value)} 
-                    className="h-12 font-mono text-xs uppercase" 
-                  />
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Logo (Header)</Label>
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-4 bg-gray-50 hover:border-black transition-all cursor-pointer group h-24"
+                  >
+                    {logoUrl ? (
+                      <div className="relative w-full max-w-[150px] h-12">
+                        <Image src={logoUrl} alt="Logo" fill className="object-contain" />
+                      </div>
+                    ) : (
+                      <>
+                        <ImageIcon className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Upload 200px wide PNG/JPG</p>
+                      </>
+                    )}
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                  </div>
                 </div>
               </div>
 
@@ -333,64 +451,75 @@ export default function NotificationsPage() {
                   className="min-h-[100px] text-xs resize-none"
                 />
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-4">
-              <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Logo (Header)</Label>
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center gap-4 bg-gray-50 hover:border-black transition-all cursor-pointer group"
-              >
-                {logoUrl ? (
-                  <div className="relative w-full max-w-[200px] h-20">
-                    <Image src={logoUrl} alt="Logo" fill className="object-contain" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors">
-                      <ImageIcon className="h-6 w-6" />
-                    </div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Upload 200px wide PNG/JPG</p>
-                  </>
-                )}
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+          <Card className="border-[#e1e3e5] shadow-none">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-5 w-5" />
+                <CardTitle className="text-lg">Additional Email Settings</CardTitle>
               </div>
-            </div>
-          </CardContent>
-          <DialogFooter className="p-6 border-t bg-gray-50/50">
-            <Button className="bg-black text-white px-10 h-11 font-bold uppercase tracking-widest text-[10px]" onClick={handleSaveGlobal} disabled={isSaving}>
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-              Save Global Styles
-            </Button>
-          </DialogFooter>
-        </Card>
+              <CardDescription>Extra archival document delivery configurations.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-500" />
+                    <p className="text-sm font-bold">Attach Invoices to Order Confirmation</p>
+                  </div>
+                  <p className="text-xs text-[#5c5f62]">When enabled, a high-fidelity PDF invoice will be automatically attached to the confirmation email.</p>
+                </div>
+                <Switch 
+                  checked={attachInvoice} 
+                  onCheckedChange={setAttachInvoice}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="space-y-6">
           <Card className="border-[#e1e3e5] shadow-none bg-black text-white">
             <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-widest text-gray-400">Live Preview Hint</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-widest text-gray-400">Customization Tools</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold">Dynamic Placeholders</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Use tags like &#123;&#123;customer_name&#125;&#125; or &#123;&#123;product_list&#125;&#125; to personalize archival narratives.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
+                  <TicketPercent className="h-4 w-4 text-orange-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold">Discount Codes</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Easily insert automated "Welcome Back" or "Thank You" coupon codes into marketing flows.</p>
+                </div>
+              </div>
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="h-4 w-4 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold">Dynamic Variables</p>
-                  <p className="text-[10px] text-gray-400 mt-1">Use &#123;&#123;order_id&#125;&#125; or &#123;&#123;status&#125;&#125; to inject live transaction data into your narratives.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
-                  <Globe className="h-4 w-4 text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold">Global Delivery</p>
-                  <p className="text-[10px] text-gray-400 mt-1">All emails are dispatched via the Studio Mail API with high deliverability scores.</p>
+                  <p className="text-xs font-bold">Brand Verification</p>
+                  <p className="text-[10px] text-gray-400 mt-1">All communications are DKIM signed for maximum deliverability and trust.</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          <Button className="w-full bg-black text-white px-10 h-14 font-bold uppercase tracking-widest text-[11px]" onClick={handleSaveGlobal} disabled={isSaving}>
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Commit Studio Settings
+          </Button>
         </div>
       </div>
 
@@ -398,10 +527,10 @@ export default function NotificationsPage() {
         <DialogContent className="sm:max-w-2xl bg-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold uppercase tracking-tight">
-              Edit Notification: {editingKey && (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey]).label}
+              Edit Notification: {editingKey && (isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey])).label}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Refine the narrative and subject line for this automated archival touchpoint.
+              Refine the narrative and subject line for this archival touchpoint.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">
@@ -418,7 +547,7 @@ export default function NotificationsPage() {
               <Textarea 
                 value={editBody} 
                 onChange={(e) => setEditingBody(e.target.value)} 
-                className="min-h-[200px] text-sm leading-relaxed"
+                className="min-h-[250px] text-sm leading-relaxed"
               />
             </div>
           </div>
