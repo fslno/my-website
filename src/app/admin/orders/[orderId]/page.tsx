@@ -70,8 +70,10 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
-export default function OrderDetailPage({ params }: { params: Promise<{ orderId: string }> }) {
-  const { orderId } = use(params);
+export default function OrderDetailPage(props: { params: Promise<{ orderId: string }> }) {
+  const resolvedParams = use(props.params);
+  const orderId = resolvedParams.orderId;
+  
   const db = useFirestore();
   const { toast } = useToast();
 
@@ -561,8 +563,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                 </div>
                 {order.deliveryMethod === 'pickup' && order.pickupDate && (
                   <div className="space-y-1">
-                    <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Pickup Schedule</p>
-                    <p className="text-xs font-bold uppercase flex items-center gap-2">
+                    <p className="text-[9px] uppercase font-bold text-gray-400 tracking-widest">Pickup Schedule</p>
+                    <p className="text-xs font-bold uppercase flex items-center gap-2 text-white">
                       <Calendar className="h-3 w-3" /> {order.pickupDate} at {order.pickupTime}
                     </p>
                   </div>
@@ -576,7 +578,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
                 </div>
                 <div className="space-y-1">
                   <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Created At</p>
-                  <p className="text-xs font-bold uppercase flex items-center gap-2">
+                  <p className="text-xs font-bold uppercase flex items-center gap-2 text-white">
                     <Calendar className="h-3 w-3" />
                     {formatDate(order.createdAt)}
                   </p>

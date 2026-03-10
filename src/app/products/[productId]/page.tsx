@@ -45,8 +45,10 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage({ params }: { params: Promise<{ productId: string }> }) {
-  const { productId } = use(params);
+export default function ProductDetailPage(props: { params: Promise<{ productId: string }> }) {
+  const resolvedParams = use(props.params);
+  const productId = resolvedParams.productId;
+  
   const db = useFirestore();
   const router = useRouter();
   const { cart, addToCart } = useCart();
@@ -445,11 +447,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
 
                   <div className="space-y-1.5">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Special Note</Label>
-                    <Textarea 
+                    <Input 
                       placeholder="ADDITIONAL REQUESTS..." 
                       value={specialRequest}
                       onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())}
-                      className="bg-white min-h-[60px] text-[10px] font-bold resize-none"
+                      className="bg-white h-9 text-[10px] font-bold"
                     />
                   </div>
                 </div>
