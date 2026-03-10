@@ -313,7 +313,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                         <Ruler className="h-5 w-5" /> Size Guide
                       </button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="w-full bg-white border-l p-0 overflow-hidden flex flex-col">
+                    <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 overflow-hidden flex flex-col">
                       <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                         <div className="flex items-center gap-3 text-black mb-2">
                           <Ruler className="h-5 w-5" />
