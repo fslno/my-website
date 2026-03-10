@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
   DocumentReference,
-  getDoc,
+  onSnapshot,
   DocumentData,
   FirestoreError,
   DocumentSnapshot,
@@ -25,8 +25,8 @@ export interface UseDocResult<T> {
 }
 
 /**
- * React hook to fetch a single Firestore document one-time.
- * Real-time sync has been disabled per authoritative instruction.
+ * React hook to subscribe to a single Firestore document in real-time.
+ * Real-time sync has been re-enabled per high-fidelity requirement.
  */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
@@ -48,9 +48,9 @@ export function useDoc<T = any>(
     setIsLoading(true);
     setError(null);
 
-    // One-time fetch to disable real-time sync
-    getDoc(memoizedDocRef)
-      .then((snapshot: DocumentSnapshot<DocumentData>) => {
+    const unsubscribe = onSnapshot(
+      memoizedDocRef,
+      (snapshot: DocumentSnapshot<DocumentData>) => {
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
         } else {
@@ -59,8 +59,8 @@ export function useDoc<T = any>(
         }
         setError(null);
         setIsLoading(false);
-      })
-      .catch((error: FirestoreError) => {
+      },
+      (error: FirestoreError) => {
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
@@ -72,7 +72,10 @@ export function useDoc<T = any>(
 
         // trigger global error propagation
         errorEmitter.emit('permission-error', contextualError);
-      });
+      }
+    );
+
+    return () => unsubscribe();
   }, [memoizedDocRef]);
 
   return { data, isLoading, error };

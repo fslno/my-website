@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
   Query,
-  getDocs,
+  onSnapshot,
   DocumentData,
   FirestoreError,
   QuerySnapshot,
@@ -38,8 +38,8 @@ export interface InternalQuery extends Query<DocumentData> {
 }
 
 /**
- * React hook to fetch a Firestore collection or query one-time.
- * Real-time sync has been disabled per authoritative instruction.
+ * React hook to subscribe to a Firestore collection or query in real-time.
+ * Real-time sync has been re-enabled per high-fidelity requirement.
  */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
@@ -62,9 +62,9 @@ export function useCollection<T = any>(
     setIsLoading(true);
     setError(null);
 
-    // One-time fetch to disable real-time sync
-    getDocs(memoizedTargetRefOrQuery)
-      .then((snapshot: QuerySnapshot<DocumentData>) => {
+    const unsubscribe = onSnapshot(
+      memoizedTargetRefOrQuery,
+      (snapshot: QuerySnapshot<DocumentData>) => {
         const results: ResultItemType[] = [];
         for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
@@ -72,8 +72,8 @@ export function useCollection<T = any>(
         setData(results);
         setError(null);
         setIsLoading(false);
-      })
-      .catch((error: FirestoreError) => {
+      },
+      (error: FirestoreError) => {
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
@@ -90,7 +90,10 @@ export function useCollection<T = any>(
 
         // trigger global error propagation
         errorEmitter.emit('permission-error', contextualError);
-      });
+      }
+    );
+
+    return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]);
 
   if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {

@@ -287,13 +287,14 @@ export default function FooterEditorPage() {
               <ExternalLink className="h-4 w-4 text-blue-400" /> Administrative Logic
             </h3>
             <p className="text-[10px] text-gray-400 leading-relaxed">
-              Footer links use relative paths (e.g. <code className="text-white">/shipping</code>) for internal store pages or absolute URLs for external domains. Real-time sync has been disabled for one-time fetch consistency.
+              Footer links use relative paths (e.g. <code className="text-white">/shipping</code>) for internal store pages or absolute URLs for external domains.
             </p>
             <Separator className="bg-white/10" />
             <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
               <span>Status</span>
-              <span className="text-zinc-400 flex items-center gap-1.5">
-                On-Demand Updates Active
+              <span className="text-green-400 flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                Real-time Sync Active
               </span>
             </div>
           </div>

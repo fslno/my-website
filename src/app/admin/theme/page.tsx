@@ -426,8 +426,9 @@ export default function ThemeEnginePage() {
                 <Smartphone className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-gray-400 uppercase font-bold tracking-widest">
-              Manual Save Required
+            <div className="flex items-center gap-2 text-[10px] text-green-600 uppercase font-bold tracking-widest">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              Real-time Frontend Sync Active
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-8 lg:p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:24px_24px]">
