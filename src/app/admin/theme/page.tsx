@@ -427,8 +427,7 @@ export default function ThemeEnginePage() {
               </button>
             </div>
             <div className="flex items-center gap-2 text-[10px] text-gray-400 uppercase font-bold tracking-widest">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              Real-time Full View
+              Manual Save Required
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-8 lg:p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:24px_24px]">
