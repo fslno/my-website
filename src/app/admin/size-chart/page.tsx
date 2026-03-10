@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -41,11 +40,10 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 interface RowData {
   label: string;
@@ -61,6 +59,7 @@ export default function SizeChartPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   
   // Dynamic Form State
   const [name, setName] = useState('');
@@ -126,26 +125,44 @@ export default function SizeChartPage() {
       category,
       columns,
       rows,
-      createdAt: serverTimestamp()
+      updatedAt: serverTimestamp()
     };
 
-    addDoc(collection(db, 'sizeCharts'), chartData)
-      .then(() => {
-        setIsDialogOpen(false);
-        resetForm();
-        toast({ title: "Template Saved", description: `${name} has been added to your permanent library.` });
-      })
-      .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'sizeCharts',
-          operation: 'create',
-          requestResourceData: chartData
-        }));
-      })
-      .finally(() => setIsSaving(false));
+    if (editingId) {
+      updateDoc(doc(db, 'sizeCharts', editingId), chartData)
+        .then(() => {
+          setIsDialogOpen(false);
+          resetForm();
+          toast({ title: "Chart Updated", description: `${name} has been updated.` });
+        })
+        .catch((error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `sizeCharts/${editingId}`,
+            operation: 'update',
+            requestResourceData: chartData
+          }));
+        })
+        .finally(() => setIsSaving(false));
+    } else {
+      addDoc(collection(db, 'sizeCharts'), { ...chartData, createdAt: serverTimestamp() })
+        .then(() => {
+          setIsDialogOpen(false);
+          resetForm();
+          toast({ title: "Chart Created", description: `${name} has been added.` });
+        })
+        .catch((error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: 'sizeCharts',
+            operation: 'create',
+            requestResourceData: chartData
+          }));
+        })
+        .finally(() => setIsSaving(false));
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!db) return;
     deleteDoc(doc(db, 'sizeCharts', id)).catch((error) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -167,14 +184,25 @@ export default function SizeChartPage() {
       { label: 'L', values: ['', '', ''] },
       { label: 'XL', values: ['', '', ''] }
     ]);
+    setEditingId(null);
+  };
+
+  const openEdit = (chart: any) => {
+    setName(chart.name || '');
+    setUnit(chart.unit || 'cm');
+    setCategory(chart.category || '');
+    setColumns(chart.columns || ['Chest', 'Length', 'Shoulder']);
+    setRows(chart.rows || []);
+    setEditingId(chart.id);
+    setIsDialogOpen(true);
   };
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Chart Library</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Create reusable measurement guides for your luxury drops.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Charts</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Create reusable measurement guides for your products.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
@@ -184,7 +212,9 @@ export default function SizeChartPage() {
           </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
-              <DialogTitle className="text-xl font-headline font-bold">New Measurement Guide</DialogTitle>
+              <DialogTitle className="text-xl font-headline font-bold">
+                {editingId ? `Edit Guide: ${name}` : 'New Measurement Guide'}
+              </DialogTitle>
               <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
                 <X className="h-5 w-5" />
               </Button>
@@ -196,24 +226,24 @@ export default function SizeChartPage() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-2 mb-2">
                       <Settings2 className="h-4 w-4 text-gray-400" />
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Guide Configuration</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Configuration</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Template Name</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Chart Name</Label>
                         <Input 
-                          placeholder="e.g. Adult Male Jersey Guide" 
+                          placeholder="e.g. Mens Jersey Guide" 
                           value={name} 
                           onChange={(e) => setName(e.target.value)} 
                           className="h-12 bg-white text-sm font-medium"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category Tag (Internal)</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category Tag</Label>
                         <div className="relative">
                           <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input 
-                            placeholder="e.g. Jerseys" 
+                            placeholder="e.g. Tops" 
                             value={category} 
                             onChange={(e) => setCategory(e.target.value)} 
                             className="h-12 bg-white text-sm pl-10"
@@ -240,8 +270,8 @@ export default function SizeChartPage() {
                         <Ruler className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold">Global Compatibility</p>
-                        <p className="text-xs text-gray-500">This guide will be reusable across any product category in your archive.</p>
+                        <p className="text-sm font-bold">Global Template</p>
+                        <p className="text-xs text-gray-500">This guide can be linked to any category in your store.</p>
                       </div>
                     </div>
                   </div>
@@ -255,10 +285,10 @@ export default function SizeChartPage() {
                     </div>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={addColumn} className="h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
-                        <PlusCircle className="h-4 w-4" /> Add Measurement
+                        <PlusCircle className="h-4 w-4" /> Add Column
                       </Button>
                       <Button variant="outline" size="sm" onClick={addRow} className="h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
-                        <PlusCircle className="h-4 w-4" /> Add Size
+                        <PlusCircle className="h-4 w-4" /> Add Row
                       </Button>
                     </div>
                   </div>
@@ -276,7 +306,7 @@ export default function SizeChartPage() {
                                 <Input 
                                   value={col} 
                                   onChange={(e) => updateColumnLabel(colIdx, e.target.value)}
-                                  placeholder="e.g. Chest"
+                                  placeholder="Metric"
                                   className="h-10 text-[10px] font-bold uppercase tracking-[0.1em] text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
                                 />
                                 <Button 
@@ -301,7 +331,7 @@ export default function SizeChartPage() {
                                 <Input 
                                   value={row.label} 
                                   onChange={(e) => updateRowLabel(rowIdx, e.target.value)}
-                                  placeholder="e.g. XXL"
+                                  placeholder="Size"
                                   className="h-10 text-xs font-bold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
                                 />
                               </div>
@@ -343,7 +373,7 @@ export default function SizeChartPage() {
                 className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-black/90 transition-all shadow-xl"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : null}
-                {isSaving ? 'Committing to Library...' : 'Save Template Permanently'}
+                {isSaving ? 'Saving Changes...' : 'Save Size Chart'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -367,18 +397,22 @@ export default function SizeChartPage() {
                 <TableRow>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 p-6">Template Name</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Unit</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Internal Category</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Matrix Structure</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Category Tag</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Structure</TableHead>
                   <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {charts?.map((chart: any) => (
-                  <TableRow key={chart.id} className="hover:bg-gray-50/50 group border-b last:border-0">
+                  <TableRow 
+                    key={chart.id} 
+                    className="hover:bg-gray-50/50 group border-b last:border-0 cursor-pointer"
+                    onClick={() => openEdit(chart)}
+                  >
                     <TableCell className="p-6">
                       <div className="flex flex-col">
                         <span className="font-bold text-sm">{chart.name}</span>
-                        <span className="text-[10px] text-gray-400 mt-0.5">Created on {chart.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
+                        <span className="text-[10px] text-gray-400 mt-0.5">Updated {chart.updatedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -392,7 +426,7 @@ export default function SizeChartPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleDelete(chart.id)}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={(e) => handleDelete(chart.id, e)}>
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-9 w-9">

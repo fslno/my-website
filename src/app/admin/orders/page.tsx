@@ -130,12 +130,12 @@ export default function OrdersPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Archive Orders</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Review acquisitions and manage studio dispatch logistics.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Orders</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Manage your store orders and shipping dispatch.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="h-10 font-bold uppercase tracking-widest text-[10px] border-[#e1e3e5]">
-            Export manifest
+            Export List
           </Button>
         </div>
       </div>
@@ -144,44 +144,44 @@ export default function OrdersPage() {
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <ShoppingBag className="h-3 w-3" /> Gross Revenue
+              <ShoppingBag className="h-3 w-3" /> Total Sales
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">${stats.revenue.toLocaleString()}</div>
-            <p className="text-xs text-[#8c9196] mt-1">Lifetime archival sales</p>
+            <p className="text-xs text-[#8c9196] mt-1">Gross sales to date</p>
           </CardContent>
         </Card>
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Clock className="h-3 w-3" /> Active Fulfillments
+              <Clock className="h-3 w-3" /> To Fulfill
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{stats.pending}</div>
-            <p className="text-xs text-[#8c9196] mt-1">Orders requiring dispatch</p>
+            <p className="text-xs text-[#8c9196] mt-1">Orders requiring shipping</p>
           </CardContent>
         </Card>
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <CheckCircle2 className="h-3 w-3" /> Total Orders
+              <CheckCircle2 className="h-3 w-3" /> Completed Orders
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">{stats.total}</div>
-            <p className="text-xs text-[#8c9196] mt-1">Successful transactions</p>
+            <p className="text-xs text-[#8c9196] mt-1">Total orders processed</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-lg overflow-hidden shadow-sm">
         <div className="p-4 border-b bg-gray-50/50 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative flex-1 max-w-sm w-full">
+          <div className="relative flex-1 max-sm w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
             <Input 
-              placeholder="Search by ID, Name, Phone, or Email..." 
+              placeholder="Search by Order ID, Name, or Email..." 
               className="pl-10 h-10 border-[#e1e3e5] focus:ring-black bg-white"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -209,11 +209,11 @@ export default function OrdersPage() {
         <Table>
           <TableHeader className="bg-[#f6f6f7]">
             <TableRow className="border-[#e1e3e5]">
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 min-w-[240px]">Archive Manifest (Units)</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 min-w-[320px]">Order Items</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] w-[120px]">Order & Date</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Recipient</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Logistics & Route</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] text-right">Financial</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Customer</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Shipping</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] text-right">Total</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -227,7 +227,7 @@ export default function OrdersPage() {
             ) : filteredOrders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">
-                  No archive orders found matching your criteria.
+                  No orders found matching your criteria.
                 </TableCell>
               </TableRow>
             ) : (
@@ -242,40 +242,37 @@ export default function OrdersPage() {
                     onClick={() => router.push(`/admin/orders/${order.id}`)}
                   >
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-4">
                         <div className="flex -space-x-3 overflow-hidden">
                           {(order.items || []).slice(0, 3).map((item: any, i: number) => (
-                            <div key={i} className="inline-block h-10 w-8 bg-gray-100 border border-white rounded shrink-0 overflow-hidden relative shadow-sm">
-                              {item.image ? <img src={item.image} className="object-cover w-full h-full" alt="" /> : <Package className="h-3 w-3 m-auto text-gray-300" />}
+                            <div key={i} className="inline-block h-14 w-11 bg-gray-100 border border-white rounded shrink-0 overflow-hidden relative shadow-sm">
+                              {item.image ? <img src={item.image} className="object-cover w-full h-full" alt="" /> : <Package className="h-4 w-4 m-auto text-gray-300" />}
                             </div>
                           ))}
                           {(order.items || []).length > 3 && (
-                            <div className="flex items-center justify-center h-10 w-8 bg-black text-white text-[8px] font-bold rounded border border-white shrink-0 shadow-sm">
+                            <div className="flex items-center justify-center h-14 w-11 bg-black text-white text-[10px] font-bold rounded border border-white shrink-0 shadow-sm">
                               +{(order.items || []).length - 3}
                             </div>
                           )}
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold uppercase tracking-tighter">{totalUnits} {totalUnits === 1 ? 'UNIT' : 'UNITS'}</span>
-                          <span className="text-[9px] text-[#8c9196] font-medium uppercase truncate max-w-[150px]">
-                            {order.items?.[0]?.name || 'Unknown Item'}
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-bold uppercase tracking-tighter">{totalUnits} {totalUnits === 1 ? 'Item' : 'Items'}</span>
+                          <span className="text-sm font-bold uppercase truncate max-w-[200px]">
+                            {order.items?.[0]?.name || 'Product'}
                           </span>
                           
-                          <div className="flex flex-col gap-0.5 mt-1">
+                          <div className="flex flex-col gap-0.5">
                             {order.items?.[0]?.customName && (
-                              <div className="flex items-center gap-1 text-[8px] font-bold text-blue-600 uppercase">
-                                <Sparkles className="h-2 w-2" />
+                              <div className="flex items-center gap-1 text-[9px] font-bold text-blue-600 uppercase">
+                                <Sparkles className="h-2.5 w-2.5" />
                                 {order.items[0].customName} {order.items[0].customNumber}
                               </div>
                             )}
                             {order.items?.[0]?.specialNote && (
-                              <div className="flex items-center gap-1 text-[8px] text-gray-400 italic max-w-[150px] truncate">
-                                <MessageSquare className="h-2 w-2" />
+                              <div className="flex items-center gap-1 text-[9px] text-gray-400 italic">
+                                <MessageSquare className="h-2.5 w-2.5" />
                                 {order.items[0].specialNote}
                               </div>
-                            )}
-                            {order.items?.length > 1 && (
-                              <span className="text-[8px] font-bold text-gray-300 uppercase mt-0.5">Full manifest available in details</span>
                             )}
                           </div>
                         </div>
@@ -289,10 +286,10 @@ export default function OrdersPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold truncate max-w-[150px] uppercase tracking-tight">{order.customer?.name || 'Guest User'}</span>
+                        <span className="text-sm font-bold truncate max-w-[150px] uppercase tracking-tight">{order.customer?.name || 'Guest'}</span>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <Phone className="h-2.5 w-2.5 text-[#babfc3]" />
-                          <span className="text-[10px] font-mono text-[#8c9196]">{order.customer?.phone || 'NO-PHONE'}</span>
+                          <span className="text-[10px] font-mono text-[#8c9196]">{order.customer?.phone || 'NO PHONE'}</span>
                         </div>
                         <span className="text-[10px] text-[#8c9196] truncate max-w-[150px]">{order.email}</span>
                       </div>
@@ -308,10 +305,10 @@ export default function OrdersPage() {
                         </div>
                         {shipping ? (
                           <span className="text-[10px] text-[#8c9196] leading-tight max-w-[200px] line-clamp-1 uppercase italic">
-                            {shipping.address}, {shipping.city}, {shipping.province}
+                            {shipping.city}, {shipping.province}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-[#8c9196] italic uppercase">Local Studio Collection</span>
+                          <span className="text-[10px] text-[#8c9196] italic uppercase">Local Pickup</span>
                         )}
                       </div>
                     </TableCell>

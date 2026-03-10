@@ -71,8 +71,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
 export default function OrderDetailPage(props: { params: Promise<{ orderId: string }> }) {
-  const params = use(props.params);
-  const orderId = params.orderId;
+  const { orderId } = use(props.params);
   const db = useFirestore();
   const { toast } = useToast();
 
@@ -207,7 +206,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
     switch (ref) {
       case 'google': return 'Google / Pinterest';
       case 'social': return 'Social Media';
-      case 'friend': return 'Friend Referral';
+      case 'friend': return 'Friend Recommendation';
       default: return ref || 'Direct Visit';
     }
   };
@@ -249,9 +248,9 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl">
-                {storeConfig?.logoUrl ? <img src={storeConfig.logoUrl} className="w-full h-full object-cover" alt="logo" /> : (storeConfig?.businessName?.[0] || 'F')}
+                {storeConfig?.logoUrl ? <img src={storeConfig.logoUrl} className="w-full h-full object-cover" alt="logo" /> : (storeConfig?.businessName?.[0] || 'S')}
               </div>
-              <h1 className="text-3xl font-headline font-bold tracking-tighter uppercase">{storeConfig?.businessName || 'FSLNO'}</h1>
+              <h1 className="text-3xl font-headline font-bold tracking-tighter uppercase">{storeConfig?.businessName || 'STORE'}</h1>
             </div>
           </div>
           <div className="text-right">
@@ -262,17 +261,17 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
 
         <div className="grid grid-cols-2 gap-12 mb-12">
           <div className="space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Sender</h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">From</h3>
             <div className="space-y-1">
-              <p className="font-bold uppercase text-sm">{storeConfig?.businessName || 'FSLNO'}</p>
+              <p className="font-bold uppercase text-sm">{storeConfig?.businessName || 'STORE'}</p>
               <p className="text-xs uppercase leading-relaxed text-gray-600 whitespace-pre-wrap">
-                {storeConfig?.address || '123 Studio Way\nLondon, UK'}
+                {storeConfig?.address || '123 Store Address\nUSA'}
               </p>
               <p className="text-xs font-bold mt-2">{storeConfig?.phone || '+1 (555) 000-0000'}</p>
             </div>
           </div>
           <div className="space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Recipient</h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">To</h3>
             <div className="space-y-1">
               <p className="font-bold uppercase text-sm">{order.customer?.name || 'Guest'}</p>
               {order.customer?.shipping ? (
@@ -291,11 +290,11 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
         </div>
 
         <div className="space-y-4 mb-12">
-          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Items Ordered</h3>
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Items</h3>
           <Table className="border-none shadow-none">
             <TableHeader className="bg-gray-50">
               <TableRow className="border-black border-b">
-                <TableHead className="text-[9px] font-bold uppercase text-black">Item</TableHead>
+                <TableHead className="text-[9px] font-bold uppercase text-black">Product</TableHead>
                 <TableHead className="text-[9px] font-bold uppercase text-black text-center">Size</TableHead>
                 <TableHead className="text-[9px] font-bold uppercase text-black text-center">Qty</TableHead>
                 <TableHead className="text-[9px] font-bold uppercase text-black text-right">Price</TableHead>
@@ -395,7 +394,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-400">Logistics Status</Label>
+                  <Label className="text-[9px] uppercase font-bold text-gray-400">Shipping Status</Label>
                   <Select value={order.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
                     <SelectTrigger className="h-11 bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
                       <SelectValue placeholder="Update Status" />
@@ -418,14 +417,14 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <Card className="border-[#e1e3e5] shadow-sm rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                <Package className="h-3 w-3" /> Order Items ({(order.items || []).length})
+                <Package className="h-3 w-3" /> Ordered Items ({(order.items || []).length})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader className="bg-white">
                   <TableRow className="border-b">
-                    <TableHead className="text-[9px] uppercase font-bold">Item</TableHead>
+                    <TableHead className="text-[9px] uppercase font-bold">Product</TableHead>
                     <TableHead className="text-[9px] uppercase font-bold text-center">Qty</TableHead>
                     <TableHead className="text-[9px] uppercase font-bold text-right">Price</TableHead>
                     <TableHead className="text-[9px] uppercase font-bold text-right">Total</TableHead>
@@ -560,17 +559,17 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   <Sheet>
                     <SheetTrigger asChild>
                       <Button variant="outline" className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest h-10">
-                        View Technical Logs <ExternalLink className="ml-2 h-3 w-3" />
+                        View System Logs <ExternalLink className="ml-2 h-3 w-3" />
                       </Button>
                     </SheetTrigger>
                     <SheetContent className="bg-black text-white border-white/10 sm:max-w-lg overflow-y-auto">
                       <SheetHeader className="border-b border-white/10 pb-6 mb-6">
                         <div className="flex items-center gap-3 text-white">
                           <Terminal className="h-5 w-5 text-green-500" />
-                          <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">Technical Logs</SheetTitle>
+                          <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">System Logs</SheetTitle>
                         </div>
                         <SheetDescription className="text-gray-400 text-xs">
-                          Transaction data for order {order.id}
+                          Technical metadata for order {order.id}
                         </SheetDescription>
                       </SheetHeader>
                       <div className="space-y-8 font-mono">
@@ -597,7 +596,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                           <div className="space-y-4 border-l border-white/10 ml-1 pl-4">
                             <div className="relative">
                               <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-green-500" />
-                              <p className="text-[10px] text-white font-bold uppercase">Order Created</p>
+                              <p className="text-[10px] text-white font-bold uppercase">Order Placed</p>
                               <p className="text-[9px] text-gray-500">{formatDate(order.createdAt)}</p>
                             </div>
                             <div className="relative">
