@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -25,7 +26,8 @@ import {
   Lock,
   TicketPercent,
   MailWarning,
-  ShieldAlert
+  ShieldAlert,
+  Menu as MenuIcon
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -186,6 +188,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 <Link href="/admin/theme">
                   <Palette />
                   <span>Theme Engine</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Footer Editor" onClick={handleNavClick}>
+                <Link href="/admin/footer">
+                  <MenuIcon />
+                  <span>Footer Editor</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -499,7 +509,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </Button>
             </form>
 
-            <div className="flex items-center gap-4 w-full max-w-sm mb-8">
+            <div className="flex items-center gap-4 w-full max-sm mb-8">
               <Separator className="flex-1 bg-gray-200" />
               <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">or</span>
               <Separator className="flex-1 bg-gray-200" />

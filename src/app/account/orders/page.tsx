@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -14,11 +15,12 @@ export default function OrderHistoryPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
 
+  // Optimized query using userId for strict security rule alignment
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
       collection(db, 'orders'),
-      where('email', '==', user.email),
+      where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
   }, [db, user]);
@@ -124,9 +126,9 @@ export default function OrderHistoryPage() {
                       ))}
                     </div>
                     <div className="flex items-end">
-                      <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors group">
+                      <Link href={`/account/orders/${order.id}`} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors group">
                         Order Details <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </CardContent>
