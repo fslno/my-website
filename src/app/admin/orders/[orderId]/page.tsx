@@ -183,6 +183,8 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
         return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Payment</Badge>;
       case 'refunded':
         return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[10px] font-bold">Refunded</Badge>;
+      case 'partially_refunded':
+        return <Badge className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[10px] font-bold">Partially Refunded</Badge>;
       case 'cancelled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
       default:
@@ -399,6 +401,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       <SelectItem value="paid" className="text-[10px] font-bold uppercase">Paid</SelectItem>
                       <SelectItem value="awaiting" className="text-[10px] font-bold uppercase">Awaiting</SelectItem>
                       <SelectItem value="refunded" className="text-[10px] font-bold uppercase">Refunded</SelectItem>
+                      <SelectItem value="partially_refunded" className="text-[10px] font-bold uppercase">Partially Refunded</SelectItem>
                       <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
