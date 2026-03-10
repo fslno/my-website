@@ -40,7 +40,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle 
-} from "@/dialog";
+} from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
