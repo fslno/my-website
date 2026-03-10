@@ -337,8 +337,8 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
         <div className="flex justify-end mb-12">
           <div className="w-[300px] space-y-3">
             <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
-              <span>Subtotal</span>
-              <span className="text-black">${formatCurrency(Number(order.subtotal) || 0)}</span>
+              <span>{order.deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
+              <span className="text-black">${formatCurrency(Number(order.shipping) || 0)}</span>
             </div>
             {Number(order.discountTotal) > 0 && (
               <div className="flex justify-between text-[10px] font-bold uppercase text-red-600">
@@ -346,10 +346,6 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 <span>-${formatCurrency(Number(order.discountTotal) || 0)}</span>
               </div>
             )}
-            <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
-              <span>Shipping</span>
-              <span className="text-black">${formatCurrency(Number(order.shipping) || 0)}</span>
-            </div>
             <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
               <span>Sales Tax</span>
               <span className="text-black">${formatCurrency(Number(order.tax) || 0)}</span>
@@ -539,7 +535,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   </div>
                 )}
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
-                  <span>Shipping</span>
+                  <span>{order.deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
                   <span className="text-black">{Number(order.shipping) > 0 ? `$${formatCurrency(Number(order.shipping))}` : 'FREE'}</span>
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
