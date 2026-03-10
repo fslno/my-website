@@ -231,8 +231,8 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                       key={idx}
                       onClick={() => setActiveImageIndex(idx)}
                       className={cn(
-                        "w-16 h-16 shrink-0 relative border-2 transition-all rounded-sm",
-                        activeImageIndex === idx ? "border-black" : "border-transparent opacity-60 hover:opacity-100"
+                        "w-16 h-16 shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
+                        activeImageIndex === idx ? "border-black" : "border-transparent opacity-60 hover:opacity-100 hover:bg-[#D3D3D3]"
                       )}
                     >
                       <Image src={item.url} alt={`View ${idx}`} fill className="object-cover" />
@@ -285,7 +285,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                 {sizeChart ? (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <button className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors text-[13px] font-bold">
+                      <button className="flex items-center gap-2 text-gray-500 hover:text-black hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out text-[13px] font-bold p-1 rounded">
                         <Ruler className="h-5 w-5" /> Size Guide
                       </button>
                     </SheetTrigger>
@@ -347,11 +347,11 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                     onClick={() => setSelectedSize(v.size)}
                     disabled={Number(v.stock) === 0}
                     className={cn(
-                      "h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm",
+                      "h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm hover:bg-[#D3D3D3] hover:text-[#333333]",
                       selectedSize === v.size 
                         ? "bg-black text-white border-black" 
-                        : "bg-white text-black border-gray-200 hover:border-black",
-                      Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed"
+                        : "bg-white text-black border-gray-200",
+                      Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed hover:bg-transparent hover:text-gray-300"
                     )}
                   >
                     {v.size}
@@ -372,8 +372,8 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                   <button
                     onClick={() => setWantsCustomization(false)}
                     className={cn(
-                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm",
-                      !wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200 hover:border-black"
+                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm hover:bg-[#D3D3D3] hover:text-[#333333]",
+                      !wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200"
                     )}
                   >
                     No
@@ -381,8 +381,8 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                   <button
                     onClick={() => setWantsCustomization(true)}
                     className={cn(
-                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm",
-                      wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200 hover:border-black"
+                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm hover:bg-[#D3D3D3] hover:text-[#333333]",
+                      wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200"
                     )}
                   >
                     Yes
@@ -429,10 +429,10 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                 onClick={handleAddToCart}
                 disabled={!selectedSize || isStockReached}
                 className={cn(
-                  "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-sm transition-all shadow-md",
+                  "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-sm transition-all duration-300 ease-in-out shadow-md hover:bg-[#D3D3D3] hover:text-[#333333]",
                   isStockReached 
-                    ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
-                    : "bg-black text-white hover:bg-black/90 active:scale-95"
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200 hover:text-gray-500" 
+                    : "bg-black text-white active:scale-95"
                 )}
               >
                 {!selectedSize ? 'Select Size' : isStockReached ? 'Sold Out' : 'Add to Cart'}

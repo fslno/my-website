@@ -298,7 +298,7 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }}
-                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all", deliveryMethod === 'shipping' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50 hover:border-gray-300")}
+                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", deliveryMethod === 'shipping' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
               >
                 <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-black" : "text-gray-400")} />
                 <div>
@@ -308,7 +308,7 @@ export default function CheckoutPage() {
               </button>
               <button
                 onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); setErrors({}); }}
-                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all", deliveryMethod === 'pickup' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50 hover:border-gray-300")}
+                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", deliveryMethod === 'pickup' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
               >
                 <Store className={cn("h-6 w-6", deliveryMethod === 'pickup' ? "text-black" : "text-gray-400")} />
                 <div>
@@ -420,21 +420,21 @@ export default function CheckoutPage() {
                     <Truck className="h-3 w-3" /> Select Shipping Method {errors.courier && "- REQUIRED"}
                   </h3>
                   <RadioGroup value={formData.courier} onValueChange={(val) => { setShippingRate(val === 'fedex' ? 25 : val === 'dhl' ? 45 : 0); handleInputChange('courier', val); }} className="grid grid-cols-1 gap-2">
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'usps' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", formData.courier === 'usps' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="usps" id="usps" />
                         <Label htmlFor="usps" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Standard Shipping</Label>
                       </div>
                       <span className="text-[11px] font-bold">FREE</span>
                     </div>
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'fedex' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", formData.courier === 'fedex' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="fedex" id="fedex" />
                         <Label htmlFor="fedex" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">Priority Express</Label>
                       </div>
                       <span className="text-[11px] font-bold">$25.00</span>
                     </div>
-                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all", formData.courier === 'dhl' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50 hover:bg-gray-100")}>
+                    <div className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", formData.courier === 'dhl' ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50")}>
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="dhl" id="dhl" />
                         <Label htmlFor="dhl" className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">International Express</Label>
@@ -514,7 +514,7 @@ export default function CheckoutPage() {
           <section className="space-y-6 bg-gray-50 border p-8 rounded-sm">
             <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-red-500" : "text-black")}>Referral Source {errors.referral && "- REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
-              <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:bg-gray-100 transition-colors text-[10px] font-bold uppercase tracking-widest rounded-sm">
+              <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out text-[10px] font-bold uppercase tracking-widest rounded-sm">
                 <SelectValue placeholder="" />
               </SelectTrigger>
               <SelectContent>

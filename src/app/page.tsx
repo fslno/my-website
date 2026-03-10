@@ -66,7 +66,7 @@ export default function Home() {
               <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6">
                 <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">The Collection</span>
                 <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">Modern Silhouettes</h2>
-                <Link href="/collections/all" className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-gray-100 transition-all">
+                <Link href="/collections/all" className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
                   Shop All <ArrowRight className="ml-3 h-4 w-4" />
                 </Link>
               </div>
