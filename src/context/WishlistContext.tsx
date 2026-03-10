@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -84,10 +83,14 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           }));
         });
       } else {
-        const payload = {
+        const payload: any = {
           ...item,
           createdAt: serverTimestamp()
         };
+
+        // Authoritatively remove undefined fields to prevent Firestore errors
+        Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+
         setDoc(itemRef, payload).catch(() => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: itemRef.path,

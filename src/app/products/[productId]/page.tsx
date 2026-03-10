@@ -128,7 +128,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
       ? `${product.id}-${selectedSize}-${customName}-${customNumber}-${specialRequest.substring(0, 10)}`
       : `${product.id}-${selectedSize}`;
 
-    addToCart({
+    const itemToAdd: any = {
       id: product.id,
       variantId: uniqueVariantId,
       name: product.name,
@@ -137,10 +137,15 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
       image: product.media?.[0]?.url || '',
       size: selectedSize,
       categoryId: product.categoryId,
-      customName: wantsCustomization ? customName : undefined,
-      customNumber: wantsCustomization ? customNumber : undefined,
-      specialNote: wantsCustomization ? specialRequest : undefined
-    });
+    };
+
+    if (wantsCustomization) {
+      if (customName) itemToAdd.customName = customName;
+      if (customNumber) itemToAdd.customNumber = customNumber;
+      if (specialRequest) itemToAdd.specialNote = specialRequest;
+    }
+
+    addToCart(itemToAdd);
 
     toast({
       title: "Added to Cart",
@@ -389,7 +394,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                     Customization
                   </Label>
                   <span className="text-[10px] font-bold text-black uppercase tracking-widest">
-                    ${formatCurrency(product.customizationFee || 10)}
+                    $10.00
                   </span>
                 </div>
                 <div className="flex gap-2">

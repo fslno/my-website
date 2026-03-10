@@ -185,12 +185,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }));
         });
       } else {
-        const payload = {
+        const payload: any = {
           ...newItem,
           productId: newItem.id,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
+
+        // Authoritatively remove undefined fields to prevent Firestore errors
+        Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+
         setDoc(itemRef, payload).catch(async () => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: itemRef.path,
