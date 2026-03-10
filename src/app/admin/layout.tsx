@@ -283,7 +283,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <TicketPercent />
                       <span>Promotions</span>
                     </Link>
-                  </SidebarMenuItem>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <TooltipProvider>
