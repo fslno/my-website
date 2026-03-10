@@ -276,35 +276,17 @@ export function Header() {
               )}
 
               {/* INLINE SEARCH RESULTS DROPDOWN */}
-              {isSearching && (
+              {isSearching && searchQuery.length >= 2 && (
                 <div className="absolute top-full right-0 mt-2 w-[300px] md:w-[450px] bg-white border border-black/10 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
                     <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">
-                      {searchQuery.length < 2 ? 'Discover drops' : `Results for "${searchQuery}"`}
+                      Results for "{searchQuery}"
                     </p>
-                    {searchQuery.length >= 2 && (
-                      <span className="text-[9px] font-bold uppercase text-black">{filteredProducts.length} Pieces Found</span>
-                    )}
+                    <span className="text-[9px] font-bold uppercase text-black">{filteredProducts.length} Pieces Found</span>
                   </div>
                   
                   <ScrollArea className="max-h-[60vh]">
-                    {searchQuery.length < 2 ? (
-                      <div className="p-6 text-center space-y-4">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Popular drops</p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {categories?.slice(0, 4).map(cat => (
-                            <Link 
-                              key={cat.id} 
-                              href={`/collections/${cat.id}`}
-                              onClick={() => setIsSearching(false)}
-                              className="px-3 py-1.5 bg-white border text-[9px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all duration-300"
-                            >
-                              {cat.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    ) : filteredProducts.length === 0 ? (
+                    {filteredProducts.length === 0 ? (
                       <div className="p-12 text-center">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No archival pieces found.</p>
                       </div>
@@ -342,7 +324,7 @@ export function Header() {
                     )}
                   </ScrollArea>
                   
-                  {searchQuery.length >= 2 && filteredProducts.length > 0 && (
+                  {filteredProducts.length > 0 && (
                     <div className="p-3 border-t bg-gray-50/50 text-center">
                       <Link 
                         href="/collections/all" 
