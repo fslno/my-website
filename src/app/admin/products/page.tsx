@@ -48,7 +48,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -82,6 +82,7 @@ export default function ProductsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -347,10 +348,10 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
-    if (name && name.length >= 2 && !sku) {
+    if (name && name.length >= 2 && !sku && !editingId) {
       setSku(generateSku(name));
     }
-  }, [name, sku]);
+  }, [name, sku, editingId]);
 
   useEffect(() => {
     if (sku) {
@@ -444,28 +445,75 @@ export default function ProductsPage() {
         shippingClass
       },
       status: 'active',
-      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     };
-    addDoc(collection(db, 'products'), productData)
-      .then(() => {
-        setIsDialogOpen(false);
-        resetForm();
-        toast({ title: "Product Created", description: `${name} has been committed to the archive.` });
-      })
-      .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'products',
-          operation: 'create',
-          requestResourceData: productData,
-        }));
-      })
-      .finally(() => setIsSaving(false));
+
+    if (editingId) {
+      updateDoc(doc(db, 'products', editingId), productData)
+        .then(() => {
+          setIsDialogOpen(false);
+          resetForm();
+          toast({ title: "Product Updated", description: `${name} has been synchronized.` });
+        })
+        .catch((error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `products/${editingId}`,
+            operation: 'update',
+            requestResourceData: productData,
+          }));
+        })
+        .finally(() => setIsSaving(false));
+    } else {
+      const newData = { ...productData, createdAt: serverTimestamp() };
+      addDoc(collection(db, 'products'), newData)
+        .then(() => {
+          setIsDialogOpen(false);
+          resetForm();
+          toast({ title: "Product Created", description: `${name} has been committed to the archive.` });
+        })
+        .catch((error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: 'products',
+            operation: 'create',
+            requestResourceData: newData,
+          }));
+        })
+        .finally(() => setIsSaving(false));
+    }
   };
 
   const resetForm = () => {
     setName(''); setPrice(''); setComparedPrice(''); setCustomizationFee(''); setBrand(''); setSku(''); setSizeFit(''); setBadge('none'); setDescription(''); setCategoryId('');
     setVariants([{ size: 'XS', stock: 0, sku: '' }, { size: 'S', stock: 0, sku: '' }, { size: 'M', stock: 0, sku: '' }, { size: 'L', stock: 0, sku: '' }, { size: 'XL', stock: 0, sku: '' }]);
     setMedia([]); setFeatures(''); setSeoTitle(''); setSeoDescription(''); setSeoHandle(''); setWeight(''); setLength(''); setWidth(''); setHeight(''); setActiveTab('general');
+    setEditingId(null);
+  };
+
+  const openEdit = (product: any) => {
+    setName(product.name || '');
+    setPrice(String(product.price || ''));
+    setComparedPrice(String(product.comparedPrice || ''));
+    setCustomizationFee(String(product.customizationFee || ''));
+    setBrand(product.brand || '');
+    setSku(product.sku || '');
+    setSizeFit(product.sizeFit || '');
+    setBadge(product.badge || 'none');
+    setDescription(product.description || '');
+    setCategoryId(product.categoryId || '');
+    setVariants(product.variants || []);
+    setMedia(product.media || []);
+    setFeatures(product.features?.join(', ') || '');
+    setSeoTitle(product.seo?.title || '');
+    setSeoDescription(product.seo?.description || '');
+    setSeoHandle(product.seo?.handle || '');
+    setWeight(String(product.logistics?.weight || ''));
+    setLength(String(product.logistics?.length || ''));
+    setWidth(String(product.logistics?.width || ''));
+    setHeight(String(product.logistics?.height || ''));
+    setShippingClass(product.logistics?.shippingClass || 'standard');
+    
+    setEditingId(product.id);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -483,7 +531,9 @@ export default function ProductsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
-              <DialogTitle className="text-xl font-headline font-bold">New Archive Entry</DialogTitle>
+              <DialogTitle className="text-xl font-headline font-bold">
+                {editingId ? `Edit Archive Piece: ${name}` : 'New Archive Entry'}
+              </DialogTitle>
               <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
                 <X className="h-5 w-5" />
               </Button>
@@ -572,7 +622,7 @@ export default function ProductsPage() {
               </div>
               <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="h-11 px-6 font-bold uppercase tracking-widest text-[10px]">Cancel</Button>
-                <Button onClick={handleSaveProduct} disabled={isSaving || !name || !price || !categoryId} className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px]">{isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Commit to Archive</Button>
+                <Button onClick={handleSaveProduct} disabled={isSaving || !name || !price || !categoryId} className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px]">{isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}{editingId ? 'Update Entry' : 'Commit to Archive'}</Button>
               </DialogFooter>
             </Tabs>
           </DialogContent>
@@ -635,7 +685,7 @@ export default function ProductsPage() {
           </div>
           <Separator />
           <div className="flex items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-sm">
+            <div className="relative flex-1 max-sm w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
               <Input placeholder="Search archive by name or SKU..." className="pl-10 h-9 border-[#babfc3] focus:ring-black" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
@@ -705,8 +755,12 @@ export default function ProductsPage() {
                 const firstMedia = product.media?.[0]?.url;
                 const isSelected = selectedIds.includes(product.id);
                 return (
-                  <TableRow key={product.id} className={`transition-colors border-[#e1e3e5] group ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}>
-                    <TableCell className="px-4">
+                  <TableRow 
+                    key={product.id} 
+                    onClick={() => openEdit(product)}
+                    className={`transition-colors border-[#e1e3e5] group cursor-pointer ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}
+                  >
+                    <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
                       <Checkbox 
                         checked={isSelected} 
                         onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} 
@@ -717,7 +771,7 @@ export default function ProductsPage() {
                     <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
                     <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
                     <TableCell className="text-sm font-semibold">${formatCurrency(Number(product.price))}</TableCell>
-                    <TableCell><button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4 text-[#5c5f62]" /></button></TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}><button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4 text-[#5c5f62]" /></button></TableCell>
                   </TableRow>
                 );
               })
