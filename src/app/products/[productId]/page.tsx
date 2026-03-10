@@ -12,6 +12,7 @@ import { Header } from '@/components/storefront/Header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { 
   Heart, 
@@ -121,7 +122,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
     if (!product || !selectedSize || isStockReached) return;
 
     const uniqueVariantId = wantsCustomization 
-      ? `${product.id}-${selectedSize}-${customName}-${customNumber}`
+      ? `${product.id}-${selectedSize}-${customName}-${customNumber}-${specialRequest.substring(0, 10)}`
       : `${product.id}-${selectedSize}`;
 
     addToCart({
@@ -419,6 +420,16 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                         className="bg-white h-9 text-[10px] font-bold text-center"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Special Note</Label>
+                    <Textarea 
+                      placeholder="ADDITIONAL REQUESTS..." 
+                      value={specialRequest}
+                      onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())}
+                      className="bg-white min-h-[60px] text-[10px] font-bold resize-none"
+                    />
                   </div>
                 </div>
               )}
