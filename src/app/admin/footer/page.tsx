@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { 
   Loader2, 
   Save, 
@@ -17,7 +18,10 @@ import {
   Menu as MenuIcon,
   ExternalLink,
   ShieldCheck,
-  FileCode
+  FileCode,
+  Sparkles,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -25,6 +29,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 interface LinkItem {
   label: string;
@@ -34,6 +39,7 @@ interface LinkItem {
 export default function FooterEditorPage() {
   const db = useFirestore();
   const { toast } = useToast();
+  const poweredByLogoRef = useRef<HTMLInputElement>(null);
 
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: config, loading } = useDoc(configRef);
@@ -50,6 +56,12 @@ export default function FooterEditorPage() {
   const [copyrightText, setCopyrightText] = useState('');
   const [systemVersion, setSystemVersion] = useState('');
 
+  // Powered By State
+  const [poweredByEnabled, setPoweredByEnabled] = useState(true);
+  const [poweredByLabel, setPoweredByLabel] = useState('Powered by');
+  const [poweredByStudioName, setPoweredByStudioName] = useState('FSLNO STUDIO');
+  const [poweredByLogoUrl, setPoweredByLogoUrl] = useState('');
+
   useEffect(() => {
     if (config) {
       setDescription(config.footerDescription || '');
@@ -60,6 +72,10 @@ export default function FooterEditorPage() {
       setLegalLinks(config.footerLegalLinks || []);
       setCopyrightText(config.copyrightText || `© ${new Date().getFullYear()} ${config.businessName || 'FSLNO'}. ALL RIGHTS RESERVED.`);
       setSystemVersion(config.systemVersion || 'ARCHIVE SYSTEM V1.0');
+      setPoweredByEnabled(config.poweredByEnabled ?? true);
+      setPoweredByLabel(config.poweredByLabel || 'Powered by');
+      setPoweredByStudioName(config.poweredByStudioName || 'FSLNO STUDIO');
+      setPoweredByLogoUrl(config.poweredByLogoUrl || '');
     }
   }, [config]);
 
@@ -75,6 +91,10 @@ export default function FooterEditorPage() {
       footerLegalLinks: legalLinks,
       copyrightText,
       systemVersion,
+      poweredByEnabled,
+      poweredByLabel,
+      poweredByStudioName,
+      poweredByLogoUrl,
       updatedAt: new Date().toISOString() 
     };
 
@@ -90,6 +110,15 @@ export default function FooterEditorPage() {
         }));
       })
       .finally(() => setIsSaving(false));
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setPoweredByLogoUrl(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const addLink = (type: 'support' | 'legal') => {
@@ -252,6 +281,55 @@ export default function FooterEditorPage() {
         </div>
 
         <div className="space-y-8">
+          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/50">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest">Powered By</CardTitle>
+                <CardDescription>Studio attribution module.</CardDescription>
+              </div>
+              <Switch checked={poweredByEnabled} onCheckedChange={setPoweredByEnabled} />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Logo / Icon</Label>
+                <input type="file" ref={poweredByLogoRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                <div 
+                  onClick={() => poweredByLogoRef.current?.click()}
+                  className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 bg-white hover:border-black transition-all cursor-pointer group h-24"
+                >
+                  {poweredByLogoUrl ? (
+                    <div className="relative w-10 h-10">
+                      <Image src={poweredByLogoUrl} alt="Powered By Logo" fill className="object-contain" />
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Upload Icon</p>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Attribution Label</Label>
+                <Input 
+                  value={poweredByLabel} 
+                  onChange={(e) => setPoweredByLabel(e.target.value)} 
+                  placeholder="Powered by"
+                  className="h-10 text-xs"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Studio Name</Label>
+                <Input 
+                  value={poweredByStudioName} 
+                  onChange={(e) => setPoweredByStudioName(e.target.value)} 
+                  placeholder="FSLNO STUDIO"
+                  className="h-10 text-xs font-headline font-bold"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-[#e1e3e5] shadow-none bg-gray-50/50">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-widest">Social Discovery</CardTitle>

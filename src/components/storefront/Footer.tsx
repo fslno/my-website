@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import Image from 'next/image';
 
 export function Footer() {
   const db = useFirestore();
@@ -89,15 +90,27 @@ export function Footer() {
       
       <div className="max-w-[1440px] mx-auto px-4 border-t border-white/10 mt-24 pt-12 flex flex-col items-center gap-10 text-[9px] uppercase tracking-[0.2em] text-white text-center">
         <div className="flex flex-col items-center justify-center gap-8 w-full">
-          <div className="flex flex-col items-center gap-2 group cursor-default">
-            <span className="text-[7px] tracking-[0.5em] font-bold text-white">Powered by</span>
-            <div className="flex items-center gap-2.5">
-              <div className="w-6 h-6 bg-white/10 border border-white/20 rounded-sm flex items-center justify-center font-headline font-bold text-white text-[11px]">
-                F
+          {config?.poweredByEnabled !== false && (
+            <div className="flex flex-col items-center gap-2 group cursor-default">
+              <span className="text-[7px] tracking-[0.5em] font-bold text-white">
+                {config?.poweredByLabel || "Powered by"}
+              </span>
+              <div className="flex items-center gap-2.5">
+                {config?.poweredByLogoUrl ? (
+                  <div className="relative w-6 h-6 flex items-center justify-center">
+                    <Image src={config.poweredByLogoUrl} alt="Studio Logo" fill className="object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 bg-white/10 border border-white/20 rounded-sm flex items-center justify-center font-headline font-bold text-white text-[11px]">
+                    F
+                  </div>
+                )}
+                <span className="text-[11px] font-headline font-bold tracking-tighter text-white">
+                  {config?.poweredByStudioName || "FSLNO STUDIO"}
+                </span>
               </div>
-              <span className="text-[11px] font-headline font-bold tracking-tighter text-white">FSLNO STUDIO</span>
             </div>
-          </div>
+          )}
 
           <p className="text-white">{config?.copyrightText || defaultCopyright}</p>
           
