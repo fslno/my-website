@@ -41,6 +41,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -81,6 +82,7 @@ export default function CheckoutPage() {
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
   const [shippingRate, setShippingRate] = useState<number>(0);
   const [couponInput, setCouponInput] = useState('');
+  const [orderNote, setOrderNote] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -257,6 +259,7 @@ export default function CheckoutPage() {
       deliveryMethod,
       courier: formData.courier,
       referral: formData.referral,
+      note: orderNote,
       pickupDate: deliveryMethod === 'pickup' ? formData.pickupDate : null,
       pickupTime: deliveryMethod === 'pickup' ? formData.pickupTime : null,
       status: 'awaiting_processing',
@@ -599,6 +602,16 @@ export default function CheckoutPage() {
 
             <div className="pt-8 border-t space-y-4">
               <div className="space-y-2">
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Order Note (Optional)</Label>
+                <Textarea 
+                  placeholder="ADD ANY SPECIAL INSTRUCTIONS FOR YOUR ORDER..." 
+                  className="bg-gray-50 border-gray-200 text-[10px] font-bold uppercase rounded-none resize-none min-h-[80px]"
+                  value={orderNote}
+                  onChange={(e) => setOrderNote(e.target.value.toUpperCase())}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Discount Code</Label>
                 <div className="flex gap-2">
                   <Input 
@@ -642,7 +655,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
                   <span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
                   <span className="text-black">
-                    {isShippingReady ? (shippingRate > 0 ? `$${formatCurrency(shippingRate)}` : 'FREE') : '--'}
+                    {isShippingReady ? (shippingRate > 0 ? `$${formatCurrency(shippingRate)}` : (deliveryMethod === 'pickup' ? 'Pick up FREE' : 'FREE')) : '--'}
                   </span>
                 </div>
                 <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
