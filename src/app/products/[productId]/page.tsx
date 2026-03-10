@@ -144,6 +144,13 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
       title: "Added to Cart",
       description: `${product.name} (${selectedSize}) is in your cart.`,
     });
+
+    // Authoritatively reset customization fields
+    setWantsCustomization(false);
+    setCustomName('');
+    setCustomNumber('');
+    setSpecialRequest('');
+    setSelectedSize('');
   };
 
   const handleWishlist = () => {
