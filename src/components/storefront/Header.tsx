@@ -224,12 +224,6 @@ export function Header() {
                       <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Select Collection</p>
                     </div>
                     <div className="py-1">
-                      <DropdownMenuItem asChild>
-                        <Link href="/collections/all" className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
-                          View Full Archive
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="m-0 bg-gray-100" />
                       {categories?.map((cat: any) => (
                         <DropdownMenuItem key={cat.id} asChild>
                           <Link href={`/collections/${cat.id}`} className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
