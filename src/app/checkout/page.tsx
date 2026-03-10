@@ -16,10 +16,17 @@ import {
   CheckCircle2,
   Calendar,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Globe,
+  Coins,
+  History,
+  Banknote,
+  Apple,
+  Smartphone,
+  ShieldCheck
 } from 'lucide-react';
 import { useCart, type Coupon } from '@/context/CartContext';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, getDoc, doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,7 +85,12 @@ export default function CheckoutPage() {
     discountTotal, totalBeforeTax, appliedCoupon, applyCoupon 
   } = useCart();
   
+  // Fetch Global Payment Config
+  const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
+  const { data: paymentConfig, loading: paymentsLoading } = useDoc(paymentConfigRef);
+
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('shipping');
+  const [selectedPayment, setSelectedPayment] = useState<string>('');
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
   const [shippingRate, setShippingRate] = useState<number>(0);
   const [couponInput, setCouponInput] = useState('');
@@ -124,10 +136,10 @@ export default function CheckoutPage() {
     if (deliveryMethod === 'shipping') {
       return !!formData.courier;
     }
-    return true; // Pickup is ready immediately
+    return true; 
   }, [deliveryMethod, formData.courier]);
 
-  const isSummaryReady = isTaxReady && isShippingReady;
+  const isSummaryReady = isTaxReady && isShippingReady && !!selectedPayment;
 
   const calculatedTax = useMemo(() => {
     if (!isTaxReady) return 0;
@@ -163,6 +175,7 @@ export default function CheckoutPage() {
     if (!formData.phone) newErrors.phone = true;
     if (!formData.name) newErrors.name = true;
     if (!formData.referral) newErrors.referral = true;
+    if (!selectedPayment) newErrors.payment = true;
 
     if (deliveryMethod === 'shipping') {
       if (!formData.address) newErrors.address = true;
@@ -258,6 +271,7 @@ export default function CheckoutPage() {
       total: finalTotal,
       deliveryMethod,
       courier: formData.courier,
+      paymentMethod: selectedPayment,
       referral: formData.referral,
       note: orderNote,
       pickupDate: deliveryMethod === 'pickup' ? formData.pickupDate : null,
@@ -533,6 +547,113 @@ export default function CheckoutPage() {
             )}
           </section>
 
+          <section className="space-y-8 bg-white p-8 border shadow-sm rounded-sm">
+            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.payment ? "text-red-500" : "text-black")}>03. Payment Method {errors.payment && "- REQUIRED"}</h2>
+            {paymentsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
+              </div>
+            ) : !paymentConfig ? (
+              <Alert className="bg-amber-50 border-amber-100 rounded-none">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-[10px] font-bold uppercase text-amber-700">Payment system is currently in maintenance mode.</AlertDescription>
+              </Alert>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {paymentConfig.stripeEnabled && (
+                  <button 
+                    onClick={() => setSelectedPayment('stripe')}
+                    className={cn(
+                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
+                      selectedPayment === 'stripe' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <CreditCard className="h-6 w-6 text-black" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-widest">Credit Card</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5">Secure Stripe Checkout</p>
+                      </div>
+                    </div>
+                    {selectedPayment === 'stripe' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                  </button>
+                )}
+                {paymentConfig.paypalEnabled && (
+                  <button 
+                    onClick={() => setSelectedPayment('paypal')}
+                    className={cn(
+                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
+                      selectedPayment === 'paypal' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Globe className="h-6 w-6 text-[#0070BA]" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-widest">PayPal</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5">Global Digital Wallet</p>
+                      </div>
+                    </div>
+                    {selectedPayment === 'paypal' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                  </button>
+                )}
+                {paymentConfig.klarnaEnabled && (
+                  <button 
+                    onClick={() => setSelectedPayment('klarna')}
+                    className={cn(
+                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
+                      selectedPayment === 'klarna' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Coins className="h-6 w-6 text-[#FFB3C7]" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-widest">Klarna</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5">Buy now, pay later</p>
+                      </div>
+                    </div>
+                    {selectedPayment === 'klarna' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                  </button>
+                )}
+                {paymentConfig.afterpayEnabled && (
+                  <button 
+                    onClick={() => setSelectedPayment('afterpay')}
+                    className={cn(
+                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
+                      selectedPayment === 'afterpay' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <History className="h-6 w-6 text-[#B2FCE4]" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-widest">Afterpay</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5">Interest-free installments</p>
+                      </div>
+                    </div>
+                    {selectedPayment === 'afterpay' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                  </button>
+                )}
+                {paymentConfig.adyenEnabled && (
+                  <button 
+                    onClick={() => setSelectedPayment('adyen')}
+                    className={cn(
+                      "flex items-center justify-between p-6 border-2 transition-all duration-300 ease-in-out text-left",
+                      selectedPayment === 'adyen' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Banknote className="h-6 w-6 text-[#00FF66]" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-widest">Adyen</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5">Global merchant network</p>
+                      </div>
+                    </div>
+                    {selectedPayment === 'adyen' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                  </button>
+                )}
+              </div>
+            )}
+          </section>
+
           <section className="space-y-6 bg-gray-50 border p-8 rounded-sm">
             <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-red-500" : "text-black")}>Referral Source {errors.referral && "- REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
@@ -555,9 +676,29 @@ export default function CheckoutPage() {
               <Alert variant="destructive" className="rounded-none border-2">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Validation Error</AlertTitle>
-                <AlertDescription className="text-[9px] uppercase font-medium">Please review all required fields to proceed.</AlertDescription>
+                <AlertDescription className="text-[9px] uppercase font-medium">Please review all required fields and select a payment method.</AlertDescription>
               </Alert>
             )}
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <ShieldCheck className="h-3.5 w-3.5" /> Express Checkout Available
+              </div>
+              <div className="grid gap-3">
+                {paymentConfig?.applePayEnabled && (
+                  <Button className="h-14 w-full bg-black text-white hover:bg-black/90 rounded-none flex items-center justify-center gap-3">
+                    <Apple className="h-5 w-5" />
+                    <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Apple Pay</span>
+                  </Button>
+                )}
+                {paymentConfig?.googlePayEnabled && (
+                  <Button className="h-14 w-full bg-white border-2 border-black text-black hover:bg-gray-50 rounded-none flex items-center justify-center gap-3">
+                    <Smartphone className="h-5 w-5" />
+                    <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Google Pay</span>
+                  </Button>
+                )}
+              </div>
+            </div>
 
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4">Order Summary ({cartCount})</h2>
             
