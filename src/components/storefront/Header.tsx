@@ -27,6 +27,9 @@ export function Header() {
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  const { data: storeConfig } = useDoc(storeConfigRef);
+
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
   const { data: categories } = useCollection(categoriesQuery);
 
@@ -109,7 +112,7 @@ export function Header() {
                           </Link>
                         ))}
                         <Link href="/#featured-products" className="text-xl font-headline uppercase hover:opacity-60 transition-opacity">
-                          View All
+                          Featured Products
                         </Link>
                       </nav>
                     </div>
@@ -132,7 +135,7 @@ export function Header() {
                           <Button 
                             onClick={handleLogout} 
                             variant="outline" 
-                            className="w-full h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em]"
+                            className="w-full h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
                           >
                             Sign Out
                           </Button>
@@ -141,14 +144,14 @@ export function Header() {
                         <div className="grid grid-cols-1 gap-2">
                           <Button 
                             onClick={handleLogin} 
-                            className="bg-black text-white h-12 rounded-none font-bold uppercase text-[10px] tracking-[0.2em]"
+                            className="bg-black text-white h-12 rounded-none font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
                           >
                             Sign In
                           </Button>
                           <Button 
                             onClick={handleLogin} 
                             variant="outline" 
-                            className="h-12 rounded-none border-black font-bold uppercase text-[0.2em] tracking-[0.2em]"
+                            className="h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
                           >
                             Create Account
                           </Button>
@@ -166,18 +169,25 @@ export function Header() {
             </nav>
           </div>
 
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-            <h1 className="text-3xl font-headline font-bold tracking-tighter">FSLNO</h1>
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3">
+            {storeConfig?.logoUrl ? (
+              <div className="relative w-8 h-8 rounded-sm overflow-hidden">
+                <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
+              </div>
+            ) : null}
+            <h1 className="text-3xl font-headline font-bold tracking-tighter">
+              {storeConfig?.businessName || "FSLNO"}
+            </h1>
           </Link>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
+            <Button variant="ghost" size="icon" className="hidden sm:inline-flex hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
               <Search className="h-5 w-5" />
             </Button>
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
                   <Heart className="h-5 w-5" />
                   {wishlistCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
@@ -225,7 +235,7 @@ export function Header() {
             
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
                   <ShoppingBag className="h-5 w-5" />
                   {cartCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
@@ -257,7 +267,7 @@ export function Header() {
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
                       <ShoppingBag className="h-12 w-12 text-gray-200 mb-4" />
                       <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Your cart is empty.</p>
-                      <Button asChild variant="outline" className="mt-6 border-black text-black font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none">
+                      <Button asChild variant="outline" className="mt-6 border-black text-black font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
                         <Link href="/">Shop Now</Link>
                       </Button>
                     </div>
@@ -308,7 +318,7 @@ export function Header() {
                         Tax and shipping calculated at checkout.
                       </p>
                     </div>
-                    <Button asChild className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-black/90 transition-all flex items-center justify-center gap-3">
+                    <Button asChild className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">
                       <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
                     </Button>
                   </SheetFooter>

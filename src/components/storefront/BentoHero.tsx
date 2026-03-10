@@ -6,12 +6,20 @@ import Image from 'next/image';
 import { ArrowRight, Loader2 } from 'lucide-react';
 
 interface BentoHeroProps {
-  categories: any[] | null;
-  products: any[] | null;
   isLoading: boolean;
+  heroImageUrl?: string;
+  headline?: string;
+  subheadline?: string;
+  fallbackImageUrl?: string;
 }
 
-export function BentoHero({ categories, products, isLoading }: BentoHeroProps) {
+export function BentoHero({ 
+  isLoading, 
+  heroImageUrl, 
+  headline = 'The Collection', 
+  subheadline = 'Modern Silhouettes',
+  fallbackImageUrl
+}: BentoHeroProps) {
   if (isLoading) {
     return (
       <section className="pt-24 pb-12">
@@ -25,28 +33,30 @@ export function BentoHero({ categories, products, isLoading }: BentoHeroProps) {
     );
   }
 
-  const featuredCategory = categories?.[0];
+  const imageSrc = heroImageUrl || fallbackImageUrl || "https://picsum.photos/seed/hero/1200/800";
 
   return (
     <section className="pt-24 pb-12">
       <div className="max-w-[1440px] mx-auto px-4">
-        <div className="relative h-[70vh] w-full overflow-hidden bg-black group">
+        <div className="relative h-[70vh] w-full overflow-hidden bg-black group rounded-sm shadow-2xl">
           <Image
-            src={featuredCategory?.imageUrl || "https://picsum.photos/seed/hero/1200/800"}
-            alt={featuredCategory?.name || "Featured Collection"}
+            src={imageSrc}
+            alt={headline}
             fill
             className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
             priority
             data-ai-hint="fashion editorial"
           />
-          <div className="absolute inset-0 p-12 flex flex-col items-center justify-center text-center text-white bg-gradient-to-t from-black/40 to-transparent">
-            <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">The Collection</span>
-            <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">
-              {featuredCategory?.name || "THE ARCHIVE"}
+          <div className="absolute inset-0 p-12 flex flex-col items-center justify-center text-center text-white bg-gradient-to-t from-black/60 via-transparent to-transparent">
+            <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {subheadline}
+            </span>
+            <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none animate-in fade-in slide-in-from-bottom-6 duration-1000">
+              {headline}
             </h2>
             <Link 
               href="#featured-products" 
-              className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+              className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out shadow-xl active:scale-95"
             >
               Shop the Drops <ArrowRight className="ml-3 h-4 w-4" />
             </Link>

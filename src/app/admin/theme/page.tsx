@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Select, 
   SelectContent, 
@@ -28,7 +29,10 @@ import {
   ChevronRight,
   ShoppingBag,
   Search as SearchIcon,
-  Globe
+  Image as ImageIcon,
+  Upload,
+  Trash2,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -36,6 +40,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 const sportsFonts = [
   "Gameday", "Hyper Oxide", "Quarterback", "Rushblade", "Cricket", 
@@ -53,12 +58,16 @@ const DEFAULT_THEME = {
   bannerEnabled: true,
   bannerText: 'Free global shipping on orders over $500',
   bannerBgColor: '#000000',
-  homepageLayout: 'bento'
+  homepageLayout: 'bento',
+  heroImageUrl: '',
+  heroHeadline: 'The Archive Selection',
+  heroSubheadline: 'Modern Silhouettes'
 };
 
 export default function ThemeEnginePage() {
   const db = useFirestore();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -75,6 +84,9 @@ export default function ThemeEnginePage() {
   const [bannerText, setBannerText] = useState(DEFAULT_THEME.bannerText);
   const [bannerBgColor, setBannerBgColor] = useState(DEFAULT_THEME.bannerBgColor);
   const [homepageLayout, setHomepageLayout] = useState(DEFAULT_THEME.homepageLayout);
+  const [heroImageUrl, setHeroImageUrl] = useState(DEFAULT_THEME.heroImageUrl);
+  const [heroHeadline, setHeroHeadline] = useState(DEFAULT_THEME.heroHeadline);
+  const [heroSubheadline, setHeroSubheadline] = useState(DEFAULT_THEME.heroSubheadline);
 
   useEffect(() => {
     if (themeData) {
@@ -87,8 +99,20 @@ export default function ThemeEnginePage() {
       setBannerText(themeData.bannerText || DEFAULT_THEME.bannerText);
       setBannerBgColor(themeData.bannerBgColor || DEFAULT_THEME.bannerBgColor);
       setHomepageLayout(themeData.homepageLayout || DEFAULT_THEME.homepageLayout);
+      setHeroImageUrl(themeData.heroImageUrl || DEFAULT_THEME.heroImageUrl);
+      setHeroHeadline(themeData.heroHeadline || DEFAULT_THEME.heroHeadline);
+      setHeroSubheadline(themeData.heroSubheadline || DEFAULT_THEME.heroSubheadline);
     }
   }, [themeData]);
+
+  const handleHeroImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setHeroImageUrl(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = () => {
     if (!themeRef) return;
@@ -104,6 +128,9 @@ export default function ThemeEnginePage() {
       bannerText,
       bannerBgColor,
       homepageLayout,
+      heroImageUrl,
+      heroHeadline,
+      heroSubheadline,
       updatedAt: new Date().toISOString()
     };
 
@@ -131,6 +158,9 @@ export default function ThemeEnginePage() {
     setBannerText(DEFAULT_THEME.bannerText);
     setBannerBgColor(DEFAULT_THEME.bannerBgColor);
     setHomepageLayout(DEFAULT_THEME.homepageLayout);
+    setHeroImageUrl(DEFAULT_THEME.heroImageUrl);
+    setHeroHeadline(DEFAULT_THEME.heroHeadline);
+    setHeroSubheadline(DEFAULT_THEME.heroSubheadline);
     toast({ title: "Defaults Restored", description: "Save to commit these base styles permanently." });
   };
 
@@ -172,7 +202,7 @@ export default function ThemeEnginePage() {
           <Button variant="outline" className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px]" onClick={handleReset}>
             <RefreshCcw className="h-4 w-4" /> Reset
           </Button>
-          <Button className="h-10 gap-2 bg-black text-white font-bold uppercase tracking-widest text-[10px] px-8" onClick={handleSave} disabled={isSaving}>
+          <Button className="h-10 gap-2 bg-black text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out" onClick={handleSave} disabled={isSaving}>
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save Styles
           </Button>
@@ -186,6 +216,7 @@ export default function ThemeEnginePage() {
             <TabsList className="w-full bg-white border border-[#e1e3e5] h-12 p-1">
               <TabsTrigger value="styles" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Palette className="h-3 w-3" /> Global</TabsTrigger>
               <TabsTrigger value="banner" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Megaphone className="h-3 w-3" /> Banners</TabsTrigger>
+              <TabsTrigger value="hero" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Sparkles className="h-3 w-3" /> Hero</TabsTrigger>
               <TabsTrigger value="layout" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layout className="h-3 w-3" /> Layout</TabsTrigger>
             </TabsList>
 
@@ -279,6 +310,54 @@ export default function ThemeEnginePage() {
                         <Input type="color" value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" />
                       </div>
                       <Input value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="hero" className="mt-6">
+              <Card className="border-[#e1e3e5] shadow-none">
+                <CardHeader>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Visuals & Content</CardTitle>
+                  <CardDescription>Directly edit the primary entrance of your storefront.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Background Image</Label>
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
+                    <div 
+                      onClick={() => !heroImageUrl && fileInputRef.current?.click()}
+                      className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-gray-50 group hover:border-black transition-all min-h-[200px] ${!heroImageUrl ? 'cursor-pointer' : ''}`}
+                    >
+                      {heroImageUrl ? (
+                        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-white border shadow-sm">
+                          <Image src={heroImageUrl} alt="Hero" fill className="object-cover" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2">
+                            <Button variant="destructive" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); setHeroImageUrl(''); }}><Trash2 className="h-4 w-4" /></Button>
+                            <Button variant="secondary" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}><Upload className="h-4 w-4" /></Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors"><ImageIcon className="h-6 w-6" /></div>
+                          <div className="text-center">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Upload Hero Visual</p>
+                            <p className="text-[8px] text-gray-400 mt-1">Recommended: 1920x1080px (landscape)</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Headline</Label>
+                      <Input value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} className="h-12 font-headline text-lg" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Subheadline (Collection Tag)</Label>
+                      <Input value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} className="h-12 uppercase tracking-widest" />
                     </div>
                   </div>
                 </CardContent>
@@ -389,13 +468,20 @@ export default function ThemeEnginePage() {
                 {homepageLayout === 'bento' ? (
                   <div className="grid grid-cols-2 gap-6">
                     <div 
-                      className="col-span-2 aspect-[21/9] bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500" 
+                      className="col-span-2 aspect-[21/9] bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500 overflow-hidden relative" 
                       style={{ borderRadius: `${borderRadius}px` }}
                     >
-                      <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 font-body">Editorial Collection</span>
-                      <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>The Sculpted Archive</h2>
-                      <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body">
-                        Shop the drops <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                      {heroImageUrl ? (
+                        <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" />
+                      ) : (
+                        <div className="absolute inset-0 bg-gray-100" />
+                      )}
+                      <div className="relative z-10">
+                        <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 font-body block">{heroSubheadline}</span>
+                        <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
+                        <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body justify-center">
+                          Shop the drops <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
                     </div>
                     <div className="aspect-square bg-gray-50 border shadow-sm flex flex-col justify-end p-6" style={{ borderRadius: `${borderRadius}px` }}>
@@ -407,11 +493,18 @@ export default function ThemeEnginePage() {
                 ) : (
                   <div className="space-y-12">
                     <div 
-                      className="aspect-video w-full bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500" 
+                      className="aspect-video w-full bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500 overflow-hidden relative" 
                       style={{ borderRadius: `${borderRadius}px` }}
                     >
-                      <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-6 font-body">Archive Dispatch</span>
-                      <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter leading-none font-headline" style={{ color: primaryColor }}>Sculptural Pieces</h2>
+                      {heroImageUrl ? (
+                        <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" />
+                      ) : (
+                        <div className="absolute inset-0 bg-gray-100" />
+                      )}
+                      <div className="relative z-10">
+                        <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-6 font-body block">{heroSubheadline}</span>
+                        <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-8">
                       {[1, 2].map(i => (

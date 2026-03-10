@@ -6,6 +6,7 @@ import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { ProductCard } from '@/components/storefront/ProductCard';
+import { Footer } from '@/components/storefront/Footer';
 import { Loader2, ArrowRight, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -46,6 +47,8 @@ export default function Home() {
     });
   };
 
+  const heroImageSrc = theme?.heroImageUrl || categories?.[0]?.imageUrl;
+
   return (
     <main className="min-h-screen bg-background">
       <Header />
@@ -54,19 +57,21 @@ export default function Home() {
       {theme?.homepageLayout === 'classic' ? (
         <section className="pt-24 pb-12">
           <div className="max-w-[1440px] mx-auto px-4">
-            <div className="relative h-[70vh] w-full overflow-hidden bg-black">
+            <div className="relative h-[70vh] w-full overflow-hidden bg-black rounded-sm shadow-2xl group">
               <Image
-                src="https://picsum.photos/seed/classic/1920/1080"
+                src={heroImageSrc || "https://picsum.photos/seed/classic/1920/1080"}
                 alt="Main Hero"
                 fill
-                className="object-cover opacity-80"
+                className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
                 priority
                 data-ai-hint="luxury landscape"
               />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6">
-                <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">The Collection</span>
-                <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">Modern Silhouettes</h2>
-                <Link href="#featured-products" className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6 bg-gradient-to-t from-black/60 via-transparent to-transparent">
+                <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
+                <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">
+                  {theme?.heroHeadline || "Modern Silhouettes"}
+                </h2>
+                <Link href="#featured-products" className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out shadow-xl active:scale-95">
                   Shop All <ArrowRight className="ml-3 h-4 w-4" />
                 </Link>
               </div>
@@ -75,9 +80,11 @@ export default function Home() {
         </section>
       ) : (
         <BentoHero 
-          categories={categories} 
-          products={products} 
           isLoading={isHeroLoading} 
+          heroImageUrl={theme?.heroImageUrl}
+          headline={theme?.heroHeadline}
+          subheadline={theme?.heroSubheadline}
+          fallbackImageUrl={categories?.[0]?.imageUrl}
         />
       )}
 
@@ -164,39 +171,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="bg-black text-white py-24 mt-20">
-        <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-16">
-          <div className="col-span-1 md:col-span-2 space-y-8">
-            <h2 className="text-4xl font-headline font-bold tracking-tighter">FSLNO</h2>
-            <p className="text-white/40 max-w-sm text-sm leading-relaxed uppercase tracking-tight">
-              Redefining luxury through minimalist design and high-quality fabrics. All prices in CAD.
-            </p>
-            <div className="flex gap-8">
-              <a href="#" className="text-[10px] uppercase tracking-widest font-bold border-b border-white/10 hover:border-white transition-all pb-1">Instagram</a>
-              <a href="#" className="text-[10px] uppercase tracking-widest font-bold border-b border-white/10 hover:border-white transition-all pb-1">TikTok</a>
-            </div>
-          </div>
-          <div className="space-y-8">
-            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40">Support</h4>
-            <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-white/60">
-              <li><a href="#" className="hover:text-white transition-colors">Shipping & Returns</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Size Guide</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-            </ul>
-          </div>
-          <div className="space-y-8">
-            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40">Legal</h4>
-            <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-white/60">
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-[1440px] mx-auto px-4 border-t border-white/5 mt-24 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] uppercase tracking-[0.2em] text-white/20">
-          <p>© 2024 FSLNO. All Rights Reserved.</p>
-          <p>Designed in London.</p>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }

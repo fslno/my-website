@@ -4,6 +4,7 @@ import React, { use } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
+import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { Loader2, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -85,7 +86,7 @@ export default function CollectionPage(props: { params: Promise<{ categoryId: st
           {!products || products.length === 0 ? (
             <div className="text-center py-32 border-2 border-dashed rounded-none bg-gray-50/50">
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">The archive is currently empty for this drop.</p>
-              <Button asChild variant="outline" className="mt-8 border-black font-bold uppercase tracking-[0.2em] text-[10px] h-14 px-10 rounded-none hover:bg-[#D3D3D3] hover:text-[#333333]">
+              <Button asChild variant="outline" className="mt-8 border-black font-bold uppercase tracking-[0.2em] text-[10px] h-14 px-10 rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
                 <Link href="/">Explore Featured Drops</Link>
               </Button>
             </div>
@@ -106,34 +107,7 @@ export default function CollectionPage(props: { params: Promise<{ categoryId: st
         </div>
       </section>
 
-      <footer className="bg-black text-white py-24 mt-20">
-        <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-16">
-          <div className="col-span-1 md:col-span-2 space-y-8">
-            <h2 className="text-4xl font-headline font-bold tracking-tighter">FSLNO</h2>
-            <p className="text-white/40 max-w-sm text-sm leading-relaxed uppercase tracking-tight">
-              Redefining luxury through minimalist design and high-quality fabrics. All prices in CAD.
-            </p>
-          </div>
-          <div className="space-y-8">
-            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40">Support</h4>
-            <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-white/60">
-              <li><Link href="#" className="hover:text-white transition-colors">Shipping & Returns</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Size Guide</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Contact Us</Link></li>
-            </ul>
-          </div>
-          <div className="space-y-8">
-            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40">Legal</h4>
-            <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-white/60">
-              <li><Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Terms of Service</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-[1440px] mx-auto px-4 border-t border-white/5 mt-24 pt-8 text-[9px] uppercase tracking-[0.2em] text-white/20 text-center md:text-left">
-          <p>© 2024 FSLNO. All Rights Reserved. Designed in London.</p>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }
