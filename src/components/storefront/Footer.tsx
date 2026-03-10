@@ -87,9 +87,23 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="max-w-[1440px] mx-auto px-4 border-t border-white/5 mt-24 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] uppercase tracking-[0.2em] text-white/20">
-        <p>{config?.copyrightText || defaultCopyright}</p>
-        <p>{config?.systemVersion || defaultVersion}</p>
+      
+      <div className="max-w-[1440px] mx-auto px-4 border-t border-white/5 mt-24 pt-12 flex flex-col items-center gap-10 text-[9px] uppercase tracking-[0.2em] text-white/20 text-center">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 w-full">
+          <p className="order-2 md:order-1">{config?.copyrightText || defaultCopyright}</p>
+          
+          <div className="order-1 md:order-2 flex flex-col items-center gap-2 group cursor-default">
+            <span className="text-[7px] tracking-[0.5em] font-bold text-white/10 group-hover:text-white/30 transition-colors duration-500">Powered by</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-6 h-6 bg-white/5 group-hover:bg-white/10 border border-white/5 rounded-sm flex items-center justify-center font-headline font-bold text-white/40 group-hover:text-white/80 text-[11px] transition-all duration-500">
+                F
+              </div>
+              <span className="text-[11px] font-headline font-bold tracking-tighter text-white/40 group-hover:text-white/80 transition-colors duration-500">FSLNO STUDIO</span>
+            </div>
+          </div>
+
+          <p className="order-3 md:order-3">{config?.systemVersion || defaultVersion}</p>
+        </div>
       </div>
     </footer>
   );
