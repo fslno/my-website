@@ -19,7 +19,8 @@ import {
   ChevronDown,
   ShieldCheck,
   History,
-  TicketPercent
+  TicketPercent,
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -34,13 +35,6 @@ import { doc, collection } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -139,13 +133,13 @@ export function Header() {
           <div className="flex items-center gap-4 lg:gap-8">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
+                <Button variant="ghost" size="icon">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Menu</SheetTitle>
+                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Archive Explorer</SheetTitle>
                 </SheetHeader>
                 
                 <ScrollArea className="flex-1">
@@ -173,9 +167,9 @@ export function Header() {
                     <div className="space-y-6">
                       <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Your Account</h3>
                       {user ? (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border">
                               <UserIcon className="h-5 w-5 text-gray-400" />
                             </div>
                             <div className="flex flex-col">
@@ -183,6 +177,21 @@ export function Header() {
                               <span className="text-[9px] text-gray-400 truncate max-w-[150px]">{user.email}</span>
                             </div>
                           </div>
+                          
+                          <nav className="flex flex-col gap-4">
+                            <Link href="/account/history" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
+                              <History className="h-3.5 w-3.5" /> Order History
+                            </Link>
+                            <Link href="/account/promotions" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
+                              <TicketPercent className="h-3.5 w-3.5" /> Rewards & Perks
+                            </Link>
+                            {isAdmin && (
+                              <Link href="/admin" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:opacity-70 transition-opacity">
+                                <ShieldCheck className="h-3.5 w-3.5" /> Studio Command Center
+                              </Link>
+                            )}
+                          </nav>
+
                           <Button 
                             onClick={handleLogout} 
                             variant="outline" 
@@ -204,7 +213,7 @@ export function Header() {
                             variant="outline" 
                             className="h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
                           >
-                            Create Account
+                            Join the Archive
                           </Button>
                         </div>
                       )}
@@ -226,25 +235,9 @@ export function Header() {
             </Link>
 
             <nav className="hidden lg:flex items-center gap-8">
-              <DropdownMenu>
-                <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
-                  Categories <ChevronDown className="h-3 w-3" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-white border-black/10 rounded-none min-w-[240px] p-0 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="p-4 bg-gray-50 border-b">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Select Collection</p>
-                  </div>
-                  <div className="py-1">
-                    {categories?.map((cat: any) => (
-                      <DropdownMenuItem key={cat.id} asChild>
-                        <Link href={`/collections/${cat.id}`} className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
-                          {cat.name}
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Link href="/collections/all" className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity">
+                Explore All
+              </Link>
             </nav>
           </div>
 
@@ -253,7 +246,7 @@ export function Header() {
               <Search className="absolute left-3 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
               <Input 
                 placeholder="SEARCH" 
-                className="pl-8 h-9 w-32 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black"
+                className="pl-8 h-9 w-28 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -273,9 +266,8 @@ export function Header() {
                 </button>
               )}
 
-              {/* INLINE SEARCH RESULTS DROPDOWN */}
               {isSearching && searchQuery.length >= 2 && (
-                <div className="absolute top-full right-0 mt-2 w-[300px] md:w-[450px] bg-white border border-black/10 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="absolute top-full right-0 mt-2 w-[280px] md:w-[450px] bg-white border border-black/10 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
                     <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">
                       Results for "{searchQuery}"
@@ -321,67 +313,9 @@ export function Header() {
                       </div>
                     )}
                   </ScrollArea>
-                  
-                  {filteredProducts.length > 0 && (
-                    <div className="p-3 border-t bg-gray-50/50 text-center">
-                      <Link 
-                        href="/collections/all" 
-                        onClick={() => setIsSearching(false)}
-                        className="text-[9px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
-                      >
-                        View Full Archive
-                      </Link>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
-                  <UserIcon className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white border-black/10 rounded-none min-w-[200px] p-0 shadow-2xl">
-                <div className="p-4 bg-gray-50 border-b">
-                  {user ? (
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black line-clamp-1">{user.displayName || 'Client'}</p>
-                      <p className="text-[9px] font-medium text-gray-400 line-clamp-1">{user.email}</p>
-                    </div>
-                  ) : (
-                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Guest Archive Account</p>
-                  )}
-                </div>
-                <div className="py-1">
-                  {user ? (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/account/history" className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
-                          <History className="h-3.5 w-3.5" /> Order History
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/account/promotions" className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
-                          <TicketPercent className="h-3.5 w-3.5" /> Rewards & Perks
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer text-red-600 hover:bg-red-50 transition-all duration-300">
-                        Sign Out
-                      </DropdownMenuItem>
-                    </>
-                  ) : (
-                    <>
-                      <DropdownMenuItem onClick={handleLogin} className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300">
-                        Sign In / Join Archive
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             <Sheet>
               <SheetTrigger asChild>
@@ -540,16 +474,6 @@ export function Header() {
                 )}
               </SheetContent>
             </Sheet>
-
-            {isAdmin && (
-              <Link 
-                href="/admin" 
-                className="hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out p-2 rounded-sm"
-                title="Admin Command Center"
-              >
-                <ShieldCheck className="h-5 w-5" />
-              </Link>
-            )}
           </div>
         </div>
       </header>
