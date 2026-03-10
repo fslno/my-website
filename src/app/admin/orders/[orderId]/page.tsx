@@ -256,7 +256,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl">
-                {storeConfig?.logoUrl ? <img src={storeConfig.logoUrl} className="w-full h-full object-cover" /> : (storeConfig?.businessName?.[0] || 'F')}
+                {storeConfig?.logoUrl ? <img src={storeConfig.logoUrl} className="w-full h-full object-cover" alt="logo" /> : (storeConfig?.businessName?.[0] || 'F')}
               </div>
               <h1 className="text-3xl font-headline font-bold tracking-tighter uppercase">{storeConfig?.businessName || 'FSLNO STUDIO'}</h1>
             </div>
@@ -521,7 +521,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 )}
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Shipping</span>
-                  <span className="text-black">{shippingRate > 0 ? `$${shippingRate}` : 'FREE'}</span>
+                  <span className="text-black">{Number(order.shipping) > 0 ? `$${Number(order.shipping).toLocaleString()}` : 'FREE'}</span>
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Estimated Tax</span>
@@ -688,7 +688,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                           </div>
                           <div className="bg-white/5 p-4 rounded border border-white/10">
                             <p className="text-[8px] text-gray-500 break-all leading-loose">
-                              SHA256: {Buffer.from(order.id).toString('hex').slice(0, 64).toUpperCase()}
+                              SHA256: {order.id ? btoa(order.id).slice(0, 64).toUpperCase() : 'N/A'}
                             </p>
                           </div>
                         </section>
