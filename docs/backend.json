@@ -169,6 +169,14 @@
         "address": { "type": "string" },
         "phone": { "type": "string" },
         "logoUrl": { "type": "string" },
+        "footerDescription": { "type": "string" },
+        "instagramUrl": { "type": "string" },
+        "tiktokUrl": { "type": "string" },
+        "twitterUrl": { "type": "string" },
+        "footerSupportLinks": { "type": "array" },
+        "footerLegalLinks": { "type": "array" },
+        "copyrightText": { "type": "string" },
+        "systemVersion": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     },

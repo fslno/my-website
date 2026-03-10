@@ -11,6 +11,10 @@ export function Footer() {
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: config } = useDoc(storeConfigRef);
 
+  const currentYear = new Date().getFullYear();
+  const defaultCopyright = `© ${currentYear} ${config?.businessName || "FSLNO"}. ALL RIGHTS RESERVED.`;
+  const defaultVersion = "ARCHIVE SYSTEM V1.0";
+
   return (
     <footer className="bg-black text-white py-24 mt-20">
       <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-16">
@@ -84,8 +88,8 @@ export function Footer() {
         </div>
       </div>
       <div className="max-w-[1440px] mx-auto px-4 border-t border-white/5 mt-24 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] uppercase tracking-[0.2em] text-white/20">
-        <p>© {new Date().getFullYear()} {config?.businessName || "FSLNO"}. All Rights Reserved.</p>
-        <p>Archive System V1.0</p>
+        <p>{config?.copyrightText || defaultCopyright}</p>
+        <p>{config?.systemVersion || defaultVersion}</p>
       </div>
     </footer>
   );

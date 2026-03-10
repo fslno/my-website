@@ -16,7 +16,9 @@ import {
   Twitter, 
   MessageCircle,
   Menu as MenuIcon,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck,
+  FileCode
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -46,6 +48,8 @@ export default function FooterEditorPage() {
   const [twitterUrl, setTwitterUrl] = useState('');
   const [supportLinks, setSupportLinks] = useState<LinkItem[]>([]);
   const [legalLinks, setLegalLinks] = useState<LinkItem[]>([]);
+  const [copyrightText, setCopyrightText] = useState('');
+  const [systemVersion, setSystemVersion] = useState('');
 
   useEffect(() => {
     if (config) {
@@ -55,6 +59,8 @@ export default function FooterEditorPage() {
       setTwitterUrl(config.twitterUrl || '');
       setSupportLinks(config.footerSupportLinks || []);
       setLegalLinks(config.footerLegalLinks || []);
+      setCopyrightText(config.copyrightText || `© ${new Date().getFullYear()} ${config.businessName || 'FSLNO'}. ALL RIGHTS RESERVED.`);
+      setSystemVersion(config.systemVersion || 'ARCHIVE SYSTEM V1.0');
     }
   }, [config]);
 
@@ -68,6 +74,8 @@ export default function FooterEditorPage() {
       twitterUrl,
       footerSupportLinks: supportLinks,
       footerLegalLinks: legalLinks,
+      copyrightText,
+      systemVersion,
       updatedAt: new Date().toISOString() 
     };
 
@@ -207,6 +215,39 @@ export default function FooterEditorPage() {
                 </div>
               ))}
               {legalLinks.length === 0 && <p className="text-center py-8 text-xs text-gray-400 italic">No legal links configured.</p>}
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/30">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-gray-400" />
+                <CardTitle className="text-sm font-bold uppercase tracking-widest">Compliance & Versioning</CardTitle>
+              </div>
+              <CardDescription>Curate the global footer fine print.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Copyright Notice</Label>
+                <Input 
+                  value={copyrightText} 
+                  onChange={(e) => setCopyrightText(e.target.value)} 
+                  placeholder="e.g. © 2026 FSLNO. ALL RIGHTS RESERVED."
+                  className="h-11 text-xs uppercase"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">System Version Identifier</Label>
+                <div className="relative">
+                  <FileCode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input 
+                    value={systemVersion} 
+                    onChange={(e) => setSystemVersion(e.target.value)} 
+                    placeholder="e.g. ARCHIVE SYSTEM V1.0"
+                    className="pl-10 h-11 text-xs uppercase font-mono"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
