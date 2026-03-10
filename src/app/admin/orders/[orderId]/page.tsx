@@ -206,9 +206,9 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
 
   const getReferralLabel = (ref: string) => {
     switch (ref) {
-      case 'google': return 'Google / Pinterest';
-      case 'social': return 'Social Media';
-      case 'friend': return 'Friend Referral';
+      case 'google_pinterest': return 'Google/Pinterest';
+      case 'facebook_instagram': return 'Facebook/Instagram';
+      case 'from_friend': return 'From Friend';
       default: return ref || 'Direct Traffic';
     }
   };

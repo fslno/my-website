@@ -472,9 +472,9 @@ export default function CheckoutPage() {
                 <SelectValue placeholder="HOW DID YOU FIND US?" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="google" className="text-[10px] font-bold uppercase tracking-widest">Google / Pinterest</SelectItem>
-                <SelectItem value="social" className="text-[10px] font-bold uppercase tracking-widest">Social Media</SelectItem>
-                <SelectItem value="friend" className="text-[10px] font-bold uppercase tracking-widest">Friend Recommendation</SelectItem>
+                <SelectItem value="google_pinterest" className="text-[10px] font-bold uppercase tracking-widest">Google/Pinterest</SelectItem>
+                <SelectItem value="facebook_instagram" className="text-[10px] font-bold uppercase tracking-widest">Facebook/Instagram</SelectItem>
+                <SelectItem value="from_friend" className="text-[10px] font-bold uppercase tracking-widest">From Friend</SelectItem>
                 <SelectItem value="other" className="text-[10px] font-bold uppercase tracking-widest">Other</SelectItem>
               </SelectContent>
             </Select>
