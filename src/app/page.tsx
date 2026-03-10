@@ -139,16 +139,19 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
-              {products.map((product: any) => (
-                <ProductCard 
-                  key={product.id} 
-                  id={product.id}
-                  name={product.name}
-                  price={`$${Number(product.price).toLocaleString()} CAD`}
-                  image={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/600/800'}
-                  category={product.brand || 'FSLNO'}
-                />
-              ))}
+              {products.map((product: any) => {
+                const category = categories?.find((c: any) => c.id === product.categoryId);
+                return (
+                  <ProductCard 
+                    key={product.id} 
+                    id={product.id}
+                    name={product.name}
+                    price={`$${Number(product.price).toLocaleString()} CAD`}
+                    image={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/600/800'}
+                    category={category?.name || product.brand || 'Collection'}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
@@ -183,8 +186,8 @@ export default function Home() {
           </div>
         </div>
         <div className="max-w-[1440px] mx-auto px-4 border-t border-white/5 mt-24 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] uppercase tracking-[0.2em] text-white/20">
-          <p>© 2024 FSLNO. ALL RIGHTS RESERVED.</p>
-          <p>DESIGNED IN LONDON.</p>
+          <p>© 2024 FSLNO. All Rights Reserved.</p>
+          <p>Designed in London.</p>
         </div>
       </footer>
     </main>
