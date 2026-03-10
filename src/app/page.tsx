@@ -113,17 +113,14 @@ export default function Home() {
         </div>
       </section>
       
-      {/* New Arrivals Section */}
+      {/* Featured Products Section */}
       <section className="py-20">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">New Arrivals</span>
+              <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Featured Products</span>
               <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight">Latest Releases</h2>
             </div>
-            <Link href="/collections/all" className="hidden md:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:opacity-60 transition-opacity">
-              View All <ArrowRight className="h-3 w-3" />
-            </Link>
           </div>
           
           {productsLoading ? (
@@ -148,12 +145,6 @@ export default function Home() {
               ))}
             </div>
           )}
-
-          <div className="mt-12 flex justify-center md:hidden">
-            <Link href="/collections/all" className="w-full h-12 flex items-center justify-center border border-black text-[10px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all">
-              View All Arrivals
-            </Link>
-          </div>
         </div>
       </section>
 
