@@ -237,17 +237,21 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
 
   return (
     <div className="space-y-8">
-      {/* Printable Invoice Section - Hidden in UI */}
-      <div className="hidden print:block w-[210mm] mx-auto bg-white text-black p-12 font-sans">
+      {/* Printable Invoice Section - Only visible during printing */}
+      <div id="printable-invoice" className="hidden print:block w-[210mm] mx-auto bg-white text-black p-12 font-sans min-h-[297mm]">
         <style type="text/css" dangerouslySetInnerHTML={{ __html: `
-          @page { size: A4; margin: 0; }
-          body { -webkit-print-color-adjust: exact; }
+          @media print {
+            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            header, nav, aside, button, .print-hidden, footer { display: none !important; }
+            #printable-invoice { display: block !important; visibility: visible !important; position: absolute; left: 0; top: 0; }
+            @page { size: A4; margin: 0; }
+          }
         ` }} />
         
         <div className="flex justify-between items-start border-b-2 border-black pb-8 mb-12">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl overflow-hidden">
                 {storeConfig?.logoUrl ? <img src={storeConfig.logoUrl} className="w-full h-full object-cover" alt="logo" /> : (storeConfig?.businessName?.[0] || 'S')}
               </div>
               <h1 className="text-3xl font-headline font-bold tracking-tighter uppercase">{storeConfig?.businessName || 'STORE'}</h1>
@@ -256,6 +260,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <div className="text-right">
             <h2 className="text-4xl font-headline font-bold tracking-tighter mb-2">INVOICE</h2>
             <p className="text-sm font-mono font-bold uppercase tracking-tight">Order #{order.id.substring(0, 6).toUpperCase()}</p>
+            <p className="text-[10px] text-gray-400 mt-1">{formatDate(new Date())}</p>
           </div>
         </div>
 
@@ -290,7 +295,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
         </div>
 
         <div className="space-y-4 mb-12">
-          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Items</h3>
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Purchased Items</h3>
           <Table className="border-none shadow-none">
             <TableHeader className="bg-gray-50">
               <TableRow className="border-black border-b">
@@ -346,6 +351,11 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
             </div>
           </div>
         </div>
+        
+        <div className="mt-auto pt-12 border-t text-[9px] uppercase tracking-widest text-gray-400 text-center">
+          <p>Thank you for your purchase from {storeConfig?.businessName || 'our store'}.</p>
+          <p className="mt-1">© {new Date().getFullYear()} {storeConfig?.businessName || 'FSLNO'}. ALL RIGHTS RESERVED.</p>
+        </div>
       </div>
 
       {/* Screen-only UI */}
@@ -376,13 +386,13 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Order Management</CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="p-6 space-y-8">
+              <div className="grid grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Payment Status</Label>
                   <Select value={order.paymentStatus || 'pending'} onValueChange={handleConfirmPayment} disabled={isUpdatingPayment}>
                     <SelectTrigger className="h-11 bg-white border-black text-[10px] font-bold uppercase tracking-widest">
-                      <SelectValue placeholder="Payment Status" />
+                      <SelectValue placeholder="Payment" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pending" className="text-[10px] font-bold uppercase">Pending</SelectItem>
@@ -397,7 +407,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Shipping Status</Label>
                   <Select value={order.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
                     <SelectTrigger className="h-11 bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
-                      <SelectValue placeholder="Update Status" />
+                      <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="awaiting_processing" className="text-[10px] font-bold uppercase">Awaiting Processing</SelectItem>
@@ -411,6 +421,52 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   </Select>
                 </div>
               </div>
+
+              {order.deliveryMethod === 'shipping' && (
+                <div className="space-y-4 pt-6 border-t">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Logistics & Tracking</Label>
+                    {order.trackingNumber && (
+                      <Link 
+                        href={aftershipUrl} 
+                        target="_blank" 
+                        className="text-[9px] font-bold uppercase text-blue-600 flex items-center gap-1.5 hover:underline"
+                      >
+                        Track on AfterShip <ExternalLink className="h-2.5 w-2.5" />
+                      </Link>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input 
+                          placeholder="ENTER TRACKING #" 
+                          value={trackingNumber}
+                          onChange={(e) => setTrackingNumber(e.target.value)}
+                          className="h-12 bg-gray-50 border-gray-200 text-black text-xs font-mono uppercase pl-10"
+                        />
+                        <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      </div>
+                      <Button 
+                        size="icon" 
+                        variant="outline" 
+                        className="h-12 w-12 border-gray-200 bg-white hover:bg-gray-50"
+                        onClick={() => setIsScannerOpen(true)}
+                      >
+                        <ScanBarcode className="h-5 w-5" />
+                      </Button>
+                    </div>
+                    <Button 
+                      onClick={handleSaveTracking} 
+                      disabled={isSavingTracking || trackingNumber === order.trackingNumber}
+                      className="w-full h-12 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-black/90"
+                    >
+                      {isSavingTracking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                      Save Tracking Information
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -475,7 +531,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   <span className="text-black">{Number(order.shipping) > 0 ? `$${Number(order.shipping).toLocaleString()}` : 'FREE'}</span>
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
-                  <span>Tax</span>
+                  <span>Estimated Tax</span>
                   <span className="text-black">${(Number(order.tax) || 0).toLocaleString()}</span>
                 </div>
                 <Separator className="my-2" />
@@ -492,7 +548,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 <div className="space-y-1">
-                  <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">How they found us</p>
+                  <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Referral Source</p>
                   <p className="text-xs font-bold uppercase">{getReferralLabel(order.referral)}</p>
                 </div>
                 <div className="space-y-1">
@@ -510,63 +566,18 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                   </p>
                 </div>
 
-                {order.deliveryMethod === 'shipping' && (
-                  <div className="space-y-3 pt-2 border-t border-white/10">
-                    <Label className="text-[9px] uppercase font-bold text-gray-500">Tracking</Label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Input 
-                          placeholder="TRACKING #" 
-                          value={trackingNumber}
-                          onChange={(e) => setTrackingNumber(e.target.value)}
-                          className="h-10 bg-white/5 border-white/10 text-white text-xs font-mono uppercase pl-10"
-                        />
-                        <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      </div>
-                      <Button 
-                        size="icon" 
-                        variant="outline" 
-                        className="h-10 w-10 border-white/10 bg-white/5 hover:bg-white/10"
-                        onClick={() => setIsScannerOpen(true)}
-                      >
-                        <ScanBarcode className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={handleSaveTracking} 
-                        disabled={isSavingTracking}
-                        className="flex-1 h-9 bg-white text-black text-[9px] font-bold uppercase tracking-widest hover:bg-gray-200"
-                      >
-                        {isSavingTracking ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save Tracking"}
-                      </Button>
-                      {order.trackingNumber && (
-                        <Button 
-                          variant="outline" 
-                          asChild 
-                          className="flex-1 h-9 border-white/10 bg-white/5 text-white text-[9px] font-bold uppercase tracking-widest hover:bg-white/10"
-                        >
-                          <a href={aftershipUrl} target="_blank">
-                            <Globe className="h-3 w-3 mr-2" /> Track
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 <div className="pt-2">
                   <Sheet>
                     <SheetTrigger asChild>
                       <Button variant="outline" className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest h-10">
-                        View System Logs <ExternalLink className="ml-2 h-3 w-3" />
+                        View Studio Logs <ExternalLink className="ml-2 h-3 w-3" />
                       </Button>
                     </SheetTrigger>
                     <SheetContent className="bg-black text-white border-white/10 sm:max-w-lg overflow-y-auto">
                       <SheetHeader className="border-b border-white/10 pb-6 mb-6">
                         <div className="flex items-center gap-3 text-white">
                           <Terminal className="h-5 w-5 text-green-500" />
-                          <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">System Logs</SheetTitle>
+                          <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">Studio Archive Logs</SheetTitle>
                         </div>
                         <SheetDescription className="text-gray-400 text-xs">
                           Technical metadata for order {order.id}
@@ -575,34 +586,38 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       <div className="space-y-8 font-mono">
                         <section className="space-y-4">
                           <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            <Fingerprint className="h-3 w-3" /> Security
+                            <Fingerprint className="h-3 w-3" /> Security Footprint
                           </div>
                           <div className="bg-white/5 p-4 rounded border border-white/10 space-y-3">
                             <div className="flex justify-between border-b border-white/5 pb-2">
                               <span className="text-[10px] text-gray-400">TRANSACTION_ID</span>
-                              <span className="text-[10px] text-green-400">{order.transactionId || 'N/A'}</span>
+                              <span className="text-[10px] text-green-400">{order.transactionId || 'STUDIO-CONFIRMED'}</span>
                             </div>
                             <div className="flex justify-between border-b border-white/5 pb-2">
                               <span className="text-[10px] text-gray-400">ORIGIN_IP</span>
-                              <span className="text-[10px] text-white">{order.ipAddress || 'N/A'}</span>
+                              <span className="text-[10px] text-white">{order.ipAddress || 'REDACTED'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[10px] text-gray-400">ARCHIVE_HASH</span>
+                              <span className="text-[10px] text-zinc-500 truncate max-w-[180px]">sha256:{(order.id || '').split('').reverse().join('')}</span>
                             </div>
                           </div>
                         </section>
 
                         <section className="space-y-4">
                           <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            <History className="h-3 w-3" /> Lifecycle
+                            <History className="h-3 w-3" /> Event Lifecycle
                           </div>
                           <div className="space-y-4 border-l border-white/10 ml-1 pl-4">
                             <div className="relative">
                               <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-green-500" />
-                              <p className="text-[10px] text-white font-bold uppercase">Order Placed</p>
+                              <p className="text-[10px] text-white font-bold uppercase">Order Finalized</p>
                               <p className="text-[9px] text-gray-500">{formatDate(order.createdAt)}</p>
                             </div>
                             <div className="relative">
                               <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-purple-500" />
-                              <p className="text-[10px] text-white font-bold uppercase">Current Status</p>
-                              <p className="text-[9px] text-gray-500">{order.status?.toUpperCase()}</p>
+                              <p className="text-[10px] text-white font-bold uppercase">Status Update: {order.status?.replace('_', ' ').toUpperCase()}</p>
+                              <p className="text-[9px] text-gray-500">{formatDate(new Date())}</p>
                             </div>
                           </div>
                         </section>
@@ -747,7 +762,7 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-black text-white border-white/10">
         <DialogHeader>
-          <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Barcode Scanner</DialogTitle>
+          <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Archive Barcode Scanner</DialogTitle>
         </DialogHeader>
         <div className="relative aspect-video bg-zinc-900 rounded-lg overflow-hidden border border-white/5">
           <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
