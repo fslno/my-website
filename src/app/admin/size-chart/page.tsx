@@ -211,7 +211,7 @@ export default function SizeChartPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
-            <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
+            <DialogHeader className="pt-12 px-6 border-b shrink-0 flex flex-row items-center justify-between">
               <DialogTitle className="text-xl font-headline font-bold">
                 {editingId ? `Edit Guide: ${name}` : 'New Size Guide'}
               </DialogTitle>

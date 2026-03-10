@@ -209,6 +209,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
       case 'google_pinterest': return 'Google/Pinterest';
       case 'facebook_instagram': return 'Facebook/Instagram';
       case 'from_friend': return 'From Friend';
+      case 'repeat_customer': return 'Repeat Customer';
       default: return ref || 'Direct Traffic';
     }
   };
@@ -578,7 +579,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       </Button>
                     </SheetTrigger>
                     <SheetContent className="bg-black text-white border-white/10 sm:max-w-lg overflow-y-auto">
-                      <SheetHeader className="border-b border-white/10 pb-6 mb-6">
+                      <SheetHeader className="pt-12 border-b border-white/10 pb-6 mb-6">
                         <div className="flex items-center gap-3 text-white">
                           <Terminal className="h-5 w-5 text-green-500" />
                           <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">Studio Logs</SheetTitle>
@@ -615,7 +616,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                           <div className="space-y-4 border-l border-white/10 ml-1 pl-4">
                             <div className="relative">
                               <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-green-500" />
-                              <p className="text-[10px] text-white font-bold uppercase">Acquisition Finalized</p>
+                              <p className="text-[10px] text-white font-bold uppercase">Order Finalized</p>
                               <p className="text-[9px] text-gray-500">{formatDate(order.createdAt)}</p>
                             </div>
                             <div className="relative">
@@ -766,7 +767,7 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-black text-white border-white/10">
-        <DialogHeader>
+        <DialogHeader className="pt-12">
           <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Logistics Scanner</DialogTitle>
         </DialogHeader>
         <div className="relative aspect-video bg-zinc-900 rounded-lg overflow-hidden border border-white/5">

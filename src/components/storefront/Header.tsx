@@ -44,7 +44,6 @@ export function Header() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      // Gracefully handle cancellation errors
       if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
         console.error("Authentication failed:", error);
       }
@@ -142,7 +141,7 @@ export function Header() {
                           <Button 
                             onClick={handleLogin} 
                             variant="outline" 
-                            className="h-12 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em]"
+                            className="h-12 rounded-none border-black font-bold uppercase text-[0.2em] tracking-[0.2em]"
                           >
                             Create Account
                           </Button>
