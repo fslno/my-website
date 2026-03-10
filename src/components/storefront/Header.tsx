@@ -137,7 +137,7 @@ export function Header() {
           <div className="flex items-center gap-4 lg:gap-8">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="lg:hidden">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
@@ -339,6 +339,70 @@ export function Header() {
                 </div>
               )}
             </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="hidden lg:inline-flex hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+                  <UserIcon className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 bg-white border border-black/10 shadow-xl rounded-none p-0 mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="p-6 space-y-6">
+                  {user ? (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border">
+                          {user.photoURL ? (
+                            <Image src={user.photoURL} alt={user.displayName || ''} width={40} height={40} className="rounded-full object-cover" />
+                          ) : (
+                            <UserIcon className="h-5 w-5 text-gray-400" />
+                          )}
+                        </div>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-sm font-bold uppercase truncate">{user.displayName || 'Client'}</span>
+                          <span className="text-[9px] text-gray-400 truncate">{user.email}</span>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="flex flex-col gap-4">
+                        <Link href="/account/history" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
+                          <History className="h-3.5 w-3.5" /> Order History
+                        </Link>
+                        <Link href="/account/promotions" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
+                          <TicketPercent className="h-3.5 w-3.5" /> Rewards & Perks
+                        </Link>
+                      </div>
+                      <Button 
+                        onClick={handleLogout} 
+                        variant="outline" 
+                        className="w-full h-10 rounded-none border-black font-bold uppercase text-[9px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all"
+                      >
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Archival Access</p>
+                      <div className="flex flex-col gap-2">
+                        <Button 
+                          onClick={handleLogin} 
+                          className="bg-black text-white h-11 rounded-none font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333]"
+                        >
+                          Sign In
+                        </Button>
+                        <Button 
+                          onClick={handleLogin} 
+                          variant="outline" 
+                          className="h-11 rounded-none border-black font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-[#D3D3D3] hover:text-[#333333]"
+                        >
+                          Join Archive
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Sheet>
               <SheetTrigger asChild>
