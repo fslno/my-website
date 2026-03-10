@@ -21,7 +21,8 @@ import {
   Ruler, 
   Loader2,
   Check,
-  Table as TableIcon
+  Table as TableIcon,
+  ChevronLeft
 } from 'lucide-react';
 import {
   Sheet,
@@ -48,6 +49,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
   const params = use(props.params);
   const productId = params.productId;
   const db = useFirestore();
+  const router = useRouter();
   const { cart, addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
@@ -219,6 +221,14 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
       <Header />
       
       <div className="max-w-[1280px] mx-auto px-4 pt-36 pb-12">
+        <button 
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-all duration-300 mb-8 group w-fit"
+        >
+          <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
+          Back to Previous
+        </button>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
           <div className="space-y-6">
