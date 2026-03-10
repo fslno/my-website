@@ -414,7 +414,7 @@ export default function CheckoutPage() {
                           </div>
                           <div className="space-y-2">
                             <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
-                            <Input placeholder="" className="h-12 uppercase" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                            <Input placeholder="" className="h-12 uppercase" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">

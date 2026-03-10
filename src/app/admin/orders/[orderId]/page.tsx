@@ -338,7 +338,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
           <div className="w-[300px] space-y-3">
             <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
               <span>{order.deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
-              <span className="text-black">${formatCurrency(Number(order.shipping) || 0)}</span>
+              <span className="text-black">{Number(order.shipping) > 0 ? `$${formatCurrency(Number(order.shipping))}` : 'FREE'}</span>
             </div>
             {Number(order.discountTotal) > 0 && (
               <div className="flex justify-between text-[10px] font-bold uppercase text-red-600">
