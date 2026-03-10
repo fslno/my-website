@@ -22,7 +22,8 @@ import {
   LogOut,
   Mail,
   Lock,
-  TicketPercent
+  TicketPercent,
+  MailWarning
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -299,6 +300,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link href="/admin/theme">
                       <Palette />
                       <span>Theme Engine</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Notifications">
+                    <Link href="/admin/notifications">
+                      <MailWarning />
+                      <span>Notifications</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
