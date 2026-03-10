@@ -361,8 +361,8 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                     </SheetContent>
                   </Sheet>
                 ) : (
-                  <button className="flex items-center gap-2 text-gray-300 cursor-not-allowed text-[11px] uppercase font-bold">
-                    <Ruler className="h-4 w-4" /> No size guide
+                  <button className="flex items-center gap-2 text-gray-500 text-[11px] uppercase font-bold hover:text-black transition-colors">
+                    <Ruler className="h-4 w-4" /> Standard Guide
                   </button>
                 )}
               </div>

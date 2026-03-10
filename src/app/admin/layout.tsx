@@ -48,7 +48,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { signInWithPopup, GoogleAuthProvider, signOut, signInWithEmailAndPassword } from 'firebase/auth';
+import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 
@@ -125,7 +125,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <BarChart3 />
                   <span>Products</span>
                 </Link>
-              </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Categories" onClick={handleNavClick}>
@@ -296,24 +296,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    if (!auth) return;
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Authenticated",
-        description: "Credentials verified. Enforcing studio role...",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "Could not verify credentials.",
-      });
-    }
-  };
-
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !email || !password) return;
@@ -444,21 +426,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {isLoggingIn ? "Authorizing..." : "Enter Dashboard"}
               </Button>
             </form>
-
-            <div className="flex items-center gap-4 w-full max-sm mb-8">
-              <Separator className="flex-1 bg-gray-200" />
-              <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">or</span>
-              <Separator className="flex-1 bg-gray-200" />
-            </div>
-
-            <Button 
-              onClick={handleGoogleLogin} 
-              variant="outline"
-              className="w-full max-w-sm border-[#e1e3e5] bg-white text-black px-10 h-12 font-bold uppercase tracking-[0.1em] text-[10px] hover:bg-gray-50 transition-all rounded-none flex items-center justify-center gap-2"
-            >
-              <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={16} height={16} />
-              Authorized Google Access
-            </Button>
           </>
         )}
         
