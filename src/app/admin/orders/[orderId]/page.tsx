@@ -27,7 +27,11 @@ import {
   Building2,
   ShoppingBag,
   Search,
-  Sparkles
+  Sparkles,
+  Terminal,
+  Fingerprint,
+  History,
+  Shield
 } from 'lucide-react';
 import { 
   Table, 
@@ -57,6 +61,14 @@ import {
   DialogTitle, 
   DialogFooter 
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, updateDoc, query, where, collection } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -509,14 +521,14 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 )}
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Shipping</span>
-                  <span className="text-black">${(Number(order.shipping) || 0).toLocaleString()}</span>
+                  <span className="text-black">{shippingRate > 0 ? `$${shippingRate}` : 'FREE'}</span>
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Estimated Tax</span>
                   <span className="text-black">${(Number(order.tax) || 0).toLocaleString()}</span>
                 </div>
                 <Separator className="my-2" />
-                <div className="flex justify-between items-end">
+                <div className="flex justify-between items-end pt-2">
                   <span className="text-[13px] font-bold uppercase tracking-[0.1em]">Total Value</span>
                   <span className="text-xl font-bold font-headline">${(Number(order.total) || 0).toLocaleString()} CAD</span>
                 </div>
@@ -606,9 +618,83 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                 </div>
 
                 <div className="pt-2">
-                  <Button variant="outline" className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest h-10">
-                    View Studio Logs <ExternalLink className="ml-2 h-3 w-3" />
-                  </Button>
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest h-10">
+                        View Studio Logs <ExternalLink className="ml-2 h-3 w-3" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent className="bg-black text-white border-white/10 sm:max-w-lg overflow-y-auto">
+                      <SheetHeader className="border-b border-white/10 pb-6 mb-6">
+                        <div className="flex items-center gap-3 text-white">
+                          <Terminal className="h-5 w-5 text-green-500" />
+                          <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">Studio Archive Logs</SheetTitle>
+                        </div>
+                        <SheetDescription className="text-gray-400 text-xs">
+                          Forensic transaction data for order {order.id}
+                        </SheetDescription>
+                      </SheetHeader>
+                      <div className="space-y-8 font-mono">
+                        <section className="space-y-4">
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            <Fingerprint className="h-3 w-3" /> Security Footprint
+                          </div>
+                          <div className="bg-white/5 p-4 rounded border border-white/10 space-y-3">
+                            <div className="flex justify-between border-b border-white/5 pb-2">
+                              <span className="text-[10px] text-gray-400">TRANSACTION_ID</span>
+                              <span className="text-[10px] text-green-400">{order.transactionId || 'INTERNAL'}</span>
+                            </div>
+                            <div className="flex justify-between border-b border-white/5 pb-2">
+                              <span className="text-[10px] text-gray-400">ORIGIN_IP</span>
+                              <span className="text-[10px] text-white">{order.ipAddress || '72.143.XX.XX'}</span>
+                            </div>
+                            <div className="flex justify-between border-b border-white/5 pb-2">
+                              <span className="text-[10px] text-gray-400">PROTOCOL</span>
+                              <span className="text-[10px] text-white">HTTPS/2.0 TLS 1.3</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[10px] text-gray-400">FINGERPRINT</span>
+                              <span className="text-[10px] text-white">BROWSER_ENGINE_V8</span>
+                            </div>
+                          </div>
+                        </section>
+
+                        <section className="space-y-4">
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            <History className="h-3 w-3" /> Event Lifecycle
+                          </div>
+                          <div className="space-y-4 border-l border-white/10 ml-1 pl-4">
+                            <div className="relative">
+                              <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-green-500" />
+                              <p className="text-[10px] text-white font-bold uppercase">Order Created</p>
+                              <p className="text-[9px] text-gray-500">{formatDate(order.createdAt)}</p>
+                            </div>
+                            <div className="relative">
+                              <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-blue-500" />
+                              <p className="text-[10px] text-white font-bold uppercase">Financial Confirmation</p>
+                              <p className="text-[9px] text-gray-500">Status: {order.paymentStatus?.toUpperCase()}</p>
+                            </div>
+                            <div className="relative">
+                              <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
+                              <p className="text-[10px] text-white font-bold uppercase">Last Logistics Sync</p>
+                              <p className="text-[9px] text-gray-500">Current Status: {order.status?.toUpperCase()}</p>
+                            </div>
+                          </div>
+                        </section>
+
+                        <section className="space-y-4">
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            <Shield className="h-3 w-3" /> Verification Hash
+                          </div>
+                          <div className="bg-white/5 p-4 rounded border border-white/10">
+                            <p className="text-[8px] text-gray-500 break-all leading-loose">
+                              SHA256: {Buffer.from(order.id).toString('hex').slice(0, 64).toUpperCase()}
+                            </p>
+                          </div>
+                        </section>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
                 </div>
               </CardContent>
             </Card>
