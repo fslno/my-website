@@ -11,10 +11,8 @@ import { Header } from '@/components/storefront/Header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { 
-  Star, 
   Heart, 
   Share2, 
   Ruler, 
@@ -133,6 +131,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
       quantity: 1,
       image: product.media?.[0]?.url || '',
       size: selectedSize,
+      categoryId: product.categoryId,
       customName: wantsCustomization ? customName : undefined,
       customNumber: wantsCustomization ? customNumber : undefined,
       specialNote: wantsCustomization ? specialRequest : undefined
@@ -196,7 +195,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
         <h1 className="text-2xl font-headline font-bold mb-4">Product Not Found</h1>
         <p className="text-muted-foreground mb-8">This item may no longer be available.</p>
         <Button asChild className="bg-black text-white">
-          <a href="/">Back to Shop</a>
+          <Link href="/">Back to Shop</Link>
         </Button>
       </div>
     );
@@ -289,7 +288,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                         <Ruler className="h-5 w-5" /> Size Guide
                       </button>
                     </SheetTrigger>
-                    <SheetContent className="w-full sm:max-w-xl bg-white border-l p-0 overflow-hidden flex flex-col">
+                    <SheetContent side="right" className="w-full sm:max-w-xl bg-white border-l p-0 overflow-hidden flex flex-col">
                       <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                         <div className="flex items-center gap-3 text-black mb-2">
                           <Ruler className="h-5 w-5" />
