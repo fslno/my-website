@@ -11,7 +11,9 @@ import {
   increment,
   serverTimestamp,
   getDocs,
-  writeBatch
+  writeBatch,
+  query,
+  orderBy
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -30,6 +32,7 @@ export interface CartItem {
   specialNote?: string;
   productId?: string;
   isPromo?: boolean;
+  createdAt?: any;
 }
 
 export interface Coupon {
@@ -83,10 +86,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [localCart, isInitialized, user]);
 
-  // Firestore Persistence & Config
+  // Firestore Persistence & Config - Ordered New to Old
   const cartQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return collection(db, 'users', user.uid, 'cart');
+    return query(collection(db, 'users', user.uid, 'cart'), orderBy('createdAt', 'desc'));
   }, [db, user]);
 
   const promoConfigRef = useMemoFirebase(() => {
@@ -125,7 +128,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const existingPromo = cartData.find(i => i.isPromo);
 
     if (hasBogoQualify && !existingPromo) {
-      return [...cartData, {
+      // Prepend reward to keep "New" items at the top
+      return [{
         id: 'promo-reward',
         variantId: 'promo-reward-free',
         name: bogoItemName || 'Archive Reward',
@@ -133,8 +137,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         quantity: 1,
         image: 'https://picsum.photos/seed/promo/400/400',
         size: 'OS',
-        isPromo: true
-      }];
+        isPromo: true,
+        createdAt: Date.now()
+      }, ...cartData];
     }
 
     if (!hasBogoQualify && existingPromo) {
@@ -209,9 +214,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (existingIndex > -1) {
           const updated = [...prev];
           updated[existingIndex] = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + 1 };
+          // Move to top when updated if desired, but sticking to creation for now
           return updated;
         }
-        return [...prev, { ...newItem, quantity: 1 }];
+        // Prepend new item for "New to Old" guest experience
+        return [{ ...newItem, quantity: 1, createdAt: Date.now() }, ...prev];
       });
     }
   };
