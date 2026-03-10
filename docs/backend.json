@@ -160,6 +160,28 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "email", "total", "status", "createdAt"]
+    },
+    "StoreConfig": {
+      "title": "StoreConfig",
+      "type": "object",
+      "properties": {
+        "businessName": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "StaffProfile": {
+      "title": "StaffProfile",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "timezone": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -194,6 +216,24 @@
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
+          }
+        }
+      },
+      {
+        "path": "/config/store",
+        "definition": {
+          "entityName": "StoreConfig",
+          "schema": {
+            "$ref": "#/backend/entities/StoreConfig"
+          }
+        }
+      },
+      {
+        "path": "/config/staff",
+        "definition": {
+          "entityName": "StaffProfile",
+          "schema": {
+            "$ref": "#/backend/entities/StaffProfile"
           }
         }
       }

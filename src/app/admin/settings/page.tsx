@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -29,13 +30,11 @@ import {
   Save, 
   Trash2,
   Image as ImageIcon,
-  Link as LinkIcon,
   User,
   Mail,
   Clock,
   ShieldCheck,
-  Globe,
-  Settings2
+  Globe
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -49,6 +48,12 @@ export default function SettingsPage() {
   const db = useFirestore();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Input Refs for "Edit" functionality
+  const staffNameRef = useRef<HTMLInputElement>(null);
+  const staffEmailRef = useRef<HTMLInputElement>(null);
+  const staffPhoneRef = useRef<HTMLInputElement>(null);
+  const staffTimezoneRef = useRef<HTMLInputElement>(null);
 
   // Firestore References
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
@@ -118,6 +123,10 @@ export default function SettingsPage() {
       .then(() => toast({ title: "Staff Profile Saved", description: "Personal administrative identity updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: staffConfigRef.path, operation: 'write', requestResourceData: updates })))
       .finally(() => setIsSaving(false));
+  };
+
+  const focusInput = (ref: React.RefObject<HTMLInputElement>) => {
+    ref.current?.focus();
   };
 
   if (storeLoading || staffLoading) {
@@ -245,13 +254,25 @@ export default function SettingsPage() {
                       <User className="h-4 w-4 text-gray-400" /> Full Name
                     </TableCell>
                     <TableCell className="py-4">
-                      <Input value={staffName} onChange={(e) => setStaffName(e.target.value)} className="h-10 text-xs font-medium max-w-xs" />
+                      <Input 
+                        ref={staffNameRef}
+                        value={staffName} 
+                        onChange={(e) => setStaffName(e.target.value)} 
+                        className="h-10 text-xs font-medium max-w-xs bg-white" 
+                      />
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[9px] font-bold border-black uppercase bg-black text-white">Public</Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[10px] font-bold uppercase tracking-widest"
+                        onClick={() => focusInput(staffNameRef)}
+                      >
+                        Edit
+                      </Button>
                     </TableCell>
                   </TableRow>
                   <TableRow className="hover:bg-transparent border-[#e1e3e5]">
@@ -259,7 +280,12 @@ export default function SettingsPage() {
                       <Mail className="h-4 w-4 text-gray-400" /> Email Address
                     </TableCell>
                     <TableCell className="py-4">
-                      <Input value={staffEmail} onChange={(e) => setStaffEmail(e.target.value)} className="h-10 text-xs font-medium max-w-xs" />
+                      <Input 
+                        ref={staffEmailRef}
+                        value={staffEmail} 
+                        onChange={(e) => setStaffEmail(e.target.value)} 
+                        className="h-10 text-xs font-medium max-w-xs bg-white" 
+                      />
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[9px] font-bold border-green-200 text-green-700 bg-green-50 uppercase flex items-center gap-1 w-fit">
@@ -267,7 +293,14 @@ export default function SettingsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[10px] font-bold uppercase tracking-widest"
+                        onClick={() => focusInput(staffEmailRef)}
+                      >
+                        Edit
+                      </Button>
                     </TableCell>
                   </TableRow>
                   <TableRow className="hover:bg-transparent border-[#e1e3e5]">
@@ -275,13 +308,25 @@ export default function SettingsPage() {
                       <Phone className="h-4 w-4 text-gray-400" /> Phone Number
                     </TableCell>
                     <TableCell className="py-4">
-                      <Input value={staffPhone} onChange={(e) => setStaffPhone(e.target.value)} className="h-10 text-xs font-medium max-w-xs" />
+                      <Input 
+                        ref={staffPhoneRef}
+                        value={staffPhone} 
+                        onChange={(e) => setStaffPhone(e.target.value)} 
+                        className="h-10 text-xs font-medium max-w-xs bg-white" 
+                      />
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[9px] font-bold border-gray-200 text-gray-500 uppercase">Private</Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[10px] font-bold uppercase tracking-widest"
+                        onClick={() => focusInput(staffPhoneRef)}
+                      >
+                        Edit
+                      </Button>
                     </TableCell>
                   </TableRow>
                   <TableRow className="hover:bg-transparent border-0">
@@ -289,7 +334,12 @@ export default function SettingsPage() {
                       <Globe className="h-4 w-4 text-gray-400" /> Timezone
                     </TableCell>
                     <TableCell className="py-4">
-                      <Input value={timezone} onChange={(e) => setTimezone(e.target.value)} className="h-10 text-xs font-medium max-w-xs" />
+                      <Input 
+                        ref={staffTimezoneRef}
+                        value={timezone} 
+                        onChange={(e) => setTimezone(e.target.value)} 
+                        className="h-10 text-xs font-medium max-w-xs bg-white" 
+                      />
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[9px] font-bold border-blue-200 text-blue-700 bg-blue-50 uppercase flex items-center gap-1 w-fit">
@@ -297,7 +347,14 @@ export default function SettingsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[10px] font-bold uppercase tracking-widest"
+                        onClick={() => focusInput(staffTimezoneRef)}
+                      >
+                        Edit
+                      </Button>
                     </TableCell>
                   </TableRow>
                 </TableBody>
