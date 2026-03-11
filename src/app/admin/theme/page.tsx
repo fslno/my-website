@@ -69,6 +69,8 @@ const DEFAULT_THEME = {
   heroHeadline: 'The Archive Selection',
   heroSubheadline: 'Modern Silhouettes',
   heroButtonText: 'Shop the Drops',
+  heroButtonBgColor: '#FFFFFF',
+  heroButtonTextColor: '#000000',
   heroTextAlign: 'center',
   heroVerticalAlign: 'center',
   heroHeadlineSize: '72',
@@ -109,6 +111,8 @@ export default function ThemeEnginePage() {
   const [heroHeadline, setHeroHeadline] = useState(DEFAULT_THEME.heroHeadline);
   const [heroSubheadline, setHeroSubheadline] = useState(DEFAULT_THEME.heroSubheadline);
   const [heroButtonText, setHeroButtonText] = useState(DEFAULT_THEME.heroButtonText);
+  const [heroButtonBgColor, setHeroButtonBgColor] = useState(DEFAULT_THEME.heroButtonBgColor);
+  const [heroButtonTextColor, setHeroButtonTextColor] = useState(DEFAULT_THEME.heroButtonTextColor);
   const [heroTextAlign, setHeroTextAlign] = useState(DEFAULT_THEME.heroTextAlign);
   const [heroVerticalAlign, setHeroVerticalAlign] = useState(DEFAULT_THEME.heroVerticalAlign);
   const [heroHeadlineSize, setHeroHeadlineSize] = useState(DEFAULT_THEME.heroHeadlineSize);
@@ -139,6 +143,8 @@ export default function ThemeEnginePage() {
       setHeroHeadline(themeData.heroHeadline || DEFAULT_THEME.heroHeadline);
       setHeroSubheadline(themeData.heroSubheadline || DEFAULT_THEME.heroSubheadline);
       setHeroButtonText(themeData.heroButtonText || DEFAULT_THEME.heroButtonText);
+      setHeroButtonBgColor(themeData.heroButtonBgColor || DEFAULT_THEME.heroButtonBgColor);
+      setHeroButtonTextColor(themeData.heroButtonTextColor || DEFAULT_THEME.heroButtonTextColor);
       setHeroTextAlign(themeData.heroTextAlign || DEFAULT_THEME.heroTextAlign);
       setHeroVerticalAlign(themeData.heroVerticalAlign || DEFAULT_THEME.heroVerticalAlign);
       setHeroHeadlineSize(themeData.heroHeadlineSize?.toString() || DEFAULT_THEME.heroHeadlineSize);
@@ -183,6 +189,8 @@ export default function ThemeEnginePage() {
       heroHeadline,
       heroSubheadline,
       heroButtonText,
+      heroButtonBgColor,
+      heroButtonTextColor,
       heroTextAlign,
       heroVerticalAlign,
       heroHeadlineSize: Number(heroHeadlineSize),
@@ -238,6 +246,8 @@ export default function ThemeEnginePage() {
           --preview-prod-align: ${productTextAlign};
           --preview-prod-size: ${productTitleSize}px;
           --preview-price-size: ${productPriceSize}px;
+          --preview-hero-button-bg: ${heroButtonBgColor};
+          --preview-hero-button-text: ${heroButtonTextColor};
         }
         #theme-preview-root .font-headline {
           font-family: var(--preview-headline) !important;
@@ -269,6 +279,10 @@ export default function ThemeEnginePage() {
         }
         #theme-preview-root .preview-price {
           font-size: var(--preview-price-size) !important;
+        }
+        #theme-preview-root .hero-button-preview {
+          background-color: var(--preview-hero-button-bg) !important;
+          color: var(--preview-hero-button-text) !important;
         }
       `}</style>
 
@@ -446,7 +460,7 @@ export default function ThemeEnginePage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="hero" className="mt-6">
+            <TabsContent value="hero" className="mt-6 space-y-6">
               <Card className="border-[#e1e3e5] shadow-none">
                 <CardHeader>
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Visuals & Content</CardTitle>
@@ -537,6 +551,40 @@ export default function ThemeEnginePage() {
                         onChange={(e) => setHeroHeadlineSize(e.target.value)} 
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
                       />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none">
+                <CardHeader>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                    <MousePointer2 className="h-3.5 w-3.5" /> Hero Button Styles
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Button Text</Label>
+                    <Input value={heroButtonText} onChange={(e) => setHeroButtonText(e.target.value)} className="h-12 uppercase font-bold text-xs" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background</Label>
+                      <div className="flex gap-2">
+                        <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={heroButtonBgColor} onChange={(e) => setHeroButtonBgColor(e.target.value)} />
+                        </div>
+                        <Input value={heroButtonBgColor} onChange={(e) => setHeroButtonBgColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Text Color</Label>
+                      <div className="flex gap-2">
+                        <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={heroButtonTextColor} onChange={(e) => setHeroButtonTextColor(e.target.value)} />
+                        </div>
+                        <Input value={heroButtonTextColor} onChange={(e) => setHeroButtonTextColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -745,6 +793,11 @@ export default function ThemeEnginePage() {
                   <div className="relative z-10 w-full">
                     <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 block">{heroSubheadline}</span>
                     <h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
+                    <div className="mt-8 flex justify-center" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}>
+                      <div className="hero-button-preview px-8 h-12 flex items-center justify-center font-bold uppercase tracking-widest text-[9px] shadow-lg">
+                        {heroButtonText}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-8">

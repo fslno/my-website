@@ -72,6 +72,9 @@ export function ThemeStyleInjector() {
     const productTitleSize = theme.productTitleSize || 14;
     const productPriceSize = theme.productPriceSize || 14;
 
+    const heroButtonBg = theme.heroButtonBgColor || theme.accentColor || '#FFFFFF';
+    const heroButtonText = theme.heroButtonTextColor || getContrastColor(heroButtonBg);
+
     const getFlexAlign = (align: string) => align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
     const getVerticalAlign = (align: string) => align === 'bottom' ? 'flex-end' : align === 'top' ? 'flex-start' : 'center';
 
@@ -95,6 +98,8 @@ export function ThemeStyleInjector() {
         --product-title-size: ${productTitleSize}px;
         --product-price-size: ${productPriceSize}px;
         --hero-headline-size: ${heroHeadlineSize}px;
+        --hero-button-bg: ${heroButtonBg};
+        --hero-button-text: ${heroButtonText};
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
@@ -155,6 +160,10 @@ export function ThemeStyleInjector() {
       }
       .product-price-size {
         font-size: var(--product-price-size) !important;
+      }
+      .hero-button {
+        background-color: var(--hero-button-bg) !important;
+        color: var(--hero-button-text) !important;
       }
     `;
 

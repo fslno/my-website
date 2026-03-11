@@ -55,12 +55,12 @@ export function BentoHero({
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {subheadline}
             </span>
-            <h2 className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none animate-in fade-in slide-in-from-bottom-6 duration-1000">
+            <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none animate-in fade-in slide-in-from-bottom-6 duration-1000 block">
               {headline}
-            </h2>
+            </span>
             <Link 
               href="#featured-products" 
-              className="bg-accent text-accent-foreground px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out shadow-xl active:scale-95"
+              className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95"
             >
               {buttonText} <ArrowRight className="ml-3 h-4 w-4" />
             </Link>

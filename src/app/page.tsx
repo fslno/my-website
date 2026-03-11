@@ -75,10 +75,10 @@ export default function Home() {
                 theme?.heroTextAlign === 'left' ? 'items-start' : theme?.heroTextAlign === 'right' ? 'items-end' : 'items-center'
               )}>
                 <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
-                <h2 className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none">
+                <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none block">
                   {theme?.heroHeadline || "Modern Silhouettes"}
-                </h2>
-                <Link href="#featured-products" className="bg-accent text-accent-foreground px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out shadow-xl active:scale-95">
+                </span>
+                <Link href="#featured-products" className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95">
                   {theme?.heroButtonText || "Shop All"} <ArrowRight className="ml-3 h-4 w-4" />
                 </Link>
               </div>
