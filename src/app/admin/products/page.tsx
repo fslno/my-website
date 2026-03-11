@@ -172,6 +172,12 @@ export default function ProductsPage() {
     return result;
   }, [products, searchQuery, categoryFilter, sortBy]);
 
+  // Sequential Navigation Logic
+  const currentIndex = useMemo(() => {
+    if (!editingId || !filteredProducts) return -1;
+    return filteredProducts.findIndex(p => p.id === editingId);
+  }, [editingId, filteredProducts]);
+
   const formatCurrency = (val: number) => {
     return val.toLocaleString(undefined, { 
       minimumFractionDigits: 2, 
@@ -511,6 +517,18 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
 
+  const handlePreviousProduct = () => {
+    if (currentIndex > 0) {
+      openEdit(filteredProducts[currentIndex - 1]);
+    }
+  };
+
+  const handleNextProduct = () => {
+    if (currentIndex < filteredProducts.length - 1) {
+      openEdit(filteredProducts[currentIndex + 1]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -526,9 +544,37 @@ export default function ProductsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
-              <DialogTitle className="text-xl font-headline font-bold">
-                {editingId ? `Edit Archive Piece: ${name}` : 'New Archive Entry'}
-              </DialogTitle>
+              <div className="flex items-center gap-4">
+                <DialogTitle className="text-xl font-headline font-bold">
+                  {editingId ? `Edit Archive Piece: ${name}` : 'New Archive Entry'}
+                </DialogTitle>
+                
+                {editingId && (
+                  <div className="flex items-center gap-1 border-l pl-4 ml-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handlePreviousProduct}
+                      disabled={currentIndex <= 0}
+                      className="h-8 gap-1 font-bold uppercase tracking-widest text-[9px]"
+                    >
+                      <ChevronLeft className="h-3 w-3" /> Prev
+                    </Button>
+                    <span className="text-[9px] font-mono text-gray-400 px-2">
+                      {currentIndex + 1} / {filteredProducts.length}
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleNextProduct}
+                      disabled={currentIndex >= filteredProducts.length - 1}
+                      className="h-8 gap-1 font-bold uppercase tracking-widest text-[9px]"
+                    >
+                      Next <ChevronRight className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
               <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
                 <X className="h-5 w-5" />
               </Button>
