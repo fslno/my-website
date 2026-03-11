@@ -31,7 +31,8 @@ import {
   RefreshCw,
   Mail,
   Activity,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -49,6 +50,13 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger 
+} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, setDoc, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -89,7 +97,7 @@ export default function PromotionsPage() {
   // BOGO STATE
   const [bogoEnabled, setBogoEnabled] = useState(false);
   const [bogoMinQty, setBogoMinQty] = useState(2);
-  const [bogoCategoryId, setBogoCategoryId] = useState('');
+  const [bogoCategoryIds, setBogoCategoryIds] = useState<string[]>([]);
   const [bogoItemName, setBogoItemName] = useState('Technical Archive Scarf');
   const [bogoMode, setBogoMode] = useState<'fixed' | 'choice'>('fixed');
 
@@ -112,7 +120,7 @@ export default function PromotionsPage() {
     if (config) {
       setFlashEnabled(config.flashEnabled ?? false);
       setFlashValue(config.flashValue ?? 15);
-      setFlashValueLabel(config.flashLabel ?? 'ARCHIVAL DISPATCH');
+      setFlashLabel(config.flashLabel ?? 'ARCHIVAL DISPATCH');
 
       setThresholdEnabled(config.thresholdEnabled ?? false);
       setThresholdValue(config.thresholdValue ?? 1000);
@@ -120,7 +128,12 @@ export default function PromotionsPage() {
 
       setBogoEnabled(config.bogoEnabled ?? false);
       setBogoMinQty(config.bogoMinQty ?? 2);
-      setBogoCategoryId(config.bogoCategoryId ?? '');
+      
+      // Support legacy bogoCategoryId or new bogoCategoryIds array
+      const legacyId = config.bogoCategoryId;
+      const pluralIds = config.bogoCategoryIds;
+      setBogoCategoryIds(Array.isArray(pluralIds) ? pluralIds : (legacyId ? [legacyId] : []));
+      
       setBogoItemName(config.bogoItemName ?? 'Technical Archive Scarf');
       setBogoMode(config.bogoMode ?? 'fixed');
 
@@ -145,7 +158,7 @@ export default function PromotionsPage() {
       thresholdDiscount: Number(thresholdDiscount),
       bogoEnabled,
       bogoMinQty: Number(bogoMinQty),
-      bogoCategoryId,
+      bogoCategoryIds,
       bogoItemName,
       bogoMode,
       loyaltyEnabled,
@@ -237,13 +250,20 @@ export default function PromotionsPage() {
     );
   }
 
-  // RECOVERY CAMPAIGNS LIST
   const recoveryCampaigns = [
     { id: 'cartRecovery', label: 'Abandoned Cart Recovery', description: 'Triggered 4h after last archival session.', status: 'Live', conversion: '12.4%' },
     { id: 'browseRecovery', label: 'Browse Abandonment', description: 'Target high-intent silhouettes recently viewed.', status: 'Testing', conversion: '4.8%' },
     { id: 'winback', label: 'Win-back Dispatch', description: 'Sent 60 days after last drop participation.', status: 'Inactive', conversion: '--' },
     { id: 'loyaltyAppreciation', label: 'Loyalty Appreciation', description: 'Personalized reward for repeat archive members.', status: 'Live', conversion: '22.1%' }
   ];
+
+  const getCategoryDisplay = () => {
+    if (bogoCategoryIds.length === 0) return "SELECT COLLECTIONS";
+    if (bogoCategoryIds.length === 1) {
+      return categories?.find(c => c.id === bogoCategoryIds[0])?.name || "1 COLLECTION";
+    }
+    return `${bogoCategoryIds.length} COLLECTIONS SELECTED`;
+  };
 
   return (
     <div className="space-y-8 pb-20">
@@ -425,17 +445,50 @@ export default function PromotionsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-500">Target Category</Label>
-                  <Select value={bogoCategoryId} onValueChange={setBogoCategoryId} disabled={!bogoEnabled}>
-                    <SelectTrigger className="h-11 bg-white">
-                      <SelectValue placeholder="Selection" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((cat: any) => (
-                        <SelectItem key={cat.id} value={cat.id} className="text-[10px] font-bold uppercase">{cat.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Target Categories</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full h-11 bg-white justify-between text-[10px] font-bold uppercase tracking-widest px-3 border-[#e1e3e5]"
+                        disabled={!bogoEnabled}
+                      >
+                        <span className="truncate">{getCategoryDisplay()}</span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0 bg-white border rounded-sm shadow-xl" align="start">
+                      <ScrollArea className="h-[250px] p-4">
+                        <div className="space-y-4">
+                          {categories?.map((cat: any) => (
+                            <div key={cat.id} className="flex items-center space-x-3 group">
+                              <Checkbox 
+                                id={`bogo-cat-${cat.id}`} 
+                                checked={bogoCategoryIds.includes(cat.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setBogoCategoryIds([...bogoCategoryIds, cat.id]);
+                                  } else {
+                                    setBogoCategoryIds(bogoCategoryIds.filter(id => id !== cat.id));
+                                  }
+                                }}
+                                className="border-[#e1e3e5]"
+                              />
+                              <Label 
+                                htmlFor={`bogo-cat-${cat.id}`} 
+                                className="text-[10px] font-bold uppercase tracking-widest cursor-pointer text-primary group-hover:text-primary/70 transition-colors"
+                              >
+                                {cat.name}
+                              </Label>
+                            </div>
+                          ))}
+                          {(!categories || categories.length === 0) && (
+                            <p className="text-[10px] font-bold text-gray-400 uppercase text-center py-8">No collections cataloged.</p>
+                          )}
+                        </div>
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-500">BOGO Mode</Label>
