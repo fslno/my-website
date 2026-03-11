@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,8 +14,22 @@ import {
   CheckCircle2,
   AlertCircle,
   Settings2,
-  Loader2
+  Loader2,
+  Lock,
+  Globe,
+  X
 } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger, 
+  DialogFooter,
+  DialogDescription 
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -29,10 +43,28 @@ export default function GoogleSyncPage() {
   const { toast } = useToast();
   
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Local form state for settings
+  const [merchantId, setMerchantId] = useState('');
+  const [targetCountry, setTargetCountry] = useState('US');
+  const [contentLanguage, setContentLanguage] = useState('en');
+
+  useEffect(() => {
+    if (config) {
+      setMerchantId(config.merchantId || '');
+      setTargetCountry(config.targetCountry || 'US');
+      setContentLanguage(config.contentLanguage || 'en');
+    }
+  }, [config]);
 
   const handleInitialize = () => {
     if (!configRef) return;
     const initialData = {
+      merchantId: '123456789',
+      targetCountry: 'US',
+      contentLanguage: 'en',
       apiConnected: true,
       onDemandUpdates: true,
       partialSync: true,
@@ -55,6 +87,31 @@ export default function GoogleSyncPage() {
         requestResourceData: initialData
       }));
     });
+  };
+
+  const handleSaveSettings = () => {
+    if (!configRef) return;
+    setIsSaving(true);
+    const updates = {
+      merchantId,
+      targetCountry,
+      contentLanguage,
+      updatedAt: serverTimestamp()
+    };
+
+    updateDoc(configRef, updates)
+      .then(() => {
+        setIsSettingsOpen(false);
+        toast({ title: "Settings Saved", description: "Google Merchant API configuration has been updated." });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: configRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        }));
+      })
+      .finally(() => setIsSaving(false));
   };
 
   const handleToggleFeature = (feature: string, currentValue: boolean) => {
@@ -118,7 +175,7 @@ export default function GoogleSyncPage() {
         <Zap className="h-12 w-12 text-gray-300" />
         <h2 className="text-xl font-bold text-gray-900">Google Sync Not Initialized</h2>
         <p className="text-gray-500 max-w-sm">Connect your FSLNO store to the Google Merchant API to start syncing your luxury catalog.</p>
-        <Button onClick={handleInitialize} className="bg-black text-white px-8">Initialize Merchant API</Button>
+        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-10 font-bold uppercase tracking-widest text-[10px]">Initialize Merchant API</Button>
       </div>
     );
   }
@@ -131,11 +188,65 @@ export default function GoogleSyncPage() {
           <p className="text-[#5c5f62] mt-1 text-sm">Manage your Merchant API (V1) integration and real-time product feeds.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-9 gap-2 border-[#babfc3]">
-            <Settings2 className="h-4 w-4" /> API Settings
-          </Button>
+          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-9 gap-2 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
+                <Settings2 className="h-4 w-4" /> API Settings
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md bg-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold uppercase tracking-tight">Merchant API Configuration</DialogTitle>
+                <DialogDescription className="text-xs">Establish the primary handshake parameters for your Google catalog.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-6 py-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Merchant Center ID</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input 
+                      placeholder="e.g. 123456789" 
+                      value={merchantId} 
+                      onChange={(e) => setMerchantId(e.target.value)}
+                      className="pl-10 h-11 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Target Country</Label>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input 
+                        placeholder="US" 
+                        value={targetCountry} 
+                        onChange={(e) => setTargetCountry(e.target.value.toUpperCase())}
+                        className="pl-10 h-11 font-bold uppercase"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Language Code</Label>
+                    <Input 
+                      placeholder="en" 
+                      value={contentLanguage} 
+                      onChange={(e) => setContentLanguage(e.target.value.toLowerCase())}
+                      className="h-11 font-bold lowercase"
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleSaveSettings} disabled={isSaving || !merchantId} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Update API Handshake
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
           <Button 
-            className="h-9 bg-black text-white font-bold gap-2" 
+            className="h-9 bg-black text-white font-bold gap-2 uppercase tracking-widest text-[10px]" 
             onClick={handleForceSync}
             disabled={isSyncing}
           >
@@ -275,7 +386,7 @@ export default function GoogleSyncPage() {
               <p className="text-sm text-[#5c5f62]">
                 Tell Google users exactly what is in stock at your physical "Spot" locations.
               </p>
-              <Button variant="outline" size="sm" className="h-8 gap-2 w-full border-[#babfc3]">
+              <Button variant="outline" size="sm" className="h-8 gap-2 w-full border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
                 <MapPin className="h-3 w-3" /> Link Store Address
               </Button>
             </CardContent>
@@ -298,7 +409,7 @@ export default function GoogleSyncPage() {
                   <span className="text-red-900 font-medium">{issue.message}</span>
                   <Button 
                     variant="link" 
-                    className="h-auto p-0 text-[10px] font-bold text-red-800 underline"
+                    className="h-auto p-0 text-[10px] font-bold text-red-800 underline uppercase tracking-widest"
                     onClick={() => handleFixIssue(issue.id)}
                   >
                     Fix Now
