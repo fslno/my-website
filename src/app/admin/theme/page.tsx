@@ -36,7 +36,10 @@ import {
   AlignLeft,
   AlignRight,
   Layers,
-  Heading
+  Heading,
+  Settings2,
+  Terminal,
+  ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -50,7 +53,7 @@ const sportsFonts = [
   "Anton", "Bebas Neue", "Oswald", "Teko", "Kanit", 
   "Roboto Condensed", "Chakra Petch", "Rajdhani", "Titillium Web", "Exo 2", 
   "Michroma", "Orbitron", "Montserrat", "Squada One", "Racing Sans One", 
-  "Archivo Black", "Russo One", "Black Ops One", "Stardos Stencil", "Syncopate"
+  "Archivo Black", "Russo One", "Black Ops One", "Stardos Stencil", "Syncopate", "Inter"
 ];
 
 const DEFAULT_THEME = {
@@ -82,7 +85,13 @@ const DEFAULT_THEME = {
   productTitleSize: '14',
   productPriceSize: '14',
   productTextAlign: 'left',
-  stickyHeader: true
+  stickyHeader: true,
+  // Backend (Admin) Theme Fields
+  adminPrimaryColor: '#000000',
+  adminAccentColor: '#f6f6f7',
+  adminHeadlineFont: 'Inter',
+  adminBodyFont: 'Inter',
+  adminHeaderHeight: '64'
 };
 
 export default function ThemeEnginePage() {
@@ -126,6 +135,13 @@ export default function ThemeEnginePage() {
   const [productTextAlign, setProductTextAlign] = useState(DEFAULT_THEME.productTextAlign);
   const [stickyHeader, setStickyHeader] = useState(DEFAULT_THEME.stickyHeader);
 
+  // Admin Theme Form State
+  const [adminPrimaryColor, setAdminPrimaryColor] = useState(DEFAULT_THEME.adminPrimaryColor);
+  const [adminAccentColor, setAdminAccentColor] = useState(DEFAULT_THEME.adminAccentColor);
+  const [adminHeadlineFont, setAdminHeadlineFont] = useState(DEFAULT_THEME.adminHeadlineFont);
+  const [adminBodyFont, setAdminBodyFont] = useState(DEFAULT_THEME.adminBodyFont);
+  const [adminHeaderHeight, setAdminHeaderHeight] = useState(DEFAULT_THEME.adminHeaderHeight);
+
   useEffect(() => {
     if (themeData) {
       setPrimaryColor(themeData.primaryColor || DEFAULT_THEME.primaryColor);
@@ -157,6 +173,13 @@ export default function ThemeEnginePage() {
       setProductPriceSize(themeData.productPriceSize?.toString() || DEFAULT_THEME.productPriceSize);
       setProductTextAlign(themeData.productTextAlign || DEFAULT_THEME.productTextAlign);
       setStickyHeader(themeData.stickyHeader ?? DEFAULT_THEME.stickyHeader);
+
+      // Backend (Admin) Theme Handshake
+      setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
+      setAdminAccentColor(themeData.adminAccentColor || DEFAULT_THEME.adminAccentColor);
+      setAdminHeadlineFont(themeData.adminHeadlineFont || DEFAULT_THEME.adminHeadlineFont);
+      setAdminBodyFont(themeData.adminBodyFont || DEFAULT_THEME.adminBodyFont);
+      setAdminHeaderHeight(themeData.adminHeaderHeight?.toString() || DEFAULT_THEME.adminHeaderHeight);
     }
   }, [themeData]);
 
@@ -203,6 +226,12 @@ export default function ThemeEnginePage() {
       productPriceSize: Number(productPriceSize),
       productTextAlign,
       stickyHeader,
+      // Backend (Admin) Theme Data
+      adminPrimaryColor,
+      adminAccentColor,
+      adminHeadlineFont,
+      adminBodyFont,
+      adminHeaderHeight: Number(adminHeaderHeight),
       updatedAt: new Date().toISOString()
     };
 
@@ -221,7 +250,11 @@ export default function ThemeEnginePage() {
   };
 
   if (loading) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      </div>
+    );
   }
 
   return (
@@ -303,11 +336,12 @@ export default function ThemeEnginePage() {
         {/* Editor sidebar */}
         <div className="xl:col-span-4 overflow-y-auto pr-2 space-y-6 scrollbar-hide">
           <Tabs defaultValue="styles" className="w-full">
-            <TabsList className="w-full bg-white border border-[#e1e3e5] h-12 p-1">
+            <TabsList className="w-full bg-white border border-[#e1e3e5] h-12 p-1 overflow-x-auto justify-start lg:justify-between scrollbar-hide">
               <TabsTrigger value="styles" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Palette className="h-3 w-3" /> Global</TabsTrigger>
               <TabsTrigger value="catalog" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layers className="h-3 w-3" /> Navigation</TabsTrigger>
               <TabsTrigger value="hero" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Sparkles className="h-3 w-3" /> Hero</TabsTrigger>
               <TabsTrigger value="layout" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layout className="h-3 w-3" /> Layout</TabsTrigger>
+              <TabsTrigger value="admin" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Settings2 className="h-3 w-3" /> Backend</TabsTrigger>
             </TabsList>
 
             <TabsContent value="styles" className="mt-6 space-y-6">
@@ -751,6 +785,93 @@ export default function ThemeEnginePage() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="admin" className="mt-6 space-y-6">
+              <Card className="border-[#e1e3e5] shadow-none border-blue-100 bg-blue-50/10">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2">
+                    <Settings2 className="h-3.5 w-3.5" /> Backend Theme Handshake
+                  </CardTitle>
+                  <CardDescription className="text-[9px] uppercase font-bold text-blue-800/60">Configure the Authoritative administrative viewport identity.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="grid gap-6">
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Backend Brand Color</Label>
+                      <div className="flex gap-2">
+                        <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={adminPrimaryColor} onChange={(e) => setAdminPrimaryColor(e.target.value)} />
+                        </div>
+                        <Input value={adminPrimaryColor} onChange={(e) => setAdminPrimaryColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Backend Interface Color</Label>
+                      <div className="flex gap-2">
+                        <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={adminAccentColor} onChange={(e) => setAdminAccentColor(e.target.value)} />
+                        </div>
+                        <Input value={adminAccentColor} onChange={(e) => setAdminAccentColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Backend Headline Font</Label>
+                      <Select value={adminHeadlineFont} onValueChange={setAdminHeadlineFont}>
+                        <SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sportsFonts.map(font => (
+                            <SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3">
+                              <span style={{ fontFamily: font }}>{font}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Backend Descriptor Font</Label>
+                      <Select value={adminBodyFont} onValueChange={setAdminBodyFont}>
+                        <SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sportsFonts.map(font => (
+                            <SelectItem key={font} value={font} className="text-sm font-medium py-3">
+                              <span style={{ fontFamily: font }}>{font}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="pt-4 border-t space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Admin Header Scale</Label>
+                        <span className="text-[10px] font-mono font-bold">{adminHeaderHeight}PX</span>
+                      </div>
+                      <input 
+                        type="range" min="48" max="96" value={adminHeaderHeight} 
+                        onChange={(e) => setAdminHeaderHeight(e.target.value)} 
+                        className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-white border border-blue-100 flex items-start gap-3">
+                    <ShieldCheck className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                    <p className="text-[10px] text-blue-800 leading-relaxed uppercase font-medium">
+                      Backend styles are strictly localized to the Command Center and do not Authoritatively affect the public luxury storefront.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
 
@@ -805,7 +926,7 @@ export default function ThemeEnginePage() {
                   <div className="grid grid-cols-2 gap-8">
                     {[1, 2].map(i => (
                       <div key={i} className="preview-prod-card space-y-4">
-                        <div className="aspect-[3/4] bg-gray-50 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div>
+                        <div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div>
                         <div className="space-y-1">
                           <p className="preview-prod-title font-bold uppercase tracking-tight leading-none" style={{ color: primaryColor }}>Sculpted Piece</p>
                           <p className="preview-price font-bold opacity-60">$890.00 CAD</p>

@@ -87,8 +87,8 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
   };
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] bg-white">
-      <SidebarHeader className="h-16 flex items-center px-6 border-b border-[#e1e3e5] bg-white">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] admin-sidebar-bg">
+      <SidebarHeader className="admin-header-height flex items-center px-6 border-b border-[#e1e3e5] admin-sidebar-bg">
         <Link href="/" className="flex items-center gap-2" onClick={handleNavClick}>
           <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative">
             {storeConfig?.logoUrl ? (
@@ -97,16 +97,16 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               "F"
             )}
           </div>
-          <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden">
+          <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden font-admin-headline">
             {storeConfig?.businessName || "FSLNO"} Studio
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="py-4 bg-white">
+      <SidebarContent className="py-4 admin-sidebar-bg">
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Home (Alt+D)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Home (Alt+D)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin">
                   <LayoutDashboard />
                   <span>Home</span>
@@ -114,7 +114,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Orders (Alt+O)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Orders (Alt+O)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/orders">
                   <ShoppingBag />
                   <span>Orders</span>
@@ -122,7 +122,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Products (Alt+P)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Products (Alt+P)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/products">
                   <BarChart3 />
                   <span>Products</span>
@@ -130,7 +130,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Categories (Alt+C)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Categories (Alt+C)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/categories">
                   <Tag />
                   <span>Categories</span>
@@ -138,7 +138,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Promotions (Alt+R)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Promotions (Alt+R)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/promotions">
                   <TicketPercent />
                   <span>Promotions</span>
@@ -146,7 +146,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Size Chart (Alt+Z)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Size Chart (Alt+Z)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/size-chart">
                   <Ruler />
                   <span>Size Chart</span>
@@ -154,7 +154,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Customers (Alt+U)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Customers (Alt+U)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/customers">
                   <Users />
                   <span>Customers</span>
@@ -165,10 +165,10 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         </SidebarGroup>
 
         <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Store Management</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Management</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Theme Engine (Alt+T)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Theme Engine (Alt+T)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/theme">
                   <Palette />
                   <span>Theme Engine</span>
@@ -176,7 +176,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Footer Editor" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Footer Editor" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/footer">
                   <MenuIcon />
                   <span>Footer Editor</span>
@@ -184,7 +184,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Notifications" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Notifications" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/notifications">
                   <MailWarning />
                   <span>Notifications</span>
@@ -192,7 +192,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Shipping & Pickup" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Shipping & Pickup" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/shipping">
                   <Truck />
                   <span>Shipping & Pickup</span>
@@ -200,7 +200,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Payments" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Payments" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/payments">
                   <CreditCard />
                   <span>Payments</span>
@@ -208,7 +208,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/domain">
                   <Globe />
                   <span>Domain</span>
@@ -216,7 +216,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="SEO" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="SEO" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/seo">
                   <Search />
                   <span>SEO</span>
@@ -227,10 +227,10 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         </SidebarGroup>
 
         <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Sales Channels</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Sales Channels</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Google Sync" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Google Sync" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/google">
                   <RefreshCw />
                   <span>Google Sync</span>
@@ -238,7 +238,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Social Commerce" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Social Commerce" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/social">
                   <Share2 />
                   <span>Social Commerce</span>
@@ -246,7 +246,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Analytics (GA4)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Analytics (GA4)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/analytics">
                   <BarChart />
                   <span>Analytics (GA4)</span>
@@ -256,10 +256,10 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-[#e1e3e5] p-4 bg-white">
+      <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
          <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings (Alt+S)" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Settings (Alt+S)" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/settings">
                   <Settings />
                   <span>Settings</span>
@@ -267,7 +267,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out">
+              <SidebarMenuButton onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body">
                 <LogOut />
                 <span>Sign Out</span>
               </SidebarMenuButton>
@@ -285,16 +285,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { toast } = useToast();
   const db = useFirestore();
 
-  // Defer dynamic rendering until after hydration to avoid errors
   const [hasMounted, setHasMounted] = useState(false);
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
-  // Keyboard Shortcuts Implementation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger shortcuts if user is typing in an input
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
@@ -305,42 +302,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       if (e.altKey) {
         switch (e.key.toLowerCase()) {
-          case 'd':
-            e.preventDefault();
-            router.push('/admin');
-            break;
-          case 'o':
-            e.preventDefault();
-            router.push('/admin/orders');
-            break;
-          case 'p':
-            e.preventDefault();
-            router.push('/admin/products');
-            break;
-          case 'c':
-            e.preventDefault();
-            router.push('/admin/categories');
-            break;
-          case 's':
-            e.preventDefault();
-            router.push('/admin/settings');
-            break;
-          case 't':
-            e.preventDefault();
-            router.push('/admin/theme');
-            break;
-          case 'r':
-            e.preventDefault();
-            router.push('/admin/promotions');
-            break;
-          case 'u':
-            e.preventDefault();
-            router.push('/admin/customers');
-            break;
-          case 'z':
-            e.preventDefault();
-            router.push('/admin/size-chart');
-            break;
+          case 'd': e.preventDefault(); router.push('/admin'); break;
+          case 'o': e.preventDefault(); router.push('/admin/orders'); break;
+          case 'p': e.preventDefault(); router.push('/admin/products'); break;
+          case 'c': e.preventDefault(); router.push('/admin/categories'); break;
+          case 's': e.preventDefault(); router.push('/admin/settings'); break;
+          case 't': e.preventDefault(); router.push('/admin/theme'); break;
+          case 'r': e.preventDefault(); router.push('/admin/promotions'); break;
+          case 'u': e.preventDefault(); router.push('/admin/customers'); break;
+          case 'z': e.preventDefault(); router.push('/admin/size-chart'); break;
         }
       }
     };
@@ -349,9 +319,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [router]);
 
-  // Fetch Store Config for Branding
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
+  
   const { data: storeConfig } = useDoc(storeConfigRef);
+  const { data: theme } = useDoc(themeRef);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -363,16 +335,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setIsLoggingIn(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({
-        title: "Authenticated",
-        description: "Credentials verified. Enforcing studio role...",
-      });
+      toast({ title: "Authenticated", description: "Credentials verified. Enforcing studio role..." });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
-      });
+      toast({ variant: "destructive", title: "Login Failed", description: "Invalid email or password." });
     } finally {
       setIsLoggingIn(false);
     }
@@ -382,20 +347,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!auth) return;
     try {
       await signOut(auth);
-      toast({
-        title: "Signed out",
-        description: "Admin session terminated.",
-      });
+      toast({ title: "Signed out", description: "Admin session terminated." });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to sign out.",
-      });
+      toast({ variant: "destructive", title: "Error", description: "Failed to sign out." });
     }
   };
 
-  // Authoritatively restricted to strictly UID 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
   const isAdmin = user && user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
   if (!hasMounted || loading) {
@@ -416,7 +373,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             "F"
           )}
         </div>
-        
         {user && !isAdmin ? (
           <div className="max-w-sm space-y-6">
             <div className="bg-red-50 border border-red-100 p-8 rounded-sm">
@@ -426,75 +382,70 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 Your account ({user.email}) does not have authorized studio privileges.
               </p>
             </div>
-            <Button 
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full border-black font-bold uppercase text-[10px] tracking-widest"
-            >
-              Sign Out & Return
-            </Button>
+            <Button onClick={handleLogout} variant="outline" className="w-full border-black font-bold uppercase text-[10px] tracking-widest">Sign Out & Return</Button>
           </div>
         ) : (
           <>
             <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Command Center</h1>
-            <p className="text-gray-500 text-sm mb-10 max-w-xs leading-relaxed uppercase tracking-widest font-bold text-[10px]">
-              Authentication required to access studio operations.
-            </p>
-
             <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
               <div className="space-y-2 text-left">
                 <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Staff Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="admin@fslno.com" 
-                    className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Input id="email" type="email" placeholder="admin@fslno.com" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
               </div>
               <div className="space-y-2 text-left">
                 <Label htmlFor="password" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Passkey</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
               </div>
-              <Button 
-                type="submit"
-                disabled={isLoggingIn}
-                className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 transition-all rounded-none"
-              >
+              <Button type="submit" disabled={isLoggingIn} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 transition-all rounded-none">
                 {isLoggingIn ? "Authorizing..." : "Enter Dashboard"}
               </Button>
             </form>
           </>
         )}
-        
         <p className="mt-8 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Security Level V1.0</p>
       </div>
     );
   }
 
+  // Dynamic Backend Styling Protocol
+  const adminThemeStyles = `
+    :root {
+      --admin-primary: ${theme?.adminPrimaryColor || '#000000'};
+      --admin-accent: ${theme?.adminAccentColor || '#f6f6f7'};
+      --admin-header-h: ${theme?.adminHeaderHeight || 64}px;
+      --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
+      --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
+    }
+    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); }
+    .admin-header-height { height: var(--admin-header-h); }
+    .admin-sidebar-bg { background-color: white; }
+    .font-admin-headline { font-family: var(--admin-font-headline); }
+    .font-admin-body { font-family: var(--admin-font-body); }
+    .admin-sidebar-bg [data-sidebar="menu-button"]:hover,
+    .admin-sidebar-bg [data-sidebar="menu-button"][data-active="true"] { 
+      background-color: var(--admin-primary) !important; 
+      color: white !important; 
+    }
+    .admin-sidebar-bg [data-sidebar="menu-button"]:hover svg,
+    .admin-sidebar-bg [data-sidebar="menu-button"][data-active="true"] svg {
+      color: white !important;
+    }
+  `;
+
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-[#f6f6f7]">
+      <style dangerouslySetInnerHTML={{ __html: adminThemeStyles }} />
+      <div className="flex min-h-screen w-full admin-viewport">
         <AppSidebar storeConfig={storeConfig} />
 
         <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 bg-white border-b border-[#e1e3e5] flex items-center justify-between px-8 sticky top-0 z-10">
+          <header className="admin-header-height bg-white border-b border-[#e1e3e5] flex items-center justify-between px-8 sticky top-0 z-10">
             <div className="flex items-center gap-4 flex-1 max-w-xl">
               <SidebarTrigger />
               <div className="relative w-full">
@@ -502,7 +453,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <input 
                   type="text" 
                   placeholder="Search studio..." 
-                  className="w-full h-9 pl-10 pr-4 bg-[#f1f2f3] border-none rounded-md text-sm focus:ring-1 focus:ring-black outline-none" 
+                  className="w-full h-9 pl-10 pr-4 bg-[#f1f2f3] border-none rounded-md text-sm focus:ring-1 focus:ring-black outline-none font-admin-body" 
                 />
               </div>
             </div>
@@ -518,7 +469,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full">
+          <div className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full font-admin-body">
             {children}
           </div>
         </main>
