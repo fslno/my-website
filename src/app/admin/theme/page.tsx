@@ -281,7 +281,7 @@ export default function ThemeEnginePage() {
           <Tabs defaultValue="styles" className="w-full">
             <TabsList className="w-full bg-white border border-[#e1e3e5] h-12 p-1">
               <TabsTrigger value="styles" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Palette className="h-3 w-3" /> Global</TabsTrigger>
-              <TabsTrigger value="catalog" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layers className="h-3 w-3" /> Catalog</TabsTrigger>
+              <TabsTrigger value="catalog" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layers className="h-3 w-3" /> Navigation</TabsTrigger>
               <TabsTrigger value="hero" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Sparkles className="h-3 w-3" /> Hero</TabsTrigger>
               <TabsTrigger value="layout" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layout className="h-3 w-3" /> Layout</TabsTrigger>
             </TabsList>
@@ -370,58 +370,6 @@ export default function ThemeEnginePage() {
             </TabsContent>
 
             <TabsContent value="catalog" className="mt-6 space-y-6">
-              <Card className="border-[#e1e3e5] shadow-none">
-                <CardHeader>
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Card Orchestration</CardTitle>
-                  <CardDescription>Configure alignment and scale for archival pieces.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  <div className="space-y-4">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Detail Alignment</Label>
-                    <div className="flex gap-2">
-                      {['left', 'center', 'right'].map((align) => (
-                        <Button 
-                          key={align}
-                          variant={productTextAlign === align ? 'default' : 'outline'} 
-                          size="icon" 
-                          onClick={() => setProductTextAlign(align)}
-                          className="flex-1 h-12 rounded-none border-gray-200"
-                        >
-                          {align === 'left' && <AlignLeft className="h-4 w-4" />}
-                          {align === 'center' && <AlignCenter className="h-4 w-4" />}
-                          {align === 'right' && <AlignRight className="h-4 w-4" />}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-6 pt-4 border-t">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Title Font Size</Label>
-                        <span className="text-[10px] font-mono font-bold">{productTitleSize}PX</span>
-                      </div>
-                      <input 
-                        type="range" min="10" max="24" value={productTitleSize} 
-                        onChange={(e) => setProductTitleSize(e.target.value)} 
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Price Font Size</Label>
-                        <span className="text-[10px] font-mono font-bold">{productPriceSize}PX</span>
-                      </div>
-                      <input 
-                        type="range" min="10" max="24" value={productPriceSize} 
-                        onChange={(e) => setProductPriceSize(e.target.value)} 
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               <Card className="border-[#e1e3e5] shadow-none">
                 <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div className="space-y-1">
@@ -586,6 +534,53 @@ export default function ThemeEnginePage() {
                         onChange={(e) => setFeaturedTitleSize(e.target.value)} 
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
                       />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6 pt-4 border-t">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Product Catalog Typography</h3>
+                    <div className="space-y-4">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Global Alignment</Label>
+                      <div className="flex gap-2">
+                        {['left', 'center', 'right'].map((align) => (
+                          <button 
+                            key={align}
+                            onClick={() => setProductTextAlign(align)}
+                            className={cn(
+                              "flex-1 h-10 flex items-center justify-center border transition-all",
+                              productTextAlign === align ? "bg-black text-white border-black" : "bg-white text-gray-400 border-gray-200 hover:border-gray-400"
+                            )}
+                          >
+                            {align === 'left' && <AlignLeft className="h-4 w-4" />}
+                            {align === 'center' && <AlignCenter className="h-4 w-4" />}
+                            {align === 'right' && <AlignRight className="h-4 w-4" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Title Scale</Label>
+                          <span className="text-[10px] font-mono font-bold">{productTitleSize}PX</span>
+                        </div>
+                        <input 
+                          type="range" min="10" max="32" value={productTitleSize} 
+                          onChange={(e) => setProductTitleSize(e.target.value)} 
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Price Scale</Label>
+                          <span className="text-[10px] font-mono font-bold">{productPriceSize}PX</span>
+                        </div>
+                        <input 
+                          type="range" min="10" max="32" value={productPriceSize} 
+                          onChange={(e) => setProductPriceSize(e.target.value)} 
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
