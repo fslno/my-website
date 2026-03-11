@@ -35,7 +35,7 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from '@/components/ui/dialog';
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp, collection, addDoc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -434,126 +434,126 @@ export default function SocialCommercePage() {
                   <Users className="h-5 w-5 text-primary" />
                   <CardTitle className="text-lg">Creator Marketplace</CardTitle>
                 </div>
-                <CardDescription>Enable white-listed ads for FSLNO archive partners.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 border rounded-md flex flex-col gap-3 bg-gray-50/50">
-                  <div className="flex items-center justify-between">
-                    <Zap className="h-5 w-5 text-orange-500" />
-                    <Badge variant="outline" className="text-[8px] font-bold uppercase">Auth Required</Badge>
-                  </div>
-                  <h4 className="text-sm font-bold uppercase tracking-tight">Partner Orchestration</h4>
-                  <p className="text-xs text-[#5c5f62]">Grant advertising permissions to authorized archive content creators.</p>
-                  
-                  <Dialog open={isPartnersDialogOpen} onOpenChange={setIsPartnersDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="h-10 border-black font-bold uppercase tracking-widest text-[9px] hover:bg-secondary">
-                        View Partners Archive
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-3xl bg-white border-none rounded-none shadow-2xl p-0 overflow-hidden">
-                      <DialogHeader className="p-8 border-b bg-gray-50/50">
-                        <div className="flex items-center gap-3 text-primary mb-2">
-                          <Users className="h-5 w-5" />
-                          <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Archive Partners</DialogTitle>
-                        </div>
-                        <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Manage authorized social commerce creators.</DialogDescription>
-                      </DialogHeader>
-                      
-                      <div className="flex-1 overflow-y-auto max-h-[60vh]">
-                        {isInviting ? (
-                          <div className="p-8 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                            <h3 className="text-sm font-bold uppercase tracking-widest border-b pb-2">Invite New Creator</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label className="text-[10px] uppercase font-bold text-gray-500">Handle Name</Label>
-                                <Input 
-                                  placeholder="@username" 
-                                  value={newPartner.name}
-                                  onChange={(e) => setNewPartner({...newPartner, name: e.target.value})}
-                                  className="h-11"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label className="text-[10px] uppercase font-bold text-gray-500">Platform</Label>
-                                <select 
-                                  className="w-full h-11 border rounded-md px-3 text-sm font-bold uppercase bg-white focus:ring-1 focus:ring-black outline-none"
-                                  value={newPartner.platform}
-                                  onChange={(e) => setNewPartner({...newPartner, platform: e.target.value})}
-                                >
-                                  <option value="Instagram">Instagram</option>
-                                  <option value="TikTok">TikTok</option>
-                                </select>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button variant="outline" className="flex-1 h-11 uppercase font-bold text-[10px]" onClick={() => setIsInviting(false)}>Cancel</Button>
-                              <Button className="flex-1 h-11 bg-black text-white uppercase font-bold text-[10px]" onClick={handleInvitePartner} disabled={isSaving}>
-                                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Invitation'}
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-8">
-                            <Table>
-                              <TableHeader className="bg-gray-50/20">
-                                <TableRow className="border-b border-black/5">
-                                  <TableHead className="text-[10px] font-bold uppercase tracking-widest py-4">Creator</TableHead>
-                                  <TableHead className="text-[10px] font-bold uppercase tracking-widest">Platform</TableHead>
-                                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Status</TableHead>
-                                  <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">ROI</TableHead>
-                                  <TableHead className="w-[50px]"></TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {partnersLoading ? (
-                                  <TableRow><TableCell colSpan={5} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
-                                ) : !partners || partners.length === 0 ? (
-                                  <TableRow><TableCell colSpan={5} className="text-center py-12 text-[10px] font-bold uppercase text-gray-400">No archival partners cataloged.</TableCell></TableRow>
-                                ) : (
-                                  partners.map((partner) => (
-                                    <TableRow key={partner.id} className="hover:bg-gray-50/30 border-b border-black/5 last:border-0 transition-all duration-300 group">
-                                      <TableCell className="font-bold text-xs py-4 text-primary uppercase">{partner.name}</TableCell>
-                                      <TableCell className="text-xs text-gray-500 uppercase font-medium">{partner.platform}</TableCell>
-                                      <TableCell className="text-center">
-                                        <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest border-none mx-auto", partner.status === 'Active' ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700")}>
-                                          {partner.status}
-                                        </Badge>
-                                      </TableCell>
-                                      <TableCell className="text-right font-mono text-xs font-bold text-primary">{partner.roi}</TableCell>
-                                      <TableCell>
-                                        <Button 
-                                          variant="ghost" 
-                                          size="icon" 
-                                          onClick={() => removePartner(partner.id)}
-                                          className="h-8 w-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))
-                                )}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {!isInviting && (
-                        <DialogFooter className="p-8 bg-gray-50/50 border-t flex flex-row items-center justify-between">
-                          <Button variant="ghost" onClick={() => setIsPartnersDialogOpen(false)} className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Close</Button>
-                          <Button className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px] gap-2" onClick={() => setIsInviting(true)}>
-                            <PlusCircle className="h-4 w-4" /> Invite New Creator
-                          </Button>
-                        </DialogFooter>
-                      )}
-                    </DialogContent>
-                  </Dialog>
+              </div>
+              <CardDescription>Enable white-listed ads for FSLNO archive partners.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 border rounded-md flex flex-col gap-3 bg-gray-50/50">
+                <div className="flex items-center justify-between">
+                  <Zap className="h-5 w-5 text-orange-500" />
+                  <Badge variant="outline" className="text-[8px] font-bold uppercase">Auth Required</Badge>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <h4 className="text-sm font-bold uppercase tracking-tight">Partner Orchestration</h4>
+                <p className="text-xs text-[#5c5f62]">Grant advertising permissions to authorized archive content creators.</p>
+                
+                <Dialog open={isPartnersDialogOpen} onOpenChange={setIsPartnersDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="h-10 border-black font-bold uppercase tracking-widest text-[9px] hover:bg-secondary">
+                      View Partners Archive
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl bg-white border-none rounded-none shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-8 border-b bg-gray-50/50">
+                      <div className="flex items-center gap-3 text-primary mb-2">
+                        <Users className="h-5 w-5" />
+                        <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Archive Partners</DialogTitle>
+                      </div>
+                      <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Manage authorized social commerce creators.</DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="flex-1 overflow-y-auto max-h-[60vh]">
+                      {isInviting ? (
+                        <div className="p-8 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                          <h3 className="text-sm font-bold uppercase tracking-widest border-b pb-2">Invite New Creator</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-[10px] uppercase font-bold text-gray-500">Handle Name</Label>
+                              <Input 
+                                placeholder="@username" 
+                                value={newPartner.name}
+                                onChange={(e) => setNewPartner({...newPartner, name: e.target.value})}
+                                className="h-11"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] uppercase font-bold text-gray-500">Platform</Label>
+                              <select 
+                                className="w-full h-11 border rounded-md px-3 text-sm font-bold uppercase bg-white focus:ring-1 focus:ring-black outline-none"
+                                value={newPartner.platform}
+                                onChange={(e) => setNewPartner({...newPartner, platform: e.target.value})}
+                              >
+                                <option value="Instagram">Instagram</option>
+                                <option value="TikTok">TikTok</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" className="flex-1 h-11 uppercase font-bold text-[10px]" onClick={() => setIsInviting(false)}>Cancel</Button>
+                            <Button className="flex-1 h-11 bg-black text-white uppercase font-bold text-[10px]" onClick={handleInvitePartner} disabled={isSaving}>
+                              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Invitation'}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-8">
+                          <Table>
+                            <TableHeader className="bg-gray-50/20">
+                              <TableRow className="border-b border-black/5">
+                                <TableHead className="text-[10px] font-bold uppercase tracking-widest py-4">Creator</TableHead>
+                                <TableHead className="text-[10px] font-bold uppercase tracking-widest">Platform</TableHead>
+                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Status</TableHead>
+                                <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">ROI</TableHead>
+                                <TableHead className="w-[50px]"></TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {partnersLoading ? (
+                                <TableRow><TableCell colSpan={5} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+                              ) : !partners || partners.length === 0 ? (
+                                <TableRow><TableCell colSpan={5} className="text-center py-12 text-[10px] font-bold uppercase text-gray-400">No archival partners cataloged.</TableCell></TableRow>
+                              ) : (
+                                partners.map((partner) => (
+                                  <TableRow key={partner.id} className="hover:bg-gray-50/30 border-b border-black/5 last:border-0 transition-all duration-300 group">
+                                    <TableCell className="font-bold text-xs py-4 text-primary uppercase">{partner.name}</TableCell>
+                                    <TableCell className="text-xs text-gray-500 uppercase font-medium">{partner.platform}</TableCell>
+                                    <TableCell className="text-center">
+                                      <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest border-none mx-auto", partner.status === 'Active' ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700")}>
+                                        {partner.status}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right font-mono text-xs font-bold text-primary">{partner.roi}</TableCell>
+                                    <TableCell>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => removePartner(partner.id)}
+                                        className="h-8 w-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {!isInviting && (
+                      <DialogFooter className="p-8 bg-gray-50/50 border-t flex flex-row items-center justify-between">
+                        <Button variant="ghost" onClick={() => setIsPartnersDialogOpen(false)} className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Close</Button>
+                        <Button className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px] gap-2" onClick={() => setIsInviting(true)}>
+                          <PlusCircle className="h-4 w-4" /> Invite New Creator
+                        </Button>
+                      </DialogFooter>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {config.customIntegrations?.map((integration: any) => (
