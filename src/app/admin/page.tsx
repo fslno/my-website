@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -384,7 +385,7 @@ export default function AdminDashboard() {
                   <Link 
                     key={order.id} 
                     href={`/admin/orders/${order.id}`}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-[#f6f6f7] transition-colors border-b last:border-0 border-[#e1e3e5]"
+                    className="flex items-center justify-between px-6 py-4 hover:bg-[#f6f6f6] transition-colors border-b last:border-0 border-[#e1e3e5]"
                   >
                     <div className="flex flex-col overflow-hidden mr-4">
                       <span className="text-[10px] font-mono font-bold truncate">#{order.id.substring(0, 6).toUpperCase()}</span>
