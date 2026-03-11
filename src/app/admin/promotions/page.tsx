@@ -19,7 +19,15 @@ import {
   Zap,
   Gift,
   Save,
-  Settings2
+  Settings2,
+  Star,
+  Share2,
+  Clock,
+  CheckCircle2,
+  X,
+  Target,
+  Sparkles,
+  MousePointer2
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -38,12 +46,14 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, setDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, setDoc, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 export default function PromotionsPage() {
   const db = useFirestore();
@@ -61,15 +71,31 @@ export default function PromotionsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdatingConfig, setIsUpdatingConfig] = useState(false);
 
-  // Automation Form State
+  // FLASH SALE STATE
+  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [flashValue, setFlashValue] = useState(15);
+  const [flashLabel, setFlashValueLabel] = useState('ARCHIVAL DISPATCH');
+
+  // THRESHOLD STATE
   const [thresholdEnabled, setThresholdEnabled] = useState(false);
   const [thresholdValue, setThresholdValue] = useState(1000);
   const [thresholdDiscount, setThresholdDiscount] = useState(100);
   
+  // BOGO STATE
   const [bogoEnabled, setBogoEnabled] = useState(false);
   const [bogoMinQty, setBogoMinQty] = useState(2);
   const [bogoCategoryId, setBogoCategoryId] = useState('');
   const [bogoItemName, setBogoItemName] = useState('Technical Archive Scarf');
+  const [bogoMode, setBogoMode] = useState<'fixed' | 'choice'>('fixed');
+
+  // LOYALTY STATE
+  const [loyaltyEnabled, setLoyaltyEnabled] = useState(false);
+  const [loyaltyMinOrders, setLoyaltyMinOrders] = useState(2);
+  const [loyaltyDiscount, setLoyaltyDiscount] = useState(10);
+
+  // REFERRAL STATE
+  const [referralEnabled, setReferralEnabled] = useState(false);
+  const [referralValue, setReferralValue] = useState(20);
 
   // Coupon Form State
   const [code, setCode] = useState('');
@@ -79,13 +105,26 @@ export default function PromotionsPage() {
 
   useEffect(() => {
     if (config) {
+      setFlashEnabled(config.flashEnabled ?? false);
+      setFlashValue(config.flashValue ?? 15);
+      setFlashValueLabel(config.flashLabel ?? 'ARCHIVAL DISPATCH');
+
       setThresholdEnabled(config.thresholdEnabled ?? false);
       setThresholdValue(config.thresholdValue ?? 1000);
       setThresholdDiscount(config.thresholdDiscount ?? 100);
+
       setBogoEnabled(config.bogoEnabled ?? false);
       setBogoMinQty(config.bogoMinQty ?? 2);
       setBogoCategoryId(config.bogoCategoryId ?? '');
       setBogoItemName(config.bogoItemName ?? 'Technical Archive Scarf');
+      setBogoMode(config.bogoMode ?? 'fixed');
+
+      setLoyaltyEnabled(config.loyaltyEnabled ?? false);
+      setLoyaltyMinOrders(config.loyaltyMinOrders ?? 2);
+      setLoyaltyDiscount(config.loyaltyDiscount ?? 10);
+
+      setReferralEnabled(config.referralEnabled ?? false);
+      setReferralValue(config.referralValue ?? 20);
     }
   }, [config]);
 
@@ -93,6 +132,9 @@ export default function PromotionsPage() {
     if (!configRef) return;
     setIsUpdatingConfig(true);
     const payload = {
+      flashEnabled,
+      flashValue: Number(flashValue),
+      flashLabel,
       thresholdEnabled,
       thresholdValue: Number(thresholdValue),
       thresholdDiscount: Number(thresholdDiscount),
@@ -100,12 +142,18 @@ export default function PromotionsPage() {
       bogoMinQty: Number(bogoMinQty),
       bogoCategoryId,
       bogoItemName,
-      updatedAt: new Date().toISOString()
+      bogoMode,
+      loyaltyEnabled,
+      loyaltyMinOrders: Number(loyaltyMinOrders),
+      loyaltyDiscount: Number(loyaltyDiscount),
+      referralEnabled,
+      referralValue: Number(referralValue),
+      updatedAt: serverTimestamp()
     };
 
     setDoc(configRef, payload, { merge: true })
       .then(() => {
-        toast({ title: "System Updated", description: "Automation logic is now synchronized with the storefront." });
+        toast({ title: "Automation Synchronized", description: "Global growth protocols are now Authoritatively live." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -128,14 +176,14 @@ export default function PromotionsPage() {
       usageLimit: usageLimit ? parseInt(usageLimit) : null,
       usedCount: 0,
       active: true,
-      updatedAt: new Date().toISOString()
+      updatedAt: serverTimestamp()
     };
 
     setDoc(doc(db, 'coupons', couponData.code), couponData)
       .then(() => {
         setIsDialogOpen(false);
         resetForm();
-        toast({ title: "Coupon Created", description: `Code ${couponData.code} is now live.` });
+        toast({ title: "Coupon Authorized", description: `Archive code ${couponData.code} is now live.` });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -185,15 +233,15 @@ export default function PromotionsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Rewards & Promotions</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Manage dynamic discounts, threshold rewards, and automated BOGO logic.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Growth & Rewards Orchestration</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Orchestrate automated discounts, loyalty handshakes, and technical promo logic.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleSaveConfig} disabled={isUpdatingConfig} className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px]">
-            {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Automations
+          <Button variant="outline" onClick={handleSaveConfig} disabled={isUpdatingConfig} className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black">
+            {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Protocols
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
@@ -201,30 +249,30 @@ export default function PromotionsPage() {
                 <Plus className="h-4 w-4" /> Create Archive Code
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-white">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-bold uppercase tracking-tight">New Discount Code</DialogTitle>
+            <DialogContent className="sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+              <DialogHeader className="pt-8">
+                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Deduction Manifest</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-6 py-4">
+              <div className="grid gap-6 py-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Code String</Label>
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Archive Code String</Label>
                   <Input 
-                    placeholder="e.g. ARCHIVE20" 
+                    placeholder="e.g. DROP777" 
                     value={code} 
                     onChange={(e) => setCode(e.target.value)} 
-                    className="h-11 uppercase"
+                    className="h-12 uppercase font-bold text-sm tracking-widest"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Discount Type</Label>
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Discount Protocol</Label>
                     <Select value={type} onValueChange={(v: any) => setType(v)}>
-                      <SelectTrigger className="h-11">
+                      <SelectTrigger className="h-12">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="percent">Percentage (%)</SelectItem>
-                        <SelectItem value="fixed">Fixed Amount ($)</SelectItem>
+                        <SelectItem value="percent" className="font-bold text-[10px] uppercase">Percentage (%)</SelectItem>
+                        <SelectItem value="fixed" className="font-bold text-[10px] uppercase">Fixed Amount ($)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -235,18 +283,18 @@ export default function PromotionsPage() {
                       placeholder={type === 'percent' ? '20' : '50'} 
                       value={value} 
                       onChange={(e) => setValue(e.target.value)}
-                      className="h-11"
+                      className="h-12 font-mono"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Usage Limit (Optional)</Label>
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Redemption Limit (Optional)</Label>
                   <Input 
                     type="number" 
                     placeholder="Unlimited" 
                     value={usageLimit} 
                     onChange={(e) => setUsageLimit(e.target.value)}
-                    className="h-11"
+                    className="h-12"
                   />
                 </div>
               </div>
@@ -254,10 +302,10 @@ export default function PromotionsPage() {
                 <Button 
                   onClick={handleSaveCoupon} 
                   disabled={isSaving || !code || !value}
-                  className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]"
+                  className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]"
                 >
                   {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Authorize Code
+                  Authorize Manifest
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -265,165 +313,320 @@ export default function PromotionsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className={`border-[#e1e3e5] shadow-none transition-colors ${thresholdEnabled ? 'bg-blue-50/30 border-blue-100' : 'bg-gray-50/50'}`}>
-          <CardHeader className="pb-4 flex flex-row items-center justify-between">
-            <CardTitle className={`text-xs uppercase tracking-widest flex items-center gap-2 ${thresholdEnabled ? 'text-blue-600' : 'text-gray-400'}`}>
-              <Zap className="h-3 w-3" /> System Automation: Threshold
-            </CardTitle>
-            <Switch checked={thresholdEnabled} onCheckedChange={setThresholdEnabled} />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[9px] uppercase font-bold text-gray-500">Spend Goal ($)</Label>
-                <Input 
-                  type="number" 
-                  value={thresholdValue} 
-                  onChange={(e) => setThresholdValue(Number(e.target.value))}
-                  className="h-9 bg-white"
-                  disabled={!thresholdEnabled}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[9px] uppercase font-bold text-gray-500">Instant Discount ($)</Label>
-                <Input 
-                  type="number" 
-                  value={thresholdDiscount} 
-                  onChange={(e) => setThresholdDiscount(Number(e.target.value))}
-                  className="h-9 bg-white"
-                  disabled={!thresholdEnabled}
-                />
-              </div>
-            </div>
-            <p className="text-[10px] text-gray-500 leading-relaxed italic">
-              When ON, subtotal logic triggers deduction at the target value. The bag progress bar will adjust automatically.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="xl:col-span-8 space-y-8">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className={cn("border-[#e1e3e5] shadow-none transition-all duration-500", flashEnabled ? 'bg-black text-white ring-2 ring-black' : 'bg-gray-50/50')}>
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <div className="space-y-1">
+                  <CardTitle className={cn("text-xs uppercase tracking-widest flex items-center gap-2", flashEnabled ? 'text-orange-400' : 'text-gray-400')}>
+                    <Zap className="h-3.5 w-3.5" /> Flash Dispatch
+                  </CardTitle>
+                  <CardDescription className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-500' : '')}>Sitewide percentage deduction.</CardDescription>
+                </div>
+                <Switch checked={flashEnabled} onCheckedChange={setFlashEnabled} className="data-[state=checked]:bg-orange-500" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-400' : 'text-gray-500')}>Deduction (%)</Label>
+                    <Input 
+                      type="number" 
+                      value={flashValue} 
+                      onChange={(e) => setFlashValue(Number(e.target.value))}
+                      className="h-10 bg-white text-black"
+                      disabled={!flashEnabled}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-400' : 'text-gray-500')}>Sale Label</Label>
+                    <Input 
+                      value={flashLabel} 
+                      onChange={(e) => setFlashValueLabel(e.target.value.toUpperCase())}
+                      className="h-10 bg-white text-black text-[9px] font-bold tracking-widest"
+                      disabled={!flashEnabled}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className={`border-[#e1e3e5] shadow-none transition-colors ${bogoEnabled ? 'bg-orange-50/30 border-orange-100' : 'bg-gray-50/50'}`}>
-          <CardHeader className="pb-4 flex flex-row items-center justify-between">
-            <CardTitle className={`text-xs uppercase tracking-widest flex items-center gap-2 ${bogoEnabled ? 'text-orange-600' : 'text-gray-400'}`}>
-              <Gift className="h-3 w-3" /> System Automation: BOGO
-            </CardTitle>
-            <Switch checked={bogoEnabled} onCheckedChange={setBogoEnabled} />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[9px] uppercase font-bold text-gray-500">Trigger Quantity</Label>
-                <Input 
-                  type="number" 
-                  value={bogoMinQty} 
-                  onChange={(e) => setBogoMinQty(Number(e.target.value))}
-                  className="h-9 bg-white"
-                  disabled={!bogoEnabled}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[9px] uppercase font-bold text-gray-500">Target Collection</Label>
-                <Select value={bogoCategoryId} onValueChange={setBogoCategoryId} disabled={!bogoEnabled}>
-                  <SelectTrigger className="h-9 bg-white">
-                    <SelectValue placeholder="Select Collection" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories?.map((cat: any) => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[9px] uppercase font-bold text-gray-500">Reward Item Descriptor</Label>
-              <Input 
-                value={bogoItemName} 
-                onChange={(e) => setBogoItemName(e.target.value)}
-                className="h-9 bg-white"
-                disabled={!bogoEnabled}
-                placeholder="e.g. Free Technical Scarf"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className={cn("border-[#e1e3e5] shadow-none transition-all duration-500", thresholdEnabled ? 'bg-blue-50/30 border-blue-200' : 'bg-gray-50/50')}>
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <div className="space-y-1">
+                  <CardTitle className={cn("text-xs uppercase tracking-widest flex items-center gap-2", thresholdEnabled ? 'text-blue-600' : 'text-gray-400')}>
+                    <Clock className="h-3.5 w-3.5" /> Spend Threshold
+                  </CardTitle>
+                  <CardDescription className="text-[9px] uppercase font-bold">Reward high-value selections.</CardDescription>
+                </div>
+                <Switch checked={thresholdEnabled} onCheckedChange={setThresholdEnabled} />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Spend Goal ($)</Label>
+                    <Input 
+                      type="number" 
+                      value={thresholdValue} 
+                      onChange={(e) => setThresholdValue(Number(e.target.value))}
+                      className="h-10 bg-white"
+                      disabled={!thresholdEnabled}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Discount ($)</Label>
+                    <Input 
+                      type="number" 
+                      value={thresholdDiscount} 
+                      onChange={(e) => setThresholdDiscount(Number(e.target.value))}
+                      className="h-10 bg-white"
+                      disabled={!thresholdEnabled}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-      <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-        <div className="p-6 border-b bg-gray-50/50 flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-            <TicketPercent className="h-4 w-4" /> Active Archive Codes
-          </h3>
-          <span className="text-[10px] font-bold text-gray-400">{coupons?.length || 0} TOTAL</span>
-        </div>
-        <Table>
-          <TableHeader className="bg-gray-50/20">
-            <TableRow>
-              <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6">Archive Code</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-widest">Benefit</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-widest">Usage</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Status</TableHead>
-              <TableHead className="w-[100px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {couponsLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-20">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" />
-                </TableCell>
-              </TableRow>
-            ) : !coupons || coupons.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-20 text-gray-400 font-medium">No archive codes found.</TableCell>
-              </TableRow>
-            ) : (
-              coupons.map((coupon: any) => (
-                <TableRow key={coupon.id} className="hover:bg-gray-50/30">
-                  <TableCell className="p-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center">
-                        <TicketPercent className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <span className="font-bold text-sm tracking-tight">{coupon.code}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-xs font-medium">
-                      {coupon.type === 'percent' ? `${coupon.value}% OFF` : `$${coupon.value} OFF`}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold">{coupon.usedCount || 0} REDEEMED</span>
-                      <span className="text-[10px] text-gray-400 uppercase tracking-tighter">LIMIT: {coupon.usageLimit || 'UNLIMITED'}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-center">
-                      <Switch 
-                        checked={coupon.active} 
-                        onCheckedChange={() => handleToggleActive(coupon)}
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2 pr-6">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleDelete(coupon.id)}
-                        className="h-8 w-8 hover:bg-red-50 text-red-500"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <Card className={cn("border-[#e1e3e5] shadow-none transition-all duration-500", bogoEnabled ? 'bg-emerald-50/20 border-emerald-200' : 'bg-gray-50/50')}>
+            <CardHeader className="flex flex-row items-center justify-between border-b bg-white/50">
+              <div className="space-y-1">
+                <CardTitle className={cn("text-xs uppercase tracking-widest flex items-center gap-2", bogoEnabled ? 'text-emerald-600' : 'text-gray-400')}>
+                  <Gift className="h-4 w-4" /> Archival BOGO Protocol
+                </CardTitle>
+                <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Configure buy-one-get-one logic with customer choices.</CardDescription>
+              </div>
+              <Switch checked={bogoEnabled} onCheckedChange={setBogoEnabled} className="data-[state=checked]:bg-emerald-600" />
+            </CardHeader>
+            <CardContent className="pt-6 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Trigger Quantity</Label>
+                  <Input 
+                    type="number" 
+                    value={bogoMinQty} 
+                    onChange={(e) => setBogoMinQty(Number(e.target.value))}
+                    className="h-11 bg-white"
+                    disabled={!bogoEnabled}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Target Category</Label>
+                  <Select value={bogoCategoryId} onValueChange={setBogoCategoryId} disabled={!bogoEnabled}>
+                    <SelectTrigger className="h-11 bg-white">
+                      <SelectValue placeholder="Selection" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((cat: any) => (
+                        <SelectItem key={cat.id} value={cat.id} className="text-[10px] font-bold uppercase">{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">BOGO Mode</Label>
+                  <Select value={bogoMode} onValueChange={(v: any) => setBogoMode(v)} disabled={!bogoEnabled}>
+                    <SelectTrigger className="h-11 bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fixed" className="text-[10px] font-bold uppercase">Fixed Gift</SelectItem>
+                      <SelectItem value="choice" className="text-[10px] font-bold uppercase">Customer Choice</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[9px] uppercase font-bold text-gray-500">Reward Item Descriptor</Label>
+                <div className="relative">
+                  <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                  <Input 
+                    value={bogoItemName} 
+                    onChange={(e) => setBogoItemName(e.target.value)}
+                    className="h-12 bg-white pl-10 font-bold uppercase text-[10px] tracking-widest"
+                    disabled={!bogoEnabled}
+                    placeholder="e.g. COMPLIMENTARY TECHNICAL SCARF"
+                  />
+                </div>
+                {bogoMode === 'choice' && (
+                  <p className="text-[9px] text-emerald-700 font-bold uppercase tracking-tight mt-2 flex items-center gap-1.5">
+                    <MousePointer2 className="h-3 w-3" /> Customer will pick one free item from the target category at checkout.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+            <div className="p-6 border-b bg-gray-50/50 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
+                <TicketPercent className="h-4 w-4 text-purple-500" /> Authorized Deduction Manifest
+              </h3>
+              <Badge variant="secondary" className="bg-black text-white text-[9px] font-bold px-3 py-1">{coupons?.length || 0} TOTAL</Badge>
+            </div>
+            <Table>
+              <TableHeader className="bg-gray-50/20">
+                <TableRow className="border-b border-black/5">
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Manifest ID</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Protocol</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Redemptions</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Auth Status</TableHead>
+                  <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody>
+                {couponsLoading ? (
+                  <TableRow><TableCell colSpan={5} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+                ) : !coupons || coupons.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center py-20 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">No deductive handshakes cataloged.</TableCell></TableRow>
+                ) : (
+                  coupons.map((coupon: any) => (
+                    <TableRow key={coupon.id} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
+                      <TableCell className="p-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded border bg-white flex items-center justify-center shadow-sm">
+                            <TicketPercent className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <span className="font-bold text-sm tracking-widest text-primary uppercase">{coupon.code}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] font-bold uppercase bg-purple-50 text-purple-700 border-purple-100">
+                          {coupon.type === 'percent' ? `${coupon.value}% DEDUCTION` : `$${coupon.value} DEDUCTION`}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-primary">{coupon.usedCount || 0} REDEEMED</span>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">LIMIT: {coupon.usageLimit || '∞'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center">
+                          <Switch 
+                            checked={coupon.active} 
+                            onCheckedChange={() => handleToggleActive(coupon)}
+                            className="data-[state=checked]:bg-black"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end pr-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDelete(coupon.id)}
+                            className="h-9 w-9 hover:bg-red-50 text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        <div className="xl:col-span-4 space-y-8">
+          <Card className={cn("border-[#e1e3e5] shadow-none transition-all duration-500", loyaltyEnabled ? 'bg-purple-50/30 border-purple-200' : 'bg-gray-50/50')}>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", loyaltyEnabled ? 'text-purple-600' : 'text-gray-400')}>
+                  <Star className="h-3.5 w-3.5" /> Archive Loyalty
+                </CardTitle>
+                <Switch checked={loyaltyEnabled} onCheckedChange={setLoyaltyEnabled} className="data-[state=checked]:bg-purple-600" />
+              </div>
+              <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Auto-rewards for repeat participants.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Unlock on Order #</Label>
+                  <Input 
+                    type="number" 
+                    value={loyaltyMinOrders} 
+                    onChange={(e) => setLoyaltyMinOrders(Number(e.target.value))}
+                    className="h-10 bg-white"
+                    disabled={!loyaltyEnabled}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Loyalty Discount (%)</Label>
+                  <Input 
+                    type="number" 
+                    value={loyaltyDiscount} 
+                    onChange={(e) => setLoyaltyDiscount(Number(e.target.value))}
+                    className="h-10 bg-white"
+                    disabled={!loyaltyEnabled}
+                  />
+                </div>
+              </div>
+              <p className="text-[9px] text-zinc-500 uppercase leading-relaxed font-medium">
+                Verified members Authoritatively receive this deduction on their {loyaltyMinOrders === 2 ? 'second' : `${loyaltyMinOrders}th`} order manifest.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className={cn("border-[#e1e3e5] shadow-none transition-all duration-500", referralEnabled ? 'bg-pink-50/30 border-pink-200' : 'bg-gray-50/50')}>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", referralEnabled ? 'text-pink-600' : 'text-gray-400')}>
+                  <Share2 className="h-3.5 w-3.5" /> Referral Handshake
+                </CardTitle>
+                <Switch checked={referralEnabled} onCheckedChange={setReferralEnabled} className="data-[state=checked]:bg-pink-600" />
+              </div>
+              <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Incentivize archival sharing.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[9px] uppercase font-bold text-gray-500">Referee Credit ($)</Label>
+                <Input 
+                  type="number" 
+                  value={referralValue} 
+                  onChange={(e) => setReferralValue(Number(e.target.value))}
+                  className="h-10 bg-white"
+                  disabled={!referralEnabled}
+                />
+              </div>
+              <div className="p-4 bg-white/50 border border-dashed rounded-sm">
+                <p className="text-[9px] text-zinc-500 uppercase leading-relaxed font-bold">
+                  REFERRER BONUS: 500 STUDIO POINTS
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="p-6 bg-black text-white space-y-4 shadow-xl">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-zinc-400">
+              <Target className="h-3.5 w-3.5 text-blue-400" /> Promotion Integrity
+            </h3>
+            <p className="text-[10px] text-zinc-500 leading-relaxed uppercase font-medium">
+              Growth protocols strictly apply to the live storefront manifest. Changes to automation logic Authoritatively synchronize with the bag calculation engine in real-time.
+            </p>
+            <Separator className="bg-white/10" />
+            <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
+              <span>Status</span>
+              <span className="text-green-400 flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                Real-time Sync Active
+              </span>
+            </div>
+          </div>
+
+          <Button 
+            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
+            onClick={handleSaveConfig} 
+            disabled={isUpdatingConfig}
+          >
+            {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+            Authorize All Protocols
+          </Button>
+        </div>
       </div>
     </div>
   );
