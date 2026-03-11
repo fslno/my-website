@@ -13,7 +13,8 @@ import {
   Receipt,
   CreditCard,
   Calendar as CalendarIcon,
-  ChevronDown
+  ChevronDown,
+  Download
 } from 'lucide-react';
 import { 
   Area, 
@@ -43,9 +44,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminDashboard() {
   const db = useFirestore();
+  const { toast } = useToast();
   const [timeRange, setTimeRange] = useState('7d');
   const [date, setDate] = React.useState<Date | undefined>();
 
@@ -154,6 +157,52 @@ export default function AdminDashboard() {
     return dataPoints;
   }, [filteredData, timeRange]);
 
+  const handleExportCSV = () => {
+    if (!filteredData.orders || filteredData.orders.length === 0) {
+      toast({
+        title: "Zero Data Manifest",
+        description: "No archival transactions found in this temporal range to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const headers = ["Order ID", "Date", "Customer", "Email", "Subtotal", "Tax", "Shipping", "Total", "Status", "Payment Status"];
+    const rows = filteredData.orders.map(order => {
+      const dateStr = order.createdAt?.toDate 
+        ? order.createdAt.toDate().toISOString() 
+        : new Date(order.createdAt).toISOString();
+      
+      return [
+        order.id,
+        dateStr,
+        order.customer?.name || "GUEST",
+        order.email || "NO-EMAIL",
+        order.subtotal || 0,
+        order.tax || 0,
+        order.shipping || 0,
+        order.total || 0,
+        order.status || "PENDING",
+        order.paymentStatus || "PENDING"
+      ].map(val => `"${val}"`).join(",");
+    });
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `FSLNO_Audit_${timeRange.toUpperCase()}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export Successful",
+      description: "Forensic transaction manifest has been downloaded."
+    });
+  };
+
   const formatCurrency = (val: number) => {
     return val.toLocaleString('en-US', { 
       style: 'currency', 
@@ -238,7 +287,12 @@ export default function AdminDashboard() {
           <Separator orientation="vertical" className="h-8 hidden md:block" />
           
           <div className="flex gap-2">
-            <button className="px-4 h-10 bg-white border border-[#babfc3] rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#f6f6f7] transition-colors shadow-sm">Export CSV</button>
+            <button 
+              onClick={handleExportCSV}
+              className="px-4 h-10 bg-white border border-[#babfc3] rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#f6f6f7] transition-colors shadow-sm flex items-center gap-2"
+            >
+              <Download className="h-3.5 w-3.5" /> Export CSV
+            </button>
             <Link href="/admin/products" className="px-4 h-10 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-black/90 transition-colors flex items-center shadow-md">
               Manage Products
             </Link>
