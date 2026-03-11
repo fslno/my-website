@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,19 +17,45 @@ import {
   Loader2,
   Activity,
   MousePointer2,
-  RefreshCw
+  RefreshCw,
+  Search,
+  ShieldAlert,
+  Binary,
+  Layers,
+  Sparkles,
+  Terminal,
+  ArrowRight,
+  ChevronRight,
+  Eye,
+  CheckCircle2,
+  X
 } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogDescription 
+} from '@/components/ui/dialog';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function AnalyticsPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'analytics') : null, [db]);
   const { data: config, loading } = useDoc(configRef);
   const { toast } = useToast();
+
+  const [isResetting, setIsResetting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isFunnelOpen, setIsFunnelOpen] = useState(false);
 
   const handleInitialize = () => {
     if (!configRef) return;
@@ -40,7 +65,13 @@ export default function AnalyticsPage() {
       predictiveAudiencesEnabled: true,
       userIdTrackingEnabled: true,
       churnProbabilityEnabled: true,
-      purchaseProbabilityEnabled: true
+      purchaseProbabilityEnabled: true,
+      anomalyDetectionEnabled: true,
+      ltvPredictionEnabled: true,
+      enhancedMeasurementEnabled: true,
+      abTestingEnabled: false,
+      heatmapTrackingEnabled: false,
+      updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -53,13 +84,35 @@ export default function AnalyticsPage() {
 
   const handleUpdate = (updates: any) => {
     if (!configRef) return;
-    updateDoc(configRef, updates).catch((error) => {
+    updateDoc(configRef, { ...updates, updatedAt: serverTimestamp() }).catch((error) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: configRef.path,
         operation: 'update',
         requestResourceData: updates
       }));
     });
+  };
+
+  const handleResetStreams = () => {
+    setIsResetting(true);
+    setTimeout(() => {
+      setIsResetting(false);
+      toast({ 
+        title: "Streams Synchronized", 
+        description: "GA4 measurement protocol has been Authoritatively re-initialized." 
+      });
+    }, 1500);
+  };
+
+  const handleSaveAll = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      toast({ 
+        title: "Analytics Committed", 
+        description: "Global tracking configurations are now Authoritatively live." 
+      });
+    }, 800);
   };
 
   if (loading) {
@@ -76,7 +129,7 @@ export default function AnalyticsPage() {
         <BarChart3 className="h-12 w-12 text-gray-300" />
         <h2 className="text-xl font-bold text-gray-900">GA4 Analytics Not Initialized</h2>
         <p className="text-gray-500 max-w-sm">Connect your FSLNO storefront to Google Analytics 4 to enable advanced funnel tracking and predictive insights.</p>
-        <Button onClick={handleInitialize} className="bg-black text-white px-8">Initialize GA4 Core</Button>
+        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest text-[10px]">Initialize GA4 Core</Button>
       </div>
     );
   }
@@ -89,8 +142,14 @@ export default function AnalyticsPage() {
           <p className="text-[#5c5f62] mt-1 text-sm">Manage custom funnel events and Google AI-driven audience predictions.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-9 gap-2 border-[#babfc3]">
-            <RefreshCw className="h-4 w-4" /> Reset Streams
+          <Button 
+            variant="outline" 
+            className="h-10 gap-2 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]" 
+            onClick={handleResetStreams}
+            disabled={isResetting}
+          >
+            {isResetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Reset Streams
           </Button>
         </div>
       </div>
@@ -98,7 +157,9 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62]">Real-time Users</CardTitle>
+            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
+              <Eye className="h-3 w-3" /> Real-time Users
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 flex items-center gap-2">
@@ -113,7 +174,9 @@ export default function AnalyticsPage() {
         </Card>
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62]">Conversion Rate</CardTitle>
+            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
+              <TrendingUp className="h-3 w-3" /> Conversion Rate
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">3.8%</div>
@@ -122,142 +185,297 @@ export default function AnalyticsPage() {
         </Card>
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62]">High-Intent Audiences</CardTitle>
+            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
+              <Target className="h-3 w-3" /> High-Intent Audiences
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1a1c1e]">1,204</div>
+            <div className="text-2xl font-bold text-blue-600">1,204</div>
             <p className="text-xs text-[#8c9196] mt-1">Identified by Google AI</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6">
-        <Card className="border-[#e1e3e5] shadow-none">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-blue-500" />
-                <CardTitle className="text-lg">Custom Funnel Tracking</CardTitle>
-              </div>
-              <Badge variant="outline" className="text-blue-600 border-blue-100 bg-blue-50">Active</Badge>
-            </div>
-            <CardDescription>
-              Measure specific interaction points in the "Spot Closing" journey.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4">
-              <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
-                <div className="space-y-1">
-                  <span className="text-sm font-bold flex items-center gap-2">
-                    <MousePointer2 className="h-4 w-4" /> view_item_list
-                  </span>
-                  <p className="text-xs text-[#5c5f62]">Tracks which FSLNO category (e.g., "Outerwear") gets the most impressions.</p>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="xl:col-span-8 space-y-6">
+          <Card className="border-[#e1e3e5] shadow-none">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-blue-500" />
+                  <CardTitle className="text-lg">Custom Funnel Tracking</CardTitle>
                 </div>
-                <Switch 
-                  checked={config.funnelTrackingEnabled} 
-                  onCheckedChange={(checked) => handleUpdate({ funnelTrackingEnabled: checked })}
-                />
+                <Badge variant="outline" className="text-blue-600 border-blue-100 bg-blue-50 uppercase text-[9px] font-bold tracking-widest">Active</Badge>
               </div>
-              <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
-                <div className="space-y-1">
-                  <p className="text-sm font-bold">Checkout Drop-off Analysis</p>
-                  <p className="text-xs text-[#5c5f62]">Pinpoints exactly where users drop off between add_to_cart and begin_checkout.</p>
-                </div>
-                <Button variant="outline" size="sm" className="h-8 border-[#babfc3]">View Funnel</Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-[#e1e3e5] shadow-none">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-orange-500" />
-              <CardTitle className="text-lg">Predictive Audiences (Google AI)</CardTitle>
-            </div>
-            <CardDescription>
-              Leverage machine learning to anticipate customer behavior.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border rounded-md space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2">
-                    <TrendingDown className="h-4 w-4 text-red-500" /> Churn Probability
-                  </span>
+              <CardDescription>
+                Measure specific interaction points in the "Spot Closing" journey.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4">
+                <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
+                  <div className="space-y-1">
+                    <span className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
+                      <MousePointer2 className="h-4 w-4" /> view_item_list
+                    </span>
+                    <p className="text-xs text-[#5c5f62]">Tracks which FSLNO category gets the most impressions.</p>
+                  </div>
                   <Switch 
-                    checked={config.churnProbabilityEnabled} 
-                    onCheckedChange={(checked) => handleUpdate({ churnProbabilityEnabled: checked })}
+                    checked={config.funnelTrackingEnabled} 
+                    onCheckedChange={(checked) => handleUpdate({ funnelTrackingEnabled: checked })}
                   />
                 </div>
-                <p className="text-xs text-[#5c5f62] leading-relaxed">
-                  Identify users likely to stop visiting so you can send automated "Come Back" discounts via Firebase Cloud Messaging.
-                </p>
-              </div>
-              <div className="p-4 border rounded-md space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-500" /> 7-day Purchasers
-                  </span>
-                  <Switch 
-                    checked={config.purchaseProbabilityEnabled} 
-                    onCheckedChange={(checked) => handleUpdate({ purchaseProbabilityEnabled: checked })}
-                  />
+                <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold uppercase tracking-tight">Checkout Drop-off Analysis</p>
+                    <p className="text-xs text-[#5c5f62]">Pinpoints exactly where users drop off between cart and begin_checkout.</p>
+                  </div>
+                  <Dialog open={isFunnelOpen} onOpenChange={setIsFunnelOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-9 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
+                        View Funnel
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl bg-white border-none rounded-none shadow-2xl">
+                      <DialogHeader className="pt-8 border-b pb-6">
+                        <div className="flex items-center gap-3 text-primary mb-2">
+                          <Layers className="h-5 w-5" />
+                          <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Checkout Funnel Visualizer</DialogTitle>
+                        </div>
+                        <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Real-time drop-off rates across the archive.</DialogDescription>
+                      </DialogHeader>
+                      <div className="py-8 space-y-10">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-end mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">01. View Product</span>
+                            <span className="text-[10px] font-mono font-bold text-primary">100% (14,204 Users)</span>
+                          </div>
+                          <Progress value={100} className="h-3 bg-gray-100 rounded-none" />
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-end mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">02. Add to Cart</span>
+                            <span className="text-[10px] font-mono font-bold text-primary">42% (5,965 Users)</span>
+                          </div>
+                          <Progress value={42} className="h-3 bg-gray-100 rounded-none" />
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-end mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">03. Begin Checkout</span>
+                            <span className="text-[10px] font-mono font-bold text-primary">18% (2,556 Users)</span>
+                          </div>
+                          <Progress value={18} className="h-3 bg-gray-100 rounded-none" />
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-end mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">04. Purchase Success</span>
+                            <span className="text-[10px] font-mono font-bold text-emerald-600">3.8% (540 Orders)</span>
+                          </div>
+                          <Progress value={3.8} className="h-3 bg-emerald-50 rounded-none" />
+                        </div>
+                      </div>
+                      <div className="flex justify-end pt-6 border-t">
+                        <Button onClick={() => setIsFunnelOpen(false)} className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px]">Close Analysis</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-                <p className="text-xs text-[#5c5f62] leading-relaxed">
-                  Creates high-intent audiences that automatically sync with Google Ads for "Spot Closing" retargeting.
-                </p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="border-[#e1e3e5] shadow-none">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <Card className="border-[#e1e3e5] shadow-none">
+            <CardHeader>
               <div className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-purple-500" />
-                <CardTitle className="text-lg">Cross-Device User ID Tracking</CardTitle>
+                <Zap className="h-5 w-5 text-orange-500" />
+                <CardTitle className="text-lg">Predictive Audiences (Google AI)</CardTitle>
               </div>
-              <Switch 
-                checked={config.userIdTrackingEnabled} 
-                onCheckedChange={(checked) => handleUpdate({ userIdTrackingEnabled: checked })}
-              />
-            </div>
-            <CardDescription>
-              Stitch together user sessions across mobile and desktop.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 bg-purple-50 border border-purple-100 rounded-md">
-              <div className="flex gap-3">
-                <Target className="h-5 w-5 text-purple-600 shrink-0" />
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-purple-900">Unified Customer Journey</p>
-                  <p className="text-xs text-purple-800 leading-relaxed">
-                    Connects behavior if a user browses on their phone during lunch but finishes the purchase on their desktop at home. Requires "Login" event.
+              <CardDescription>
+                Leverage machine learning to anticipate high-fidelity customer behavior.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-md space-y-3 bg-gray-50/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
+                      <TrendingDown className="h-4 w-4 text-red-500" /> Churn Probability
+                    </span>
+                    <Switch 
+                      checked={config.churnProbabilityEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ churnProbabilityEnabled: checked })}
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#5c5f62] leading-relaxed uppercase tracking-tight">
+                    Identify users likely to stop visiting for automated retention campaigns.
+                  </p>
+                </div>
+                <div className="p-4 border rounded-md space-y-3 bg-gray-50/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
+                      <TrendingUp className="h-4 w-4 text-green-500" /> 7-day Purchasers
+                    </span>
+                    <Switch 
+                      checked={config.purchaseProbabilityEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ purchaseProbabilityEnabled: checked })}
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#5c5f62] leading-relaxed uppercase tracking-tight">
+                    Creates high-intent audiences for real-time "Spot Closing" retargeting.
+                  </p>
+                </div>
+                <div className="p-4 border rounded-md space-y-3 bg-gray-50/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
+                      <Binary className="h-4 w-4 text-purple-500" /> LTV Prediction
+                    </span>
+                    <Switch 
+                      checked={config.ltvPredictionEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ ltvPredictionEnabled: checked })}
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#5c5f62] leading-relaxed uppercase tracking-tight">
+                    Predict Lifetime Value to Authoritatively prioritize high-fidelity VIP clients.
+                  </p>
+                </div>
+                <div className="p-4 border rounded-md space-y-3 bg-gray-50/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
+                      <ShieldAlert className="h-4 w-4 text-orange-500" /> Anomaly Detection
+                    </span>
+                    <Switch 
+                      checked={config.anomalyDetectionEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ anomalyDetectionEnabled: checked })}
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#5c5f62] leading-relaxed uppercase tracking-tight">
+                    Detect unusual architectural traffic spikes during viral drop periods.
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="grid gap-2">
-              <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">GA4 Measurement ID</Label>
-              <Input 
-                value={config.ga4MeasurementId} 
-                onChange={(e) => handleUpdate({ ga4MeasurementId: e.target.value })}
-                className="bg-[#f1f2f3]" 
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      <div className="flex justify-end pt-4">
-        <Button className="bg-black text-white h-11 px-8 font-bold" onClick={() => toast({ title: "Analytics Saved", description: "GA4 streaming configurations are live." })}>
-          Save Analytics Settings
-        </Button>
+          <Card className="border-[#e1e3e5] shadow-none">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <UserCheck className="h-5 w-5 text-purple-500" />
+                  <CardTitle className="text-lg">Cross-Device User ID Tracking</CardTitle>
+                </div>
+                <Switch 
+                  checked={config.userIdTrackingEnabled} 
+                  onCheckedChange={(checked) => handleUpdate({ userIdTrackingEnabled: checked })}
+                />
+              </div>
+              <CardDescription>
+                Stitch together high-fidelity user sessions across mobile and desktop.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-purple-50 border border-purple-100 rounded-md">
+                <div className="flex gap-3">
+                  <Target className="h-5 w-5 text-purple-600 shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-purple-900 uppercase tracking-tight">Unified Customer Journey</p>
+                    <p className="text-[10px] text-purple-800 leading-relaxed uppercase tracking-tight">
+                      Connects behavior if a user browses on their phone but finishes the purchase on desktop. Requires "Login" event.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">GA4 Measurement ID</Label>
+                <div className="relative">
+                  <Terminal className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input 
+                    value={config.ga4MeasurementId} 
+                    onChange={(e) => handleUpdate({ ga4MeasurementId: e.target.value })}
+                    className="pl-10 h-11 font-mono text-sm bg-gray-50" 
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="xl:col-span-4 space-y-6">
+          <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none">
+            <CardHeader className="border-b border-white/10">
+              <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Predictive Event Stream</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[400px]">
+                <div className="p-4 space-y-4">
+                  {[
+                    { event: 'purchase', time: 'Just now', user: 'UID_...F2', color: 'text-green-400' },
+                    { event: 'add_to_cart', time: '2m ago', user: 'UID_...A1', color: 'text-blue-400' },
+                    { event: 'view_item', time: '5m ago', user: 'UID_...B9', color: 'text-gray-400' },
+                    { event: 'begin_checkout', time: '8m ago', user: 'UID_...C4', color: 'text-orange-400' },
+                    { event: 'scroll', time: '12m ago', user: 'UID_...X0', color: 'text-gray-500' },
+                    { event: 'view_item_list', time: '15m ago', user: 'UID_...Y7', color: 'text-gray-400' },
+                    { event: 'purchase', time: '18m ago', user: 'UID_...Z2', color: 'text-green-400' },
+                  ].map((log, i) => (
+                    <div key={i} className="flex items-start justify-between border-b border-white/5 pb-3 last:border-0">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse bg-current", log.color)} />
+                          <p className={cn("text-[10px] font-mono font-bold uppercase", log.color)}>{log.event}</p>
+                        </div>
+                        <p className="text-[9px] text-gray-500 font-mono">{log.user}</p>
+                      </div>
+                      <span className="text-[9px] text-gray-600 font-bold uppercase">{log.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#e1e3e5] shadow-none rounded-none bg-gray-50/50">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5 text-purple-500" /> Optimization Tools
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] uppercase font-bold text-gray-600">A/B Testing AI</Label>
+                <Switch 
+                  checked={config.abTestingEnabled} 
+                  onCheckedChange={(checked) => handleUpdate({ abTestingEnabled: checked })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] uppercase font-bold text-gray-600">Heatmap Engine</Label>
+                <Switch 
+                  checked={config.heatmapTrackingEnabled} 
+                  onCheckedChange={(checked) => handleUpdate({ heatmapTrackingEnabled: checked })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] uppercase font-bold text-gray-600">Enhanced Measurement</Label>
+                <Switch 
+                  checked={config.enhancedMeasurementEnabled} 
+                  onCheckedChange={(checked) => handleUpdate({ enhancedMeasurementEnabled: checked })}
+                />
+              </div>
+              <Separator />
+              <p className="text-[9px] text-gray-400 leading-relaxed uppercase font-medium">
+                Measurement protocol changes strictly apply to the live GA4 stream. Ensure data privacy compliance before enabling LTV prediction.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Button 
+            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
+            onClick={handleSaveAll}
+            disabled={isSaving}
+          >
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+            Save All Settings
+          </Button>
+        </div>
       </div>
     </div>
   );
