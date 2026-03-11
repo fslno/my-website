@@ -70,6 +70,7 @@ const DEFAULT_THEME = {
   heroSubheadline: 'Modern Silhouettes',
   heroButtonText: 'Shop the Drops',
   heroTextAlign: 'center',
+  heroVerticalAlign: 'center',
   heroHeadlineSize: '72',
   categoryTextAlign: 'left',
   categoryTitleSize: '40',
@@ -108,6 +109,7 @@ export default function ThemeEnginePage() {
   const [heroSubheadline, setHeroSubheadline] = useState(DEFAULT_THEME.heroSubheadline);
   const [heroButtonText, setHeroButtonText] = useState(DEFAULT_THEME.heroButtonText);
   const [heroTextAlign, setHeroTextAlign] = useState(DEFAULT_THEME.heroTextAlign);
+  const [heroVerticalAlign, setHeroVerticalAlign] = useState(DEFAULT_THEME.heroVerticalAlign);
   const [heroHeadlineSize, setHeroHeadlineSize] = useState(DEFAULT_THEME.heroHeadlineSize);
   const [categoryTextAlign, setCategoryTextAlign] = useState(DEFAULT_THEME.categoryTextAlign);
   const [categoryTitleSize, setCategoryTitleSize] = useState(DEFAULT_THEME.categoryTitleSize);
@@ -136,6 +138,7 @@ export default function ThemeEnginePage() {
       setHeroSubheadline(themeData.heroSubheadline || DEFAULT_THEME.heroSubheadline);
       setHeroButtonText(themeData.heroButtonText || DEFAULT_THEME.heroButtonText);
       setHeroTextAlign(themeData.heroTextAlign || DEFAULT_THEME.heroTextAlign);
+      setHeroVerticalAlign(themeData.heroVerticalAlign || DEFAULT_THEME.heroVerticalAlign);
       setHeroHeadlineSize(themeData.heroHeadlineSize?.toString() || DEFAULT_THEME.heroHeadlineSize);
       setCategoryTextAlign(themeData.categoryTextAlign || DEFAULT_THEME.categoryTextAlign);
       setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
@@ -178,6 +181,7 @@ export default function ThemeEnginePage() {
       heroSubheadline,
       heroButtonText,
       heroTextAlign,
+      heroVerticalAlign,
       heroHeadlineSize: Number(heroHeadlineSize),
       categoryTextAlign,
       categoryTitleSize: Number(categoryTitleSize),
@@ -220,6 +224,7 @@ export default function ThemeEnginePage() {
           --preview-banner-font: "${bannerFont}", sans-serif;
           --preview-banner-font-size: ${bannerFontSize}px;
           --preview-hero-align: ${heroTextAlign};
+          --preview-hero-vertical: ${heroVerticalAlign === 'bottom' ? 'flex-end' : 'center'};
           --preview-hero-size: ${heroHeadlineSize}px;
           --preview-cat-align: ${categoryTextAlign};
           --preview-cat-size: ${categoryTitleSize}px;
@@ -427,7 +432,7 @@ export default function ThemeEnginePage() {
 
                   <div className="pt-4 border-t space-y-6">
                     <div className="space-y-4">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Linguistic Alignment</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Horizontal Alignment</Label>
                       <div className="flex gap-2">
                         {['left', 'center', 'right'].map((align) => (
                           <Button 
@@ -444,6 +449,23 @@ export default function ThemeEnginePage() {
                         ))}
                       </div>
                     </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Vertical Anchor (Lower axis)</Label>
+                      <div className="flex gap-2">
+                        {['center', 'bottom'].map((vAlign) => (
+                          <Button 
+                            key={vAlign}
+                            variant={heroVerticalAlign === vAlign ? 'default' : 'outline'} 
+                            onClick={() => setHeroVerticalAlign(vAlign)}
+                            className="flex-1 h-12 rounded-none border-gray-200 uppercase text-[9px] font-bold"
+                          >
+                            {vAlign === 'center' ? 'Middle' : 'Lower'}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Headline Scale</Label>
@@ -623,7 +645,7 @@ export default function ThemeEnginePage() {
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-8 space-y-12 font-body">
-                <div className="aspect-video bg-gray-50 flex flex-col p-12 border shadow-sm relative" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', textAlign: heroTextAlign as any }}>
+                <div className="aspect-video bg-gray-50 flex flex-col p-12 border shadow-sm relative" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', justifyContent: heroVerticalAlign === 'bottom' ? 'flex-end' : 'center', textAlign: heroTextAlign as any }}>
                   {heroImageUrl ? <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" /> : <div className="absolute inset-0 bg-gray-100" />}
                   <div className="relative z-10 w-full">
                     <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 block">{heroSubheadline}</span>

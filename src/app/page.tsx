@@ -68,7 +68,7 @@ export default function Home() {
                 data-ai-hint="luxury landscape"
               />
               <div className={cn(
-                "absolute inset-0 flex flex-col justify-center text-primary-foreground p-6 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align",
+                "absolute inset-0 flex flex-col text-primary-foreground p-6 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align hero-vertical-align",
                 theme?.heroTextAlign === 'left' ? 'items-start' : theme?.heroTextAlign === 'right' ? 'items-end' : 'items-center'
               )}>
                 <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
@@ -91,6 +91,7 @@ export default function Home() {
           buttonText={theme?.heroButtonText}
           fallbackImageUrl={categories?.[0]?.imageUrl}
           textAlign={theme?.heroTextAlign}
+          verticalAlign={theme?.heroVerticalAlign}
         />
       )}
 

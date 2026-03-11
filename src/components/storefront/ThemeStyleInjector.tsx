@@ -58,6 +58,7 @@ export function ThemeStyleInjector() {
     const bannerFontSize = theme.bannerFontSize || 10;
     
     const heroTextAlign = theme.heroTextAlign || 'center';
+    const heroVerticalAlign = theme.heroVerticalAlign || 'center';
     const heroHeadlineSize = theme.heroHeadlineSize || 72;
     const categoryTextAlign = theme.categoryTextAlign || 'left';
     const categoryTitleSize = theme.categoryTitleSize || 40;
@@ -74,7 +75,7 @@ export function ThemeStyleInjector() {
         --banner-font: "${bannerFont}", sans-serif;
         --banner-font-size: ${bannerFontSize}px;
         --hero-text-align: ${heroTextAlign};
-        --hero-headline-size: ${heroHeadlineSize}px;
+        --hero-vertical-align: ${heroVerticalAlign === 'bottom' ? 'flex-end' : 'center'};
         --category-text-align: ${categoryTextAlign};
         --category-title-size: ${categoryTitleSize}px;
         --featured-text-align: ${featuredTextAlign};
@@ -82,6 +83,7 @@ export function ThemeStyleInjector() {
         --product-text-align: ${productTextAlign};
         --product-title-size: ${productTitleSize}px;
         --product-price-size: ${productPriceSize}px;
+        --hero-headline-size: ${heroHeadlineSize}px;
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
@@ -115,6 +117,9 @@ export function ThemeStyleInjector() {
       }
       .hero-text-align {
         text-align: var(--hero-text-align) !important;
+      }
+      .hero-vertical-align {
+        justify-content: var(--hero-vertical-align) !important;
       }
       .hero-headline-size {
         font-size: var(--hero-headline-size) !important;

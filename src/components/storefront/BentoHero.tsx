@@ -14,6 +14,7 @@ interface BentoHeroProps {
   buttonText?: string;
   fallbackImageUrl?: string;
   textAlign?: string;
+  verticalAlign?: string;
 }
 
 export function BentoHero({ 
@@ -23,7 +24,8 @@ export function BentoHero({
   subheadline = 'Modern Silhouettes',
   buttonText = 'Shop the Drops',
   fallbackImageUrl,
-  textAlign = 'center'
+  textAlign = 'center',
+  verticalAlign = 'center'
 }: BentoHeroProps) {
   if (isLoading) {
     return <section className="pt-24 pb-12"><div className="w-full h-[70vh] bg-gray-50" /></section>;
@@ -44,7 +46,7 @@ export function BentoHero({
             data-ai-hint="fashion editorial"
           />
           <div className={cn(
-            "absolute inset-0 p-12 flex flex-col justify-center text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align",
+            "absolute inset-0 p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align hero-vertical-align",
             textAlign === 'left' ? 'items-start' : textAlign === 'right' ? 'items-end' : 'items-center'
           )}>
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
