@@ -54,6 +54,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 export default function PromotionsPage() {
   const db = useFirestore();
@@ -606,7 +607,7 @@ export default function PromotionsPage() {
               <Target className="h-3.5 w-3.5 text-blue-400" /> Promotion Integrity
             </h3>
             <p className="text-[10px] text-zinc-500 leading-relaxed uppercase font-medium">
-              Growth protocols strictly apply to the live storefront manifest. Changes to automation logic Authoritatively synchronize with the bag calculation engine in real-time.
+              Promotion protocol changes Authoritatively synchronize with the bag calculation engine in real-time.
             </p>
             <Separator className="bg-white/10" />
             <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
