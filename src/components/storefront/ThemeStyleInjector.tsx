@@ -73,6 +73,7 @@ export function ThemeStyleInjector() {
     const productPriceSize = theme.productPriceSize || 14;
 
     const getFlexAlign = (align: string) => align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
+    const getVerticalAlign = (align: string) => align === 'bottom' ? 'flex-end' : align === 'top' ? 'flex-start' : 'center';
 
     styleTag.innerHTML = `
       :root {
@@ -81,10 +82,10 @@ export function ThemeStyleInjector() {
         --banner-font: "${bannerFont}", sans-serif;
         --banner-font-size: ${bannerFontSize}px;
         --hero-text-align: ${heroTextAlign};
-        --hero-vertical-align: ${heroVerticalAlign === 'bottom' ? 'flex-end' : 'center'};
+        --hero-vertical-align: ${getVerticalAlign(heroVerticalAlign)};
         --hero-flex-align: ${getFlexAlign(heroTextAlign)};
         --category-text-align: ${categoryTextAlign};
-        --category-vertical-align: ${categoryVerticalAlign === 'bottom' ? 'flex-end' : 'center'};
+        --category-vertical-align: ${getVerticalAlign(categoryVerticalAlign)};
         --category-flex-align: ${getFlexAlign(categoryTextAlign)};
         --category-title-size: ${categoryTitleSize}px;
         --featured-text-align: ${featuredTextAlign};
