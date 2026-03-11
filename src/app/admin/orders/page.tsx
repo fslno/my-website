@@ -26,7 +26,8 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -99,6 +100,7 @@ export default function OrdersPage() {
       if (
         order.status === 'awaiting_processing' ||
         order.status === 'processing' ||
+        order.status === 'ready_for_pickup' ||
         order.status === 'confirmed' ||
         order.status === 'pending'
       ) {
@@ -135,6 +137,8 @@ export default function OrdersPage() {
         return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[9px] font-bold">Awaiting</Badge>;
       case 'processing':
         return <Badge className="bg-violet-50 text-violet-700 border-violet-100 uppercase text-[9px] font-bold">Processing</Badge>;
+      case 'ready_for_pickup':
+        return <Badge className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[9px] font-bold">Ready for Pickup</Badge>;
       case 'shipped':
         return <Badge className="bg-blue-50 text-blue-700 border-blue-100 uppercase text-[9px] font-bold">Shipped</Badge>;
       case 'delivered':
@@ -246,6 +250,7 @@ export default function OrdersPage() {
               <SelectItem value="all" className="uppercase text-[10px] font-bold">All Records</SelectItem>
               <SelectItem value="awaiting_processing" className="uppercase text-[10px] font-bold">Awaiting</SelectItem>
               <SelectItem value="processing" className="uppercase text-[10px] font-bold">Processing</SelectItem>
+              <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Pick up</SelectItem>
               <SelectItem value="shipped" className="uppercase text-[10px] font-bold">Shipped</SelectItem>
               <SelectItem value="delivered" className="uppercase text-[10px] font-bold">Delivered</SelectItem>
               <SelectItem value="canceled" className="uppercase text-[10px] font-bold">Canceled</SelectItem>

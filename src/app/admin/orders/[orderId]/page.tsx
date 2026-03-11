@@ -198,7 +198,7 @@ export default function OrderDetailPage(props: {
         return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[10px] font-bold">Refunded</Badge>;
       case 'partially_refunded':
         return <Badge className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[10px] font-bold">Partially Refunded</Badge>;
-      case 'cancelled':
+      case 'canceled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
       default:
         return <Badge className="bg-zinc-50 text-zinc-700 border-zinc-100 uppercase text-[10px] font-bold">Pending</Badge>;
@@ -413,12 +413,12 @@ export default function OrderDetailPage(props: {
                       <SelectItem value="awaiting" className="text-[10px] font-bold uppercase">Awaiting</SelectItem>
                       <SelectItem value="refunded" className="text-[10px] font-bold uppercase">Refunded</SelectItem>
                       <SelectItem value="partially_refunded" className="text-[10px] font-bold uppercase">Partially Refunded</SelectItem>
-                      <SelectItem value="cancelled" className="text-[10px) font-bold uppercase">Cancelled</SelectItem>
+                      <SelectItem value="canceled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-400">Shipping Status</Label>
+                  <Label className="text-[9px] uppercase font-bold text-gray-400">Fulfillment Status</Label>
                   <Select value={order.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
                     <SelectTrigger className="h-11 bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
                       <SelectValue placeholder="Status" />
@@ -426,11 +426,12 @@ export default function OrderDetailPage(props: {
                     <SelectContent>
                       <SelectItem value="awaiting_processing" className="text-[10px] font-bold uppercase">Awaiting Processing</SelectItem>
                       <SelectItem value="processing" className="text-[10px] font-bold uppercase">Processing</SelectItem>
+                      <SelectItem value="ready_for_pickup" className="text-[10px] font-bold uppercase">Ready for Pickup</SelectItem>
                       <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
                       <SelectItem value="out_for_delivery" className="text-[10px] font-bold uppercase">Out for Delivery</SelectItem>
                       <SelectItem value="delivered" className="text-[10px] font-bold uppercase">Delivered</SelectItem>
                       <SelectItem value="returned" className="text-[10px] font-bold uppercase">Returned</SelectItem>
-                      <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
+                      <SelectItem value="canceled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
