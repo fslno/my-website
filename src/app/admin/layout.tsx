@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   ShoppingBag, 
@@ -104,7 +105,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Home" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Home (Alt+D)" onClick={handleNavClick}>
                 <Link href="/admin">
                   <LayoutDashboard />
                   <span>Home</span>
@@ -112,7 +113,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Orders" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Orders (Alt+O)" onClick={handleNavClick}>
                 <Link href="/admin/orders">
                   <ShoppingBag />
                   <span>Orders</span>
@@ -120,7 +121,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Products" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Products (Alt+P)" onClick={handleNavClick}>
                 <Link href="/admin/products">
                   <BarChart3 />
                   <span>Products</span>
@@ -128,7 +129,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Categories" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Categories (Alt+C)" onClick={handleNavClick}>
                 <Link href="/admin/categories">
                   <Tag />
                   <span>Categories</span>
@@ -136,7 +137,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Promotions" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Promotions (Alt+R)" onClick={handleNavClick}>
                 <Link href="/admin/promotions">
                   <TicketPercent />
                   <span>Promotions</span>
@@ -144,7 +145,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Size Chart" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Size Chart (Alt+Z)" onClick={handleNavClick}>
                 <Link href="/admin/size-chart">
                   <Ruler />
                   <span>Size Chart</span>
@@ -152,7 +153,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Customers" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Customers (Alt+U)" onClick={handleNavClick}>
                 <Link href="/admin/customers">
                   <Users />
                   <span>Customers</span>
@@ -166,7 +167,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
           <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold">Store Management</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Theme Engine" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Theme Engine (Alt+T)" onClick={handleNavClick}>
                 <Link href="/admin/theme">
                   <Palette />
                   <span>Theme Engine</span>
@@ -257,7 +258,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
       <SidebarFooter className="border-t border-[#e1e3e5] p-4 bg-white">
          <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick}>
+              <SidebarMenuButton asChild tooltip="Settings (Alt+S)" onClick={handleNavClick}>
                 <Link href="/admin/settings">
                   <Settings />
                   <span>Settings</span>
@@ -279,6 +280,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
   const auth = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
 
@@ -287,6 +289,64 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  // Keyboard Shortcuts Implementation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts if user is typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement).isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case 'd':
+            e.preventDefault();
+            router.push('/admin');
+            break;
+          case 'o':
+            e.preventDefault();
+            router.push('/admin/orders');
+            break;
+          case 'p':
+            e.preventDefault();
+            router.push('/admin/products');
+            break;
+          case 'c':
+            e.preventDefault();
+            router.push('/admin/categories');
+            break;
+          case 's':
+            e.preventDefault();
+            router.push('/admin/settings');
+            break;
+          case 't':
+            e.preventDefault();
+            router.push('/admin/theme');
+            break;
+          case 'r':
+            e.preventDefault();
+            router.push('/admin/promotions');
+            break;
+          case 'u':
+            e.preventDefault();
+            router.push('/admin/customers');
+            break;
+          case 'z':
+            e.preventDefault();
+            router.push('/admin/size-chart');
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [router]);
 
   // Fetch Store Config for Branding
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
