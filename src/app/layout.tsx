@@ -6,6 +6,7 @@ import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
 import { PushNotificationManager } from '@/components/storefront/PushNotificationManager';
+import { Chatbot } from '@/components/storefront/Chatbot';
 
 export const metadata: Metadata = {
   title: 'FSLNO | Luxury Archive Storefront',
@@ -48,6 +49,7 @@ export default function RootLayout({
           <WishlistProvider>
             <CartProvider>
               {children}
+              <Chatbot />
               <Toaster />
             </CartProvider>
           </WishlistProvider>

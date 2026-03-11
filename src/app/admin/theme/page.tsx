@@ -39,7 +39,8 @@ import {
   Heading,
   Settings2,
   Terminal,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquareMore
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -87,6 +88,11 @@ const DEFAULT_THEME = {
   productPriceSize: '14',
   productTextAlign: 'left',
   stickyHeader: true,
+  // Chatbot Settings
+  chatbotEnabled: true,
+  chatbotColor: '#1c4673',
+  chatbotSize: '60',
+  chatbotPosition: 'right',
   // Backend (Admin) Theme Fields
   adminPrimaryColor: '#000000',
   adminAccentColor: '#f6f6f7',
@@ -136,6 +142,12 @@ export default function ThemeEnginePage() {
   const [productTextAlign, setProductTextAlign] = useState(DEFAULT_THEME.productTextAlign);
   const [stickyHeader, setStickyHeader] = useState(DEFAULT_THEME.stickyHeader);
 
+  // Chatbot Form State
+  const [chatbotEnabled, setChatbotEnabled] = useState(DEFAULT_THEME.chatbotEnabled);
+  const [chatbotColor, setChatbotColor] = useState(DEFAULT_THEME.chatbotColor);
+  const [chatbotSize, setChatbotSize] = useState(DEFAULT_THEME.chatbotSize);
+  const [chatbotPosition, setChatbotPosition] = useState(DEFAULT_THEME.chatbotPosition);
+
   // Admin Theme Form State
   const [adminPrimaryColor, setAdminPrimaryColor] = useState(DEFAULT_THEME.adminPrimaryColor);
   const [adminAccentColor, setAdminAccentColor] = useState(DEFAULT_THEME.adminAccentColor);
@@ -174,6 +186,12 @@ export default function ThemeEnginePage() {
       setProductPriceSize(themeData.productPriceSize?.toString() || DEFAULT_THEME.productPriceSize);
       setProductTextAlign(themeData.productTextAlign || DEFAULT_THEME.productTextAlign);
       setStickyHeader(themeData.stickyHeader ?? DEFAULT_THEME.stickyHeader);
+
+      // Chatbot Handshake
+      setChatbotEnabled(themeData.chatbotEnabled ?? DEFAULT_THEME.chatbotEnabled);
+      setChatbotColor(themeData.chatbotColor || DEFAULT_THEME.chatbotColor);
+      setChatbotSize(themeData.chatbotSize?.toString() || DEFAULT_THEME.chatbotSize);
+      setChatbotPosition(themeData.chatbotPosition || DEFAULT_THEME.chatbotPosition);
 
       // Backend (Admin) Theme Handshake
       setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
@@ -227,6 +245,11 @@ export default function ThemeEnginePage() {
       productPriceSize: Number(productPriceSize),
       productTextAlign,
       stickyHeader,
+      // Chatbot Payload
+      chatbotEnabled,
+      chatbotColor,
+      chatbotSize: Number(chatbotSize),
+      chatbotPosition,
       // Backend (Admin) Theme Data
       adminPrimaryColor,
       adminAccentColor,
@@ -282,6 +305,8 @@ export default function ThemeEnginePage() {
           --preview-price-size: ${productPriceSize}px;
           --preview-hero-button-bg: ${heroButtonBgColor};
           --preview-hero-button-text: ${heroButtonTextColor};
+          --preview-chatbot-color: ${chatbotColor};
+          --preview-chatbot-size: ${chatbotSize}px;
         }
         #theme-preview-root .font-headline {
           font-family: var(--preview-headline) !important;
@@ -369,6 +394,61 @@ export default function ThemeEnginePage() {
                         <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} />
                       </div>
                       <Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none">
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
+                  <div className="space-y-1">
+                    <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                      <MessageSquareMore className="h-3.5 w-3.5" /> Support Chatbot
+                    </CardTitle>
+                    <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Floating contact orchestrator.</CardDescription>
+                  </div>
+                  <Switch checked={chatbotEnabled} onCheckedChange={setChatbotEnabled} />
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Bubble Color</Label>
+                      <div className="flex gap-2">
+                        <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} />
+                        </div>
+                        <Input value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Scale</Label>
+                        <span className="text-[9px] font-mono font-bold">{chatbotSize}PX</span>
+                      </div>
+                      <input 
+                        type="range" min="40" max="80" value={chatbotSize} 
+                        onChange={(e) => setChatbotSize(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Positioning</Label>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant={chatbotPosition === 'left' ? 'default' : 'outline'} 
+                        className="flex-1 text-[9px] font-bold uppercase" 
+                        onClick={() => setChatbotPosition('left')}
+                      >
+                        Left Viewport
+                      </Button>
+                      <Button 
+                        variant={chatbotPosition === 'right' ? 'default' : 'outline'} 
+                        className="flex-1 text-[9px] font-bold uppercase" 
+                        onClick={() => setChatbotPosition('right')}
+                      >
+                        Right Viewport
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -916,7 +996,7 @@ export default function ThemeEnginePage() {
                     <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 block">{heroSubheadline}</span>
                     <h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
                     <div className="mt-8 flex justify-center" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}>
-                      <div className="hero-button-preview px-8 h-12 flex items-center justify-center font-bold uppercase tracking-widest text-[9px] shadow-lg">
+                      <div className="hero-button-preview px-8 h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg">
                         {heroButtonText}
                       </div>
                     </div>

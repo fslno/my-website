@@ -43,6 +43,14 @@ export function ThemeStyleInjector() {
       root.style.setProperty('--radius', `${theme.borderRadius}px`);
     }
 
+    // Chatbot Style Variables
+    if (theme.chatbotColor) {
+      root.style.setProperty('--chatbot-color', theme.chatbotColor);
+    }
+    if (theme.chatbotSize) {
+      root.style.setProperty('--chatbot-size', `${theme.chatbotSize}px`);
+    }
+
     const styleId = 'fslno-theme-overrides';
     let styleTag = document.getElementById(styleId) as HTMLStyleElement;
     
@@ -100,6 +108,7 @@ export function ThemeStyleInjector() {
         --hero-headline-size: ${heroHeadlineSize}px;
         --hero-button-bg: ${heroButtonBg};
         --hero-button-text: ${heroButtonText};
+        --chatbot-position: ${theme.chatbotPosition === 'left' ? 'left: 2rem;' : 'right: 2rem;'};
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
