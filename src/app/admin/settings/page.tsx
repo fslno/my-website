@@ -34,7 +34,8 @@ import {
   Mail,
   Clock,
   ShieldCheck,
-  Globe
+  Globe,
+  Navigation
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -68,6 +69,7 @@ export default function SettingsPage() {
   // Store Form State
   const [businessName, setBusinessName] = useState('');
   const [address, setAddress] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [phone, setPhone] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
 
@@ -82,6 +84,7 @@ export default function SettingsPage() {
     if (storeConfig) {
       setBusinessName(storeConfig.businessName || '');
       setAddress(storeConfig.address || '');
+      setGoogleMapsUrl(storeConfig.googleMapsUrl || '');
       setPhone(storeConfig.phone || '');
       setLogoUrl(storeConfig.logoUrl || '');
     }
@@ -108,7 +111,14 @@ export default function SettingsPage() {
   const handleSaveStore = async () => {
     if (!storeConfigRef) return;
     setIsSaving(true);
-    const updates = { businessName, address, phone, logoUrl, updatedAt: new Date().toISOString() };
+    const updates = { 
+      businessName, 
+      address, 
+      googleMapsUrl,
+      phone, 
+      logoUrl, 
+      updatedAt: new Date().toISOString() 
+    };
     setDoc(storeConfigRef, updates, { merge: true })
       .then(() => toast({ title: "Store Settings Saved", description: "Business identity has been updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: storeConfigRef.path, operation: 'write', requestResourceData: updates })))
@@ -187,6 +197,13 @@ export default function SettingsPage() {
                     <div className="relative">
                       <MapPin className="absolute left-3 top-4 h-4 w-4 text-gray-400" />
                       <Textarea placeholder="123 Archive Way, London, UK" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 min-h-[100px]" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Google Maps URL</Label>
+                    <div className="relative">
+                      <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input placeholder="https://maps.google.com/..." value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
                 </div>

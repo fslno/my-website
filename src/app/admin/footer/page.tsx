@@ -26,7 +26,8 @@ import {
   Mail,
   Clock,
   CreditCard,
-  CheckCircle2
+  CheckCircle2,
+  Navigation
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -78,8 +79,9 @@ export default function FooterEditorPage() {
   const [newsletterHeadline, setNewsletterHeadline] = useState('JOIN THE ARCHIVE');
   const [newsletterSubtext, setNewsletterSubtext] = useState('Sign up for early access to high-velocity drops.');
 
-  // Store Hours
+  // Store Hours & Maps
   const [openingHours, setOpeningHours] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
 
   // Payment Icons
   const [visiblePaymentIcons, setVisiblePaymentIcons] = useState<string[]>([]);
@@ -109,6 +111,7 @@ export default function FooterEditorPage() {
       setNewsletterHeadline(config.newsletterHeadline || 'JOIN THE ARCHIVE');
       setNewsletterSubtext(config.newsletterSubtext || 'Sign up for early access to high-velocity drops.');
       setOpeningHours(config.openingHours || '');
+      setGoogleMapsUrl(config.googleMapsUrl || '');
       setVisiblePaymentIcons(config.paymentIconsVisible || []);
     }
   }, [config]);
@@ -133,6 +136,7 @@ export default function FooterEditorPage() {
       newsletterHeadline,
       newsletterSubtext,
       openingHours,
+      googleMapsUrl,
       paymentIconsVisible: visiblePaymentIcons,
       updatedAt: new Date().toISOString() 
     };
@@ -357,15 +361,29 @@ export default function FooterEditorPage() {
               <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                 <Clock className="h-4 w-4 text-orange-500" /> Operational Hours
               </CardTitle>
-              <CardDescription>Display your "Spot" hours in the footer.</CardDescription>
+              <CardDescription>Display your "Spot" hours and Map link in the footer.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Textarea 
-                value={openingHours} 
-                onChange={(e) => setOpeningHours(e.target.value)}
-                placeholder="e.g. MON-FRI: 10AM - 6PM"
-                className="min-h-[100px] resize-none text-[10px] font-bold uppercase tracking-widest"
-              />
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Opening Hours</Label>
+                <Textarea 
+                  value={openingHours} 
+                  onChange={(e) => setOpeningHours(e.target.value)}
+                  placeholder="e.g. MON-FRI: 10AM - 6PM"
+                  className="min-h-[100px] resize-none text-[10px] font-bold uppercase tracking-widest"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                  <Navigation className="h-3 w-3" /> Location Link (Google Maps)
+                </Label>
+                <Input 
+                  value={googleMapsUrl}
+                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                  placeholder="https://maps.google.com/..."
+                  className="h-10 text-[10px] font-bold uppercase"
+                />
+              </div>
             </CardContent>
           </Card>
 

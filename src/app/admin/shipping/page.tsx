@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -65,12 +66,14 @@ export default function ShippingPage() {
   const [pickupAddress, setPickupAddress] = useState('');
   const [pickupHours, setPickupHours] = useState('');
   const [pickupInstructions, setPickupInstructions] = useState('');
+  const [pickupLocationUrl, setPickupLocationUrl] = useState('');
 
   useEffect(() => {
     if (config) {
       setPickupAddress(config.pickupAddress || '');
       setPickupHours(config.pickupHours || '');
       setPickupInstructions(config.pickupInstructions || '');
+      setPickupLocationUrl(config.pickupLocationUrl || '');
     }
   }, [config]);
 
@@ -96,6 +99,7 @@ export default function ShippingPage() {
       pickupAddress: '123 Archive Way, London, UK',
       pickupHours: 'Mon-Fri: 10AM - 6PM\nSat: 11AM - 4PM',
       pickupInstructions: 'Please show your order confirmation ID and a valid government-issued photo ID upon arrival.',
+      pickupLocationUrl: '',
       updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -125,6 +129,7 @@ export default function ShippingPage() {
       pickupAddress,
       pickupHours,
       pickupInstructions,
+      pickupLocationUrl,
       updatedAt: serverTimestamp()
     };
     updateDoc(configRef, updates)
@@ -391,16 +396,29 @@ export default function ShippingPage() {
             </CardHeader>
             <CardContent className="pt-6 space-y-8">
               <div className="grid gap-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                    <Navigation className="h-3 w-3" /> Pickup Location Address
-                  </Label>
-                  <Input 
-                    placeholder="Enter full address for the Spot" 
-                    value={pickupAddress} 
-                    onChange={(e) => setPickupAddress(e.target.value)}
-                    className="h-12 uppercase font-medium"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <Navigation className="h-3 w-3" /> Pickup Location Address
+                    </Label>
+                    <Input 
+                      placeholder="Enter full address for the Spot" 
+                      value={pickupAddress} 
+                      onChange={(e) => setPickupAddress(e.target.value)}
+                      className="h-12 uppercase font-medium"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <ExternalLink className="h-3 w-3" /> Location URL (Maps Link)
+                    </Label>
+                    <Input 
+                      placeholder="https://maps.google.com/..." 
+                      value={pickupLocationUrl} 
+                      onChange={(e) => setPickupLocationUrl(e.target.value)}
+                      className="h-12 text-[10px] font-bold uppercase"
+                    />
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

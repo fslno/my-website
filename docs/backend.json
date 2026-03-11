@@ -167,6 +167,7 @@
       "properties": {
         "businessName": { "type": "string" },
         "address": { "type": "string" },
+        "googleMapsUrl": { "type": "string" },
         "phone": { "type": "string" },
         "logoUrl": { "type": "string" },
         "footerDescription": { "type": "string" },
@@ -186,6 +187,20 @@
         "newsletterSubtext": { "type": "string" },
         "openingHours": { "type": "string" },
         "paymentIconsVisible": { "type": "array", "items": { "type": "string" } },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ShippingConfig": {
+      "title": "ShippingConfig",
+      "type": "object",
+      "properties": {
+        "carriers": { "type": "array" },
+        "goGreenPlus": { "type": "boolean" },
+        "localPickup": { "type": "boolean" },
+        "pickupAddress": { "type": "string" },
+        "pickupHours": { "type": "string" },
+        "pickupInstructions": { "type": "string" },
+        "pickupLocationUrl": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     },
@@ -256,6 +271,15 @@
           "entityName": "StoreConfig",
           "schema": {
             "$ref": "#/backend/entities/StoreConfig"
+          }
+        }
+      },
+      {
+        "path": "/config/shipping",
+        "definition": {
+          "entityName": "ShippingConfig",
+          "schema": {
+            "$ref": "#/backend/entities/ShippingConfig"
           }
         }
       },

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import Image from 'next/image';
-import { Mail, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { Mail, ArrowRight, Loader2, CheckCircle2, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -53,9 +53,20 @@ export function Footer() {
                 {config?.address && (
                   <div className="space-y-1">
                     <p className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">The Spot</p>
-                    <p className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed">
-                      {config.address}
-                    </p>
+                    {config.googleMapsUrl ? (
+                      <a 
+                        href={config.googleMapsUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed hover:opacity-60 transition-opacity flex items-center gap-2 group"
+                      >
+                        {config.address} <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </a>
+                    ) : (
+                      <p className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed">
+                        {config.address}
+                      </p>
+                    )}
                   </div>
                 )}
                 {config?.openingHours && (
