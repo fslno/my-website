@@ -30,7 +30,8 @@ import {
   CreditCard,
   CheckCircle2,
   X,
-  Save
+  Save,
+  ArrowRight
 } from 'lucide-react';
 import { 
   Table, 
@@ -75,6 +76,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function OrderDetailPage(props: { 
   params: Promise<{ orderId: string }>,
@@ -93,6 +95,7 @@ export default function OrderDetailPage(props: {
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
 
+  // Fetch all orders by this email for history manifest
   const customerOrdersQuery = useMemoFirebase(() => {
     if (!db || !order?.email) return null;
     return query(collection(db, 'orders'), where('email', '==', order.email));
@@ -100,6 +103,22 @@ export default function OrderDetailPage(props: {
 
   const { data: customerOrders } = useCollection(customerOrdersQuery);
   const orderCount = customerOrders?.length || 0;
+
+  // Extract unique shipping addresses from history
+  const addressHistory = useMemo(() => {
+    if (!customerOrders) return [];
+    const addresses = new Map<string, any>();
+    customerOrders.forEach(o => {
+      const ship = o.customer?.shipping;
+      if (ship && ship.address) {
+        const key = `${ship.address}-${ship.postalCode}`.toUpperCase();
+        if (!addresses.has(key)) {
+          addresses.set(key, ship);
+        }
+      }
+    });
+    return Array.from(addresses.values());
+  }, [customerOrders]);
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
@@ -673,6 +692,95 @@ export default function OrderDetailPage(props: {
                     )}
                   </div>
                 </div>
+              </div>
+
+              <div className="pt-4">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="w-full h-11 border-black font-bold uppercase tracking-widest text-[9px] gap-2">
+                      <History className="h-3.5 w-3.5" /> View Forensic History
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-l border-black/10">
+                    <SheetHeader className="p-8 border-b bg-gray-50/50 shrink-0">
+                      <div className="flex items-center gap-3 text-primary mb-2">
+                        <History className="h-5 w-5" />
+                        <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Customer History</SheetTitle>
+                      </div>
+                      <SheetDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                        Manifest for: {order.email}
+                      </SheetDescription>
+                    </SheetHeader>
+                    
+                    <ScrollArea className="flex-1">
+                      <div className="p-8 space-y-12">
+                        <section className="space-y-6">
+                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
+                            <Package className="h-3 w-3" /> Transaction History
+                          </h3>
+                          <div className="space-y-4">
+                            {customerOrders?.map((prevOrder: any) => (
+                              <Link 
+                                key={prevOrder.id} 
+                                href={`/admin/orders/${prevOrder.id}`}
+                                className={cn(
+                                  "flex items-center justify-between p-4 border transition-all group",
+                                  prevOrder.id === orderId ? "bg-primary text-white border-primary shadow-lg" : "bg-white hover:border-black"
+                                )}
+                              >
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-mono font-bold">#{prevOrder.id.substring(0, 8).toUpperCase()}</p>
+                                  <p className={cn("text-[9px] font-bold uppercase", prevOrder.id === orderId ? "text-white/60" : "text-muted-foreground")}>
+                                    {formatDate(prevOrder.createdAt)}
+                                  </p>
+                                </div>
+                                <div className="text-right space-y-1">
+                                  <p className="text-[11px] font-bold">${formatCurrency(prevOrder.total)}</p>
+                                  <Badge className={cn("text-[8px] font-bold uppercase border-none h-4", prevOrder.status === 'delivered' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700')}>
+                                    {prevOrder.status.replace('_', ' ')}
+                                  </Badge>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </section>
+
+                        <section className="space-y-6">
+                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
+                            <MapPin className="h-3 w-3" /> Address Archive
+                          </h3>
+                          <div className="grid gap-4">
+                            {addressHistory.map((addr, i) => (
+                              <div key={i} className="p-4 bg-gray-50 border rounded-sm space-y-2 group hover:bg-white hover:border-black transition-all">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9px] font-bold text-muted-foreground uppercase">Historical Destination {i + 1}</span>
+                                  {addr.address === order.customer?.shipping?.address && (
+                                    <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[8px]">Current</Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs font-bold uppercase leading-relaxed">
+                                  {addr.address}<br />
+                                  {addr.city}, {addr.province}<br />
+                                  {addr.postalCode}<br />
+                                  {addr.country}
+                                </p>
+                              </div>
+                            ))}
+                            {addressHistory.length === 0 && (
+                              <p className="text-center py-8 text-[10px] font-bold uppercase text-muted-foreground italic">No historical addresses cataloged.</p>
+                            )}
+                          </div>
+                        </section>
+                      </div>
+                    </ScrollArea>
+                    
+                    <div className="p-8 border-t bg-gray-50/50 shrink-0">
+                      <Button className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px] gap-2">
+                        Close Archive Manifest
+                      </Button>
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
             </CardContent>
           </Card>
