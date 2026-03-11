@@ -17,7 +17,10 @@ import {
   MessageSquare,
   ChevronDown,
   TicketPercent,
-  Settings
+  Settings,
+  User as UserIcon,
+  LogOut,
+  Package
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,7 +30,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser, useAuth } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -36,12 +39,20 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { AuthDialog } from '@/components/storefront/AuthDialog';
+import { signOut } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { cart, cartCount, cartSubtotal, removeFromCart, thresholdProgress, THRESHOLD_VALUE } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
+  const { user } = useUser();
+  const auth = useAuth();
+  const { toast } = useToast();
   
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
@@ -58,6 +69,7 @@ export function Header() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const filteredProducts = useMemo(() => {
@@ -85,6 +97,23 @@ export function Header() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const handleLogout = async () => {
+    if (!auth) return;
+    try {
+      await signOut(auth);
+      toast({
+        title: "Signed Out",
+        description: "Your session has been terminated.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign out.",
+      });
+    }
+  };
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString(undefined, { 
@@ -257,166 +286,212 @@ export function Header() {
               )}
             </div>
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out">
-                  <Heart className="h-5 w-5" />
-                  {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
-                      {wishlistCount}
-                    </span>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
-                <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center text-primary">Wishlist ({wishlistCount})</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-1">
-                  {wishlist.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
-                      <Heart className="h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Save your favorite items here.</p>
-                    </div>
-                  ) : (
-                    <div className="p-6 space-y-8">
-                      {wishlist.map((item) => (
-                        <div key={item.id} className="flex gap-4">
-                          <Link href={`/products/${item.id}`} className="w-20 h-20 relative bg-gray-100 border shrink-0">
-                            {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
-                          </Link>
-                          <div className="flex-1 flex flex-col justify-between py-1">
-                            <div className="space-y-1">
-                              <h3 className="text-xs font-bold uppercase tracking-tight leading-tight text-primary">{item.name}</h3>
-                              <p className="text-sm font-bold text-primary">${formatCurrency(item.price)} CAD</p>
-                            </div>
-                            <button 
-                              onClick={() => toggleWishlist(item)}
-                              className="text-[10px] font-bold uppercase tracking-widest text-destructive hover:underline text-left"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </SheetContent>
-            </Sheet>
-            
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out">
-                  <ShoppingBag className="h-5 w-5" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
-                      {cartCount}
-                    </span>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
-                <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0 space-y-4">
-                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-primary">Your Cart ({cartCount})</SheetTitle>
-                  
-                  {cartSubtotal > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-primary">
-                        <span className="flex items-center gap-1.5">
-                          <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-muted-foreground")} />
-                          {thresholdProgress >= 100 ? "Discount Unlocked" : `$${formatCurrency(remainingForThreshold)} more for $100 off`}
-                        </span>
-                        <span>{Math.round(thresholdProgress)}%</span>
-                      </div>
-                      <Progress value={thresholdProgress} className="h-1.5 bg-gray-100" />
-                    </div>
-                  )}
-                </SheetHeader>
-
-                <ScrollArea className="flex-1">
-                  {cart.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
-                      <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your cart is empty.</p>
-                      <Button asChild variant="outline" className="mt-6 border-primary text-primary font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-secondary transition-all duration-300 ease-in-out">
-                        <Link href="/">Shop Now</Link>
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="p-6 space-y-8">
-                      {cart.map((item) => (
-                        <div key={item.variantId} className="flex gap-4">
-                          <div className="w-24 h-24 relative bg-gray-100 overflow-hidden border shrink-0">
-                            {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
-                          </div>
-                          <div className="flex-1 flex flex-col justify-between py-1">
-                            <div className="space-y-1">
-                              <div className="flex justify-between items-start">
-                                <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px] text-primary">{item.name}</h3>
-                                <p className="text-sm font-bold text-primary">
-                                  {item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)} CAD`}
-                                </p>
-                              </div>
-                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Size: {item.size}</p>
-                              
-                              {(item.customName || item.customNumber || item.specialNote) && (
-                                <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100">
-                                  {(item.customName || item.customNumber) && (
-                                    <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
-                                      <Sparkles className="h-2.5 w-2.5" />
-                                      {item.customName} {item.customNumber && `#${item.customNumber}`}
-                                    </p>
-                                  )}
-                                  {item.specialNote && (
-                                    <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
-                                      <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
-                                      {item.specialNote}
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center justify-between pt-2">
-                              <p className="text-[10px] font-bold uppercase text-muted-foreground">Qty: {item.quantity}</p>
-                              {!item.isPromo && (
-                                <button 
-                                  onClick={() => removeFromCart(item.variantId)}
-                                  className="text-muted-foreground hover:text-destructive transition-colors"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-
-                {cart.length > 0 && (
-                  <SheetFooter className="p-6 border-t bg-gray-50/50 flex-col sm:flex-col items-stretch gap-4 shrink-0">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-end">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Subtotal</span>
-                        <span className="text-xl font-bold text-primary">${formatCurrency(cartSubtotal)} CAD</span>
-                      </div>
-                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
-                        Tax and shipping calculated at checkout.
-                      </p>
-                    </div>
-                    <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">
-                      <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
+            <div className="flex items-center gap-1">
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm">
+                      <UserIcon className="h-5 w-5" />
                     </Button>
-                  </SheetFooter>
-                )}
-              </SheetContent>
-            </Sheet>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-white border border-black/10 shadow-xl rounded-none p-0 mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <DropdownMenuLabel className="p-4">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary truncate">
+                          {user.displayName || user.email}
+                        </p>
+                        <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                          Archive Member
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="m-0 bg-black/5" />
+                    <div className="py-1">
+                      <DropdownMenuItem asChild>
+                        <Link href="/account/orders" className="flex items-center px-4 py-3 text-[9px] font-bold uppercase tracking-widest cursor-pointer hover:bg-gray-50">
+                          <Package className="mr-3 h-3.5 w-3.5" /> Order History
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 text-[9px] font-bold uppercase tracking-widest cursor-pointer text-destructive hover:bg-red-50">
+                        <LogOut className="mr-3 h-3.5 w-3.5" /> Sign Out
+                      </DropdownMenuItem>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm"
+                  onClick={() => setIsAuthOpen(true)}
+                >
+                  <UserIcon className="h-5 w-5" />
+                </Button>
+              )}
+
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out">
+                    <Heart className="h-5 w-5" />
+                    {wishlistCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
+                  <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0">
+                    <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center text-primary">Wishlist ({wishlistCount})</SheetTitle>
+                  </SheetHeader>
+                  <ScrollArea className="flex-1">
+                    {wishlist.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
+                        <Heart className="h-12 w-12 text-muted-foreground mb-4" />
+                        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Save your favorite items here.</p>
+                      </div>
+                    ) : (
+                      <div className="p-6 space-y-8">
+                        {wishlist.map((item) => (
+                          <div key={item.id} className="flex gap-4">
+                            <Link href={`/products/${item.id}`} className="w-20 h-20 relative bg-gray-100 border shrink-0">
+                              {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+                            </Link>
+                            <div className="flex-1 flex flex-col justify-between py-1">
+                              <div className="space-y-1">
+                                <h3 className="text-xs font-bold uppercase tracking-tight leading-tight text-primary">{item.name}</h3>
+                                <p className="text-sm font-bold text-primary">${formatCurrency(item.price)} CAD</p>
+                              </div>
+                              <button 
+                                onClick={() => toggleWishlist(item)}
+                                className="text-[10px] font-bold uppercase tracking-widest text-destructive hover:underline text-left"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </SheetContent>
+              </Sheet>
+              
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out">
+                    <ShoppingBag className="h-5 w-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
+                  <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0 space-y-4">
+                    <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-primary">Your Cart ({cartCount})</SheetTitle>
+                    
+                    {cartSubtotal > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-primary">
+                          <span className="flex items-center gap-1.5">
+                            <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-muted-foreground")} />
+                            {thresholdProgress >= 100 ? "Discount Unlocked" : `$${formatCurrency(remainingForThreshold)} more for $100 off`}
+                          </span>
+                          <span>{Math.round(thresholdProgress)}%</span>
+                        </div>
+                        <Progress value={thresholdProgress} className="h-1.5 bg-gray-100" />
+                      </div>
+                    )}
+                  </SheetHeader>
+
+                  <ScrollArea className="flex-1">
+                    {cart.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
+                        <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
+                        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your cart is empty.</p>
+                        <Button asChild variant="outline" className="mt-6 border-primary text-primary font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-secondary transition-all duration-300 ease-in-out">
+                          <Link href="/">Shop Now</Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="p-6 space-y-8">
+                        {cart.map((item) => (
+                          <div key={item.variantId} className="flex gap-4">
+                            <div className="w-24 h-24 relative bg-gray-100 overflow-hidden border shrink-0">
+                              {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between py-1">
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-start">
+                                  <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px] text-primary">{item.name}</h3>
+                                  <p className="text-sm font-bold text-primary">
+                                    {item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)} CAD`}
+                                  </p>
+                                </div>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Size: {item.size}</p>
+                                
+                                {(item.customName || item.customNumber || item.specialNote) && (
+                                  <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100">
+                                    {(item.customName || item.customNumber) && (
+                                      <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                                        <Sparkles className="h-2.5 w-2.5" />
+                                        {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                      </p>
+                                    )}
+                                    {item.specialNote && (
+                                      <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
+                                        <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
+                                        {item.specialNote}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="flex items-center justify-between pt-2">
+                                <p className="text-[10px] font-bold uppercase text-muted-foreground">Qty: {item.quantity}</p>
+                                {!item.isPromo && (
+                                  <button 
+                                    onClick={() => removeFromCart(item.variantId)}
+                                    className="text-muted-foreground hover:text-destructive transition-colors"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+
+                  {cart.length > 0 && (
+                    <SheetFooter className="p-6 border-t bg-gray-50/50 flex-col sm:flex-col items-stretch gap-4 shrink-0">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-end">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Subtotal</span>
+                          <span className="text-xl font-bold text-primary">${formatCurrency(cartSubtotal)} CAD</span>
+                        </div>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
+                          Tax and shipping calculated at checkout.
+                        </p>
+                      </div>
+                      <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">
+                        <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
+                      </Button>
+                    </SheetFooter>
+                  )}
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </header>
+
+      <AuthDialog open={isAuthOpen} onOpenChange={setIsAuthOpen} />
     </>
   );
 }
