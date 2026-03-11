@@ -541,7 +541,7 @@ export default function OrderDetailPage(props: {
                     <span>-${formatCurrency(Number(order.discountTotal) || 0)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-[11px) font-bold text-gray-400 uppercase">
+                <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>{order.deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
                   <span className="text-black">{Number(order.shipping) > 0 ? `$${formatCurrency(Number(order.shipping))}` : 'FREE'}</span>
                 </div>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -40,6 +39,8 @@ export default function OrderHistoryPage() {
         return <Badge className="bg-green-50 text-green-700 border-green-100 uppercase text-[9px] font-bold">Delivered</Badge>;
       case 'processing':
         return <Badge className="bg-blue-50 text-blue-700 border-blue-100 uppercase text-[9px] font-bold">Processing</Badge>;
+      case 'ready_for_pickup':
+        return <Badge className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[9px] font-bold">Ready for Pickup</Badge>;
       case 'cancelled':
         return <Badge className="bg-red-50 text-red-700 border-red-100 uppercase text-[9px] font-bold">Cancelled</Badge>;
       default:
