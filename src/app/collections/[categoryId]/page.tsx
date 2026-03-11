@@ -6,7 +6,6 @@ import { collection, query, where, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { Loader2, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -57,7 +56,7 @@ export default function CollectionPage({ params }: { params: Promise<{ categoryI
             
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="space-y-3">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Archive Selection</span>
+                <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Archive Selection</span>
                 <h1 className="text-4xl md:text-6xl font-headline font-bold uppercase tracking-tight">
                   {categoryId === 'all' ? 'All Archive Drops' : (category?.name || 'Collection')}
                 </h1>
@@ -94,7 +93,7 @@ export default function CollectionPage({ params }: { params: Promise<{ categoryI
                   id={product.id}
                   name={product.name}
                   price={`$${formatCurrency(Number(product.price))} CAD`}
-                  image={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/600/800'}
+                  image={product.media?.[0]?.url || ''} // strictly removed random fallback
                   category={category?.name || product.brand || 'FSLNO Archive'}
                 />
               ))}
@@ -105,5 +104,11 @@ export default function CollectionPage({ params }: { params: Promise<{ categoryI
 
       <Footer />
     </main>
+  );
+}
+
+function ChevronLeft({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m15 18-6-6 6-6"/></svg>
   );
 }

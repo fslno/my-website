@@ -13,15 +13,12 @@ import { Header } from '@/components/storefront/Header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { 
   Heart, 
   Share2, 
   Ruler, 
-  Loader2,
   Check,
-  Table as TableIcon,
   ChevronLeft
 } from 'lucide-react';
 import {
@@ -214,7 +211,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
   }
 
   const media = product.media || [];
-  const currentMedia = media[activeImageIndex] || { url: 'https://picsum.photos/seed/placeholder/800/1200', type: 'image' };
+  const currentMedia = media[activeImageIndex] || { url: '', type: 'image' }; // strictly removed random fallback
 
   return (
     <main className="min-h-screen bg-white">
@@ -234,13 +231,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
           <div className="space-y-6">
             <div className="space-y-4">
               <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
-                <Image 
-                  src={currentMedia.url} 
-                  alt={product.name} 
-                  fill 
-                  className="object-cover"
-                  priority
-                />
+                {currentMedia.url ? (
+                  <Image 
+                    src={currentMedia.url} 
+                    alt={product.name} 
+                    fill 
+                    className="object-cover"
+                    priority
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gray-200" />
+                )}
               </div>
               
               {media.length > 1 && (
@@ -320,7 +321,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
                       <div className="flex-1 overflow-y-auto p-8 space-y-8">
                         <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <TableIcon className="h-4 w-4 text-muted-foreground" />
+                            <Ruler className="h-4 w-4 text-muted-foreground" />
                             <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Dimensions</span>
                           </div>
                           <span className="text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded tracking-widest">
@@ -404,7 +405,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
                       No
                     </button>
                     <button
-                      onClick={() => setWantsCustomization(true)}
+                      onClick={() => wantsCustomization && setWantsCustomization(true)}
                       className={cn(
                         "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
                         wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"

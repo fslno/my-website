@@ -16,7 +16,6 @@ import {
   Plus, 
   Filter, 
   MoreHorizontal, 
-  Sparkles,
   Loader2,
   Tag,
   Trash2,
@@ -49,7 +48,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -80,7 +78,6 @@ export default function ProductsPage() {
   const { data: products, loading: productsLoading } = useCollection(productsQuery);
   const { data: categories, loading: categoriesLoading } = useCollection(categoriesQuery);
   
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
@@ -422,23 +419,6 @@ export default function ProductsPage() {
     }
   };
 
-  const handleGenerate = async () => {
-    if (!name || !features) return;
-    setIsGenerating(true);
-    try {
-      const result = await adminGenerateProductDescription({
-        productName: name,
-        features: features.split(',').map(f => f.trim()),
-        tone: 'luxurious'
-      });
-      setDescription(result.description);
-    } catch (error) {
-      toast({ variant: "destructive", title: "AI Error", description: "Failed to generate description." });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleSaveProduct = async () => {
     if (!db || !name || !price || !categoryId) return;
     setIsSaving(true);
@@ -646,7 +626,7 @@ export default function ProductsPage() {
                       </div>
 
                       <div className="space-y-4 pt-4 border-t">
-                        <div className="flex justify-between items-center"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Narrative</Label><Button variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating || !name} className="h-8 gap-2 uppercase tracking-widest font-bold text-[10px] border-black">{isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} AI Generate</Button></div>
+                        <div className="flex justify-between items-center"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Narrative</Label></div>
                         <Textarea className="h-32 resize-none bg-white p-4" placeholder="Craft a story for this archive piece..." value={description} onChange={(e) => setDescription(e.target.value)} />
                       </div>
                     </div>
@@ -866,7 +846,15 @@ export default function ProductsPage() {
                         onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} 
                       />
                     </TableCell>
-                    <TableCell><div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{firstMedia ? <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" /> : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
+                    <TableCell>
+                      <div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">
+                        {firstMedia ? (
+                          <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" />
+                        ) : (
+                          <Layers className="h-4 w-4 text-gray-300" />
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell><div className="flex flex-col"><span className="font-bold text-sm">{product.name}</span><span className="text-[10px] uppercase tracking-widest text-[#8c9196]">{product.sku || 'No SKU'}</span></div></TableCell>
                     <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
                     <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>

@@ -9,20 +9,15 @@ import {
   Youtube, 
   MapPin, 
   Zap, 
-  Sparkles,
   CheckCircle2,
   AlertCircle,
   Settings2,
   Loader2,
   Lock,
   Globe,
-  X,
   Store,
-  Target,
-  ShoppingCart,
   Layers,
   Terminal,
-  ArrowRight,
   ChevronRight,
   ShieldCheck
 } from 'lucide-react';
@@ -91,7 +86,6 @@ export default function GoogleSyncPage() {
       apiConnected: true,
       onDemandUpdates: true,
       partialSync: true,
-      autoBackgroundRemoval: true,
       youtubeTaggingEnabled: true,
       localInventoryEnabled: false,
       linkedStoreAddress: '',
@@ -104,7 +98,7 @@ export default function GoogleSyncPage() {
       issues: [
         { id: '1', message: "Missing 'Material' attribute on product SKU-0981", severity: 'warning' },
         { id: '2', message: "Missing 'Material' attribute on product SKU-0982", severity: 'warning' },
-        { id: '3', message: "Image too small for product SKU-7721 (Hero Selection)", severity: 'error' }
+        { id: '3', message: "Image missing for product SKU-7721 (Hero Selection)", severity: 'error' }
       ]
     };
 
@@ -233,8 +227,8 @@ export default function GoogleSyncPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md bg-white">
               <DialogHeader>
-                <DialogTitle className="text-xl font-bold uppercase tracking-tight">Merchant API Configuration</DialogTitle>
-                <DialogDescription className="text-xs">Establish the primary handshake parameters for your Google catalog.</DialogDescription>
+                <DialogTitle className="text-xl font-bold uppercase tracking-tight text-primary">Merchant API Configuration</DialogTitle>
+                <DialogDescription className="text-xs">Establish the handshake parameters for your Google catalog.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-4">
                 <div className="space-y-2">
@@ -392,7 +386,7 @@ export default function GoogleSyncPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-xs text-[#5c5f62] leading-relaxed uppercase font-bold tracking-tight">
-                  Automatically syncs your FSLNO catalog so you can tag products in YouTube videos or during live streams.
+                  Automatically syncs your FSLNO catalog so you can tag products in YouTube videos.
                 </p>
                 {config.youtubeTaggingEnabled ? (
                   <div className="flex items-center gap-2 text-[9px] font-bold text-green-700 bg-green-50 p-2 rounded border border-green-100 uppercase tracking-widest">
@@ -515,29 +509,8 @@ export default function GoogleSyncPage() {
           <Card className="border-[#e1e3e5] shadow-none">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-purple-500" />
-                <CardTitle className="text-sm font-bold uppercase tracking-widest">AI Enhancement</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border border-[#e1e3e5]">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase">Background Removal</p>
-                  <p className="text-[9px] text-[#5c5f62] uppercase leading-tight font-bold opacity-60">Auto-clean product visuals.</p>
-                </div>
-                <Switch 
-                  checked={config.autoBackgroundRemoval} 
-                  onCheckedChange={(checked) => handleToggleFeature('autoBackgroundRemoval', !!config.autoBackgroundRemoval)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-emerald-500" />
-                <CardTitle className="text-sm font-bold uppercase tracking-widest">Marketing Expansion</CardTitle>
+                <Globe className="h-5 w-5 text-emerald-500" />
+                <CardTitle className="text-sm font-bold uppercase tracking-widest">Global Visibility</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -558,11 +531,11 @@ export default function GoogleSyncPage() {
               <Separator />
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded bg-emerald-50 flex items-center justify-center shrink-0">
-                  <ShoppingCart className="h-4 w-4 text-emerald-600" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase">Google Ads Sync</p>
-                  <p className="text-[9px] text-gray-400 font-bold uppercase">Automatic retargeting feeds.</p>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase">Manual feed coordination.</p>
                 </div>
               </div>
             </CardContent>
@@ -573,7 +546,7 @@ export default function GoogleSyncPage() {
               <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> API V1 Integrity Note
             </h3>
             <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight font-bold opacity-70">
-              Synchronized changes apply Authoritatively to the live Google catalog. Ensure all product material attributes are cataloged to prevent diagnostic exceptions.
+              Synchronized changes apply Authoritatively to the live Google catalog. Ensure all product attributes are manually cataloged to prevent diagnostic exceptions.
             </p>
           </div>
 

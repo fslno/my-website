@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,26 +10,16 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { 
   BarChart3, 
-  Zap, 
   Target, 
   UserCheck, 
-  TrendingDown, 
-  TrendingUp,
   Loader2,
   Activity,
   MousePointer2,
   RefreshCw,
-  Search,
-  ShieldAlert,
-  Binary,
-  Layers,
-  Sparkles,
   Terminal,
-  ArrowRight,
   ChevronRight,
   Eye,
-  CheckCircle2,
-  X
+  CheckCircle2
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -63,15 +53,8 @@ export default function AnalyticsPage() {
     const initialData = {
       ga4MeasurementId: 'G-FSLNO777888',
       funnelTrackingEnabled: true,
-      predictiveAudiencesEnabled: true,
       userIdTrackingEnabled: true,
-      churnProbabilityEnabled: true,
-      purchaseProbabilityEnabled: true,
-      anomalyDetectionEnabled: true,
-      ltvPredictionEnabled: true,
       enhancedMeasurementEnabled: true,
-      abTestingEnabled: false,
-      heatmapTrackingEnabled: false,
       updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -129,7 +112,7 @@ export default function AnalyticsPage() {
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
         <BarChart3 className="h-12 w-12 text-gray-300" />
         <h2 className="text-xl font-bold text-gray-900">GA4 Analytics Not Initialized</h2>
-        <p className="text-gray-500 max-w-sm">Connect your FSLNO storefront to Google Analytics 4 to enable advanced funnel tracking and predictive insights.</p>
+        <p className="text-gray-500 max-w-sm">Connect your FSLNO storefront to Google Analytics 4 to enable advanced funnel tracking.</p>
         <Button onClick={handleInitialize} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest text-[10px]">Initialize GA4 Core</Button>
       </div>
     );
@@ -139,8 +122,8 @@ export default function AnalyticsPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">GA4 & Predictive Analytics</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Manage custom funnel events and Google AI-driven audience predictions.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">GA4 Measurement</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Manage custom funnel events and manual tracking orchestration.</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -176,23 +159,23 @@ export default function AnalyticsPage() {
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <TrendingUp className="h-3 w-3" /> Conversion Rate
+              <Activity className="h-3 w-3" /> Engagement
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">3.8%</div>
-            <p className="text-xs text-[#8c9196] mt-1">+0.4% from last 24h</p>
+            <p className="text-xs text-[#8c9196] mt-1">Conversion velocity</p>
           </CardContent>
         </Card>
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Target className="h-3 w-3" /> High-Intent Audiences
+              <Target className="h-3 w-3" /> Catalog Impressions
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">1,204</div>
-            <p className="text-xs text-[#8c9196] mt-1">Identified by Google AI</p>
+            <p className="text-xs text-[#8c9196] mt-1">Total selection views</p>
           </CardContent>
         </Card>
       </div>
@@ -209,7 +192,7 @@ export default function AnalyticsPage() {
                 <Badge variant="outline" className="text-blue-600 border-blue-100 bg-blue-50 uppercase text-[9px] font-bold tracking-widest">Active</Badge>
               </div>
               <CardDescription>
-                Measure specific interaction points in the "Spot Closing" journey.
+                Measure specific interaction points in the archival journey.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -287,78 +270,6 @@ export default function AnalyticsPage() {
 
           <Card className="border-[#e1e3e5] shadow-none">
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-orange-500" />
-                <CardTitle className="text-lg">Predictive Audiences (Google AI)</CardTitle>
-              </div>
-              <CardDescription>
-                Leverage machine learning to anticipate high-fidelity customer behavior.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-md space-y-3 bg-gray-50/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
-                      <TrendingDown className="h-4 w-4 text-red-500" /> Churn Probability
-                    </span>
-                    <Switch 
-                      checked={config.churnProbabilityEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ churnProbabilityEnabled: checked })}
-                    />
-                  </div>
-                  <p className="text-[10px] text-[#5c5f62] leading-relaxed uppercase tracking-tight">
-                    Identify users likely to stop visiting for automated retention campaigns.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-md space-y-3 bg-gray-50/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
-                      <TrendingUp className="h-4 w-4 text-green-500" /> 7-day Purchasers
-                    </span>
-                    <Switch 
-                      checked={config.purchaseProbabilityEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ purchaseProbabilityEnabled: checked })}
-                    />
-                  </div>
-                  <p className="text-[10px] text-[#5c5f62] leading-relaxed uppercase tracking-tight">
-                    Creates high-intent audiences for real-time "Spot Closing" retargeting.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-md space-y-3 bg-gray-50/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
-                      <Binary className="h-4 w-4 text-purple-500" /> LTV Prediction
-                    </span>
-                    <Switch 
-                      checked={config.ltvPredictionEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ ltvPredictionEnabled: checked })}
-                    />
-                  </div>
-                  <p className="text-[10px] text-[#5c5f62] leading-relaxed uppercase tracking-tight">
-                    Predict Lifetime Value to Authoritatively prioritize high-fidelity VIP clients.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-md space-y-3 bg-gray-50/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold flex items-center gap-2 uppercase tracking-tight">
-                      <ShieldAlert className="h-4 w-4 text-orange-500" /> Anomaly Detection
-                    </span>
-                    <Switch 
-                      checked={config.anomalyDetectionEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ anomalyDetectionEnabled: checked })}
-                    />
-                  </div>
-                  <p className="text-[10px] text-[#5c5f62] leading-relaxed uppercase tracking-tight">
-                    Detect unusual architectural traffic spikes during viral drop periods.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <UserCheck className="h-5 w-5 text-purple-500" />
@@ -374,17 +285,6 @@ export default function AnalyticsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 bg-purple-50 border border-purple-100 rounded-md">
-                <div className="flex gap-3">
-                  <Target className="h-5 w-5 text-purple-600 shrink-0" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-purple-900 uppercase tracking-tight">Unified Customer Journey</p>
-                    <p className="text-[10px] text-purple-800 leading-relaxed uppercase tracking-tight">
-                      Connects behavior if a user browses on their phone but finishes the purchase on desktop. Requires "Login" event.
-                    </p>
-                  </div>
-                </div>
-              </div>
               <div className="grid gap-2">
                 <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">GA4 Measurement ID</Label>
                 <div className="relative">
@@ -403,7 +303,7 @@ export default function AnalyticsPage() {
         <div className="xl:col-span-4 space-y-6">
           <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none">
             <CardHeader className="border-b border-white/10">
-              <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Predictive Event Stream</CardTitle>
+              <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Live Event Stream</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="h-[400px]">
@@ -436,24 +336,10 @@ export default function AnalyticsPage() {
           <Card className="border-[#e1e3e5] shadow-none rounded-none bg-gray-50/50">
             <CardHeader className="pb-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                <Sparkles className="h-3.5 w-3.5 text-purple-500" /> Optimization Tools
+                <Terminal className="h-3.5 w-3.5" /> Engine Controls
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-[10px] uppercase font-bold text-gray-600">A/B Testing AI</Label>
-                <Switch 
-                  checked={config.abTestingEnabled} 
-                  onCheckedChange={(checked) => handleUpdate({ abTestingEnabled: checked })}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-[10px] uppercase font-bold text-gray-600">Heatmap Engine</Label>
-                <Switch 
-                  checked={config.heatmapTrackingEnabled} 
-                  onCheckedChange={(checked) => handleUpdate({ heatmapTrackingEnabled: checked })}
-                />
-              </div>
               <div className="flex items-center justify-between">
                 <Label className="text-[10px] uppercase font-bold text-gray-600">Enhanced Measurement</Label>
                 <Switch 
@@ -463,7 +349,7 @@ export default function AnalyticsPage() {
               </div>
               <Separator />
               <p className="text-[9px] text-gray-400 leading-relaxed uppercase font-medium">
-                Measurement protocol changes strictly apply to the live GA4 stream. Ensure data privacy compliance before enabling LTV prediction.
+                Measurement protocol changes strictly apply to the live GA4 stream. Ensure data privacy compliance before enabling User ID tracking.
               </p>
             </CardContent>
           </Card>

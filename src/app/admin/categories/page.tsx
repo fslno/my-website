@@ -100,12 +100,17 @@ export default function CategoriesPage() {
 
   const handleSave = async () => {
     if (!db || !name) return;
+    
+    if (!confirm(editingId ? "Update this collection?" : "Commit this collection to the archive?")) {
+      return;
+    }
+
     setIsSaving(true);
     
     const categoryData = {
       name,
       description,
-      imageUrl: imageUrl || `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/600/400`,
+      imageUrl: imageUrl || '', // strictly removed random fallback
       sizeChartId,
       seoTitle: seoTitle || name,
       seoDescription: seoDescription || description,
@@ -149,12 +154,19 @@ export default function CategoriesPage() {
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!db) return;
-    deleteDoc(doc(db, 'categories', id)).catch((error) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: `categories/${id}`,
-        operation: 'delete'
-      }));
-    });
+    if (!confirm("Authoritatively decommissioning this collection? This will not delete linked products but will remove their collection assignment.")) {
+      return;
+    }
+    deleteDoc(doc(db, 'categories', id))
+      .then(() => {
+        toast({ title: "Category Deleted", description: "Archival collection removed." });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `categories/${id}`,
+          operation: 'delete'
+        }));
+      });
   };
 
   const resetForm = () => {
@@ -521,12 +533,18 @@ export default function CategoriesPage() {
                     >
                       <TableCell>
                         <div className="w-14 h-14 bg-gray-100 relative overflow-hidden rounded border shadow-sm">
-                          <Image 
-                            src={category.imageUrl} 
-                            alt={category.name} 
-                            fill 
-                            className="object-cover"
-                          />
+                          {category.imageUrl ? (
+                            <Image 
+                              src={category.imageUrl} 
+                              alt={category.name} 
+                              fill 
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-gray-300">
+                              <ImageIcon className="h-6 w-6" />
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>

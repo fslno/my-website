@@ -31,20 +31,24 @@ export function BentoHero({
     return <section className="pt-24 pb-12"><div className="w-full h-[70vh] bg-gray-50" /></section>;
   }
 
-  const imageSrc = heroImageUrl || fallbackImageUrl || "https://picsum.photos/seed/hero/1200/800";
+  const imageSrc = heroImageUrl || fallbackImageUrl || ""; // strictly removed random fallback
 
   return (
     <section className="pt-24 pb-12">
       <div className="w-full bg-primary overflow-hidden group shadow-2xl">
         <div className="relative h-[70vh] w-full">
-          <Image
-            src={imageSrc}
-            alt={headline}
-            fill
-            className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
-            priority
-            data-ai-hint="fashion editorial"
-          />
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={headline}
+              fill
+              className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
+              priority
+              data-ai-hint="fashion editorial"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-primary opacity-20" />
+          )}
           <div className={cn(
             "absolute inset-0 p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align hero-vertical-align",
             textAlign === 'left' ? 'items-start' : textAlign === 'right' ? 'items-end' : 'items-center'

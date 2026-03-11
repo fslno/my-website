@@ -7,7 +7,7 @@ import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { Footer } from '@/components/storefront/Footer';
-import { Loader2, ArrowRight, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -48,7 +48,7 @@ export default function Home() {
     });
   };
 
-  const heroImageSrc = theme?.heroImageUrl || categories?.[0]?.imageUrl;
+  const heroImageSrc = theme?.heroImageUrl || categories?.[0]?.imageUrl || ""; // strictly removed random fallback
 
   return (
     <main className="min-h-screen bg-background">
@@ -59,14 +59,18 @@ export default function Home() {
         <section className="pt-24 pb-12">
           <div className="w-full overflow-hidden bg-primary shadow-2xl group">
             <div className="relative h-[70vh] w-full">
-              <Image
-                src={heroImageSrc || "https://picsum.photos/seed/classic/1920/1080"}
-                alt="Main Hero"
-                fill
-                className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
-                priority
-                data-ai-hint="luxury landscape"
-              />
+              {heroImageSrc ? (
+                <Image
+                  src={heroImageSrc}
+                  alt="Main Hero"
+                  fill
+                  className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
+                  priority
+                  data-ai-hint="luxury landscape"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-primary opacity-20" />
+              )}
               <div className={cn(
                 "absolute inset-0 flex flex-col text-primary-foreground p-12 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align hero-vertical-align",
                 theme?.heroTextAlign === 'left' ? 'items-start' : theme?.heroTextAlign === 'right' ? 'items-end' : 'items-center'
@@ -95,7 +99,7 @@ export default function Home() {
         />
       )}
 
-      {/* Shop by Category Section - Positioned above featured products */}
+      {/* Shop by Category Section */}
       <section className="py-20 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="mb-12 category-text-align">
@@ -115,13 +119,17 @@ export default function Home() {
                   href={`/collections/${cat.id}`} 
                   className="group relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-sm"
                 >
-                  <Image 
-                    src={cat.imageUrl || 'https://picsum.photos/seed/cat/600/800'} 
-                    alt={cat.name} 
-                    fill 
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    data-ai-hint="fashion category"
-                  />
+                  {cat.imageUrl ? (
+                    <Image 
+                      src={cat.imageUrl} 
+                      alt={cat.name} 
+                      fill 
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      data-ai-hint="fashion category"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gray-200" />
+                  )}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
                   <div 
                     className="absolute inset-0 flex flex-col p-6 text-white category-text-align"
@@ -142,7 +150,7 @@ export default function Home() {
         </div>
       </section>
       
-      {/* Featured Products Section - High density responsive grid */}
+      {/* Featured Products Section */}
       <section id="featured-products" className="py-20">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="mb-12 featured-text-align">
@@ -164,7 +172,7 @@ export default function Home() {
                     id={product.id}
                     name={product.name}
                     price={`$${formatCurrency(Number(product.price))} CAD`}
-                    image={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/600/800'}
+                    image={product.media?.[0]?.url || ''} // strictly removed random fallback
                     category={category?.name || product.brand || 'Featured Piece'}
                   />
                 );
