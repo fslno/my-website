@@ -71,6 +71,17 @@ export default function GoogleSyncPage() {
     }
   }, [config]);
 
+  const handleUpdate = (updates: any) => {
+    if (!configRef) return;
+    updateDoc(configRef, { ...updates, updatedAt: serverTimestamp() }).catch((error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: configRef.path,
+        operation: 'update',
+        requestResourceData: updates
+      }));
+    });
+  };
+
   const handleInitialize = () => {
     if (!configRef) return;
     const initialData = {
@@ -156,15 +167,7 @@ export default function GoogleSyncPage() {
   };
 
   const handleToggleFeature = (feature: string, currentValue: boolean) => {
-    if (!configRef) return;
-    updateDoc(configRef, { [feature]: !currentValue })
-      .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: configRef.path,
-          operation: 'update',
-          requestResourceData: { [feature]: !currentValue }
-        }));
-      });
+    handleUpdate({ [feature]: !currentValue });
   };
 
   const handleForceSync = async () => {
@@ -192,14 +195,7 @@ export default function GoogleSyncPage() {
   const handleFixIssue = (issueId: string) => {
     if (!configRef || !config) return;
     const updatedIssues = config.issues.filter((i: any) => i.id !== issueId);
-    updateDoc(configRef, { issues: updatedIssues })
-      .catch(() => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: configRef.path,
-          operation: 'update',
-          requestResourceData: { issues: updatedIssues }
-        }));
-      });
+    handleUpdate({ issues: updatedIssues });
   };
 
   if (loading) {
@@ -359,7 +355,7 @@ export default function GoogleSyncPage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button 
-                  onClick={() => handleToggleFeature('onDemandUpdates', config.onDemandUpdates)}
+                  onClick={() => handleToggleFeature('onDemandUpdates', !!config.onDemandUpdates)}
                   className={`p-4 border rounded-md text-left transition-colors text-foreground ${config.onDemandUpdates ? 'border-black bg-black/5 ring-1 ring-black shadow-sm' : 'hover:bg-gray-50 border-[#e1e3e5]'}`}
                 >
                   <div className="flex items-center justify-between">
@@ -369,7 +365,7 @@ export default function GoogleSyncPage() {
                   <p className="text-xs text-[#5c5f62] mt-1 uppercase tracking-tight opacity-70 leading-relaxed">Real-time synchronization of critical attributes (Price, Inventory).</p>
                 </button>
                 <button 
-                  onClick={() => handleToggleFeature('partialSync', config.partialSync)}
+                  onClick={() => handleToggleFeature('partialSync', !!config.partialSync)}
                   className={`p-4 border rounded-md text-left transition-colors text-foreground ${config.partialSync ? 'border-black bg-black/5 ring-1 ring-black shadow-sm' : 'hover:bg-gray-50 border-[#e1e3e5]'}`}
                 >
                   <div className="flex items-center justify-between">
@@ -391,7 +387,7 @@ export default function GoogleSyncPage() {
                 </div>
                 <Switch 
                   checked={config.youtubeTaggingEnabled} 
-                  onCheckedChange={(checked) => handleToggleFeature('youtubeTaggingEnabled', config.youtubeTaggingEnabled)}
+                  onCheckedChange={(checked) => handleToggleFeature('youtubeTaggingEnabled', !!config.youtubeTaggingEnabled)}
                 />
               </CardHeader>
               <CardContent className="space-y-4">
@@ -420,7 +416,7 @@ export default function GoogleSyncPage() {
                 </div>
                 <Switch 
                   checked={config.localInventoryEnabled} 
-                  onCheckedChange={(checked) => handleToggleFeature('localInventoryEnabled', config.localInventoryEnabled)}
+                  onCheckedChange={(checked) => handleToggleFeature('localInventoryEnabled', !!config.localInventoryEnabled)}
                 />
               </CardHeader>
               <CardContent className="space-y-4">
@@ -531,7 +527,7 @@ export default function GoogleSyncPage() {
                 </div>
                 <Switch 
                   checked={config.autoBackgroundRemoval} 
-                  onCheckedChange={(checked) => handleToggleFeature('autoBackgroundRemoval', config.autoBackgroundRemoval)}
+                  onCheckedChange={(checked) => handleToggleFeature('autoBackgroundRemoval', !!config.autoBackgroundRemoval)}
                 />
               </div>
             </CardContent>
