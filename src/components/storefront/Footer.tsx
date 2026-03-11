@@ -35,49 +35,13 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10">
+    <footer className="bg-primary text-primary-foreground py-20 mt-12 border-t border-primary-foreground/10">
       <div className="max-w-[1440px] mx-auto px-4">
-        {/* Newsletter Section */}
-        {config?.newsletterEnabled !== false && (
-          <div className="mb-20 pb-16 border-b border-primary-foreground/10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-end">
-              <div className="space-y-4">
-                <h3 className="text-3xl md:text-5xl font-headline font-bold uppercase tracking-tight leading-none">
-                  {config?.newsletterHeadline || "JOIN THE ARCHIVE"}
-                </h3>
-                <p className="text-sm md:text-base uppercase tracking-widest font-bold opacity-60 max-w-md">
-                  {config?.newsletterSubtext || "Sign up for early access to high-velocity drops and private selection events."}
-                </p>
-              </div>
-              <form onSubmit={handleSubscribe} className="relative max-w-md w-full ml-auto">
-                <div className="flex gap-2">
-                  <Input 
-                    type="email" 
-                    placeholder="EMAIL@ADDRESS.COM" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-transparent border-primary-foreground/20 border-0 border-b rounded-none h-14 px-0 focus-visible:ring-0 placeholder:text-primary-foreground/30 font-bold uppercase tracking-widest text-xs" 
-                  />
-                  <Button 
-                    type="submit" 
-                    disabled={isSubmitting || isSubscribed}
-                    className="h-14 bg-accent text-accent-foreground px-8 rounded-none font-bold uppercase tracking-widest text-[10px] hover:opacity-80 transition-all"
-                  >
-                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : isSubscribed ? <CheckCircle2 className="h-4 w-4" /> : "Subscribe"}
-                  </Button>
-                </div>
-                {isSubscribed && (
-                  <p className="absolute top-full left-0 mt-2 text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400 animate-in fade-in slide-in-from-top-1">
-                    Handshake complete. Welcome to the archive.
-                  </p>
-                )}
-              </form>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-2 space-y-8">
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
+          
+          {/* Brand Identity & Contact - Spans 4 columns */}
+          <div className="lg:col-span-4 space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
               {config?.businessName || "FSLNO"}
             </h2>
@@ -122,7 +86,8 @@ export function Footer() {
             </div>
           </div>
           
-          <div className="space-y-8">
+          {/* Support Links - Spans 2 columns */}
+          <div className="lg:col-span-2 space-y-8">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerSupportLinks?.length > 0 ? (
@@ -141,7 +106,8 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="space-y-8">
+          {/* Legal Links - Spans 2 columns */}
+          <div className="lg:col-span-2 space-y-8">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerLegalLinks?.length > 0 ? (
@@ -157,6 +123,46 @@ export function Footer() {
                 </>
               )}
             </ul>
+          </div>
+
+          {/* Newsletter Section - Integrated into the row (Spans 4 columns) */}
+          <div className="lg:col-span-4 space-y-8">
+            {config?.newsletterEnabled !== false && (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
+                  <h3 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight leading-none">
+                    {config?.newsletterHeadline || "JOIN THE ARCHIVE"}
+                  </h3>
+                  <p className="text-[10px] uppercase tracking-widest font-bold opacity-60 leading-relaxed max-w-xs">
+                    {config?.newsletterSubtext || "Early access to high-velocity drops and private selection events."}
+                  </p>
+                </div>
+                <form onSubmit={handleSubscribe} className="relative w-full">
+                  <div className="flex flex-col gap-4">
+                    <Input 
+                      type="email" 
+                      placeholder="EMAIL@ADDRESS.COM" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-transparent border-primary-foreground/20 border-0 border-b rounded-none h-12 px-0 focus-visible:ring-0 placeholder:text-primary-foreground/30 font-bold uppercase tracking-widest text-xs" 
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting || isSubscribed}
+                      className="h-12 bg-accent text-accent-foreground w-full rounded-none font-bold uppercase tracking-widest text-[10px] hover:opacity-80 transition-all shadow-lg"
+                    >
+                      {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : isSubscribed ? <CheckCircle2 className="h-4 w-4" /> : "Subscribe"}
+                    </Button>
+                  </div>
+                  {isSubscribed && (
+                    <p className="mt-3 text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400 animate-in fade-in slide-in-from-top-1">
+                      Handshake complete. Welcome to the archive.
+                    </p>
+                  )}
+                </form>
+              </div>
+            )}
           </div>
         </div>
         
