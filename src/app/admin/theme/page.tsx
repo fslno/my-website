@@ -48,6 +48,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
 
 const sportsFonts = [
   "Anton", "Bebas Neue", "Oswald", "Teko", "Kanit", 
