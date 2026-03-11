@@ -29,7 +29,8 @@ import {
   Shield,
   CreditCard,
   CheckCircle2,
-  X
+  X,
+  Save
 } from 'lucide-react';
 import { 
   Table, 
@@ -57,7 +58,8 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogFooter 
+  DialogFooter,
+  DialogDescription
 } from '@/components/ui/dialog';
 import {
   Sheet,
@@ -565,7 +567,6 @@ export default function OrderDetailPage(props: {
         </div>
 
         <div className="w-full xl:w-[320px] space-y-8 print:hidden">
-          {/* Tracking Card added to sidebar per request */}
           {order.deliveryMethod === 'shipping' && (
             <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
               <CardHeader className="bg-blue-50/30 border-b py-4">
