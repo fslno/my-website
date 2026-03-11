@@ -22,7 +22,9 @@ import {
   ShoppingCart,
   Layers,
   Terminal,
-  ArrowRight
+  ArrowRight,
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -340,9 +342,15 @@ export default function GoogleSyncPage() {
                   <Zap className="h-5 w-5 text-orange-500" />
                   <CardTitle className="text-lg">Merchant API (V1) Integration</CardTitle>
                 </div>
-                <Badge variant="outline" className={config.apiConnected ? "text-green-600 border-green-100 bg-green-50" : "text-gray-400 border-gray-100 bg-gray-50"}>
-                  {config.apiConnected ? 'API Connected' : 'Disconnected'}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Switch 
+                    checked={config.apiConnected} 
+                    onCheckedChange={(checked) => handleUpdate({ apiConnected: checked })}
+                  />
+                  <Badge variant="outline" className={config.apiConnected ? "text-green-600 border-green-100 bg-green-50" : "text-gray-400 border-gray-100 bg-gray-50"}>
+                    {config.apiConnected ? 'API Connected' : 'Disconnected'}
+                  </Badge>
+                </div>
               </div>
               <CardDescription>
                 Unlike standard feeds that update once a day, the API pushes price or stock changes to Google in minutes.
