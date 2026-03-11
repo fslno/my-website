@@ -382,74 +382,76 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
               </p>
             </div>
 
-            <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
-                    Customization
-                  </Label>
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
-                    $10.00
-                  </span>
+            {product.customizationEnabled && (
+              <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
+                      Customization
+                    </Label>
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
+                      ${formatCurrency(Number(product.customizationFee) || 10)}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setWantsCustomization(false)}
+                      className={cn(
+                        "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
+                        !wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
+                      )}
+                    >
+                      No
+                    </button>
+                    <button
+                      onClick={() => setWantsCustomization(true)}
+                      className={cn(
+                        "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
+                        wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
+                      )}
+                    >
+                      Yes
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setWantsCustomization(false)}
-                    className={cn(
-                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
-                      !wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
-                    )}
-                  >
-                    No
-                  </button>
-                  <button
-                    onClick={() => setWantsCustomization(true)}
-                    className={cn(
-                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
-                      wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
-                    )}
-                  >
-                    Yes
-                  </button>
-                </div>
-              </div>
 
-              {wantsCustomization && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-2 gap-3">
+                {wantsCustomization && (
+                  <div className="space-y-4 animate-in fade-in duration-300">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Name</Label>
+                        <Input 
+                          placeholder="ENTER NAME" 
+                          value={customName}
+                          onChange={(e) => setCustomName(e.target.value.toUpperCase())}
+                          className="bg-white h-9 text-[10px] font-bold"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Number</Label>
+                        <Input 
+                          placeholder="00" 
+                          maxLength={2}
+                          value={customNumber}
+                          onChange={(e) => setCustomNumber(e.target.value)}
+                          className="bg-white h-9 text-[10px] font-bold text-center"
+                        />
+                      </div>
+                    </div>
+
                     <div className="space-y-1.5">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Name</Label>
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Special Note</Label>
                       <Input 
-                        placeholder="ENTER NAME" 
-                        value={customName}
-                        onChange={(e) => setCustomName(e.target.value.toUpperCase())}
+                        placeholder="ADDITIONAL REQUESTS..." 
+                        value={specialRequest}
+                        onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())}
                         className="bg-white h-9 text-[10px] font-bold"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Number</Label>
-                      <Input 
-                        placeholder="00" 
-                        maxLength={2}
-                        value={customNumber}
-                        onChange={(e) => setCustomNumber(e.target.value)}
-                        className="bg-white h-9 text-[10px] font-bold text-center"
-                      />
-                    </div>
                   </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Special Note</Label>
-                    <Input 
-                      placeholder="ADDITIONAL REQUESTS..." 
-                      value={specialRequest}
-                      onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())}
-                      className="bg-white h-9 text-[10px] font-bold"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-3 pt-4 border-t mt-4">
               <button 
