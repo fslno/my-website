@@ -70,9 +70,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
-export default function OrderDetailPage(props: { params: Promise<{ orderId: string }> }) {
-  const resolvedParams = use(props.params);
-  const orderId = resolvedParams.orderId;
+export default function OrderDetailPage({ params }: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = use(params);
   
   const db = useFirestore();
   const { toast } = useToast();
@@ -409,7 +408,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                       <SelectItem value="awaiting" className="text-[10px] font-bold uppercase">Awaiting</SelectItem>
                       <SelectItem value="refunded" className="text-[10px] font-bold uppercase">Refunded</SelectItem>
                       <SelectItem value="partially_refunded" className="text-[10px] font-bold uppercase">Partially Refunded</SelectItem>
-                      <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
+                      <SelectItem value="cancelled" className="text-[10px) font-bold uppercase">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -536,7 +535,7 @@ export default function OrderDetailPage(props: { params: Promise<{ orderId: stri
                     <span>-${formatCurrency(Number(order.discountTotal) || 0)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
+                <div className="flex justify-between text-[11px) font-bold text-gray-400 uppercase">
                   <span>{order.deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
                   <span className="text-black">{Number(order.shipping) > 0 ? `$${formatCurrency(Number(order.shipping))}` : 'FREE'}</span>
                 </div>

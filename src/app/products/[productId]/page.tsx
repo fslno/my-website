@@ -45,9 +45,8 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage(props: { params: Promise<{ productId: string }> }) {
-  const resolvedParams = use(props.params);
-  const productId = resolvedParams.productId;
+export default function ProductDetailPage({ params }: { params: Promise<{ productId: string }> }) {
+  const { productId } = use(params);
   
   const db = useFirestore();
   const router = useRouter();
