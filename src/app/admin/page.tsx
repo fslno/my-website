@@ -249,4 +249,5 @@ function StatsCard({ title, value, trend, icon }: { title: string, value: string
         </div>
       </CardContent>
     </Card>
+  );
 }
