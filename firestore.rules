@@ -21,8 +21,12 @@ service cloud.firestore {
 
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
+      
+      // Separate Admin and Member list protocols to prevent query plan ambiguity
+      allow list: if isAdmin();
+      allow list: if isSignedIn() && request.query.limit <= 100 && resource.data.userId == request.auth.uid;
+      
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100 && resource.data.userId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
 
@@ -53,8 +57,10 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
+      // Only administrators can list the unified member manifest
+      allow list: if isAdmin();
+      
       allow get: if isOwner(userId) || isAdmin();
-      allow list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId);
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId);
