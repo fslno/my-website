@@ -16,7 +16,10 @@ import {
   CheckCircle2, 
   AlertCircle,
   FileCode,
-  Terminal
+  Terminal,
+  Zap,
+  Copy,
+  Key
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +49,13 @@ interface MetaTag {
   content: string;
 }
 
+interface ApiToken {
+  id: string;
+  name: string;
+  token: string;
+  createdAt: string;
+}
+
 export default function DomainPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'domain') : null, [db]);
@@ -55,12 +65,17 @@ export default function DomainPage() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isCertOpen, setIsCertOpen] = useState(false);
+  const [isTokenDialogOpen, setIsTokenDialogOpen] = useState(false);
 
   // Local Form State
   const [domain, setDomain] = useState('fslno.com');
   const [metaTags, setMetaTags] = useState<MetaTag[]>([]);
   const [robotsTxt, setRobotsTxt] = useState('User-agent: *\nAllow: /');
   const [indexingEnabled, setIndexingEnabled] = useState(true);
+  
+  // API Tokens State
+  const [apiTokens, setApiTokens] = useState<ApiToken[]>([]);
+  const [newTokenName, setNewTokenName] = useState('');
 
   useEffect(() => {
     if (config) {
@@ -68,6 +83,7 @@ export default function DomainPage() {
       setMetaTags(config.metaTags || []);
       setRobotsTxt(config.robotsTxt || 'User-agent: *\nAllow: /');
       setIndexingEnabled(config.searchIndexingEnabled ?? true);
+      setApiTokens(config.apiTokens || []);
     }
   }, [config]);
 
@@ -84,6 +100,7 @@ export default function DomainPage() {
       searchIndexingEnabled: true,
       sslStatus: 'valid',
       sslExpiry: '2026-12-31T23:59:59Z',
+      apiTokens: [],
       updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -121,13 +138,14 @@ export default function DomainPage() {
       metaTags,
       robotsTxt,
       searchIndexingEnabled: indexingEnabled,
+      apiTokens,
       updatedAt: serverTimestamp()
     };
 
     updateDoc(configRef, updates)
       .then(() => {
         setIsSaving(false);
-        toast({ title: "Visibility Saved", description: "Search engine parameters have been synchronized." });
+        toast({ title: "Visibility Saved", description: "Search engine and integration parameters have been synchronized." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -151,6 +169,39 @@ export default function DomainPage() {
     setMetaTags(metaTags.filter(tag => tag.id !== id));
   };
 
+  // API Token Handlers
+  const handleGenerateToken = () => {
+    if (!newTokenName || !configRef) return;
+    
+    const token = 'fslno_' + Math.random().toString(36).substr(2, 32);
+    const newToken: ApiToken = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newTokenName,
+      token,
+      createdAt: new Date().toISOString()
+    };
+    
+    const updatedTokens = [...apiTokens, newToken];
+    setApiTokens(updatedTokens);
+    
+    updateDoc(configRef, { apiTokens: updatedTokens, updatedAt: serverTimestamp() })
+      .then(() => {
+        setNewTokenName('');
+        setIsTokenDialogOpen(false);
+        toast({ title: "Token Generated", description: `${newTokenName} access key is now active.` });
+      });
+  };
+
+  const handleDeleteToken = (id: string) => {
+    if (!configRef) return;
+    const updatedTokens = apiTokens.filter(t => t.id !== id);
+    setApiTokens(updatedTokens);
+    updateDoc(configRef, { apiTokens: updatedTokens, updatedAt: serverTimestamp() })
+      .then(() => {
+        toast({ title: "Token Revoked", description: "Access key has been Authoritatively decommissioned." });
+      });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -164,7 +215,7 @@ export default function DomainPage() {
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
         <Globe className="h-12 w-12 text-gray-300" />
         <h2 className="text-xl font-bold text-gray-900">Visibility Core Not Initialized</h2>
-        <p className="text-gray-500 max-w-sm">Establish the archive's primary domain and indexing handshake to go live.</p>
+        <p className="text-gray-500 max-sm">Establish the archive's primary domain and indexing handshake to go live.</p>
         <Button onClick={handleInitialize} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest text-[10px]">Initialize Visibility</Button>
       </div>
     );
@@ -268,6 +319,93 @@ export default function DomainPage() {
                   </Dialog>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-yellow-500" />
+                  <CardTitle className="text-lg uppercase tracking-tight">API Integration Tokens</CardTitle>
+                </div>
+                <CardDescription>
+                  Generate high-fidelity secure tokens to Authoritatively integrate with third-party archival tools.
+                </CardDescription>
+              </div>
+              <Dialog open={isTokenDialogOpen} onOpenChange={setIsTokenDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black">
+                    <Plus className="h-3.5 w-3.5" /> New Token
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-white">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-bold uppercase">Generate Access Token</DialogTitle>
+                    <DialogDescription className="text-xs">Create a new key for external API handshakes.</DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4 space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Integration Name</Label>
+                      <Input 
+                        placeholder="e.g. Analytics Bridge" 
+                        value={newTokenName}
+                        onChange={(e) => setNewTokenName(e.target.value)}
+                        className="h-11"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleGenerateToken} disabled={!newTokenName} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]">
+                      Generate Key
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                {apiTokens.map((token) => (
+                  <div key={token.id} className="flex items-center justify-between p-4 bg-gray-50 border rounded-sm group">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Key className="h-3 w-3 text-gray-400" />
+                        <p className="text-[10px] font-bold uppercase tracking-widest">{token.name}</p>
+                      </div>
+                      <p className="text-[9px] font-mono text-gray-400">CREATED: {new Date(token.createdAt).toLocaleDateString()}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <code className="text-[10px] bg-white border px-2 py-1 rounded font-mono text-primary select-all">
+                          {token.token.substring(0, 12)}••••••••
+                        </code>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" 
+                          onClick={() => {
+                            navigator.clipboard.writeText(token.token);
+                            toast({ title: "Copied", description: "API Token saved to clipboard." });
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleDeleteToken(token.id)}
+                      className="text-red-500 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                {apiTokens.length === 0 && (
+                  <div className="py-8 text-center border-2 border-dashed rounded-sm bg-gray-50/50">
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">No active API handshakes cataloged.</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
