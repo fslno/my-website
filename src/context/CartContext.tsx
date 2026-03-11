@@ -135,7 +135,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: bogoItemName || 'Archive Reward',
         price: 0,
         quantity: 1,
-        image: 'https://picsum.photos/seed/promo/400/400',
+        image: 'https://placehold.co/400x400?text=ARCHIVE+REWARD',
         size: 'OS',
         isPromo: true,
         createdAt: Date.now()

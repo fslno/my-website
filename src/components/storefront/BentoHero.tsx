@@ -44,7 +44,6 @@ export function BentoHero({
               fill
               className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
               priority
-              data-ai-hint="fashion editorial"
             />
           ) : (
             <div className="absolute inset-0 bg-primary opacity-20" />

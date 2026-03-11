@@ -66,7 +66,6 @@ export default function Home() {
                   fill
                   className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
                   priority
-                  data-ai-hint="luxury landscape"
                 />
               ) : (
                 <div className="absolute inset-0 bg-primary opacity-20" />
@@ -125,7 +124,6 @@ export default function Home() {
                       alt={cat.name} 
                       fill 
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      data-ai-hint="fashion category"
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gray-200" />

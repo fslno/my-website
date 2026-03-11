@@ -9,7 +9,9 @@ import {
   UserPlus,
   ArrowUpRight,
   MoreHorizontal,
-  Loader2
+  Loader2,
+  Receipt,
+  CreditCard
 } from 'lucide-react';
 import { 
   Area, 
@@ -20,7 +22,7 @@ import {
   YAxis 
 } from 'recharts';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit, where, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
@@ -46,6 +48,12 @@ export default function AdminDashboard() {
     if (!orders || !users) return null;
 
     const totalRevenue = orders.reduce((acc, order) => acc + (Number(order.total) || 0), 0);
+    const totalTax = orders.reduce((acc, order) => acc + (Number(order.tax) || 0), 0);
+    const totalFees = orders.reduce((acc, order) => {
+      const total = Number(order.total) || 0;
+      // Estimate processing fees: 2.9% + $0.30 (Authoritative baseline)
+      return acc + (total * 0.029 + 0.30);
+    }, 0);
     const totalOrders = orders.length;
     const totalMembers = users.length;
 
@@ -58,6 +66,8 @@ export default function AdminDashboard() {
 
     return {
       revenue: totalRevenue,
+      tax: totalTax,
+      fees: totalFees,
       orders: totalOrders,
       members: totalMembers,
       newMembers: newThisMonth
@@ -133,12 +143,24 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatsCard 
           title="Total Revenue" 
           value={formatCurrency(stats?.revenue || 0)} 
           trend="+12.5%" 
           icon={<DollarSign className="h-4 w-4 text-green-600" />} 
+        />
+        <StatsCard 
+          title="Total Tax" 
+          value={formatCurrency(stats?.tax || 0)} 
+          trend="Authoritative" 
+          icon={<Receipt className="h-4 w-4 text-blue-600" />} 
+        />
+        <StatsCard 
+          title="Processing Fees" 
+          value={formatCurrency(stats?.fees || 0)} 
+          trend="Estimated" 
+          icon={<CreditCard className="h-4 w-4 text-red-600" />} 
         />
         <StatsCard 
           title="Total Orders" 
