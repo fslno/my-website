@@ -50,7 +50,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -70,12 +70,17 @@ interface Variant {
 
 export default function ProductsPage() {
   const db = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvImportRef = useRef<HTMLInputElement>(null);
 
-  const productsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
-  const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
+  const isAdmin = useMemo(() => {
+    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+  }, [user]);
+
+  const productsQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'products') : null, [db, isAdmin]);
+  const categoriesQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'categories') : null, [db, isAdmin]);
 
   const { data: products, loading: productsLoading } = useCollection(productsQuery);
   const { data: categories, loading: categoriesLoading } = useCollection(categoriesQuery);

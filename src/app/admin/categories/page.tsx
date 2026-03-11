@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -47,7 +47,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -56,12 +56,17 @@ import Image from 'next/image';
 
 export default function CategoriesPage() {
   const db = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Stable references for queries
-  const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
-  const chartsQuery = useMemoFirebase(() => db ? collection(db, 'sizeCharts') : null, [db]);
+  const isAdmin = useMemo(() => {
+    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+  }, [user]);
+
+  // Stable references for queries - strictly guarded
+  const categoriesQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'categories') : null, [db, isAdmin]);
+  const chartsQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'sizeCharts') : null, [db, isAdmin]);
 
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
   const { data: sizeCharts } = useCollection(chartsQuery);
@@ -79,11 +84,11 @@ export default function CategoriesPage() {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
 
-  // Assigned Products Query
+  // Assigned Products Query - strictly guarded
   const assignedProductsQuery = useMemoFirebase(() => {
-    if (!db || !editingId) return null;
+    if (!db || !editingId || !isAdmin) return null;
     return query(collection(db, 'products'), where('categoryId', '==', editingId));
-  }, [db, editingId]);
+  }, [db, editingId, isAdmin]);
 
   const { data: assignedProducts, isLoading: productsLoading } = useCollection(assignedProductsQuery);
 

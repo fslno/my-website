@@ -24,7 +24,7 @@ import {
   XAxis, 
   YAxis 
 } from 'recharts';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -50,26 +50,31 @@ import { type DateRange } from "react-day-picker";
 
 export default function AdminDashboard() {
   const db = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
   const [timeRange, setTimeRange] = useState('7d');
   
+  const isAdmin = useMemo(() => {
+    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+  }, [user]);
+
   // High-fidelity Date Range State
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 7),
     to: new Date(),
   });
 
-  // Fetch orders with a larger limit for forensic lifetime visibility
+  // Fetch orders with a larger limit for forensic lifetime visibility - strictly guarded
   const ordersQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isAdmin) return null;
     return query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(500));
-  }, [db]);
+  }, [db, isAdmin]);
 
-  // Fetch users for member stats
+  // Fetch users for member stats - strictly guarded
   const usersQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isAdmin) return null;
     return query(collection(db, 'users'), limit(500));
-  }, [db]);
+  }, [db, isAdmin]);
 
   const { data: orders, isLoading: ordersLoading } = useCollection(ordersQuery);
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);

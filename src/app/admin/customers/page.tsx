@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -33,7 +32,7 @@ import {
   Hash,
   ChevronDown
 } from 'lucide-react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -67,9 +66,14 @@ import { type DateRange } from "react-day-picker";
 
 export default function CustomersPage() {
   const db = useFirestore();
+  const { user: currentUser } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTier, setFilterTier] = useState<'all' | 'registered' | 'guest' | 'abandoned'>('all');
   
+  const isAdmin = useMemo(() => {
+    return currentUser?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+  }, [currentUser]);
+
   // Advanced Audit State
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [advName, setAdvName] = useState('');
@@ -79,16 +83,16 @@ export default function CustomersPage() {
   const [advProduct, setAdvProduct] = useState('');
   const [advDateRange, setAdvDateRange] = useState<DateRange | undefined>(undefined);
 
-  // Real-time subscription to core manifests
+  // Real-time subscription to core manifests - strictly guarded
   const usersQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isAdmin) return null;
     return query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-  }, [db]);
+  }, [db, isAdmin]);
 
   const ordersQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isAdmin) return null;
     return query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-  }, [db]);
+  }, [db, isAdmin]);
 
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
   const { data: orders, isLoading: ordersLoading } = useCollection(ordersQuery);
