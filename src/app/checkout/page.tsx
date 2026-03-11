@@ -842,7 +842,11 @@ export default function CheckoutPage() {
           <div className="p-12 space-y-8">
             <div className="text-center space-y-4">
               <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto" />
-              <h2 className="text-3xl font-headline font-bold uppercase tracking-tight text-primary">Order Confirmed</h2>
+              <DialogHeader className="p-0 border-none">
+                <DialogTitle className="text-3xl font-headline font-bold uppercase tracking-tight text-primary text-center">
+                  Order Confirmed
+                </DialogTitle>
+              </DialogHeader>
               <p className="text-sm text-muted-foreground uppercase tracking-[0.2em]">Thank you for your purchase.</p>
             </div>
 
