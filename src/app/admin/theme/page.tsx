@@ -389,6 +389,61 @@ export default function ThemeEnginePage() {
                   <Switch checked={stickyHeader} onCheckedChange={setStickyHeader} />
                 </CardHeader>
               </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none">
+                <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
+                  <div>
+                    <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                      <Megaphone className="h-3.5 w-3.5" /> Announcement Bar
+                    </CardTitle>
+                    <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Promotional banner at the top of the viewport.</CardDescription>
+                  </div>
+                  <Switch checked={bannerEnabled} onCheckedChange={setBannerEnabled} />
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Banner Text</Label>
+                    <Input 
+                      value={bannerText} 
+                      onChange={(e) => setBannerText(e.target.value)} 
+                      placeholder="e.g. FREE SHIPPING ON ALL ORDERS"
+                      className="h-12 uppercase font-bold text-xs"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background Color</Label>
+                      <div className="flex gap-2">
+                        <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                          <Input 
+                            type="color" 
+                            className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
+                            value={bannerBgColor} 
+                            onChange={(e) => setBannerBgColor(e.target.value)} 
+                          />
+                        </div>
+                        <Input 
+                          value={bannerBgColor} 
+                          onChange={(e) => setBannerBgColor(e.target.value)} 
+                          className="h-10 font-mono text-[10px] uppercase" 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Font Size</Label>
+                        <span className="text-[9px] font-mono font-bold">{bannerFontSize}PX</span>
+                      </div>
+                      <input 
+                        type="range" min="8" max="16" value={bannerFontSize} 
+                        onChange={(e) => setBannerFontSize(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="hero" className="mt-6">
