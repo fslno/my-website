@@ -17,7 +17,7 @@ import {
   Users, 
   Loader2, 
   Mail, 
-  Calendar, 
+  Calendar as CalendarIcon, 
   UserCircle,
   MoreHorizontal,
   Filter,
@@ -25,7 +25,13 @@ import {
   CreditCard,
   UserCheck,
   UserPlus,
-  ArrowRight
+  ArrowRight,
+  X,
+  MapPin,
+  Tag,
+  Phone,
+  Hash,
+  ChevronDown
 } from 'lucide-react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -39,12 +45,39 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger 
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { type DateRange } from "react-day-picker";
 
 export default function CustomersPage() {
   const db = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTier, setFilterTier] = useState<'all' | 'registered' | 'guest' | 'abandoned'>('all');
+  
+  // Advanced Audit State
+  const [isAuditOpen, setIsAuditOpen] = useState(false);
+  const [advName, setAdvName] = useState('');
+  const [advOrderNum, setAdvOrderNum] = useState('');
+  const [advPhone, setAdvPhone] = useState('');
+  const [advAddress, setAdvAddress] = useState('');
+  const [advProduct, setAdvProduct] = useState('');
+  const [advDateRange, setAdvDateRange] = useState<DateRange | undefined>(undefined);
 
   // Real-time subscription to core manifests
   const usersQuery = useMemoFirebase(() => {
@@ -60,7 +93,7 @@ export default function CustomersPage() {
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
   const { data: orders, isLoading: ordersLoading } = useCollection(ordersQuery);
 
-  // Unified Member Manifest Logic
+  // Unified Member Manifest Logic with Forensic Indexing
   const unifiedCustomers = useMemo(() => {
     if (!users || !orders) return [];
     
@@ -78,7 +111,12 @@ export default function CustomersPage() {
         orderCount: 0,
         totalSpent: 0,
         lastOrderDate: null,
-        status: 'Registered'
+        status: 'Registered',
+        // Forensic Index
+        orderIds: new Set<string>(),
+        productNames: new Set<string>(),
+        addresses: new Set<string>(),
+        phones: new Set<string>()
       });
     });
 
@@ -87,36 +125,57 @@ export default function CustomersPage() {
       const email = o.email?.toLowerCase();
       if (!email) return;
 
-      const existing = customerMap.get(email);
+      let entry = customerMap.get(email);
       
-      if (existing) {
-        existing.orderCount += 1;
-        existing.totalSpent += (Number(o.total) || 0);
-        existing.status = 'Member';
-        const oDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
-        if (!existing.lastOrderDate || oDate > new Date(existing.lastOrderDate)) {
-          existing.lastOrderDate = oDate;
-        }
-      } else if (o.userId === 'guest') {
+      if (!entry && o.userId === 'guest') {
         // High-Fidelity Guest Capture
-        customerMap.set(email, {
+        entry = {
           id: `guest_${o.id}`,
           email: o.email,
           displayName: o.customer?.name || 'Guest Piece',
           photoURL: null,
           createdAt: o.createdAt,
           tier: 'Guest',
-          orderCount: 1,
-          totalSpent: (Number(o.total) || 0),
-          lastOrderDate: o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt),
-          status: 'Guest Purchaser'
+          orderCount: 0,
+          totalSpent: 0,
+          lastOrderDate: null,
+          status: 'Guest Purchaser',
+          // Forensic Index
+          orderIds: new Set<string>(),
+          productNames: new Set<string>(),
+          addresses: new Set<string>(),
+          phones: new Set<string>()
+        };
+        customerMap.set(email, entry);
+      }
+
+      if (entry) {
+        entry.orderCount += 1;
+        entry.totalSpent += (Number(o.total) || 0);
+        entry.status = entry.tier === 'Registered' ? 'Member' : 'Guest Purchaser';
+        
+        const oDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+        if (!entry.lastOrderDate || oDate > new Date(entry.lastOrderDate)) {
+          entry.lastOrderDate = oDate;
+        }
+
+        // Forensic Indexing
+        entry.orderIds.add(o.id.toUpperCase());
+        if (o.customer?.phone) entry.phones.add(o.customer.phone);
+        
+        // Index Addresses
+        if (o.customer?.shipping?.address) entry.addresses.add(o.customer.shipping.address.toUpperCase());
+        if (o.customer?.billing?.address) entry.addresses.add(o.customer.billing.address.toUpperCase());
+
+        // Index Products
+        o.items?.forEach((item: any) => {
+          if (item.name) entry.productNames.add(item.name.toUpperCase());
         });
       }
     });
 
-    // 3. Final Filter & Classification
+    // 3. Final Classification
     return Array.from(customerMap.values()).map(c => {
-      // Classification for "Abandoned" heuristic: Registered with zero orders
       if (c.tier === 'Registered' && c.orderCount === 0) {
         return { ...c, status: 'Abandoned / Lead', isAbandoned: true };
       }
@@ -126,6 +185,7 @@ export default function CustomersPage() {
 
   const filteredCustomers = useMemo(() => {
     return unifiedCustomers.filter(customer => {
+      // 1. Basic Filters
       const search = searchQuery.toLowerCase();
       const matchesSearch = (
         customer.displayName?.toLowerCase().includes(search) ||
@@ -140,9 +200,52 @@ export default function CustomersPage() {
         (filterTier === 'abandoned' && customer.isAbandoned)
       );
 
-      return matchesSearch && matchesTier;
+      if (!matchesSearch || !matchesTier) return false;
+
+      // 2. Advanced Forensic Audit Logic
+      if (advName && !customer.displayName.toLowerCase().includes(advName.toLowerCase())) return false;
+      
+      if (advOrderNum) {
+        const hasOrder = Array.from(customer.orderIds as Set<string>).some(id => id.includes(advOrderNum.toUpperCase()));
+        if (!hasOrder) return false;
+      }
+
+      if (advPhone) {
+        const hasPhone = Array.from(customer.phones as Set<string>).some(p => p.includes(advPhone));
+        if (!hasPhone) return false;
+      }
+
+      if (advAddress) {
+        const hasAddress = Array.from(customer.addresses as Set<string>).some(a => a.includes(advAddress.toUpperCase()));
+        if (!hasAddress) return false;
+      }
+
+      if (advProduct) {
+        const hasProduct = Array.from(customer.productNames as Set<string>).some(p => p.includes(advProduct.toUpperCase()));
+        if (!hasProduct) return false;
+      }
+
+      if (advDateRange?.from) {
+        const createdDate = customer.createdAt?.toDate ? customer.createdAt.toDate() : new Date(customer.createdAt);
+        const start = startOfDay(advDateRange.from);
+        const end = advDateRange.to ? endOfDay(advDateRange.to) : endOfDay(advDateRange.from);
+        if (!isWithinInterval(createdDate, { start, end })) return false;
+      }
+
+      return true;
     });
-  }, [unifiedCustomers, searchQuery, filterTier]);
+  }, [unifiedCustomers, searchQuery, filterTier, advName, advOrderNum, advPhone, advAddress, advProduct, advDateRange]);
+
+  const handleResetAudit = () => {
+    setAdvName('');
+    setAdvOrderNum('');
+    setAdvPhone('');
+    setAdvAddress('');
+    setAdvProduct('');
+    setAdvDateRange(undefined);
+  };
+
+  const isAuditActive = advName || advOrderNum || advPhone || advAddress || advProduct || advDateRange;
 
   const formatDate = (date: any) => {
     if (!date) return 'N/A';
@@ -203,20 +306,20 @@ export default function CustomersPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
               <Input 
-                placeholder="Search archive manifest..." 
+                placeholder="Quick search (Name, Email, ID)..." 
                 className="pl-10 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex border rounded-md p-1 bg-white">
+            <div className="flex border rounded-md p-1 bg-white shadow-sm">
               {(['all', 'registered', 'guest', 'abandoned'] as const).map((tier) => (
                 <button
                   key={tier}
                   onClick={() => setFilterTier(tier)}
                   className={cn(
                     "px-4 py-1.5 text-[9px] font-bold uppercase tracking-widest transition-all rounded",
-                    filterTier === tier ? "bg-black text-white" : "text-gray-400 hover:text-black"
+                    filterTier === tier ? "bg-black text-white shadow-md" : "text-gray-400 hover:text-black"
                   )}
                 >
                   {tier}
@@ -224,15 +327,165 @@ export default function CustomersPage() {
               ))}
             </div>
           </div>
-          <Button variant="outline" className="h-10 border-[#e1e3e5] gap-2 font-bold uppercase tracking-widest text-[10px]">
-            <Filter className="h-3.5 w-3.5" /> Advanced Audit
-          </Button>
+
+          <Dialog open={isAuditOpen} onOpenChange={setIsAuditOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                className={cn(
+                  "h-10 border-[#e1e3e5] gap-2 font-bold uppercase tracking-widest text-[10px]",
+                  isAuditActive && "bg-blue-50 border-blue-200 text-blue-700"
+                )}
+              >
+                <Filter className="h-3.5 w-3.5" /> 
+                {isAuditActive ? 'Refining Audit' : 'Advanced Audit'}
+                {isAuditActive && <Badge className="ml-1 h-4 px-1.5 bg-blue-600 text-[8px]">ACTIVE</Badge>}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-xl bg-white border-none rounded-none shadow-2xl">
+              <DialogHeader className="pt-8 border-b pb-6">
+                <div className="flex items-center gap-3 text-primary mb-2">
+                  <Filter className="h-5 w-5 text-blue-600" />
+                  <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Forensic Audit Protocol</DialogTitle>
+                </div>
+                <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Orchestrate specific temporal and behavioral filters.</DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid grid-cols-2 gap-6 py-8">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <UserCircle className="h-3 w-3" /> Participant Name
+                  </Label>
+                  <Input 
+                    placeholder="Search by handle..." 
+                    value={advName}
+                    onChange={(e) => setAdvName(e.target.value)}
+                    className="h-11 uppercase text-[10px] font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Hash className="h-3 w-3" /> Forensic Order ID
+                  </Label>
+                  <Input 
+                    placeholder="e.g. #ORD-7721" 
+                    value={advOrderNum}
+                    onChange={(e) => setAdvOrderNum(e.target.value)}
+                    className="h-11 uppercase font-mono text-[10px]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Phone className="h-3 w-3" /> Phone Manifest
+                  </Label>
+                  <Input 
+                    placeholder="+1..." 
+                    value={advPhone}
+                    onChange={(e) => setAdvPhone(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <MapPin className="h-3 w-3" /> Delivery Address
+                  </Label>
+                  <Input 
+                    placeholder="Search locations..." 
+                    value={advAddress}
+                    onChange={(e) => setAdvAddress(e.target.value)}
+                    className="h-11 uppercase text-[10px] font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Tag className="h-3 w-3" /> Archival Product
+                  </Label>
+                  <Input 
+                    placeholder="Search piece name..." 
+                    value={advProduct}
+                    onChange={(e) => setAdvProduct(e.target.value)}
+                    className="h-11 uppercase text-[10px] font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <CalendarIcon className="h-3 w-3" /> Temporal Window
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full h-11 justify-start text-left font-bold uppercase text-[9px] tracking-widest border-gray-200",
+                          !advDateRange && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-3 w-3" />
+                        {advDateRange?.from ? (
+                          advDateRange.to ? (
+                            <>
+                              {format(advDateRange.from, "LLL dd")} - {format(advDateRange.to, "LLL dd")}
+                            </>
+                          ) : (
+                            format(advDateRange.from, "LLL dd")
+                          )
+                        ) : (
+                          <span>Registration Date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 border-none shadow-2xl" align="start">
+                      <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={advDateRange?.from}
+                        selected={advDateRange}
+                        onSelect={setAdvDateRange}
+                        numberOfMonths={2}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              <DialogFooter className="border-t pt-6 flex flex-row items-center justify-between gap-4">
+                <Button 
+                  variant="ghost" 
+                  className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground h-12"
+                  onClick={handleResetAudit}
+                >
+                  Reset Protocol
+                </Button>
+                <Button 
+                  className="flex-1 bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]"
+                  onClick={() => setIsAuditOpen(false)}
+                >
+                  Apply Audit Manifest
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
+
+        {isAuditActive && (
+          <div className="px-4 py-2 bg-blue-50 border-b border-blue-100 flex flex-wrap gap-2 items-center">
+            <span className="text-[9px] font-bold text-blue-700 uppercase tracking-widest mr-2">Active Audit:</span>
+            {advName && <Badge variant="secondary" className="bg-white border-blue-200 text-blue-700 text-[8px] uppercase">Name: {advName}</Badge>}
+            {advOrderNum && <Badge variant="secondary" className="bg-white border-blue-200 text-blue-700 text-[8px] uppercase font-mono">Order: {advOrderNum}</Badge>}
+            {advPhone && <Badge variant="secondary" className="bg-white border-blue-200 text-blue-700 text-[8px] uppercase">Phone: {advPhone}</Badge>}
+            {advAddress && <Badge variant="secondary" className="bg-white border-blue-200 text-blue-700 text-[8px] uppercase">Location: {advAddress}</Badge>}
+            {advProduct && <Badge variant="secondary" className="bg-white border-blue-200 text-blue-700 text-[8px] uppercase">Product: {advProduct}</Badge>}
+            {advDateRange?.from && <Badge variant="secondary" className="bg-white border-blue-200 text-blue-700 text-[8px] uppercase">Temporal Window Active</Badge>}
+            <button onClick={handleResetAudit} className="ml-auto text-[9px] font-bold text-blue-700 hover:underline uppercase tracking-tighter flex items-center gap-1">
+              <X className="h-3 w-3" /> Clear Audit
+            </button>
+          </div>
+        )}
 
         <Table>
           <TableHeader className="bg-[#f6f6f7]">
             <TableRow className="border-[#e1e3e5]">
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4">Participant Identity</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 pl-6">Participant Identity</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Contact Manifest</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Archival Entry</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Purchase Profile</TableHead>
@@ -256,9 +509,9 @@ export default function CustomersPage() {
             ) : (
               filteredCustomers.map((customer) => (
                 <TableRow key={customer.id} className="hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group">
-                  <TableCell>
+                  <TableCell className="pl-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
                         {customer.photoURL ? (
                           <img src={customer.photoURL} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -266,7 +519,7 @@ export default function CustomersPage() {
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold uppercase tracking-tight">{customer.displayName}</span>
+                        <span className="text-sm font-bold uppercase tracking-tight text-primary">{customer.displayName}</span>
                         <span className="text-[9px] font-mono text-gray-400 uppercase">ID: {customer.id.substring(0, 8)}...</span>
                       </div>
                     </div>
@@ -282,7 +535,7 @@ export default function CustomersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase">
-                      <Calendar className="h-3 w-3" />
+                      <CalendarIcon className="h-3 w-3" />
                       {formatDate(customer.createdAt)}
                     </div>
                   </TableCell>
@@ -296,7 +549,7 @@ export default function CustomersPage() {
                     <Badge 
                       variant="secondary" 
                       className={cn(
-                        "uppercase text-[9px] font-bold border-none",
+                        "uppercase text-[9px] font-bold border-none px-3",
                         customer.isAbandoned ? "bg-purple-50 text-purple-700" : 
                         customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" :
                         "bg-blue-50 text-blue-700"
@@ -305,23 +558,23 @@ export default function CustomersPage() {
                       {customer.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="pr-6">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4 text-gray-400" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 bg-white border-black/10">
+                      <DropdownMenuContent align="end" className="w-48 bg-white border-black/10 shadow-xl rounded-none animate-in fade-in slide-in-from-top-2 duration-300">
                         <DropdownMenuLabel className="text-[10px] uppercase font-bold text-gray-400">Management</DropdownMenuLabel>
-                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer">
+                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer hover:bg-gray-50 py-3">
                           <ArrowRight className="h-3 w-3 mr-2" /> View Profile
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer">
+                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer hover:bg-gray-50 py-3">
                           <ShoppingBag className="h-3 w-3 mr-2" /> Order History
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer text-red-600">
+                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer text-red-600 hover:bg-red-50 py-3">
                           Suspend Access
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -339,14 +592,14 @@ export default function CustomersPage() {
 
 function StatsCard({ title, value, label, icon }: { title: string, value: string, label: string, icon: React.ReactNode }) {
   return (
-    <Card className="border-[#e1e3e5] shadow-none">
+    <Card className="border-[#e1e3e5] shadow-none rounded-none hover:border-black transition-colors group">
       <CardHeader className="pb-2">
-        <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
+        <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2 group-hover:text-primary transition-colors">
           {icon} {title}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-[#1a1c1e]">{value}</div>
+        <div className="text-2xl font-bold text-[#1a1c1e] tracking-tight">{value}</div>
         <p className="text-[9px] font-bold uppercase text-[#8c9196] mt-1">{label}</p>
       </CardContent>
     </Card>
