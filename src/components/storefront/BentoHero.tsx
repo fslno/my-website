@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface BentoHeroProps {
   isLoading: boolean;
@@ -23,16 +23,7 @@ export function BentoHero({
   fallbackImageUrl
 }: BentoHeroProps) {
   if (isLoading) {
-    return (
-      <section className="pt-24 pb-12">
-        <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 border border-dashed">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Syncing Collection...</p>
-          </div>
-        </div>
-      </section>
-    );
+    return <section className="pt-24 pb-12"><div className="w-full h-[70vh] bg-gray-50" /></section>;
   }
 
   const imageSrc = heroImageUrl || fallbackImageUrl || "https://picsum.photos/seed/hero/1200/800";

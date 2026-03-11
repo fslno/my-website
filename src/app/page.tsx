@@ -97,11 +97,7 @@ export default function Home() {
             <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight text-primary">Shop by Category</h2>
           </div>
           
-          {categoriesLoading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : !categories || categories.length === 0 ? (
+          {!categories || categories.length === 0 ? (
             <div className="py-10 text-center border border-dashed rounded bg-gray-50">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Categories coming soon.</p>
             </div>
@@ -144,11 +140,7 @@ export default function Home() {
             </div>
           </div>
           
-          {productsLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : !products || products.length === 0 ? (
+          {!products || products.length === 0 ? (
             <div className="text-center py-20 border border-dashed rounded-xl bg-gray-50/50">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Our store is currently being updated.</p>
             </div>

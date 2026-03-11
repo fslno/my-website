@@ -337,15 +337,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Authoritatively restricted to strictly UID 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
   const isAdmin = user && user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
-  if (loading || !hasMounted) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f6f6f7]">
-        <div className="flex flex-col items-center gap-4">
-          <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-widest text-[10px]">Initializing Studio Shell...</p>
-        </div>
-      </div>
-    );
+  if (!hasMounted) {
+    return <div className="min-h-screen bg-[#f6f6f7]" />;
+  }
+
+  if (loading) {
+    return <div className="min-h-screen bg-[#f6f6f7]" />;
   }
 
   if (!user || !isAdmin) {
