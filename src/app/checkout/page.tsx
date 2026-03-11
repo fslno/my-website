@@ -54,6 +54,8 @@ import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { Header } from '@/components/storefront/Header';
+import { Footer } from '@/components/storefront/Footer';
 
 type DeliveryMethod = 'shipping' | 'pickup';
 
@@ -307,12 +309,16 @@ export default function CheckoutPage() {
 
   if (cartCount === 0 && !showSuccessDialog) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
-        <Package className="h-12 w-12 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-headline font-bold mb-4 uppercase text-primary">Your cart is empty</h1>
-        <Button asChild className="bg-primary text-primary-foreground h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out">
-          <Link href="/">Shop Now</Link>
-        </Button>
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center p-4 text-center pt-40 pb-20">
+          <Package className="h-12 w-12 text-muted-foreground mb-4" />
+          <h1 className="text-2xl font-headline font-bold mb-4 uppercase text-primary">Your cart is empty</h1>
+          <Button asChild className="bg-primary text-primary-foreground h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out">
+            <Link href="/">Shop Now</Link>
+          </Button>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -321,15 +327,9 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-[#F9F9F9] flex flex-col">
-      <header className="h-20 bg-white border-b flex items-center px-4 lg:px-12 sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2 group text-primary">
-          <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Back to Shop</span>
-        </Link>
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-2xl font-headline font-bold tracking-tighter text-primary">CHECKOUT</h1>
-      </header>
+      <Header />
 
-      <div className="max-w-[1440px] mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12">
+      <div className="pt-32 max-w-[1440px] mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12">
         <div className="lg:col-span-7 p-6 lg:p-12 space-y-12">
           
           <section className="space-y-6">
@@ -836,6 +836,8 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      <Footer />
 
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-0 overflow-hidden">
