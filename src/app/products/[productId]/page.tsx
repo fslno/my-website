@@ -19,7 +19,8 @@ import {
   Share2, 
   Ruler, 
   Check,
-  ChevronLeft
+  ChevronLeft,
+  Loader2
 } from 'lucide-react';
 import {
   Sheet,
@@ -61,7 +62,7 @@ export default function ProductDetailPage(props: {
     [db, productId]
   );
   
-  const { data: product, loading } = useDoc(productRef);
+  const { data: product, isLoading: loading } = useDoc(productRef);
 
   // Fetch Category to get Size Guide ID
   const categoryRef = useMemoFirebase(() => 
@@ -200,7 +201,11 @@ export default function ProductDetailPage(props: {
   };
 
   if (loading) {
-    return <main className="min-h-screen bg-white" />;
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      </main>
+    );
   }
 
   if (!product) {

@@ -48,7 +48,8 @@ export function useCollection<T = any>(
   type StateDataType = ResultItemType[] | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Authoritatively initialize to true if a ref is provided to prevent flickering empty states
+  const [isLoading, setIsLoading] = useState<boolean>(!!memoizedTargetRefOrQuery);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
@@ -60,6 +61,8 @@ export function useCollection<T = any>(
     }
 
     setIsLoading(true);
+    // CRITICAL: Clear stale data from previous query to prevent 'old page' artifacts
+    setData(null); 
     setError(null);
 
     const unsubscribe = onSnapshot(

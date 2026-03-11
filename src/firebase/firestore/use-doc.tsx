@@ -34,7 +34,8 @@ export function useDoc<T = any>(
   type StateDataType = WithId<T> | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Authoritatively initialize to true if a ref is provided to prevent premature 'Not Found' states
+  const [isLoading, setIsLoading] = useState<boolean>(!!memoizedDocRef);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
@@ -46,6 +47,8 @@ export function useDoc<T = any>(
     }
 
     setIsLoading(true);
+    // CRITICAL: Clear stale data from previous ref to prevent 'old page' artifacts
+    setData(null); 
     setError(null);
 
     const unsubscribe = onSnapshot(

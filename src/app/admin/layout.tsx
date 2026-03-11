@@ -27,7 +27,8 @@ import {
   TicketPercent,
   MailWarning,
   ShieldAlert,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  Loader2
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -397,12 +398,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Authoritatively restricted to strictly UID 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
   const isAdmin = user && user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
-  if (!hasMounted) {
-    return <div className="min-h-screen bg-[#f6f6f7]" />;
-  }
-
-  if (loading) {
-    return <div className="min-h-screen bg-[#f6f6f7]" />;
+  if (!hasMounted || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f6f6f7]">
+        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      </div>
+    );
   }
 
   if (!user || !isAdmin) {

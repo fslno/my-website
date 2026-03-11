@@ -8,7 +8,7 @@ import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 
 export default function CollectionPage(props: { 
   params: Promise<{ categoryId: string }>,
@@ -46,7 +46,11 @@ export default function CollectionPage(props: {
   const isLoading = (categoryId !== 'all' && categoryLoading) || productsLoading;
 
   if (isLoading) {
-    return <main className="min-h-screen bg-background"><Header /></main>;
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      </main>
+    );
   }
 
   return (
