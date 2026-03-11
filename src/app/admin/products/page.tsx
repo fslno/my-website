@@ -31,7 +31,9 @@ import {
   Edit2,
   CheckCircle2,
   Info,
-  Settings2
+  Settings2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -510,6 +512,22 @@ export default function ProductsPage() {
     setIsDialogOpen(true);
   };
 
+  const TABS_ORDER = ['general', 'inventory', 'seo', 'logistics'];
+
+  const handleNextTab = () => {
+    const currentIndex = TABS_ORDER.indexOf(activeTab);
+    if (currentIndex < TABS_ORDER.length - 1) {
+      setActiveTab(TABS_ORDER[currentIndex + 1]);
+    }
+  };
+
+  const handlePrevTab = () => {
+    const currentIndex = TABS_ORDER.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setActiveTab(TABS_ORDER[currentIndex - 1]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -684,8 +702,35 @@ export default function ProductsPage() {
                 </TabsContent>
               </div>
               <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="h-11 px-6 font-bold uppercase tracking-widest text-[10px] border-black">Cancel</Button>
-                <Button onClick={handleSaveProduct} disabled={isSaving || !name || !price || !categoryId} className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl">{isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}{editingId ? 'Update Entry' : 'Commit to Archive'}</Button>
+                <div className="flex gap-2">
+                  {activeTab !== 'general' && (
+                    <Button 
+                      variant="outline" 
+                      onClick={handlePrevTab} 
+                      className="h-11 px-6 font-bold uppercase tracking-widest text-[10px] border-black gap-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" /> Previous
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  {activeTab !== 'logistics' ? (
+                    <Button 
+                      onClick={handleNextTab} 
+                      className="h-11 px-8 bg-black text-white font-bold uppercase tracking-widest text-[10px] gap-2"
+                    >
+                      Next Step <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={handleSaveProduct} 
+                      disabled={isSaving || !name || !price || !categoryId} 
+                      className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl"
+                    >
+                      {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}{editingId ? 'Update Entry' : 'Commit to Archive'}
+                    </Button>
+                  )}
+                </div>
               </DialogFooter>
             </Tabs>
           </DialogContent>
