@@ -28,7 +28,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Hash,
-  Scale
+  Scale,
+  Percent,
+  MessageSquare
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -54,16 +56,24 @@ export default function PaymentsPage() {
       stripeMode: 'test',
       stripePublishableKey: 'pk_test_fslno_sample_key',
       stripeSecretKey: 'sk_test_fslno_sample_key',
+      stripeDescription: 'Secure Credit Card Checkout',
+      stripeFee: '2.9% + 30¢',
       paypalEnabled: true,
       paypalMode: 'sandbox',
       paypalClientId: 'fslno_sandbox_client_id',
+      paypalDescription: 'Global Digital Wallet',
+      paypalFee: '3.49% + 49¢',
       paypalPayLaterEnabled: true,
       klarnaEnabled: false,
       klarnaClientId: '',
       klarnaClientSecret: '',
+      klarnaDescription: 'Interest-free installments',
+      klarnaFee: '5.99% + 30¢',
       afterpayEnabled: false,
       afterpayMerchantId: '',
       afterpaySecretKey: '',
+      afterpayDescription: 'Buy now, pay later',
+      afterpayFee: '6% + 30¢',
       adyenEnabled: false,
       adyenMerchantAccount: '',
       adyenApiKey: '',
@@ -182,6 +192,41 @@ export default function PaymentsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                        <div className="relative">
+                          <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            value={config.stripeDescription} 
+                            onChange={(e) => handleUpdate({ stripeDescription: e.target.value })}
+                            className="pl-10 text-xs font-bold uppercase" 
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                        <div className="relative">
+                          <Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            value={config.stripeFee} 
+                            onChange={(e) => handleUpdate({ stripeFee: e.target.value })}
+                            className="pl-10 text-xs font-mono" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col justify-end p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-blue-800 uppercase tracking-widest mb-1">Fee Transparency</p>
+                      <p className="text-[10px] text-blue-700 leading-relaxed">
+                        Standard Stripe fees typically range from 2.9% + 30¢. This is Authoritatively tracked for archival margin analysis.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Separator />
+
                   <div className="flex gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
                     <div className="flex-1 space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
@@ -229,6 +274,141 @@ export default function PaymentsPage() {
                           className="pl-10 font-mono text-xs h-11" 
                         />
                       </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="paypal" className="m-0 space-y-6">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="bg-gray-50/50 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-5 w-5 text-[#0070BA]" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">PayPal Express Checkout</CardTitle>
+                    </div>
+                    <Switch 
+                      checked={config.paypalEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ paypalEnabled: checked })}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                        <Input 
+                          value={config.paypalDescription} 
+                          onChange={(e) => handleUpdate({ paypalDescription: e.target.value })}
+                          className="text-xs font-bold uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                        <Input 
+                          value={config.paypalFee} 
+                          onChange={(e) => handleUpdate({ paypalFee: e.target.value })}
+                          className="text-xs font-mono" 
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-blue-800 uppercase mb-1">Gateway Insights</p>
+                      <p className="text-[10px] text-blue-700 leading-relaxed uppercase tracking-tight">
+                        PayPal typically applies a 3.49% + 49¢ fee structure for high-fidelity archival transactions.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="klarna" className="m-0 space-y-6">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="bg-gray-50/50 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Coins className="h-5 w-5 text-[#FFB3C7]" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Klarna BNPL (v2)</CardTitle>
+                    </div>
+                    <Switch 
+                      checked={config.klarnaEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ klarnaEnabled: checked })}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                        <Input 
+                          value={config.klarnaDescription} 
+                          onChange={(e) => handleUpdate({ klarnaDescription: e.target.value })}
+                          className="text-xs font-bold uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                        <Input 
+                          value={config.klarnaFee} 
+                          onChange={(e) => handleUpdate({ klarnaFee: e.target.value })}
+                          className="text-xs font-mono" 
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-pink-50/50 border border-pink-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-pink-800 uppercase mb-1">BNPL Protocol</p>
+                      <p className="text-[10px] text-pink-700 leading-relaxed uppercase tracking-tight">
+                        BNPL fees are generally higher (~5.99%) due to Authoritative credit risk handling by Klarna.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="afterpay" className="m-0 space-y-6">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="bg-gray-50/50 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <History className="h-5 w-5 text-[#B2FCE4]" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Afterpay Installments</CardTitle>
+                    </div>
+                    <Switch 
+                      checked={config.afterpayEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ afterpayEnabled: checked })}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                        <Input 
+                          value={config.afterpayDescription} 
+                          onChange={(e) => handleUpdate({ afterpayDescription: e.target.value })}
+                          className="text-xs font-bold uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                        <Input 
+                          value={config.afterpayFee} 
+                          onChange={(e) => handleUpdate({ afterpayFee: e.target.value })}
+                          className="text-xs font-mono" 
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Split Payment Margin</p>
+                      <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight">
+                        Afterpay applies ~6.0% commission for high-fidelity split-payment orchestration.
+                      </p>
                     </div>
                   </div>
                 </CardContent>
