@@ -31,7 +31,9 @@ import {
   Upload,
   ArrowUpDown,
   Edit2,
-  CheckCircle2
+  CheckCircle2,
+  Info,
+  Settings2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -46,9 +48,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -97,7 +100,6 @@ export default function ProductsPage() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [comparedPrice, setComparedPrice] = useState('');
-  const [customizationFee, setCustomizationFee] = useState('');
   const [brand, setBrand] = useState('');
   const [sku, setSku] = useState('');
   const [sizeFit, setSizeFit] = useState('');
@@ -105,6 +107,10 @@ export default function ProductsPage() {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   
+  // Customization State
+  const [customizationEnabled, setCustomizationEnabled] = useState(false);
+  const [customizationFee, setCustomizationFee] = useState('10');
+
   const [variants, setVariants] = useState<Variant[]>([
     { size: 'XS', stock: 0, sku: '' },
     { size: 'S', stock: 0, sku: '' },
@@ -203,8 +209,9 @@ export default function ProductsPage() {
 
   const handleBulkDelete = async () => {
     if (!db || selectedIds.length === 0) return;
-    if (!confirm(`Are you sure you want to permanently remove ${selectedIds.length} entries from the archive?`)) return;
+    if (!confirm(`Are you sure you want to permanently delete these ${selectedIds.length} archival entries?`)) return;
 
+    setIsSaving(true);
     const batch = writeBatch(db);
     selectedIds.forEach(id => {
       batch.delete(doc(db, 'products', id));
@@ -213,11 +220,29 @@ export default function ProductsPage() {
     batch.commit()
       .then(() => {
         setSelectedIds([]);
-        toast({ title: "Archive Updated", description: `${selectedIds.length} items have been removed.` });
+        toast({ title: "Archive Updated", description: "Selected entries have been Authoritatively removed." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: 'products',
+          operation: 'delete'
+        }));
+      })
+      .finally(() => setIsSaving(false));
+  };
+
+  const handleDeleteSingle = (id: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!db) return;
+    if (!confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
+
+    deleteDoc(doc(db, 'products', id))
+      .then(() => {
+        toast({ title: "Product Deleted", description: "Entry has been decommissioned from the archive." });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `products/${id}`,
           operation: 'delete'
         }));
       });
@@ -422,12 +447,13 @@ export default function ProductsPage() {
       description,
       price: parseFloat(price),
       comparedPrice: comparedPrice ? parseFloat(comparedPrice) : null,
-      customizationFee: customizationFee ? parseFloat(customizationFee) : 0,
       brand,
       sku,
       sizeFit,
       badge,
       categoryId,
+      customizationEnabled,
+      customizationFee: customizationEnabled ? parseFloat(customizationFee) : 0,
       inventory: totalInventory,
       variants,
       media,
@@ -483,7 +509,8 @@ export default function ProductsPage() {
   };
 
   const resetForm = () => {
-    setName(''); setPrice(''); setComparedPrice(''); setCustomizationFee(''); setBrand(''); setSku(''); setSizeFit(''); setBadge('none'); setDescription(''); setCategoryId('');
+    setName(''); setPrice(''); setComparedPrice(''); setBrand(''); setSku(''); setSizeFit(''); setBadge('none'); setDescription(''); setCategoryId('');
+    setCustomizationEnabled(false); setCustomizationFee('10');
     setVariants([{ size: 'XS', stock: 0, sku: '' }, { size: 'S', stock: 0, sku: '' }, { size: 'M', stock: 0, sku: '' }, { size: 'L', stock: 0, sku: '' }, { size: 'XL', stock: 0, sku: '' }]);
     setMedia([]); setFeatures(''); setSeoTitle(''); setSeoDescription(''); setSeoHandle(''); setWeight(''); setLength(''); setWidth(''); setHeight(''); setActiveTab('general');
     setEditingId(null);
@@ -493,13 +520,14 @@ export default function ProductsPage() {
     setName(product.name || '');
     setPrice(String(product.price || ''));
     setComparedPrice(String(product.comparedPrice || ''));
-    setCustomizationFee(String(product.customizationFee || ''));
     setBrand(product.brand || '');
     setSku(product.sku || '');
     setSizeFit(product.sizeFit || '');
     setBadge(product.badge || 'none');
     setDescription(product.description || '');
     setCategoryId(product.categoryId || '');
+    setCustomizationEnabled(product.customizationEnabled ?? false);
+    setCustomizationFee(String(product.customizationFee ?? '10'));
     setVariants(product.variants || []);
     setMedia(product.media || []);
     setFeatures(product.features?.join(', ') || '');
@@ -542,7 +570,7 @@ export default function ProductsPage() {
               <div className="px-6 border-b bg-gray-50/50 shrink-0">
                 <TabsList className="bg-transparent h-14 p-0 gap-8">
                   {[
-                    { id: 'general', label: '01. General & Media', icon: LayoutGrid },
+                    { id: 'general', label: '01. General & Identity', icon: LayoutGrid },
                     { id: 'inventory', label: '02. Inventory & Sizes', icon: Layers },
                     { id: 'seo', label: '03. SEO Settings', icon: Globe },
                     { id: 'logistics', label: '04. Logistics', icon: Truck },
@@ -568,61 +596,130 @@ export default function ProductsPage() {
                     </button>
                     <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,video/*" onChange={handleMediaUpload} />
                   </div>
-                  <section className="space-y-8 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
+
+                  <section className="space-y-8 bg-gray-50/50 p-8 rounded-xl border border-gray-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Info className="h-4 w-4 text-gray-400" />
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Essential Attributes</h3>
+                    </div>
                     <div className="grid gap-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Name</Label><Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Attribution</Label><Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Name</Label><Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Attribution</Label><Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} className="h-12 bg-white" /></div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sale Price ($)</Label><Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Compared Price ($)</Label><Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sale Price ($)</Label><Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} className="h-12 bg-white font-mono" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Compared Price ($)</Label><Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} className="h-12 bg-white font-mono" /></div>
                         <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Collection / Category</Label>
                           <Select value={categoryId} onValueChange={setCategoryId}>
-                            <SelectTrigger><SelectValue placeholder="Link to a collection..." /></SelectTrigger>
+                            <SelectTrigger className="h-12 bg-white"><SelectValue placeholder="Link to a collection..." /></SelectTrigger>
                             <SelectContent>{categories?.map((cat: any) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent>
                           </Select>
                         </div>
                       </div>
+                      
+                      <Separator className="my-2" />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size & Fit Context</Label>
+                          <Input 
+                            placeholder="e.g. Fits true to size, sculpted silhouette" 
+                            value={sizeFit} 
+                            onChange={(e) => setSizeFit(e.target.value)} 
+                            className="h-12 bg-white"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Ribbon / Badge</Label>
+                          <Select value={badge} onValueChange={setBadge}>
+                            <SelectTrigger className="h-12 bg-white"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none" className="text-[10px] font-bold uppercase">No Ribbon</SelectItem>
+                              <SelectItem value="NEW DROP" className="text-[10px] font-bold uppercase">New Drop</SelectItem>
+                              <SelectItem value="LIMITED" className="text-[10px] font-bold uppercase">Limited Selection</SelectItem>
+                              <SelectItem value="RESTOCK" className="text-[10px] font-bold uppercase">Archive Restock</SelectItem>
+                              <SelectItem value="ARCHIVE" className="text-[10px] font-bold uppercase">Archival Piece</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
                       <div className="space-y-4 pt-4 border-t">
-                        <div className="flex justify-between items-center"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Narrative</Label><Button variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating || !name} className="h-8 gap-2 uppercase tracking-widest font-bold text-[10px]">{isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} AI Generate</Button></div>
-                        <Textarea className="h-32 resize-none" placeholder="Craft a story..." value={description} onChange={(e) => setDescription(e.target.value)} />
+                        <div className="flex justify-between items-center"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Narrative</Label><Button variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating || !name} className="h-8 gap-2 uppercase tracking-widest font-bold text-[10px] border-black">{isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} AI Generate</Button></div>
+                        <Textarea className="h-32 resize-none bg-white p-4" placeholder="Craft a story for this archive piece..." value={description} onChange={(e) => setDescription(e.target.value)} />
                       </div>
                     </div>
                   </section>
+
+                  <section className="bg-blue-50/30 p-8 rounded-xl border border-blue-100 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Settings2 className="h-4 w-4 text-blue-600" />
+                          <h3 className="text-sm font-bold uppercase tracking-widest text-blue-900">Archive Customization Protocol</h3>
+                        </div>
+                        <p className="text-[10px] uppercase font-bold text-blue-700 tracking-tight">Allow customers to Authoritatively personalize this selection at checkout.</p>
+                      </div>
+                      <Switch 
+                        checked={customizationEnabled} 
+                        onCheckedChange={setCustomizationEnabled} 
+                        className="data-[state=checked]:bg-blue-600"
+                      />
+                    </div>
+
+                    {customizationEnabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-blue-800">Customization Fee ($)</Label>
+                          <Input 
+                            type="number" 
+                            value={customizationFee} 
+                            onChange={(e) => setCustomizationFee(e.target.value)} 
+                            className="h-12 bg-white border-blue-200 font-mono"
+                          />
+                        </div>
+                        <div className="flex items-center p-4 bg-white/50 border border-blue-100 rounded-lg">
+                          <p className="text-[10px] text-blue-800 leading-relaxed uppercase font-medium">
+                            Enabling this Authoritatively surfaces Name, Number, and Special Request fields on the product detail page for a flat fee.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </section>
                 </TabsContent>
                 <TabsContent value="inventory" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                  <div className="bg-black text-white p-6 rounded-xl flex justify-between items-center">
+                  <div className="bg-black text-white p-6 rounded-xl flex justify-between items-center shadow-xl">
                     <div><p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total Available Units</p><p className="text-3xl font-bold font-headline">{totalInventory} PCS</p></div>
-                    <div className="text-right"><Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Universal SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1" /></div>
+                    <div className="text-right"><Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Universal SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1 text-right h-11" /></div>
                   </div>
                   <div className="grid gap-4">
                     {variants.map((v, i) => (
-                      <div key={i} className="flex items-center gap-4 p-4 border rounded-xl bg-white shadow-sm">
-                        <div className="w-20"><Label className="text-[9px] uppercase font-bold text-gray-400">Size</Label><Input value={v.size} onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)} className="h-9" /></div>
-                        <div className="flex-1"><Label className="text-[9px] uppercase font-bold text-gray-400">Variant SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-9 font-mono text-xs" /></div>
-                        <div className="w-32"><Label className="text-[9px] uppercase font-bold text-gray-400">Units in Stock</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-9" /></div>
+                      <div key={i} className="flex items-center gap-4 p-4 border rounded-xl bg-white shadow-sm hover:border-black transition-colors group">
+                        <div className="w-20"><Label className="text-[9px] uppercase font-bold text-gray-400">Size</Label><Input value={v.size} onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)} className="h-10 font-bold uppercase" /></div>
+                        <div className="flex-1"><Label className="text-[9px] uppercase font-bold text-gray-400">Variant SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-10 font-mono text-xs" /></div>
+                        <div className="w-32"><Label className="text-[9px] uppercase font-bold text-gray-400">Units in Stock</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-10" /></div>
                       </div>
                     ))}
                   </div>
                 </TabsContent>
                 <TabsContent value="seo" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="space-y-6">
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Custom SEO Title</Label><Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} /></div>
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Meta Description</Label><Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} /></div>
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">URL Handle</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-xs text-gray-400">fslno.com/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0" /></div></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Custom SEO Title</Label><Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className="h-12 bg-white" /></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Meta Description</Label><Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} className="min-h-[120px] bg-white" /></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">URL Handle</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-xs text-gray-400">fslno.com/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0 h-12" /></div></div>
                   </div>
                 </TabsContent>
                 <TabsContent value="logistics" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Weight (kg)</Label><Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} /></div>
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Shipping Class</Label><Select value={shippingClass} onValueChange={setShippingClass}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="standard">Standard Dispatch</SelectItem><SelectItem value="heavy">Heavy Goods</SelectItem><SelectItem value="fragile">White Glove Service</SelectItem></SelectContent></Select></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Weight (kg)</Label><Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="h-12 bg-white" /></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Shipping Class</Label><Select value={shippingClass} onValueChange={setShippingClass}><SelectTrigger className="h-12 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="standard">Standard Dispatch</SelectItem><SelectItem value="heavy">Heavy Goods</SelectItem><SelectItem value="fragile">White Glove Service</SelectItem></SelectContent></Select></div>
                   </div>
                 </TabsContent>
               </div>
               <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="h-11 px-6 font-bold uppercase tracking-widest text-[10px]">Cancel</Button>
-                <Button onClick={handleSaveProduct} disabled={isSaving || !name || !price || !categoryId} className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px]">{isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}{editingId ? 'Update Entry' : 'Commit to Archive'}</Button>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="h-11 px-6 font-bold uppercase tracking-widest text-[10px] border-black">Cancel</Button>
+                <Button onClick={handleSaveProduct} disabled={isSaving || !name || !price || !categoryId} className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl">{isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}{editingId ? 'Update Entry' : 'Commit to Archive'}</Button>
               </DialogFooter>
             </Tabs>
           </DialogContent>
@@ -675,7 +772,10 @@ export default function ProductsPage() {
                 </DialogContent>
               </Dialog>
 
-              <Button variant="destructive" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDelete} className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2"><Trash2 className="h-3.5 w-3.5" /> Remove</Button>
+              <Button variant="destructive" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDelete} className="h-9 text-[10px] font-bold uppercase tracking-widest gap-2">
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                Delete {selectedIds.length > 0 && `(${selectedIds.length})`}
+              </Button>
             </div>
             <div className="flex items-center gap-2">
               <input type="file" ref={csvImportRef} className="hidden" accept=".csv" onChange={handleImportCSV} />
@@ -741,7 +841,7 @@ export default function ProductsPage() {
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Collection</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Total Stock</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Price</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -771,7 +871,21 @@ export default function ProductsPage() {
                     <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
                     <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
                     <TableCell className="text-sm font-semibold">${formatCurrency(Number(product.price))}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}><button className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4 text-[#5c5f62]" /></button></TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity pr-4">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 hover:bg-red-50" 
+                          onClick={(e) => handleDeleteSingle(product.id, product.name, e)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4 text-[#5c5f62]" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 );
               })
