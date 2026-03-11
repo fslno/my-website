@@ -411,6 +411,61 @@ export default function OrderDetailPage({
 
       <div className="flex flex-col xl:flex-row gap-8 print:hidden">
         <div className="flex-1 space-y-8">
+          {/* Logistics Tracing - Moved to main column */}
+          {order.deliveryMethod === 'shipping' && (
+            <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
+              <CardHeader className="bg-blue-50/30 border-b py-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2">
+                    <Truck className="h-3 w-3" /> Logistics Tracing
+                  </CardTitle>
+                  {order.trackingNumber && (
+                    <a 
+                      href={aftershipUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[9px] font-bold uppercase text-blue-700 hover:underline flex items-center gap-1"
+                    >
+                      AfterShip <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase font-bold text-gray-400">Tracking Number</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input 
+                        placeholder="ENTER LOGISTICS ID" 
+                        value={trackingNumber}
+                        onChange={(e) => setTrackingNumber(e.target.value)}
+                        className="h-11 bg-white border-blue-200 text-black text-xs font-mono uppercase pl-9"
+                      />
+                      <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-300" />
+                    </div>
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      className="h-11 w-11 border-blue-200 bg-white hover:bg-blue-50 text-blue-600"
+                      onClick={() => setIsScannerOpen(true)}
+                    >
+                      <ScanBarcode className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleSaveTracking} 
+                  disabled={isSavingTracking || trackingNumber === order.trackingNumber}
+                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold uppercase tracking-widest transition-all"
+                >
+                  {isSavingTracking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                  Commit Tracking
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="border-[#e1e3e5] shadow-none bg-white">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Order Management</CardTitle>
@@ -590,60 +645,6 @@ export default function OrderDetailPage({
         </div>
 
         <div className="w-full xl:w-[320px] space-y-8 print:hidden">
-          {order.deliveryMethod === 'shipping' && (
-            <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
-              <CardHeader className="bg-blue-50/30 border-b py-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2">
-                    <Truck className="h-3 w-3" /> Logistics Tracing
-                  </CardTitle>
-                  {order.trackingNumber && (
-                    <a 
-                      href={aftershipUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-[9px] font-bold uppercase text-blue-700 hover:underline flex items-center gap-1"
-                    >
-                      AfterShip <ExternalLink className="h-2.5 w-2.5" />
-                    </a>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-400">Tracking Number</Label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Input 
-                        placeholder="ENTER LOGISTICS ID" 
-                        value={trackingNumber}
-                        onChange={(e) => setTrackingNumber(e.target.value)}
-                        className="h-11 bg-white border-blue-200 text-black text-xs font-mono uppercase pl-9"
-                      />
-                      <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-300" />
-                    </div>
-                    <Button 
-                      size="icon" 
-                      variant="outline" 
-                      className="h-11 w-11 border-blue-200 bg-white hover:bg-blue-50 text-blue-600"
-                      onClick={() => setIsScannerOpen(true)}
-                    >
-                      <ScanBarcode className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-                <Button 
-                  onClick={handleSaveTracking} 
-                  disabled={isSavingTracking || trackingNumber === order.trackingNumber}
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold uppercase tracking-widest transition-all"
-                >
-                  {isSavingTracking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                  Commit Tracking
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
