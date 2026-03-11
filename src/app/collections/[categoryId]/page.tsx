@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
@@ -8,9 +8,15 @@ import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
 
-export default function CollectionPage({ params }: { params: Promise<{ categoryId: string }> }) {
-  const { categoryId } = use(params);
+export default function CollectionPage(props: { 
+  params: Promise<{ categoryId: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const params = React.use(props.params);
+  const searchParams = React.use(props.searchParams);
+  const { categoryId } = params;
   
   const db = useFirestore();
 
@@ -93,7 +99,7 @@ export default function CollectionPage({ params }: { params: Promise<{ categoryI
                   id={product.id}
                   name={product.name}
                   price={`$${formatCurrency(Number(product.price))} CAD`}
-                  image={product.media?.[0]?.url || ''} // strictly removed random fallback
+                  image={product.media?.[0]?.url || ''}
                   category={category?.name || product.brand || 'FSLNO Archive'}
                 />
               ))}
@@ -104,11 +110,5 @@ export default function CollectionPage({ params }: { params: Promise<{ categoryI
 
       <Footer />
     </main>
-  );
-}
-
-function ChevronLeft({ className }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m15 18-6-6 6-6"/></svg>
   );
 }

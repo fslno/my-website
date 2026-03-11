@@ -1,34 +1,33 @@
-
 {
   "placeholderImages": [
     {
       "id": "hero-main",
       "description": "Luxury fashion editorial portrait",
-      "imageUrl": "https://picsum.photos/seed/lux1/1200/800",
+      "imageUrl": "https://placehold.co/1200x800?text=FSLNO+EDITORIAL",
       "imageHint": "fashion editorial luxury"
     },
     {
       "id": "collection-1",
       "description": "Minimalist accessory detail",
-      "imageUrl": "https://picsum.photos/seed/lux2/600/800",
+      "imageUrl": "https://placehold.co/600x800?text=COLLECTION+01",
       "imageHint": "minimalist accessory"
     },
     {
       "id": "collection-2",
       "description": "High-end texture fabric",
-      "imageUrl": "https://picsum.photos/seed/lux3/600/800",
+      "imageUrl": "https://placehold.co/600x800?text=COLLECTION+02",
       "imageHint": "luxury fabric"
     },
     {
       "id": "product-1",
       "description": "Architectural fashion piece",
-      "imageUrl": "https://picsum.photos/seed/lux4/600/800",
+      "imageUrl": "https://placehold.co/600x800?text=PRODUCT+01",
       "imageHint": "architectural fashion"
     },
     {
       "id": "product-2",
       "description": "Monochrome outfit",
-      "imageUrl": "https://picsum.photos/seed/lux5/600/800",
+      "imageUrl": "https://placehold.co/600x800?text=PRODUCT+02",
       "imageHint": "monochrome outfit"
     }
   ]
