@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -41,7 +40,9 @@ import {
   Terminal,
   Clock,
   Info,
-  Save
+  Save,
+  Layers,
+  Scale
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -68,12 +69,22 @@ export default function ShippingPage() {
   const [pickupInstructions, setPickupInstructions] = useState('');
   const [pickupLocationUrl, setPickupLocationUrl] = useState('');
 
+  // Global Logistics State
+  const [defaultWeight, setDefaultWeight] = useState('');
+  const [defaultLength, setDefaultLength] = useState('');
+  const [defaultWidth, setDefaultWidth] = useState('');
+  const [defaultHeight, setDefaultHeight] = useState('');
+
   useEffect(() => {
     if (config) {
       setPickupAddress(config.pickupAddress || '');
       setPickupHours(config.pickupHours || '');
       setPickupInstructions(config.pickupInstructions || '');
       setPickupLocationUrl(config.pickupLocationUrl || '');
+      setDefaultWeight(String(config.defaultWeight || ''));
+      setDefaultLength(String(config.defaultLength || ''));
+      setDefaultWidth(String(config.defaultWidth || ''));
+      setDefaultHeight(String(config.defaultHeight || ''));
     }
   }, [config]);
 
@@ -100,6 +111,10 @@ export default function ShippingPage() {
       pickupHours: 'Mon-Fri: 10AM - 6PM\nSat: 11AM - 4PM',
       pickupInstructions: 'Please show your order confirmation ID and a valid government-issued photo ID upon arrival.',
       pickupLocationUrl: '',
+      defaultWeight: 0.5,
+      defaultLength: 30,
+      defaultWidth: 20,
+      defaultHeight: 10,
       updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -136,6 +151,31 @@ export default function ShippingPage() {
       .then(() => {
         setIsSaving(false);
         toast({ title: "Pickup Details Synchronized", description: "Store collection parameters have been Authoritatively updated." });
+      })
+      .catch((error) => {
+        setIsSaving(false);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: configRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        }));
+      });
+  };
+
+  const handleSaveGlobalLogistics = () => {
+    if (!configRef) return;
+    setIsSaving(true);
+    const updates = {
+      defaultWeight: parseFloat(defaultWeight) || 0,
+      defaultLength: parseFloat(defaultLength) || 0,
+      defaultWidth: parseFloat(defaultWidth) || 0,
+      defaultHeight: parseFloat(defaultHeight) || 0,
+      updatedAt: serverTimestamp()
+    };
+    updateDoc(configRef, updates)
+      .then(() => {
+        setIsSaving(false);
+        toast({ title: "Global Logistics Synchronized", description: "Default dimensional parameters are now Authoritatively active across the archive." });
       })
       .catch((error) => {
         setIsSaving(false);
@@ -233,6 +273,74 @@ export default function ShippingPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 space-y-6">
+          <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
+            <CardHeader className="border-b bg-blue-50/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-lg uppercase tracking-tight">Global Archive Logistics Defaults</CardTitle>
+                </div>
+                <Button 
+                  onClick={handleSaveGlobalLogistics} 
+                  disabled={isSaving}
+                  className="h-9 px-6 bg-blue-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-blue-700 transition-colors"
+                >
+                  {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Sync Defaults
+                </Button>
+              </div>
+              <CardDescription className="text-xs uppercase font-bold tracking-tight text-blue-800/60">Forensic fallbacks for products missing dimensional metadata.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Scale className="h-3 w-3" /> Weight (kg)
+                  </Label>
+                  <Input 
+                    type="number"
+                    placeholder="0.5" 
+                    value={defaultWeight} 
+                    onChange={(e) => setDefaultWeight(e.target.value)}
+                    className="h-12 font-mono bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Length (cm)</Label>
+                  <Input 
+                    type="number"
+                    placeholder="30" 
+                    value={defaultLength} 
+                    onChange={(e) => setDefaultLength(e.target.value)}
+                    className="h-12 font-mono bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Width (cm)</Label>
+                  <Input 
+                    type="number"
+                    placeholder="20" 
+                    value={defaultWidth} 
+                    onChange={(e) => setDefaultWidth(e.target.value)}
+                    className="h-12 font-mono bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Height (cm)</Label>
+                  <Input 
+                    type="number"
+                    placeholder="10" 
+                    value={defaultHeight} 
+                    onChange={(e) => setDefaultHeight(e.target.value)}
+                    className="h-12 font-mono bg-white"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-blue-800/70 font-medium leading-relaxed uppercase">
+                Note: These parameters Authoritatively override zero-value fields in the product manifest for real-time rate calculations.
+              </p>
+            </CardContent>
+          </Card>
+
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/50">
               <div>
