@@ -47,9 +47,8 @@ import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function ShippingPage() {
   const db = useFirestore();
@@ -90,6 +89,7 @@ export default function ShippingPage() {
       addressValidation: true,
       ddpEnabled: true,
       returnsEnabled: true,
+      restockLogicEnabled: true,
       signatureRequired: true,
       insuranceAutoEnroll: true,
       realTimeTracking: true,
@@ -119,6 +119,7 @@ export default function ShippingPage() {
   };
 
   const handleSavePickupDetails = () => {
+    if (!configRef) return;
     setIsSaving(true);
     const updates = {
       pickupAddress,
@@ -126,7 +127,7 @@ export default function ShippingPage() {
       pickupInstructions,
       updatedAt: serverTimestamp()
     };
-    updateDoc(configRef!, updates)
+    updateDoc(configRef, updates)
       .then(() => {
         setIsSaving(false);
         toast({ title: "Pickup Details Synchronized", description: "Store collection parameters have been Authoritatively updated." });
@@ -134,7 +135,7 @@ export default function ShippingPage() {
       .catch((error) => {
         setIsSaving(false);
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: configRef!.path,
+          path: configRef.path,
           operation: 'update',
           requestResourceData: updates
         }));
@@ -460,7 +461,10 @@ export default function ShippingPage() {
                     <span className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                       <CheckCircle2 className="h-3 w-3" /> Restock Logic
                     </span>
-                    <Switch checked={true} />
+                    <Switch 
+                      checked={config.restockLogicEnabled ?? true} 
+                      onCheckedChange={(checked) => handleUpdate({ restockLogicEnabled: checked })}
+                    />
                   </div>
                   <p className="text-[10px] text-muted-foreground uppercase leading-relaxed font-medium">Automatically increment Firestore inventory count once a return is Authoritatively processed.</p>
                 </div>
