@@ -23,10 +23,10 @@ export function BentoHero({
   if (isLoading) {
     return (
       <section className="pt-24 pb-12">
-        <div className="max-w-[1440px] mx-auto px-4 h-[600px] flex items-center justify-center bg-gray-50 border border-dashed rounded-sm">
+        <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 border border-dashed">
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
-            <p className="text-[10px] uppercase tracking-widest font-bold text-gray-300">Syncing Collection...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Syncing Collection...</p>
           </div>
         </div>
       </section>
@@ -37,8 +37,8 @@ export function BentoHero({
 
   return (
     <section className="pt-24 pb-12">
-      <div className="max-w-[1440px] mx-auto px-4">
-        <div className="relative h-[70vh] w-full overflow-hidden bg-black group rounded-sm shadow-2xl">
+      <div className="w-full bg-primary overflow-hidden group shadow-2xl">
+        <div className="relative h-[70vh] w-full">
           <Image
             src={imageSrc}
             alt={headline}
@@ -47,7 +47,7 @@ export function BentoHero({
             priority
             data-ai-hint="fashion editorial"
           />
-          <div className="absolute inset-0 p-12 flex flex-col items-center justify-center text-center text-white bg-gradient-to-t from-black/60 via-transparent to-transparent">
+          <div className="absolute inset-0 p-12 flex flex-col items-center justify-center text-center text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent">
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {subheadline}
             </span>
@@ -56,7 +56,7 @@ export function BentoHero({
             </h2>
             <Link 
               href="#featured-products" 
-              className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out shadow-xl active:scale-95"
+              className="bg-accent text-accent-foreground px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out shadow-xl active:scale-95"
             >
               Shop the Drops <ArrowRight className="ml-3 h-4 w-4" />
             </Link>

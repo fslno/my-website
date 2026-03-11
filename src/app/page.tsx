@@ -56,8 +56,8 @@ export default function Home() {
       {/* Hero Selection based on Theme Config */}
       {theme?.homepageLayout === 'classic' ? (
         <section className="pt-24 pb-12">
-          <div className="max-w-[1440px] mx-auto px-4">
-            <div className="relative h-[70vh] w-full overflow-hidden bg-black rounded-sm shadow-2xl group">
+          <div className="w-full overflow-hidden bg-primary shadow-2xl group">
+            <div className="relative h-[70vh] w-full">
               <Image
                 src={heroImageSrc || "https://picsum.photos/seed/classic/1920/1080"}
                 alt="Main Hero"
@@ -66,12 +66,12 @@ export default function Home() {
                 priority
                 data-ai-hint="luxury landscape"
               />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6 bg-gradient-to-t from-black/60 via-transparent to-transparent">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-primary-foreground text-center p-6 bg-gradient-to-t from-black/60 via-transparent to-transparent">
                 <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
                 <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">
                   {theme?.heroHeadline || "Modern Silhouettes"}
                 </h2>
-                <Link href="#featured-products" className="bg-white text-black px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out shadow-xl active:scale-95">
+                <Link href="#featured-products" className="bg-accent text-accent-foreground px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out shadow-xl active:scale-95">
                   Shop All <ArrowRight className="ml-3 h-4 w-4" />
                 </Link>
               </div>
@@ -92,17 +92,17 @@ export default function Home() {
       <section className="py-20 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="mb-12">
-            <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Discover</span>
-            <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight">Shop by Category</h2>
+            <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Discover</span>
+            <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight text-primary">Shop by Category</h2>
           </div>
           
           {categoriesLoading ? (
             <div className="flex justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : !categories || categories.length === 0 ? (
             <div className="py-10 text-center border border-dashed rounded bg-gray-50">
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Categories coming soon.</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Categories coming soon.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -138,18 +138,18 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Curated Selection</span>
-              <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight">Featured Products</h2>
+              <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Curated Selection</span>
+              <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight text-primary">Featured Products</h2>
             </div>
           </div>
           
           {productsLoading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : !products || products.length === 0 ? (
             <div className="text-center py-20 border border-dashed rounded-xl bg-gray-50/50">
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Our store is currently being updated.</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Our store is currently being updated.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">

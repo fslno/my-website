@@ -100,7 +100,7 @@ export function Header() {
       {theme?.bannerEnabled && (
         <div 
           className="fixed top-0 left-0 right-0 z-[60] h-10 flex items-center justify-center text-[10px] uppercase tracking-[0.3em] font-bold text-white px-4 text-center"
-          style={{ backgroundColor: theme.bannerBgColor || '#000' }}
+          style={{ backgroundColor: theme.bannerBgColor || 'var(--primary)' }}
         >
           {theme.bannerText}
         </div>
@@ -115,25 +115,25 @@ export function Header() {
           <div className="flex items-center gap-4 lg:gap-8">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
+                <Button variant="ghost" size="icon" className="lg:hidden text-primary">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Archive Explorer</SheetTitle>
+                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Archive Explorer</SheetTitle>
                 </SheetHeader>
                 
                 <ScrollArea className="flex-1">
                   <div className="p-8 space-y-12">
                     <div className="space-y-6">
-                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Shop Collections</h3>
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Shop Collections</h3>
                       <nav className="flex flex-col gap-6">
                         {categories?.map((cat: any) => (
                           <Link 
                             key={cat.id} 
                             href={`/collections/${cat.id}`} 
-                            className="text-xl font-headline uppercase hover:opacity-60 transition-opacity"
+                            className="text-xl font-headline uppercase text-primary hover:opacity-60 transition-opacity"
                           >
                             {cat.name}
                           </Link>
@@ -151,14 +151,14 @@ export function Header() {
                   <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                 </div>
               ) : null}
-              <h1 className="text-3xl font-headline font-bold tracking-tighter">
+              <h1 className="text-3xl font-headline font-bold tracking-tighter text-primary">
                 {storeConfig?.businessName || "FSLNO"}
               </h1>
             </Link>
 
             <nav className="hidden lg:flex items-center gap-8">
               <DropdownMenu>
-                <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
+                <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase text-primary hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
                   Categories <ChevronDown className="h-3 w-3" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56 bg-white border border-black/10 shadow-xl rounded-none p-0 mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -167,7 +167,7 @@ export function Header() {
                       <DropdownMenuItem key={cat.id} asChild>
                         <Link 
                           href={`/collections/${cat.id}`}
-                          className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black hover:text-white transition-all duration-300"
+                          className="flex items-center px-4 py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-primary hover:text-primary-foreground transition-all duration-300"
                         >
                           {cat.name}
                         </Link>
@@ -181,10 +181,10 @@ export function Header() {
 
           <div className="flex items-center gap-2">
             <div className="relative flex items-center mr-2" ref={searchRef}>
-              <Search className="absolute left-3 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+              <Search className="absolute left-3 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <Input 
                 placeholder="SEARCH" 
-                className="pl-8 h-9 w-9 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-full sm:rounded-none focus-visible:ring-1 focus-visible:ring-black transition-all duration-300 focus:w-40 sm:focus:w-40 md:focus:w-56 placeholder:opacity-0 sm:placeholder:opacity-100 focus:placeholder:opacity-100"
+                className="pl-8 h-9 w-9 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-full sm:rounded-none focus-visible:ring-1 focus-visible:ring-primary transition-all duration-300 focus:w-40 sm:focus:w-40 md:focus:w-56 placeholder:opacity-0 sm:placeholder:opacity-100 focus:placeholder:opacity-100"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -198,7 +198,7 @@ export function Header() {
                     setSearchQuery('');
                     setIsSearching(false);
                   }}
-                  className="absolute right-2 text-gray-400 hover:text-black transition-colors"
+                  className="absolute right-2 text-muted-foreground hover:text-primary transition-colors"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -207,16 +207,16 @@ export function Header() {
               {isSearching && searchQuery.length >= 2 && (
                 <div className="absolute top-full right-0 mt-2 w-[280px] md:w-[450px] bg-white border border-black/10 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                       Results for "{searchQuery}"
                     </p>
-                    <span className="text-[9px] font-bold uppercase text-black">{filteredProducts.length} Pieces Found</span>
+                    <span className="text-[9px] font-bold uppercase text-primary">{filteredProducts.length} Pieces Found</span>
                   </div>
                   
                   <ScrollArea className="max-h-[60vh]">
                     {filteredProducts.length === 0 ? (
                       <div className="p-12 text-center">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No archival pieces found.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">No archival pieces found.</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 divide-y">
@@ -239,11 +239,11 @@ export function Header() {
                               />
                             </div>
                             <div className="flex-1 flex flex-col justify-center gap-0.5 overflow-hidden">
-                              <p className="text-[8px] uppercase tracking-widest font-bold text-gray-400 truncate">{product.brand || 'FSLNO ARCHIVE'}</p>
-                              <h3 className="text-xs font-headline font-bold uppercase tracking-tight truncate group-hover:underline">{product.name}</h3>
-                              <p className="text-[10px] font-bold">${formatCurrency(Number(product.price))} CAD</p>
+                              <p className="text-[8px] uppercase tracking-widest font-bold text-muted-foreground truncate">{product.brand || 'FSLNO ARCHIVE'}</p>
+                              <h3 className="text-xs font-headline font-bold uppercase tracking-tight truncate text-primary group-hover:underline">{product.name}</h3>
+                              <p className="text-[10px] font-bold text-primary">${formatCurrency(Number(product.price))} CAD</p>
                             </div>
-                            <div className="flex items-center text-gray-300 group-hover:text-black transition-colors">
+                            <div className="flex items-center text-muted-foreground group-hover:text-primary transition-colors">
                               <ArrowRight className="h-4 w-4" />
                             </div>
                           </Link>
@@ -257,10 +257,10 @@ export function Header() {
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+                <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out">
                   <Heart className="h-5 w-5" />
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
                       {wishlistCount}
                     </span>
                   )}
@@ -268,13 +268,13 @@ export function Header() {
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center">Wishlist ({wishlistCount})</SheetTitle>
+                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center text-primary">Wishlist ({wishlistCount})</SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1">
                   {wishlist.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
-                      <Heart className="h-12 w-12 text-gray-200 mb-4" />
-                      <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Save your favorite items here.</p>
+                      <Heart className="h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Save your favorite items here.</p>
                     </div>
                   ) : (
                     <div className="p-6 space-y-8">
@@ -285,12 +285,12 @@ export function Header() {
                           </Link>
                           <div className="flex-1 flex flex-col justify-between py-1">
                             <div className="space-y-1">
-                              <h3 className="text-xs font-bold uppercase tracking-tight leading-tight">{item.name}</h3>
-                              <p className="text-sm font-bold">${formatCurrency(item.price)} CAD</p>
+                              <h3 className="text-xs font-bold uppercase tracking-tight leading-tight text-primary">{item.name}</h3>
+                              <p className="text-sm font-bold text-primary">${formatCurrency(item.price)} CAD</p>
                             </div>
                             <button 
                               onClick={() => toggleWishlist(item)}
-                              className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:underline text-left"
+                              className="text-[10px] font-bold uppercase tracking-widest text-destructive hover:underline text-left"
                             >
                               Remove
                             </button>
@@ -305,10 +305,10 @@ export function Header() {
             
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+                <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out">
                   <ShoppingBag className="h-5 w-5" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
                       {cartCount}
                     </span>
                   )}
@@ -316,13 +316,13 @@ export function Header() {
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0 space-y-4">
-                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase">Your Cart ({cartCount})</SheetTitle>
+                  <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-primary">Your Cart ({cartCount})</SheetTitle>
                   
                   {cartSubtotal > 0 && (
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest">
+                      <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-primary">
                         <span className="flex items-center gap-1.5">
-                          <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-gray-300")} />
+                          <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-muted-foreground")} />
                           {thresholdProgress >= 100 ? "Discount Unlocked" : `$${formatCurrency(remainingForThreshold)} more for $100 off`}
                         </span>
                         <span>{Math.round(thresholdProgress)}%</span>
@@ -335,9 +335,9 @@ export function Header() {
                 <ScrollArea className="flex-1">
                   {cart.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
-                      <ShoppingBag className="h-12 w-12 text-gray-200 mb-4" />
-                      <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Your cart is empty.</p>
-                      <Button asChild variant="outline" className="mt-6 border-black text-black font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+                      <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your cart is empty.</p>
+                      <Button asChild variant="outline" className="mt-6 border-primary text-primary font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-secondary transition-all duration-300 ease-in-out">
                         <Link href="/">Shop Now</Link>
                       </Button>
                     </div>
@@ -351,12 +351,12 @@ export function Header() {
                           <div className="flex-1 flex flex-col justify-between py-1">
                             <div className="space-y-1">
                               <div className="flex justify-between items-start">
-                                <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px]">{item.name}</h3>
-                                <p className="text-sm font-bold">
+                                <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px] text-primary">{item.name}</h3>
+                                <p className="text-sm font-bold text-primary">
                                   {item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)} CAD`}
                                 </p>
                               </div>
-                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size: {item.size}</p>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Size: {item.size}</p>
                               
                               {(item.customName || item.customNumber || item.specialNote) && (
                                 <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100">
@@ -367,7 +367,7 @@ export function Header() {
                                     </p>
                                   )}
                                   {item.specialNote && (
-                                    <p className="text-[9px] text-gray-400 italic flex items-start gap-1.5 leading-tight">
+                                    <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
                                       <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
                                       {item.specialNote}
                                     </p>
@@ -377,11 +377,11 @@ export function Header() {
                             </div>
                             
                             <div className="flex items-center justify-between pt-2">
-                              <p className="text-[10px] font-bold uppercase text-gray-400">Qty: {item.quantity}</p>
+                              <p className="text-[10px] font-bold uppercase text-muted-foreground">Qty: {item.quantity}</p>
                               {!item.isPromo && (
                                 <button 
                                   onClick={() => removeFromCart(item.variantId)}
-                                  className="text-gray-400 hover:text-red-500 transition-colors"
+                                  className="text-muted-foreground hover:text-destructive transition-colors"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -398,14 +398,14 @@ export function Header() {
                   <SheetFooter className="p-6 border-t bg-gray-50/50 flex-col sm:flex-col items-stretch gap-4 shrink-0">
                     <div className="space-y-2">
                       <div className="flex justify-between items-end">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Subtotal</span>
-                        <span className="text-xl font-bold">${formatCurrency(cartSubtotal)} CAD</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Subtotal</span>
+                        <span className="text-xl font-bold text-primary">${formatCurrency(cartSubtotal)} CAD</span>
                       </div>
-                      <p className="text-[9px] text-gray-400 uppercase tracking-widest">
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
                         Tax and shipping calculated at checkout.
                       </p>
                     </div>
-                    <Button asChild className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">
+                    <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">
                       <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
                     </Button>
                   </SheetFooter>

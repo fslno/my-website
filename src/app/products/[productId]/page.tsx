@@ -153,7 +153,6 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
       description: `${product.name} (${selectedSize}) is in your cart.`,
     });
 
-    // Authoritatively reset customization fields
     setWantsCustomization(false);
     setCustomName('');
     setCustomNumber('');
@@ -202,7 +201,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-black" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -210,9 +209,9 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center p-4">
-        <h1 className="text-2xl font-headline font-bold mb-4">Product Not Found</h1>
+        <h1 className="text-2xl font-headline font-bold mb-4 text-primary">Product Not Found</h1>
         <p className="text-muted-foreground mb-8">This item may no longer be available.</p>
-        <Button asChild className="bg-black text-white">
+        <Button asChild className="bg-primary text-primary-foreground rounded-none">
           <Link href="/">Back to Shop</Link>
         </Button>
       </div>
@@ -229,7 +228,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
       <div className="max-w-[1280px] mx-auto px-4 pt-36 pb-12">
         <button 
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-all duration-300 mb-8 group w-fit"
+          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
         >
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
           Back to Previous
@@ -257,7 +256,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                       onClick={() => setActiveImageIndex(idx)}
                       className={cn(
                         "w-16 h-16 shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
-                        activeImageIndex === idx ? "border-black" : "border-transparent opacity-60 hover:opacity-100 hover:bg-[#D3D3D3]"
+                        activeImageIndex === idx ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
                       )}
                     >
                       <Image src={item.url} alt={`View ${idx}`} fill className="object-cover" />
@@ -268,18 +267,18 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
             </div>
 
             <div className="hidden lg:block space-y-4 pt-6 border-t">
-              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Description</h3>
-              <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-sm">
+              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Description</h3>
+              <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">
                 {product.description || "No description provided."}
               </div>
               
               {product.features && product.features.length > 0 && (
                 <div className="pt-4">
-                  <h4 className="text-[10px] uppercase tracking-widest font-bold mb-3">Key Features</h4>
+                  <h4 className="text-[10px] uppercase tracking-widest font-bold mb-3 text-primary">Key Features</h4>
                   <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
                     {product.features.map((feature: string, i: number) => (
-                      <li key={i} className="text-[11px] flex items-start gap-2 text-gray-500">
-                        <span className="w-1 h-1 rounded-full bg-black mt-1.5 shrink-0" />
+                      <li key={i} className="text-[11px] flex items-start gap-2 text-muted-foreground">
+                        <span className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
                         {feature}
                       </li>
                     ))}
@@ -291,13 +290,12 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
 
           <div className="space-y-6">
             <div className="space-y-1">
-              <h1 className="text-2xl font-headline font-bold tracking-tight">{product.name}</h1>
+              <h1 className="text-2xl font-headline font-bold tracking-tight text-primary">{product.name}</h1>
               <div className="flex items-center gap-4">
-                <p className="text-lg font-bold">${formatCurrency(totalPrice)} CAD</p>
+                <p className="text-lg font-bold text-primary">${formatCurrency(totalPrice)} CAD</p>
               </div>
-              {/* Move brand identity below price per refined hierarchy */}
-              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400">{product.brand || 'FSLNO'}</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
+              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO'}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">
                 REF: {displayedSku}
               </p>
             </div>
@@ -305,32 +303,32 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
             <Separator />
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold">
+              <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
                 <span>Select Size</span>
                 
                 {sizeChart ? (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <button className="flex items-center gap-2 text-gray-500 hover:text-black hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out text-[13px] font-bold p-1 rounded">
+                      <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 ease-in-out text-[13px] font-bold p-1 rounded">
                         <Ruler className="h-5 w-5" /> Size Guide
                       </button>
                     </SheetTrigger>
                     <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 overflow-hidden flex flex-col">
                       <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                        <div className="flex items-center gap-3 text-black mb-2">
+                        <div className="flex items-center gap-3 text-primary mb-2">
                           <Ruler className="h-5 w-5" />
                           <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Size Guide</SheetTitle>
                         </div>
-                        <p className="text-sm text-gray-500 font-medium">Measurements for: <span className="text-black font-bold">{sizeChart.name}</span></p>
+                        <p className="text-sm text-muted-foreground font-medium">Measurements for: <span className="text-primary font-bold">{sizeChart.name}</span></p>
                       </SheetHeader>
                       
                       <div className="flex-1 overflow-y-auto p-8 space-y-8">
                         <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <TableIcon className="h-4 w-4 text-gray-400" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Dimensions</span>
+                            <TableIcon className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Dimensions</span>
                           </div>
-                          <span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest">
+                          <span className="text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded tracking-widest">
                             Unit: {sizeChart.unit}
                           </span>
                         </div>
@@ -339,18 +337,18 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                           <Table>
                             <TableHeader className="bg-gray-50/50">
                               <TableRow>
-                                <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-gray-400 px-6 py-4">Size</TableHead>
+                                <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
                                 {sizeChart.columns?.map((col: string, idx: number) => (
-                                  <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 py-4">{col}</TableHead>
+                                  <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
                                 ))}
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {sizeChart.rows?.map((row: any, rowIdx: number) => (
                                 <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
-                                  <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10">{row.label}</TableCell>
+                                  <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
                                   {row.values?.map((val: string, colIdx: number) => (
-                                    <TableCell key={colIdx} className="text-center text-sm font-medium text-gray-600 py-4">{val || '--'}</TableCell>
+                                    <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
                                   ))}
                                 </TableRow>
                               ))}
@@ -361,7 +359,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                     </SheetContent>
                   </Sheet>
                 ) : (
-                  <button className="flex items-center gap-2 text-gray-500 text-[11px] uppercase font-bold hover:text-black transition-colors">
+                  <button className="flex items-center gap-2 text-muted-foreground text-[11px] uppercase font-bold hover:text-primary transition-colors">
                     <Ruler className="h-4 w-4" /> Standard Guide
                   </button>
                 )}
@@ -373,29 +371,29 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                     onClick={() => setSelectedSize(v.size)}
                     disabled={Number(v.stock) === 0}
                     className={cn(
-                      "h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm hover:bg-[#D3D3D3] hover:text-[#333333]",
+                      "h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
                       selectedSize === v.size 
-                        ? "bg-black text-white border-black" 
-                        : "bg-white text-black border-gray-200",
-                      Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed hover:bg-transparent hover:text-gray-300"
+                        ? "bg-primary text-primary-foreground border-primary" 
+                        : "bg-white text-primary border-gray-200 hover:bg-secondary",
+                      Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed hover:bg-transparent"
                     )}
                   >
                     {v.size}
                   </button>
                 ))}
               </div>
-              <p className="text-[9px] text-gray-400">
-                Fit: <span className="text-black font-bold">{product.sizeFit || 'True to size'}</span>
+              <p className="text-[9px] text-muted-foreground">
+                Fit: <span className="text-primary font-bold">{product.sizeFit || 'True to size'}</span>
               </p>
             </div>
 
             <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">
+                  <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
                     Customization
                   </Label>
-                  <span className="text-[10px] font-bold text-black uppercase tracking-widest">
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
                     $10.00
                   </span>
                 </div>
@@ -403,8 +401,8 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                   <button
                     onClick={() => setWantsCustomization(false)}
                     className={cn(
-                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm hover:bg-[#D3D3D3] hover:text-[#333333]",
-                      !wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200"
+                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
+                      !wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
                     )}
                   >
                     No
@@ -412,8 +410,8 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                   <button
                     onClick={() => setWantsCustomization(true)}
                     className={cn(
-                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm hover:bg-[#D3D3D3] hover:text-[#333333]",
-                      wantsCustomization ? "bg-black text-white border-black" : "bg-white text-black border-gray-200"
+                      "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
+                      wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
                     )}
                   >
                     Yes
@@ -425,7 +423,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                 <div className="space-y-4 animate-in fade-in duration-300">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Name</Label>
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Name</Label>
                       <Input 
                         placeholder="ENTER NAME" 
                         value={customName}
@@ -434,7 +432,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Number</Label>
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Number</Label>
                       <Input 
                         placeholder="00" 
                         maxLength={2}
@@ -446,7 +444,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Special Note</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Special Note</Label>
                     <Input 
                       placeholder="ADDITIONAL REQUESTS..." 
                       value={specialRequest}
@@ -463,10 +461,10 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                 onClick={handleAddToCart}
                 disabled={!selectedSize || isStockReached}
                 className={cn(
-                  "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-sm transition-all duration-300 ease-in-out shadow-md hover:bg-[#D3D3D3] hover:text-[#333333]",
+                  "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none transition-all duration-300 ease-in-out shadow-md",
                   isStockReached 
-                    ? "bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200 hover:text-gray-500" 
-                    : "bg-black text-white active:scale-95"
+                    ? "bg-gray-200 text-muted-foreground cursor-not-allowed" 
+                    : "bg-primary text-primary-foreground hover:opacity-90 active:scale-95"
                 )}
               >
                 {!selectedSize ? 'Select Size' : isStockReached ? 'Sold Out' : 'Add to Cart'}
@@ -476,8 +474,8 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                   onClick={handleWishlist}
                   variant="outline" 
                   className={cn(
-                    "h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm",
-                    isSaved && "bg-red-50 border-red-200 text-red-600"
+                    "h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none",
+                    isSaved && "bg-red-50 border-red-200 text-destructive"
                   )}
                 >
                   <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} /> 
@@ -486,7 +484,7 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
                 <Button 
                   onClick={handleShare}
                   variant="outline" 
-                  className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-sm"
+                  className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none"
                 >
                   <Share2 className="h-3.5 w-3.5" /> Share
                 </Button>
@@ -494,15 +492,15 @@ export default function ProductDetailPage(props: { params: Promise<{ productId: 
             </div>
 
             <div className="lg:hidden space-y-4 pt-6 border-t">
-              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Description</h3>
-              <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed text-sm">
+              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Description</h3>
+              <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">
                 {product.description || "No description provided."}
               </div>
             </div>
 
             <div className="pt-4 space-y-3">
-              <div className="flex items-center gap-2 text-gray-400">
-                <Check className="h-3 w-3 text-green-500" />
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Check className="h-3 w-3 text-emerald-500" />
                 <span className="text-[9px] font-bold uppercase tracking-widest">Ready to ship</span>
               </div>
             </div>

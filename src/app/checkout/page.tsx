@@ -85,7 +85,6 @@ export default function CheckoutPage() {
     discountTotal, totalBeforeTax, appliedCoupon, applyCoupon 
   } = useCart();
   
-  // Fetch Global Configs
   const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
   const { data: paymentConfig, loading: paymentsLoading } = useDoc(paymentConfigRef);
 
@@ -104,7 +103,6 @@ export default function CheckoutPage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<any>(null);
 
-  // Form State
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -310,9 +308,9 @@ export default function CheckoutPage() {
   if (cartCount === 0 && !showSuccessDialog) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
-        <Package className="h-12 w-12 text-gray-200 mb-4" />
-        <h1 className="text-2xl font-headline font-bold mb-4 uppercase">Your cart is empty</h1>
-        <Button asChild className="bg-black text-white h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+        <Package className="h-12 w-12 text-muted-foreground mb-4" />
+        <h1 className="text-2xl font-headline font-bold mb-4 uppercase text-primary">Your cart is empty</h1>
+        <Button asChild className="bg-primary text-primary-foreground h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out">
           <Link href="/">Shop Now</Link>
         </Button>
       </div>
@@ -324,86 +322,86 @@ export default function CheckoutPage() {
   return (
     <main className="min-h-screen bg-[#F9F9F9] flex flex-col">
       <header className="h-20 bg-white border-b flex items-center px-4 lg:px-12 sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/" className="flex items-center gap-2 group text-primary">
           <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-[10px] font-bold uppercase tracking-widest">Back to Shop</span>
         </Link>
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-2xl font-headline font-bold tracking-tighter">CHECKOUT</h1>
+        <h1 className="absolute left-1/2 -translate-x-1/2 text-2xl font-headline font-bold tracking-tighter text-primary">CHECKOUT</h1>
       </header>
 
       <div className="max-w-[1440px] mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12">
         <div className="lg:col-span-7 p-6 lg:p-12 space-y-12">
           
           <section className="space-y-6">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em]">01. Delivery Method</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">01. Delivery Method</h2>
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }}
-                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", deliveryMethod === 'shipping' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
+                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 ease-in-out hover:bg-secondary", deliveryMethod === 'shipping' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
               >
-                <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-black" : "text-gray-400")} />
+                <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")} />
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest">Shipping</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Deliver to my address</p>
+                  <p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")}>Shipping</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Deliver to my address</p>
                 </div>
               </button>
               <button
                 onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); setErrors({}); }}
-                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", deliveryMethod === 'pickup' ? "border-black bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
+                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 ease-in-out hover:bg-secondary", deliveryMethod === 'pickup' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
               >
-                <Store className={cn("h-6 w-6", deliveryMethod === 'pickup' ? "text-black" : "text-gray-400")} />
+                <Store className={cn("h-6 w-6", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")} />
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest">Store Pickup</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Pick up in-person</p>
+                  <p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")}>Store Pickup</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Pick up in-person</p>
                 </div>
               </button>
             </div>
           </section>
 
-          <section className="space-y-8 bg-white p-8 border shadow-sm rounded-sm">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em]">02. Personal Details</h2>
+          <section className="space-y-8 bg-white p-8 border shadow-sm rounded-none">
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Personal Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-red-500" : "text-gray-500")}>Email Address {errors.email && "- REQUIRED"}</Label>
-                <Input autoComplete="email" placeholder="" className="h-12 bg-[#F9F9F9] uppercase" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
+                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email Address {errors.email && "- REQUIRED"}</Label>
+                <Input autoComplete="email" placeholder="" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-red-500" : "text-gray-500")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
-                <Input autoComplete="tel" placeholder="" className="h-12 bg-[#F9F9F9]" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
+                <Input autoComplete="tel" placeholder="" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
-                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-red-500" : "text-gray-500")}>Full Name {errors.name && "- REQUIRED"}</Label>
-                <Input autoComplete="name" placeholder="" className="h-12 bg-[#F9F9F9] uppercase" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} />
+                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name {errors.name && "- REQUIRED"}</Label>
+                <Input autoComplete="name" placeholder="" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} />
               </div>
             </div>
 
             {deliveryMethod === 'shipping' ? (
               <div className="space-y-10 pt-4 border-t">
                 <div className="space-y-6">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold">Shipping Address</h3>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Shipping Address</h3>
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-red-500" : "text-gray-500")}>Address {errors.address && "- REQUIRED"}</Label>
-                      <Input autoComplete="address-line1" placeholder="" className="h-12 uppercase" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Address {errors.address && "- REQUIRED"}</Label>
+                      <Input autoComplete="address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-red-500" : "text-gray-500")}>City {errors.city && "- REQUIRED"}</Label>
-                        <Input autoComplete="address-level2" placeholder="" className="h-12 uppercase" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} />
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City {errors.city && "- REQUIRED"}</Label>
+                        <Input autoComplete="address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.postalCode && "- REQUIRED"}</Label>
-                        <Input autoComplete="postal-code" placeholder="" className="h-12 uppercase" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.postalCode && "- REQUIRED"}</Label>
+                        <Input autoComplete="postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-red-500" : "text-gray-500")}>Province / State {errors.province && "- REQUIRED"}</Label>
-                        <Input autoComplete="address-level1" placeholder="" className="h-12 uppercase" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.province && "- REQUIRED"}</Label>
+                        <Input autoComplete="address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-red-500" : "text-gray-500")}>Country {errors.country && "- REQUIRED"}</Label>
-                        <Input autoComplete="country-name" placeholder="" className="h-12 uppercase" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-destructive" : "text-muted-foreground")}>Country {errors.country && "- REQUIRED"}</Label>
+                        <Input autoComplete="country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
                       </div>
                     </div>
                   </div>
@@ -416,39 +414,39 @@ export default function CheckoutPage() {
                       checked={billingSameAsShipping} 
                       onCheckedChange={(checked) => setBillingSameAsShipping(checked === true)} 
                     />
-                    <Label htmlFor="billing-same" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer">
+                    <Label htmlFor="billing-same" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer text-primary">
                       Billing address is same as shipping address
                     </Label>
                   </div>
 
                   {!billingSameAsShipping && (
                     <div className="space-y-6 animate-in fade-in duration-300">
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2 text-primary">
                         <CreditCard className="h-3 w-3" /> Billing Address
                       </h3>
                       <div className="grid gap-4">
                         <div className="space-y-2">
-                          <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
-                          <Input autoComplete="billing address-line1" placeholder="" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                          <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
+                          <Input autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-red-500" : "text-gray-500")}>City {errors.billingCity && "- REQUIRED"}</Label>
-                            <Input autoComplete="billing address-level2" placeholder="" className="h-12 uppercase" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
+                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
+                            <Input autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
                           </div>
                           <div className="space-y-2">
-                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
-                            <Input autoComplete="billing postal-code" placeholder="" className="h-12 uppercase" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
+                            <Input autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-red-500" : "text-gray-500")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
-                            <Input autoComplete="billing address-level1" placeholder="" className="h-12 uppercase" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
+                            <Input autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                           </div>
                           <div className="space-y-2">
-                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-red-500" : "text-gray-500")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
-                            <Input autoComplete="billing country-name" placeholder="" className="h-12 uppercase" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
+                            <Input autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                           </div>
                         </div>
                       </div>
@@ -457,13 +455,13 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-4 pt-6 border-t">
-                  <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", errors.courier ? "text-red-500" : "text-gray-500")}>
+                  <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", errors.courier ? "text-destructive" : "text-primary")}>
                     <Truck className="h-3 w-3" /> Select Shipping Method {errors.courier && "- REQUIRED"}
                   </h3>
                   
                   {shippingLoading ? (
                     <div className="flex justify-center py-4">
-                      <Loader2 className="h-6 w-6 animate-spin text-gray-200" />
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
                   ) : (
                     <RadioGroup value={formData.courier} onValueChange={(val) => { 
@@ -475,17 +473,17 @@ export default function CheckoutPage() {
                         const name = typeof carrier === 'string' ? carrier : carrier.name;
                         const isExpress = ['FEDEX', 'DHL', 'UPS'].some(e => name.toUpperCase().includes(e));
                         return (
-                          <div key={name} className={cn("flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]", formData.courier === name ? "bg-white border-black ring-1 ring-black" : "bg-gray-50/50")}>
+                          <div key={name} className={cn("flex items-center justify-between p-4 border rounded-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-secondary", formData.courier === name ? "bg-white border-primary ring-1 ring-primary" : "bg-gray-50/50")}>
                             <div className="flex items-center space-x-3">
-                              <RadioGroupItem value={name} id={name} />
-                              <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-widest cursor-pointer">{name} {isExpress ? 'Express' : 'Standard'}</Label>
+                              <RadioGroupItem value={name} id={name} className="border-primary text-primary" />
+                              <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-widest cursor-pointer text-primary">{name} {isExpress ? 'Express' : 'Standard'}</Label>
                             </div>
-                            <span className="text-[11px] font-bold">{isExpress ? '$25.00' : 'FREE'}</span>
+                            <span className="text-[11px] font-bold text-primary">{isExpress ? '$25.00' : 'FREE'}</span>
                           </div>
                         );
                       })}
                       {enabledCarriers.length === 0 && (
-                        <p className="text-[10px] text-gray-400 italic py-4">No shipping carriers currently authorized for this drop.</p>
+                        <p className="text-[10px] text-muted-foreground italic py-4">No shipping carriers currently authorized for this drop.</p>
                       )}
                     </RadioGroup>
                   )}
@@ -494,60 +492,60 @@ export default function CheckoutPage() {
             ) : (
               <div className="space-y-10 pt-4 border-t">
                 <div className="space-y-6">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2 text-primary">
                     <CreditCard className="h-3 w-3" /> Billing Address
                   </h3>
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-red-500" : "text-gray-500")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
-                      <Input autoComplete="billing address-line1" placeholder="" className="h-12 uppercase" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
+                      <Input autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-red-500" : "text-gray-500")}>City {errors.billingCity && "- REQUIRED"}</Label>
-                        <Input autoComplete="billing address-level2" placeholder="" className="h-12 uppercase" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
+                        <Input autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-red-500" : "text-gray-500")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
-                        <Input autoComplete="billing postal-code" placeholder="" className="h-12 uppercase" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
+                        <Input autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-red-500" : "text-gray-500")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
-                        <Input autoComplete="billing address-level1" placeholder="" className="h-12 uppercase" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
+                        <Input autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-red-500" : "text-gray-500")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
-                        <Input autoComplete="billing country-name" placeholder="" className="h-12 uppercase" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
+                        <Input autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-6 pt-6 border-t animate-in fade-in duration-300">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold flex items-center gap-2 text-primary">
                     <Calendar className="h-3 w-3" /> Pickup Schedule
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupDate ? "text-red-500" : "text-gray-500")}>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupDate ? "text-destructive" : "text-muted-foreground")}>
                         Date {errors.pickupDate && "- REQUIRED"}
                       </Label>
                       <Input 
                         type="date" 
-                        className="h-12 uppercase" 
+                        className="h-12 uppercase rounded-none" 
                         value={formData.pickupDate} 
                         onChange={(e) => handleInputChange('pickupDate', e.target.value)} 
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupTime ? "text-red-500" : "text-gray-500")}>
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupTime ? "text-destructive" : "text-muted-foreground")}>
                         Time {errors.pickupTime && "- REQUIRED"}
                       </Label>
                       <Input 
                         type="time" 
-                        className="h-12 uppercase" 
+                        className="h-12 uppercase rounded-none" 
                         value={formData.pickupTime} 
                         onChange={(e) => handleInputChange('pickupTime', e.target.value)} 
                       />
@@ -558,10 +556,10 @@ export default function CheckoutPage() {
             )}
           </section>
 
-          <section className="space-y-6 bg-gray-50 border p-8 rounded-sm">
-            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-red-500" : "text-black")}>Referral Source {errors.referral && "- REQUIRED"}</h2>
+          <section className="space-y-6 bg-gray-50 border p-8 rounded-none">
+            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-destructive" : "text-primary")}>Referral Source {errors.referral && "- REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
-              <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out text-[10px] font-bold uppercase tracking-widest rounded-sm">
+              <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:opacity-80 transition-all duration-300 ease-in-out text-[10px] font-bold uppercase tracking-widest rounded-none text-primary">
                 <SelectValue placeholder="SELECT AN OPTION" />
               </SelectTrigger>
               <SelectContent>
@@ -584,7 +582,7 @@ export default function CheckoutPage() {
               </Alert>
             )}
 
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4">Order Summary ({cartCount})</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4 text-primary">Order Summary ({cartCount})</h2>
             
             <div className="space-y-6">
               {cart.map((item) => (
@@ -595,10 +593,10 @@ export default function CheckoutPage() {
                   <div className="flex-1 flex flex-col justify-between py-0.5">
                     <div className="space-y-1">
                       <div className="flex justify-between">
-                        <h3 className="text-[10px] font-bold uppercase tracking-tight line-clamp-1">{item.name}</h3>
-                        <p className="text-[11px] font-bold">{item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)}`}</p>
+                        <h3 className="text-[10px] font-bold uppercase tracking-tight line-clamp-1 text-primary">{item.name}</h3>
+                        <p className="text-[11px] font-bold text-primary">{item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)}`}</p>
                       </div>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[9px] text-gray-400 font-bold uppercase">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[9px] text-muted-foreground font-bold uppercase">
                         <span>Size: {item.size}</span>
                         <span>Qty: {item.quantity}</span>
                       </div>
@@ -612,7 +610,7 @@ export default function CheckoutPage() {
                             </p>
                           )}
                           {item.specialNote && (
-                            <p className="text-[9px] text-gray-400 italic flex items-start gap-1.5 leading-tight">
+                            <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
                               <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
                               {item.specialNote}
                             </p>
@@ -627,7 +625,7 @@ export default function CheckoutPage() {
 
             <div className="pt-8 border-t space-y-4">
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Order Note (Optional)</Label>
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Order Note (Optional)</Label>
                 <Textarea 
                   placeholder="ADD ANY SPECIAL INSTRUCTIONS FOR YOUR ORDER..." 
                   className="bg-gray-50 border-gray-200 text-[10px] font-bold uppercase rounded-none resize-none min-h-[80px]"
@@ -637,7 +635,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Discount Code</Label>
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Discount Code</Label>
                 <div className="flex gap-2">
                   <Input 
                     placeholder="" 
@@ -649,7 +647,7 @@ export default function CheckoutPage() {
                     onClick={handleValidateCoupon}
                     disabled={isValidatingCoupon}
                     variant="outline" 
-                    className="h-10 px-4 rounded-none border-black text-[9px] font-bold uppercase tracking-widest hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+                    className="h-10 px-4 rounded-none border-primary text-[9px] font-bold uppercase tracking-widest hover:bg-secondary transition-all duration-300 ease-in-out text-primary"
                   >
                     {isValidatingCoupon ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
                   </Button>
@@ -667,41 +665,41 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-3 pt-4">
-                <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
+                <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
                   <span>Subtotal</span>
-                  <span className="text-black">${formatCurrency(cartSubtotal)}</span>
+                  <span className="text-primary">${formatCurrency(cartSubtotal)}</span>
                 </div>
                 {discountTotal > 0 && (
-                  <div className="flex justify-between text-[10px] font-bold uppercase text-red-600">
+                  <div className="flex justify-between text-[10px] font-bold uppercase text-destructive">
                     <span>Discounts</span>
                     <span>-${formatCurrency(discountTotal)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
+                <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
                   <span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
-                  <span className="text-black">
+                  <span className="text-primary">
                     {isShippingReady ? (shippingRate > 0 ? `$${formatCurrency(shippingRate)}` : (deliveryMethod === 'pickup' ? 'Pick up FREE' : 'FREE')) : '--'}
                   </span>
                 </div>
-                <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
+                <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
                   <span>Tax</span>
-                  <span className="text-black">
+                  <span className="text-primary">
                     {isTaxReady ? `$${formatCurrency(calculatedTax)}` : '--'}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-end pt-2">
-                  <span className="text-[12px] font-bold uppercase tracking-[0.2em]">Total</span>
-                  <p className="text-2xl font-bold font-headline tracking-tighter">
+                  <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">Total</span>
+                  <p className="text-2xl font-bold font-headline tracking-tighter text-primary">
                     {isSummaryReady ? `$${formatCurrency(finalTotal)} CAD` : '--'}
                   </p>
                 </div>
 
                 <section className="space-y-8 pt-8 border-t mt-8">
-                  <h2 className={cn("text-xs font-bold uppercase tracking-[0.2em]", errors.payment ? "text-red-500" : "text-black")}>03. Payment Method {errors.payment && "- REQUIRED"}</h2>
+                  <h2 className={cn("text-xs font-bold uppercase tracking-[0.2em]", errors.payment ? "text-destructive" : "text-primary")}>03. Payment Method {errors.payment && "- REQUIRED"}</h2>
                   {paymentsLoading ? (
                     <div className="flex justify-center py-4">
-                      <Loader2 className="h-6 w-6 animate-spin text-gray-200" />
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
                   ) : !paymentConfig ? (
                     <Alert className="bg-amber-50 border-amber-100 rounded-none">
@@ -714,90 +712,90 @@ export default function CheckoutPage() {
                         <button 
                           onClick={() => setSelectedPayment('stripe')}
                           className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
-                            selectedPayment === 'stripe' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
+                            selectedPayment === 'stripe' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
                           )}
                         >
                           <div className="flex items-center gap-4">
-                            <CreditCard className="h-5 w-5 text-black" />
+                            <CreditCard className="h-5 w-5 text-primary" />
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest">Credit Card</p>
-                              <p className="text-[8px] text-gray-400">Secure Stripe Checkout</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Credit Card</p>
+                              <p className="text-[8px] text-muted-foreground">Secure Stripe Checkout</p>
                             </div>
                           </div>
-                          {selectedPayment === 'stripe' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                          {selectedPayment === 'stripe' && <CheckCircle2 className="h-4 w-4 text-primary" />}
                         </button>
                       )}
                       {paymentConfig.paypalEnabled && (
                         <button 
                           onClick={() => setSelectedPayment('paypal')}
                           className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
-                            selectedPayment === 'paypal' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
+                            selectedPayment === 'paypal' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
                           )}
                         >
                           <div className="flex items-center gap-4">
                             <Globe className="h-5 w-5 text-[#0070BA]" />
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest">PayPal</p>
-                              <p className="text-[8px] text-gray-400">Global Digital Wallet</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">PayPal</p>
+                              <p className="text-[8px] text-muted-foreground">Global Digital Wallet</p>
                             </div>
                           </div>
-                          {selectedPayment === 'paypal' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                          {selectedPayment === 'paypal' && <CheckCircle2 className="h-4 w-4 text-primary" />}
                         </button>
                       )}
                       {paymentConfig.klarnaEnabled && (
                         <button 
                           onClick={() => setSelectedPayment('klarna')}
                           className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
-                            selectedPayment === 'klarna' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
+                            selectedPayment === 'klarna' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
                           )}
                         >
                           <div className="flex items-center gap-4">
                             <Coins className="h-5 w-5 text-[#FFB3C7]" />
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest">Klarna</p>
-                              <p className="text-[8px] text-gray-400">Buy now, pay later</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Klarna</p>
+                              <p className="text-[8px] text-muted-foreground">Buy now, pay later</p>
                             </div>
                           </div>
-                          {selectedPayment === 'klarna' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                          {selectedPayment === 'klarna' && <CheckCircle2 className="h-4 w-4 text-primary" />}
                         </button>
                       )}
                       {paymentConfig.afterpayEnabled && (
                         <button 
                           onClick={() => setSelectedPayment('afterpay')}
                           className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
-                            selectedPayment === 'afterpay' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
+                            selectedPayment === 'afterpay' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
                           )}
                         >
                           <div className="flex items-center gap-4">
                             <History className="h-5 w-5 text-[#B2FCE4]" />
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest">Afterpay</p>
-                              <p className="text-[8px] text-gray-400">Interest-free installments</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Afterpay</p>
+                              <p className="text-[8px] text-muted-foreground">Interest-free installments</p>
                             </div>
                           </div>
-                          {selectedPayment === 'afterpay' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                          {selectedPayment === 'afterpay' && <CheckCircle2 className="h-4 w-4 text-primary" />}
                         </button>
                       )}
                       {paymentConfig.adyenEnabled && (
                         <button 
                           onClick={() => setSelectedPayment('adyen')}
                           className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-sm",
-                            selectedPayment === 'adyen' ? "border-black bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
+                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
+                            selectedPayment === 'adyen' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
                           )}
                         >
                           <div className="flex items-center gap-4">
                             <Banknote className="h-5 w-5 text-[#00FF66]" />
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest">Adyen</p>
-                              <p className="text-[8px] text-gray-400">Global merchant network</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Adyen</p>
+                              <p className="text-[8px] text-muted-foreground">Global merchant network</p>
                             </div>
                           </div>
-                          {selectedPayment === 'adyen' && <CheckCircle2 className="h-4 w-4 text-black" />}
+                          {selectedPayment === 'adyen' && <CheckCircle2 className="h-4 w-4 text-primary" />}
                         </button>
                       )}
                     </div>
@@ -807,7 +805,7 @@ export default function CheckoutPage() {
                     <Button 
                       onClick={handleSubmit}
                       disabled={isSubmitting || !selectedPayment}
-                      className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+                      className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:opacity-90 transition-all duration-300 ease-in-out"
                     >
                       {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Complete Order"}
                     </Button>
@@ -815,18 +813,18 @@ export default function CheckoutPage() {
                 </section>
 
                 <div className="space-y-4 pt-6 border-t mt-4">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     <ShieldCheck className="h-3.5 w-3.5" /> Express Checkout
                   </div>
                   <div className="grid gap-3">
                     {paymentConfig?.applePayEnabled && (
-                      <Button className="h-14 w-full bg-black text-white hover:bg-black/90 rounded-none flex items-center justify-center gap-3">
+                      <Button className="h-14 w-full bg-primary text-primary-foreground hover:opacity-90 rounded-none flex items-center justify-center gap-3">
                         <Apple className="h-5 w-5" />
                         <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Apple Pay</span>
                       </Button>
                     )}
                     {paymentConfig?.googlePayEnabled && (
-                      <Button className="h-14 w-full bg-white border-2 border-black text-black hover:bg-gray-50 rounded-none flex items-center justify-center gap-3">
+                      <Button className="h-14 w-full bg-white border-2 border-primary text-primary hover:bg-secondary rounded-none flex items-center justify-center gap-3">
                         <Smartphone className="h-5 w-5" />
                         <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Google Pay</span>
                       </Button>
@@ -843,30 +841,30 @@ export default function CheckoutPage() {
         <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-0 overflow-hidden">
           <div className="p-12 space-y-8">
             <div className="text-center space-y-4">
-              <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
-              <h2 className="text-3xl font-headline font-bold uppercase tracking-tight">Order Confirmed</h2>
-              <p className="text-sm text-gray-500 uppercase tracking-[0.2em]">Thank you for your purchase.</p>
+              <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto" />
+              <h2 className="text-3xl font-headline font-bold uppercase tracking-tight text-primary">Order Confirmed</h2>
+              <p className="text-sm text-muted-foreground uppercase tracking-[0.2em]">Thank you for your purchase.</p>
             </div>
 
             {confirmedOrder && (
               <div className="space-y-6 border-y py-8">
                 <div className="grid grid-cols-2 gap-8 text-[10px] font-bold uppercase tracking-widest">
                   <div className="space-y-2">
-                    <p className="text-gray-400">Order ID</p>
-                    <p className="text-black">{confirmedOrder.id}</p>
+                    <p className="text-muted-foreground">Order ID</p>
+                    <p className="text-primary">{confirmedOrder.id}</p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-gray-400">Status</p>
-                    <p className="text-green-600">Confirmed</p>
+                    <p className="text-muted-foreground">Status</p>
+                    <p className="text-emerald-600">Confirmed</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Items</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Items</p>
                   <div className="space-y-3">
                     {confirmedOrder.items.map((item: any, i: number) => (
                       <div key={i} className="flex flex-col gap-1 border-b border-gray-50 pb-2 last:border-0">
-                        <div className="flex justify-between text-[11px] font-bold uppercase">
+                        <div className="flex justify-between text-[11px] font-bold uppercase text-primary">
                           <span>{item.quantity}x {item.name} ({item.size})</span>
                           <span>${formatCurrency(item.price * item.quantity)}</span>
                         </div>
@@ -879,7 +877,7 @@ export default function CheckoutPage() {
                               </p>
                             )}
                             {item.specialNote && (
-                              <p className="text-[9px] text-gray-400 italic flex items-start gap-1.5">
+                              <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 mt-0.5">
                                 <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
                                 {item.specialNote}
                               </p>
@@ -892,13 +890,13 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="pt-4 border-t flex justify-between items-end">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Total</span>
-                  <span className="text-xl font-bold font-headline">${formatCurrency(confirmedOrder.total)} CAD</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Total</span>
+                  <span className="text-xl font-bold font-headline text-primary">${formatCurrency(confirmedOrder.total)} CAD</span>
                 </div>
               </div>
             )}
 
-            <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
+            <Button asChild className="w-full h-14 bg-primary text-primary-foreground font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out">
               <Link href="/">Return to Shop</Link>
             </Button>
           </div>

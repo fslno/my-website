@@ -16,7 +16,7 @@ interface ProductCardProps {
 export function ProductCard({ id, name, price, image, category }: ProductCardProps) {
   return (
     <div className="group flex flex-col gap-3">
-      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square">
+      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square rounded-sm border shadow-sm">
         <Image
           src={image}
           alt={name}
@@ -27,9 +27,9 @@ export function ProductCard({ id, name, price, image, category }: ProductCardPro
       </Link>
       
       <div className="flex flex-col gap-1">
-        <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{category}</p>
-        <Link href={`/products/${id}`} className="text-sm font-medium line-clamp-1 group-hover:underline">{name}</Link>
-        <p className="text-sm font-semibold">{price}</p>
+        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{category}</p>
+        <Link href={`/products/${id}`} className="text-sm font-medium line-clamp-1 text-primary group-hover:underline">{name}</Link>
+        <p className="text-sm font-semibold text-primary">{price}</p>
       </div>
     </div>
   );

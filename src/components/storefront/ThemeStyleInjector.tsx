@@ -16,16 +16,27 @@ export function ThemeStyleInjector() {
   useEffect(() => {
     if (!theme) return;
 
-    // Apply global CSS variables to :root
     const root = document.documentElement;
     
+    // Contrast Helper: Returns white or black based on background hex
+    const getContrastColor = (hexcolor: string) => {
+      if (!hexcolor || hexcolor === 'transparent') return '#000000';
+      const r = parseInt(hexcolor.substring(1, 3), 16);
+      const g = parseInt(hexcolor.substring(3, 5), 16);
+      const b = parseInt(hexcolor.substring(5, 7), 16);
+      const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+      return (yiq >= 128) ? '#000000' : '#FFFFFF';
+    };
+
     if (theme.primaryColor) {
       root.style.setProperty('--primary', theme.primaryColor);
       root.style.setProperty('--foreground', theme.primaryColor);
+      root.style.setProperty('--primary-foreground', getContrastColor(theme.primaryColor));
     }
 
     if (theme.accentColor) {
       root.style.setProperty('--accent', theme.accentColor);
+      root.style.setProperty('--accent-foreground', getContrastColor(theme.accentColor));
     }
 
     if (theme.borderRadius !== undefined) {
@@ -44,7 +55,6 @@ export function ThemeStyleInjector() {
     const headlineFont = theme.headlineFont || 'Playfair Display';
     const bodyFont = theme.bodyFont || 'Inter';
 
-    // We use fallback families to ensure it works even if specific sports fonts are still loading
     styleTag.innerHTML = `
       :root {
         --font-headline: "${headlineFont}", "Playfair Display", serif;
@@ -57,13 +67,24 @@ export function ThemeStyleInjector() {
         font-family: var(--font-headline) !important;
       }
       .bg-primary {
-        background-color: ${theme.primaryColor || '#000'} !important;
+        background-color: var(--primary) !important;
+        color: var(--primary-foreground) !important;
       }
       .text-primary {
-        color: ${theme.primaryColor || '#000'} !important;
+        color: var(--primary) !important;
       }
       .border-primary {
-        border-color: ${theme.primaryColor || '#000'} !important;
+        border-color: var(--primary) !important;
+      }
+      .bg-accent {
+        background-color: var(--accent) !important;
+        color: var(--accent-foreground) !important;
+      }
+      .text-accent {
+        color: var(--accent) !important;
+      }
+      .border-accent {
+        border-color: var(--accent) !important;
       }
     `;
 
