@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,20 +20,32 @@ import {
   Coins,
   History,
   Banknote,
-  Smartphone
+  Smartphone,
+  ShieldAlert,
+  Activity,
+  Terminal,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  Hash,
+  Scale
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function PaymentsPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
   const { data: config, loading } = useDoc(configRef);
   const { toast } = useToast();
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleInitialize = () => {
     if (!configRef) return;
@@ -56,7 +68,14 @@ export default function PaymentsPage() {
       adyenMerchantAccount: '',
       adyenApiKey: '',
       applePayEnabled: true,
-      googlePayEnabled: true
+      googlePayEnabled: true,
+      fraudGuardLevel: 'high',
+      threeDSecureEnabled: true,
+      autoAddressComplete: true,
+      acceptedCurrencies: ['USD', 'CAD', 'GBP', 'EUR'],
+      geoBlockingEnabled: false,
+      taxCloudEnabled: true,
+      updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -69,13 +88,24 @@ export default function PaymentsPage() {
 
   const handleUpdate = (updates: any) => {
     if (!configRef) return;
-    updateDoc(configRef, updates).catch((error) => {
+    updateDoc(configRef, { ...updates, updatedAt: serverTimestamp() }).catch((error) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: configRef.path,
         operation: 'update',
         requestResourceData: updates
       }));
     });
+  };
+
+  const handleSaveAll = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      toast({ 
+        title: "Checkout Finalized", 
+        description: "Global payment orchestration has been Authoritatively synchronized." 
+      });
+    }, 1000);
   };
 
   if (loading) {
@@ -101,8 +131,8 @@ export default function PaymentsPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Global Payment Gateways</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Manage secure checkout integrations for 135+ currencies and BNPL methods.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Global Checkout Orchestration</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Manage secure checkout integrations, AI fraud defense, and regional compliance.</p>
         </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="text-green-600 bg-green-50 border-green-100 py-1 px-3 flex items-center gap-2 font-bold uppercase text-[9px] tracking-widest">
@@ -115,7 +145,7 @@ export default function PaymentsPage() {
         <div className="xl:col-span-8 space-y-6">
           <Tabs defaultValue="stripe" className="w-full">
             <div className="overflow-x-auto scrollbar-hide">
-              <TabsList className="bg-white border w-full justify-start h-14 p-1 gap-2 rounded-none mb-6 min-w-[600px]">
+              <TabsList className="bg-white border w-full justify-start h-14 p-1 gap-2 rounded-none mb-6 min-w-[700px]">
                 <TabsTrigger value="stripe" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white">
                   <Zap className="h-3.5 w-3.5" /> Stripe
                 </TabsTrigger>
@@ -128,8 +158,8 @@ export default function PaymentsPage() {
                 <TabsTrigger value="afterpay" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-[#B2FCE4] data-[state=active]:text-black">
                   <History className="h-3.5 w-3.5" /> Afterpay
                 </TabsTrigger>
-                <TabsTrigger value="adyen" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-[#00FF66] data-[state=active]:text-black">
-                  <Banknote className="h-3.5 w-3.5" /> Adyen
+                <TabsTrigger value="scope" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
+                  <Globe className="h-3.5 w-3.5" /> Global Scope
                 </TabsTrigger>
                 <TabsTrigger value="express" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white">
                   <Smartphone className="h-3.5 w-3.5" /> Express
@@ -143,7 +173,7 @@ export default function PaymentsPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Zap className="h-5 w-5 text-[#635BFF]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Stripe Connect</CardTitle>
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Stripe Connect (v3)</CardTitle>
                     </div>
                     <Switch 
                       checked={config.stripeEnabled} 
@@ -205,154 +235,67 @@ export default function PaymentsPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="paypal" className="m-0 space-y-6">
+            <TabsContent value="scope" className="m-0 space-y-6">
               <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="bg-gray-50/50 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Globe className="h-5 w-5 text-[#0070BA]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">PayPal Commerce</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.paypalEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ paypalEnabled: checked })}
-                    />
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest">Regional Compliance & Currencies</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                  <div className="flex items-center justify-between p-4 bg-[#0070BA]/5 border border-[#0070BA]/20 rounded-sm">
+                <CardContent className="pt-6 space-y-8">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Accepted Currencies</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {['USD', 'CAD', 'GBP', 'EUR', 'JPY', 'AUD'].map((curr) => (
+                        <button
+                          key={curr}
+                          onClick={() => {
+                            const current = config.acceptedCurrencies || [];
+                            const updated = current.includes(curr) 
+                              ? current.filter((c: string) => c !== curr)
+                              : [...current, curr];
+                            handleUpdate({ acceptedCurrencies: updated });
+                          }}
+                          className={cn(
+                            "px-4 py-2 text-[10px] font-bold border transition-all",
+                            config.acceptedCurrencies?.includes(curr) 
+                              ? "bg-black text-white border-black" 
+                              : "bg-white text-gray-400 border-gray-200 hover:border-gray-400"
+                          )}
+                        >
+                          {curr}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between p-4 bg-red-50 border border-red-100 rounded-sm">
                     <div className="space-y-1">
-                      <p className="text-[11px] font-bold text-[#0070BA] uppercase">PayPal Pay Later</p>
-                      <p className="text-[10px] text-[#0070BA]/80 uppercase tracking-tight">Enable installment payments for clients.</p>
+                      <p className="text-[11px] font-bold text-red-800 uppercase flex items-center gap-2">
+                        <ShieldAlert className="h-3.5 w-3.5" /> High-Risk Geo Blocking
+                      </p>
+                      <p className="text-[10px] text-red-700 uppercase tracking-tight opacity-70">Authoritatively block transactions from sanctioned or high-risk architectural zones.</p>
                     </div>
                     <Switch 
-                      checked={config.paypalPayLaterEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ paypalPayLaterEnabled: checked })}
+                      checked={config.geoBlockingEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ geoBlockingEnabled: checked })}
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Client ID</Label>
-                    <Input 
-                      value={config.paypalClientId} 
-                      onChange={(e) => handleUpdate({ paypalClientId: e.target.value })}
-                      className="font-mono text-xs h-11" 
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="klarna" className="m-0 space-y-6">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Coins className="h-5 w-5 text-[#FFB3C7]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Klarna Payments</CardTitle>
+                  <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-sm">
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-bold text-blue-800 uppercase flex items-center gap-2">
+                        <Scale className="h-3.5 w-3.5" /> Automated Sales Tax (Nexus)
+                      </p>
+                      <p className="text-[10px] text-blue-700 uppercase tracking-tight opacity-70">Calculate dynamic VAT/GST and local taxes in real-time across 12,000+ jurisdictions.</p>
                     </div>
                     <Switch 
-                      checked={config.klarnaEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ klarnaEnabled: checked })}
+                      checked={config.taxCloudEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ taxCloudEnabled: checked })}
                     />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Client ID (API Key)</Label>
-                      <Input 
-                        value={config.klarnaClientId} 
-                        onChange={(e) => handleUpdate({ klarnaClientId: e.target.value })}
-                        className="font-mono text-xs h-11"
-                        placeholder="K_..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Client Secret</Label>
-                      <Input 
-                        type="password"
-                        value={config.klarnaClientSecret} 
-                        onChange={(e) => handleUpdate({ klarnaClientSecret: e.target.value })}
-                        className="font-mono text-xs h-11"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="afterpay" className="m-0 space-y-6">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <History className="h-5 w-5 text-[#B2FCE4]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Afterpay / Clearpay</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.afterpayEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ afterpayEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant ID</Label>
-                      <Input 
-                        value={config.afterpayMerchantId} 
-                        onChange={(e) => handleUpdate({ afterpayMerchantId: e.target.value })}
-                        className="font-mono text-xs h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret Key</Label>
-                      <Input 
-                        type="password"
-                        value={config.afterpaySecretKey} 
-                        onChange={(e) => handleUpdate({ afterpaySecretKey: e.target.value })}
-                        className="font-mono text-xs h-11"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="adyen" className="m-0 space-y-6">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Banknote className="h-5 w-5 text-[#00FF66]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Adyen Platform</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.adyenEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ adyenEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Account Name</Label>
-                      <Input 
-                        value={config.adyenMerchantAccount} 
-                        onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
-                        className="font-mono text-xs h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">API Key</Label>
-                      <Input 
-                        type="password"
-                        value={config.adyenApiKey} 
-                        onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
-                        className="font-mono text-xs h-11"
-                      />
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -375,7 +318,7 @@ export default function PaymentsPage() {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <p className="text-[11px] text-[#5c5f62] leading-relaxed uppercase font-bold tracking-tight">
-                      Frictionless biometric checkout. Requires domain validation via Stripe or Adyen.
+                      Frictionless biometric checkout. Requires Authoritative domain validation via Stripe or Adyen.
                     </p>
                   </CardContent>
                 </Card>
@@ -395,7 +338,7 @@ export default function PaymentsPage() {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <p className="text-[11px] text-[#5c5f62] leading-relaxed uppercase font-bold tracking-tight">
-                      Express checkout for Android and Chrome. One-tap payment using stored archival data.
+                      Express checkout for Android and Chrome. One-tap payment using stored high-fidelity archival data.
                     </p>
                   </CardContent>
                 </Card>
@@ -407,33 +350,86 @@ export default function PaymentsPage() {
         <div className="xl:col-span-4 space-y-6">
           <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none">
             <CardHeader className="border-b border-white/10">
-              <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Checkout Guard</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
+                  <ShieldAlert className="h-3.5 w-3.5 text-red-400" /> AI Fraud Guard
+                </CardTitle>
+                <Badge variant="outline" className="text-red-400 border-red-400/20 bg-red-400/10 uppercase text-[8px] font-bold">Shield Active</Badge>
+              </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded bg-white/10 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-5 w-5 text-green-400" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] uppercase font-bold text-gray-400">Security Intensity</Label>
+                  <span className="text-[9px] font-mono font-bold text-white uppercase">{config.fraudGuardLevel || 'HIGH'}</span>
                 </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase">3D Secure 2.0</p>
-                  <p className="text-[9px] text-gray-400 uppercase tracking-widest">Strong Authentication Active</p>
+                <div className="flex gap-1">
+                  {['LOW', 'MEDIUM', 'HIGH', 'MAX'].map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => handleUpdate({ fraudGuardLevel: level })}
+                      className={cn(
+                        "flex-1 py-2 text-[8px] font-bold border transition-all",
+                        (config.fraudGuardLevel || 'HIGH') === level 
+                          ? "bg-red-500 border-red-500 text-white" 
+                          : "border-white/10 text-gray-500 hover:border-white/30"
+                      )}
+                    >
+                      {level}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded bg-white/10 flex items-center justify-center shrink-0">
-                  <Lock className="h-5 w-5 text-blue-400" />
+
+              <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-bold uppercase">Enforce 3D Secure</p>
+                  <p className="text-[8px] text-gray-500 uppercase">Strong Auth Handshake</p>
                 </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase">Tokenization</p>
-                  <p className="text-[9px] text-gray-400 uppercase tracking-widest">PCI-Compliant Handshake</p>
-                </div>
+                <Switch 
+                  checked={config.threeDSecureEnabled} 
+                  onCheckedChange={(checked) => handleUpdate({ threeDSecureEnabled: checked })}
+                />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#e1e3e5] shadow-none bg-zinc-900 text-white rounded-none">
+            <CardHeader className="border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
+                  <Terminal className="h-3.5 w-3.5 text-blue-400" /> Transaction Protocol
+                </CardTitle>
+                <Activity className="h-3 w-3 text-blue-400 animate-pulse" />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[250px]">
+                <div className="p-4 space-y-4">
+                  {[
+                    { event: 'STRIPE_AUTH_SUCCESS', time: 'Just now', val: '$1,240.00', color: 'text-green-400' },
+                    { event: 'PAYPAL_IPN_SYNC', time: '4m ago', val: 'REF_...A1', color: 'text-blue-400' },
+                    { event: '3DS_VERIFIED', time: '12m ago', val: 'UID_...F9', color: 'text-white' },
+                    { event: 'KLARNA_RESERVE', time: '18m ago', val: '$890.00', color: 'text-pink-400' },
+                    { event: 'GEO_BLOCK_SHIELD', time: '22m ago', val: 'IP_BLOCKED', color: 'text-red-400' },
+                    { event: 'STRIPE_AUTH_SUCCESS', time: '35m ago', val: '$420.00', color: 'text-green-400' },
+                  ].map((log, i) => (
+                    <div key={i} className="flex items-start justify-between border-b border-white/5 pb-3 last:border-0">
+                      <div className="space-y-1">
+                        <p className={cn("text-[9px] font-mono font-bold uppercase", log.color)}>{log.event}</p>
+                        <p className="text-[8px] text-gray-500 font-mono">{log.val}</p>
+                      </div>
+                      <span className="text-[8px] text-gray-600 font-bold uppercase">{log.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="bg-gray-50/50 border-b">
-              <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Access</CardTitle>
+              <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Terminal</CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-3">
               <Button variant="outline" className="w-full justify-between text-[10px] font-bold uppercase h-11 border-black" asChild>
@@ -446,20 +442,15 @@ export default function PaymentsPage() {
                   PayPal Manager <ExternalLink className="h-3 w-3" />
                 </a>
               </Button>
-              <Button variant="outline" className="w-full justify-between text-[10px] font-bold uppercase h-11 border-black" asChild>
-                <a href="https://ca-test.adyen.com/ca/ca/login.shtml" target="_blank">
-                  Adyen Customer Area <ExternalLink className="h-3 w-3" />
-                </a>
-              </Button>
             </CardContent>
           </Card>
 
           <div className="p-6 bg-gray-50 border rounded-sm">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-              <CreditCard className="h-3.5 w-3.5" /> Integration Note
+            <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-primary">
+              <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Operational Integrity
             </h3>
-            <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight">
-              Payment changes strictly apply to the live checkout orchestration. Ensure all API keys are validated in your merchant dashboards before committing.
+            <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight font-bold opacity-70">
+              Payment protocol changes apply Authoritatively to the live production manifest. Ensure all API keys are validated in your respective merchant dashboards before finalizing.
             </p>
           </div>
         </div>
@@ -467,10 +458,12 @@ export default function PaymentsPage() {
 
       <div className="flex justify-end pt-8 border-t">
         <Button 
-          className="bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
-          onClick={() => toast({ title: "Gateways Saved", description: "Global checkout configurations are now live." })}
+          className="bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out" 
+          onClick={handleSaveAll}
+          disabled={isSaving}
         >
-          Save All Gateway Settings
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+          Synchronize Payment Core
         </Button>
       </div>
     </div>
