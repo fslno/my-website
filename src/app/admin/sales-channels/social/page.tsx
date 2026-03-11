@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -8,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { 
   Share2, 
   MessageCircle, 
@@ -232,9 +232,12 @@ export default function SocialCommercePage() {
 
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-[#0668E1]" />
-              <CardTitle className="text-lg">Meta Conversions API (CAPI)</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-[#0668E1]" />
+                <CardTitle className="text-lg">Meta Conversions API (CAPI)</CardTitle>
+              </div>
+              <Badge variant="outline" className="text-green-600 border-green-100 bg-green-50 uppercase text-[9px] font-bold tracking-widest">Active</Badge>
             </div>
             <CardDescription>
               High-performance server-to-server tracking for Facebook and Instagram ads.
