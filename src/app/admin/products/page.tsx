@@ -105,8 +105,8 @@ export default function ProductsPage() {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   
-  // Customization State
-  const [customizationEnabled, setCustomizationEnabled] = useState(false);
+  // Customization State - Authoritatively ON by default
+  const [customizationEnabled, setCustomizationEnabled] = useState(true);
   const [customizationFee, setCustomizationFee] = useState('10');
 
   const [variants, setVariants] = useState<Variant[]>([
@@ -478,7 +478,8 @@ export default function ProductsPage() {
 
   const resetForm = () => {
     setName(''); setPrice(''); setComparedPrice(''); setBrand(''); setSku(''); setSizeFit(''); setBadge('none'); setDescription(''); setCategoryId('');
-    setCustomizationEnabled(false); setCustomizationFee('10');
+    // Authoritatively reset to true for next entry
+    setCustomizationEnabled(true); setCustomizationFee('10');
     setVariants([{ size: 'XS', stock: 0, sku: '' }, { size: 'S', stock: 0, sku: '' }, { size: 'M', stock: 0, sku: '' }, { size: 'L', stock: 0, sku: '' }, { size: 'XL', stock: 0, sku: '' }]);
     setMedia([]); setFeatures(''); setSeoTitle(''); setSeoDescription(''); setSeoHandle(''); setWeight(''); setLength(''); setWidth(''); setHeight(''); setActiveTab('general');
     setEditingId(null);
@@ -494,7 +495,7 @@ export default function ProductsPage() {
     setBadge(product.badge || 'none');
     setDescription(product.description || '');
     setCategoryId(product.categoryId || '');
-    setCustomizationEnabled(product.customizationEnabled ?? false);
+    setCustomizationEnabled(product.customizationEnabled ?? true);
     setCustomizationFee(String(product.customizationFee ?? '10'));
     setVariants(product.variants || []);
     setMedia(product.media || []);
