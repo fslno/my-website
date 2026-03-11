@@ -58,6 +58,8 @@ const DEFAULT_THEME = {
   bannerEnabled: true,
   bannerText: 'Free global shipping on orders over $500',
   bannerBgColor: '#000000',
+  bannerFont: 'Inter',
+  bannerFontSize: '10',
   homepageLayout: 'bento',
   heroImageUrl: '',
   heroHeadline: 'The Archive Selection',
@@ -83,6 +85,8 @@ export default function ThemeEnginePage() {
   const [bannerEnabled, setBannerEnabled] = useState(DEFAULT_THEME.bannerEnabled);
   const [bannerText, setBannerText] = useState(DEFAULT_THEME.bannerText);
   const [bannerBgColor, setBannerBgColor] = useState(DEFAULT_THEME.bannerBgColor);
+  const [bannerFont, setBannerFont] = useState(DEFAULT_THEME.bannerFont);
+  const [bannerFontSize, setBannerFontSize] = useState(DEFAULT_THEME.bannerFontSize);
   const [homepageLayout, setHomepageLayout] = useState(DEFAULT_THEME.homepageLayout);
   const [heroImageUrl, setHeroImageUrl] = useState(DEFAULT_THEME.heroImageUrl);
   const [heroHeadline, setHeroHeadline] = useState(DEFAULT_THEME.heroHeadline);
@@ -98,6 +102,8 @@ export default function ThemeEnginePage() {
       setBannerEnabled(themeData.bannerEnabled ?? DEFAULT_THEME.bannerEnabled);
       setBannerText(themeData.bannerText || DEFAULT_THEME.bannerText);
       setBannerBgColor(themeData.bannerBgColor || DEFAULT_THEME.bannerBgColor);
+      setBannerFont(themeData.bannerFont || DEFAULT_THEME.bannerFont);
+      setBannerFontSize(themeData.bannerFontSize?.toString() || DEFAULT_THEME.bannerFontSize);
       setHomepageLayout(themeData.homepageLayout || DEFAULT_THEME.homepageLayout);
       setHeroImageUrl(themeData.heroImageUrl || DEFAULT_THEME.heroImageUrl);
       setHeroHeadline(themeData.heroHeadline || DEFAULT_THEME.heroHeadline);
@@ -127,6 +133,8 @@ export default function ThemeEnginePage() {
       bannerEnabled,
       bannerText,
       bannerBgColor,
+      bannerFont,
+      bannerFontSize: Number(bannerFontSize),
       homepageLayout,
       heroImageUrl,
       heroHeadline,
@@ -157,6 +165,8 @@ export default function ThemeEnginePage() {
     setBannerEnabled(DEFAULT_THEME.bannerEnabled);
     setBannerText(DEFAULT_THEME.bannerText);
     setBannerBgColor(DEFAULT_THEME.bannerBgColor);
+    setBannerFont(DEFAULT_THEME.bannerFont);
+    setBannerFontSize(DEFAULT_THEME.bannerFontSize);
     setHomepageLayout(DEFAULT_THEME.homepageLayout);
     setHeroImageUrl(DEFAULT_THEME.heroImageUrl);
     setHeroHeadline(DEFAULT_THEME.heroHeadline);
@@ -184,12 +194,18 @@ export default function ThemeEnginePage() {
           --preview-radius: ${borderRadius}px;
           --preview-headline: "${headlineFont}", serif;
           --preview-body: "${bodyFont}", sans-serif;
+          --preview-banner-font: "${bannerFont}", sans-serif;
+          --preview-banner-font-size: ${bannerFontSize}px;
         }
         #theme-preview-root .font-headline {
           font-family: var(--preview-headline) !important;
         }
         #theme-preview-root .font-body {
           font-family: var(--preview-body) !important;
+        }
+        #theme-preview-root .preview-banner {
+          font-family: var(--preview-banner-font) !important;
+          font-size: var(--preview-banner-font-size) !important;
         }
       `}</style>
 
@@ -254,7 +270,7 @@ export default function ThemeEnginePage() {
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                     <Type className="h-3.5 w-3.5" /> Performance Typography
                   </CardTitle>
-                  <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Select from 20 high-velocity athletic e-commerce fonts.</CardDescription>
+                  <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Select from high-velocity athletic fonts.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div className="space-y-4">
@@ -329,6 +345,35 @@ export default function ThemeEnginePage() {
                       <Input value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
                     </div>
                   </div>
+                  <div className="space-y-4 pt-4 border-t">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Banner Identity Typography</Label>
+                    <Select value={bannerFont} onValueChange={setBannerFont}>
+                      <SelectTrigger className="h-12 bg-white rounded-none border-2 border-primary/5">
+                        <SelectValue placeholder="CHOOSE BANNER FONT" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {sportsFonts.map(font => (
+                          <SelectItem key={font} value={font} className="text-xs font-bold uppercase py-2 cursor-pointer">
+                            <span style={{ fontFamily: font }}>{font}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Linguistic Scale (Font Size)</Label>
+                      <span className="text-[10px] font-mono font-bold">{bannerFontSize}PX</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="8" 
+                      max="16" 
+                      value={bannerFontSize} 
+                      onChange={(e) => setBannerFontSize(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -392,7 +437,7 @@ export default function ThemeEnginePage() {
                         onClick={() => setHomepageLayout('bento')}
                         className={cn(
                           "p-4 border-2 rounded flex flex-col items-center gap-3 transition-all",
-                          homepageLayout === 'bento' ? "border-black bg-black/5" : "border-transparent bg-gray-50 hover:border-gray-200"
+                          homepageLayout === 'bento' ? "border-primary bg-primary/5" : "border-transparent bg-gray-50 hover:border-gray-200"
                         )}
                       >
                         <div className="w-full h-24 grid grid-cols-2 gap-1 p-1 bg-white border rounded shadow-sm">
@@ -406,7 +451,7 @@ export default function ThemeEnginePage() {
                         onClick={() => setHomepageLayout('classic')}
                         className={cn(
                           "p-4 border-2 rounded flex flex-col items-center gap-3 transition-all",
-                          homepageLayout === 'classic' ? "border-black bg-black/5" : "border-transparent bg-gray-50 hover:border-gray-200"
+                          homepageLayout === 'classic' ? "border-primary bg-primary/5" : "border-transparent bg-gray-50 hover:border-gray-200"
                         )}
                       >
                         <div className="w-full h-24 grid grid-cols-1 gap-1 p-1 bg-white border rounded shadow-sm">
@@ -456,7 +501,7 @@ export default function ThemeEnginePage() {
               {/* Fake Storefront Banner */}
               {bannerEnabled && (
                 <div 
-                  className="h-8 flex items-center justify-center text-[9px] uppercase tracking-[0.3em] font-bold text-white transition-all shrink-0"
+                  className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white transition-all shrink-0 px-4 text-center"
                   style={{ backgroundColor: bannerBgColor }}
                 >
                   {bannerText}

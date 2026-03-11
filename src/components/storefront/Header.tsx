@@ -99,7 +99,7 @@ export function Header() {
     <>
       {theme?.bannerEnabled && (
         <div 
-          className="fixed top-0 left-0 right-0 z-[60] h-10 flex items-center justify-center text-[10px] uppercase tracking-[0.3em] font-bold text-white px-4 text-center"
+          className="fixed top-0 left-0 right-0 z-[60] h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center banner-style"
           style={{ backgroundColor: theme.bannerBgColor || 'var(--primary)' }}
         >
           {theme.bannerText}
