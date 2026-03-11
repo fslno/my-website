@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -180,6 +181,11 @@
         "poweredByLabel": { "type": "string" },
         "poweredByStudioName": { "type": "string" },
         "poweredByLogoUrl": { "type": "string" },
+        "newsletterEnabled": { "type": "boolean" },
+        "newsletterHeadline": { "type": "string" },
+        "newsletterSubtext": { "type": "string" },
+        "openingHours": { "type": "string" },
+        "paymentIconsVisible": { "type": "array", "items": { "type": "string" } },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     },
