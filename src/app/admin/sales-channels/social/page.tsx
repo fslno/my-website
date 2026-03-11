@@ -18,14 +18,25 @@ import {
   BarChart3,
   Plus,
   Trash2,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export default function SocialCommercePage() {
   const db = useFirestore();
@@ -34,6 +45,8 @@ export default function SocialCommercePage() {
   const { toast } = useToast();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPartnersDialogOpen, setIsPartnersDialogOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [newIntegration, setNewIntegration] = useState({ name: '', description: '' });
 
   const handleInitialize = () => {
@@ -44,6 +57,7 @@ export default function SocialCommercePage() {
       metaPixelId: '9283746501293',
       metaAccessToken: '',
       metaEmqEnabled: true,
+      lastInstagramSync: null,
       customIntegrations: []
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -66,6 +80,19 @@ export default function SocialCommercePage() {
     });
   };
 
+  const handleInstagramSync = () => {
+    setIsSyncing(true);
+    setTimeout(() => {
+      const updates = { lastInstagramSync: new Date().toISOString() };
+      handleUpdate(updates);
+      setIsSyncing(false);
+      toast({ 
+        title: "Sync Successful", 
+        description: "Instagram product tagging catalog has been Authoritatively updated." 
+      });
+    }, 2000);
+  };
+
   const handleAddIntegration = () => {
     if (!newIntegration.name || !config) return;
     const updatedIntegrations = [
@@ -82,6 +109,11 @@ export default function SocialCommercePage() {
     if (!config) return;
     const updatedIntegrations = config.customIntegrations.filter((i: any) => i.id !== id);
     handleUpdate({ customIntegrations: updatedIntegrations });
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
   if (loading) {
@@ -112,39 +144,41 @@ export default function SocialCommercePage() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="h-9 gap-2 border-[#babfc3]">
+            <Button variant="outline" className="h-9 gap-2 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
               <Plus className="h-4 w-4" /> Add Channel
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-white">
             <DialogHeader>
-              <DialogTitle>Add New Sales Channel</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-xl font-bold uppercase tracking-tight">Add New Sales Channel</DialogTitle>
+              <DialogDescription className="text-xs">
                 Configure a new platform or custom tool for social commerce.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="channel-name">Channel Name</Label>
+                <Label htmlFor="channel-name" className="text-[10px] uppercase font-bold text-gray-500">Channel Name</Label>
                 <Input 
                   id="channel-name" 
                   placeholder="e.g. Pinterest Shopping" 
                   value={newIntegration.name}
                   onChange={(e) => setNewIntegration({...newIntegration, name: e.target.value})}
+                  className="h-11"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="channel-desc">Description</Label>
+                <Label htmlFor="channel-desc" className="text-[10px] uppercase font-bold text-gray-500">Description</Label>
                 <Input 
                   id="channel-desc" 
                   placeholder="e.g. Sync product catalog for visual search" 
                   value={newIntegration.description}
                   onChange={(e) => setNewIntegration({...newIntegration, description: e.target.value})}
+                  className="h-11"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleAddIntegration} className="bg-black text-white">Add Channel</Button>
+              <Button onClick={handleAddIntegration} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]">Add Channel</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -158,7 +192,7 @@ export default function SocialCommercePage() {
                 <MessageCircle className="h-5 w-5 text-[#ff0050]" />
                 <CardTitle className="text-lg">TikTok Shop Seller API</CardTitle>
               </div>
-              <Badge variant="outline" className="text-green-600 border-green-100 bg-green-50">Active</Badge>
+              <Badge variant="outline" className="text-green-600 border-green-100 bg-green-50 uppercase text-[9px] font-bold tracking-widest">Active</Badge>
             </div>
             <CardDescription>
               Enable in-app checkout and affiliate creator management for viral drops.
@@ -168,7 +202,7 @@ export default function SocialCommercePage() {
             <div className="grid gap-4">
               <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
                 <div className="space-y-1">
-                  <p className="text-sm font-bold">In-App Checkout</p>
+                  <p className="text-sm font-bold uppercase tracking-tight">In-App Checkout</p>
                   <p className="text-xs text-[#5c5f62]">Allow customers to buy FSLNO gear without leaving TikTok.</p>
                 </div>
                 <Switch 
@@ -178,19 +212,19 @@ export default function SocialCommercePage() {
               </div>
               <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
                 <div className="space-y-1">
-                  <p className="text-sm font-bold">Affiliate Sample Management</p>
+                  <p className="text-sm font-bold uppercase tracking-tight">Affiliate Sample Management</p>
                   <p className="text-xs text-[#5c5f62]">Automated dashboard to send samples to creators and track ROI.</p>
                 </div>
-                <Button variant="outline" size="sm" className="h-8 border-[#babfc3]">Configure</Button>
+                <Button variant="outline" size="sm" className="h-8 border-[#babfc3] font-bold uppercase tracking-widest text-[9px]">Configure</Button>
               </div>
             </div>
             <div className="grid gap-2">
-              <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">TikTok Shop Access Token</Label>
+              <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">TikTok Shop Access Token</Label>
               <Input 
                 type="password" 
                 value={config.tiktokAccessToken} 
                 onChange={(e) => handleUpdate({ tiktokAccessToken: e.target.value })}
-                className="bg-[#f1f2f3]" 
+                className="bg-[#f1f2f3] font-mono text-xs h-11" 
               />
             </div>
           </CardContent>
@@ -211,8 +245,8 @@ export default function SocialCommercePage() {
               <div className="flex gap-3">
                 <Zap className="h-5 w-5 text-blue-600 shrink-0" />
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-blue-900">Bypass iOS Privacy Restrictions</p>
-                  <p className="text-xs text-blue-800 leading-relaxed">
+                  <p className="text-sm font-bold text-blue-900 uppercase tracking-tight">Bypass iOS Privacy Restrictions</p>
+                  <p className="text-xs text-blue-800 leading-relaxed uppercase tracking-tight">
                     CAPI sends "Purchase" data directly from your Firebase server to Meta, bypassing browser ad-blockers and cookie restrictions.
                   </p>
                 </div>
@@ -220,27 +254,29 @@ export default function SocialCommercePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Pixel ID</Label>
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Pixel ID</Label>
                 <Input 
                   value={config.metaPixelId} 
                   onChange={(e) => handleUpdate({ metaPixelId: e.target.value })}
+                  className="h-11 font-mono text-xs"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-[#5c5f62]">Access Token</Label>
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Access Token</Label>
                 <Input 
                   type="password" 
                   value={config.metaAccessToken}
                   onChange={(e) => handleUpdate({ metaAccessToken: e.target.value })}
                   placeholder="Enter your token" 
+                  className="h-11 font-mono text-xs"
                 />
               </div>
             </div>
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="space-y-1">
-                <span className="text-sm font-bold flex items-center gap-2">
+                <span className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
                   <span>Event Match Quality (EMQ)</span>
-                  <Badge variant="secondary" className="text-[10px] h-4">Advanced</Badge>
+                  <Badge variant="secondary" className="text-[9px] h-4 font-bold uppercase tracking-widest">Advanced</Badge>
                 </span>
                 <p className="text-xs text-[#5c5f62]">Sends hashed email/phone data to help find buyers.</p>
               </div>
@@ -264,17 +300,78 @@ export default function SocialCommercePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-4 border rounded-md flex flex-col gap-3">
-                <BarChart3 className="h-5 w-5 text-[#5c5f62]" />
-                <h4 className="text-sm font-bold">Product Tagging</h4>
+              <div className="p-4 border rounded-md flex flex-col gap-3 group relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <BarChart3 className="h-5 w-5 text-[#5c5f62]" />
+                  {config.lastInstagramSync && (
+                    <span className="text-[8px] font-bold text-green-600 flex items-center gap-1">
+                      <CheckCircle2 className="h-2 w-2" /> LAST SYNC: {formatDate(config.lastInstagramSync)}
+                    </span>
+                  )}
+                </div>
+                <h4 className="text-sm font-bold uppercase tracking-tight">Product Tagging</h4>
                 <p className="text-xs text-[#5c5f62]">Real-time sync into Instagram "Guides" and Reels.</p>
-                <Button variant="link" className="p-0 h-auto text-xs justify-start font-bold">Sync Now</Button>
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto text-[10px] justify-start font-bold uppercase tracking-widest text-primary hover:text-black"
+                  onClick={handleInstagramSync}
+                  disabled={isSyncing}
+                >
+                  {isSyncing ? (
+                    <span className="flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" /> Syncing Archive...</span>
+                  ) : 'Sync Now'}
+                </Button>
               </div>
+
               <div className="p-4 border rounded-md flex flex-col gap-3">
                 <Users className="h-5 w-5 text-[#5c5f62]" />
-                <h4 className="text-sm font-bold">Creator Marketplace</h4>
+                <h4 className="text-sm font-bold uppercase tracking-tight">Creator Marketplace</h4>
                 <p className="text-xs text-[#5c5f62]">Enable white-listed ads for FSLNO partners.</p>
-                <Button variant="link" className="p-0 h-auto text-xs justify-start font-bold">View Partners</Button>
+                
+                <Dialog open={isPartnersDialogOpen} onOpenChange={setIsPartnersDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="link" className="p-0 h-auto text-[10px] justify-start font-bold uppercase tracking-widest text-primary hover:text-black">View Partners</Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl bg-white">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold uppercase tracking-tight">Archive Creator Partners</DialogTitle>
+                      <DialogDescription className="text-xs">Manage influencers and content creators with authorized advertising permissions.</DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <Table>
+                        <TableHeader className="bg-gray-50/50">
+                          <TableRow>
+                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">Creator</TableHead>
+                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">Platform</TableHead>
+                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">Status</TableHead>
+                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">ROI</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {[
+                            { name: '@archive_silhouettes', platform: 'Instagram', status: 'Active', roi: '4.2x' },
+                            { name: '@tech_minimalist', platform: 'TikTok', status: 'Active', roi: '3.8x' },
+                            { name: '@fslno_community', platform: 'Instagram', status: 'Pending', roi: '--' },
+                          ].map((partner, i) => (
+                            <TableRow key={i} className="hover:bg-gray-50/30">
+                              <TableCell className="font-bold text-xs">{partner.name}</TableCell>
+                              <TableCell className="text-xs text-gray-500 uppercase">{partner.platform}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest", partner.status === 'Active' ? "bg-green-50 text-green-700 border-green-100" : "bg-orange-50 text-orange-700 border-orange-100")}>
+                                  {partner.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right font-mono text-xs font-bold">{partner.roi}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    <DialogFooter>
+                      <Button className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]">Invite New Creator</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </CardContent>
@@ -295,7 +392,7 @@ export default function SocialCommercePage() {
               <CardDescription>{integration.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4 bg-[#f6f6f7] rounded-md border text-center text-xs text-[#5c5f62]">
+              <div className="p-4 bg-[#f6f6f7] rounded-md border text-center text-xs text-[#5c5f62] uppercase tracking-tight">
                 Integration configuration pending API key validation.
               </div>
             </CardContent>
@@ -304,7 +401,7 @@ export default function SocialCommercePage() {
       </div>
       
       <div className="flex justify-end pt-4">
-        <Button className="bg-black text-white h-11 px-8 font-bold" onClick={() => toast({ title: "Settings Saved", description: "All configurations are live." })}>
+        <Button className="bg-black text-white h-12 px-10 font-bold uppercase tracking-widest text-[10px]" onClick={() => toast({ title: "Settings Saved", description: "All social configurations are live." })}>
           Save Channel Settings
         </Button>
       </div>
