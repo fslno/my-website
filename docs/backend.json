@@ -193,6 +193,20 @@
         "timezone": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "Partner": {
+      "title": "Partner",
+      "type": "object",
+      "description": "Represents a social commerce archival partner/creator.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "platform": { "type": "string", "enum": ["Instagram", "TikTok"] },
+        "status": { "type": "string", "enum": ["Active", "Pending"] },
+        "roi": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "platform", "status"]
     }
   },
   "auth": {
@@ -245,6 +259,15 @@
           "entityName": "StaffProfile",
           "schema": {
             "$ref": "#/backend/entities/StaffProfile"
+          }
+        }
+      },
+      {
+        "path": "/partners/{partnerId}",
+        "definition": {
+          "entityName": "Partner",
+          "schema": {
+            "$ref": "#/backend/entities/Partner"
           }
         }
       }

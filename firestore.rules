@@ -68,6 +68,10 @@ service cloud.firestore {
       }
     }
 
+    match /partners/{partnerId} {
+      allow read, write: if isAdmin();
+    }
+
     match /config/{configId} {
       allow get: if true;
       allow write: if isAdmin();
