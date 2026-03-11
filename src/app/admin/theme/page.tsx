@@ -63,7 +63,8 @@ const DEFAULT_THEME = {
   homepageLayout: 'bento',
   heroImageUrl: '',
   heroHeadline: 'The Archive Selection',
-  heroSubheadline: 'Modern Silhouettes'
+  heroSubheadline: 'Modern Silhouettes',
+  heroButtonText: 'Shop the Drops'
 };
 
 export default function ThemeEnginePage() {
@@ -91,6 +92,7 @@ export default function ThemeEnginePage() {
   const [heroImageUrl, setHeroImageUrl] = useState(DEFAULT_THEME.heroImageUrl);
   const [heroHeadline, setHeroHeadline] = useState(DEFAULT_THEME.heroHeadline);
   const [heroSubheadline, setHeroSubheadline] = useState(DEFAULT_THEME.heroSubheadline);
+  const [heroButtonText, setHeroButtonText] = useState(DEFAULT_THEME.heroButtonText);
 
   useEffect(() => {
     if (themeData) {
@@ -108,6 +110,7 @@ export default function ThemeEnginePage() {
       setHeroImageUrl(themeData.heroImageUrl || DEFAULT_THEME.heroImageUrl);
       setHeroHeadline(themeData.heroHeadline || DEFAULT_THEME.heroHeadline);
       setHeroSubheadline(themeData.heroSubheadline || DEFAULT_THEME.heroSubheadline);
+      setHeroButtonText(themeData.heroButtonText || DEFAULT_THEME.heroButtonText);
     }
   }, [themeData]);
 
@@ -139,6 +142,7 @@ export default function ThemeEnginePage() {
       heroImageUrl,
       heroHeadline,
       heroSubheadline,
+      heroButtonText,
       updatedAt: new Date().toISOString()
     };
 
@@ -171,6 +175,7 @@ export default function ThemeEnginePage() {
     setHeroImageUrl(DEFAULT_THEME.heroImageUrl);
     setHeroHeadline(DEFAULT_THEME.heroHeadline);
     setHeroSubheadline(DEFAULT_THEME.heroSubheadline);
+    setHeroButtonText(DEFAULT_THEME.heroButtonText);
     toast({ title: "Defaults Restored", description: "Save to commit these base styles permanently." });
   };
 
@@ -421,6 +426,10 @@ export default function ThemeEnginePage() {
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Subheadline (Collection Tag)</Label>
                       <Input value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} className="h-12 uppercase tracking-widest" />
                     </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Call to Action (Button Text)</Label>
+                      <Input value={heroButtonText} onChange={(e) => setHeroButtonText(e.target.value)} className="h-12 uppercase tracking-widest font-bold" placeholder="e.g. SHOP THE DROP" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -542,7 +551,7 @@ export default function ThemeEnginePage() {
                         <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 font-body block">{heroSubheadline}</span>
                         <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
                         <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body justify-center">
-                          Shop the drops <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                          {heroButtonText} <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                         </div>
                       </div>
                     </div>
@@ -566,6 +575,9 @@ export default function ThemeEnginePage() {
                       <div className="relative z-10">
                         <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-6 font-body block">{heroSubheadline}</span>
                         <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
+                        <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body justify-center">
+                          {heroButtonText} <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -587,7 +599,7 @@ export default function ThemeEnginePage() {
                     className="h-16 px-16 font-bold uppercase tracking-[0.3em] text-[11px] transition-all shadow-xl hover:scale-[1.02] active:scale-95 font-body"
                     style={{ backgroundColor: primaryColor, color: accentColor, borderRadius: `${borderRadius}px` }}
                   >
-                    Discover All Archive Drops
+                    {heroButtonText}
                   </button>
                 </div>
               </div>

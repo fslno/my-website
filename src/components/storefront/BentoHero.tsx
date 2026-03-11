@@ -10,6 +10,7 @@ interface BentoHeroProps {
   heroImageUrl?: string;
   headline?: string;
   subheadline?: string;
+  buttonText?: string;
   fallbackImageUrl?: string;
 }
 
@@ -18,6 +19,7 @@ export function BentoHero({
   heroImageUrl, 
   headline = 'The Collection', 
   subheadline = 'Modern Silhouettes',
+  buttonText = 'Shop the Drops',
   fallbackImageUrl
 }: BentoHeroProps) {
   if (isLoading) {
@@ -58,7 +60,7 @@ export function BentoHero({
               href="#featured-products" 
               className="bg-accent text-accent-foreground px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out shadow-xl active:scale-95"
             >
-              Shop the Drops <ArrowRight className="ml-3 h-4 w-4" />
+              {buttonText} <ArrowRight className="ml-3 h-4 w-4" />
             </Link>
           </div>
         </div>
