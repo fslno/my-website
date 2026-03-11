@@ -455,22 +455,6 @@ export default function ThemeEnginePage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Vertical Anchor (Lower axis)</Label>
-                      <div className="flex gap-2">
-                        {['center', 'bottom'].map((vAlign) => (
-                          <Button 
-                            key={vAlign}
-                            variant={heroVerticalAlign === vAlign ? 'default' : 'outline'} 
-                            onClick={() => setHeroVerticalAlign(vAlign)}
-                            className="flex-1 h-12 rounded-none border-gray-200 uppercase text-[9px] font-bold"
-                          >
-                            {vAlign === 'center' ? 'Middle' : 'Lower'}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Headline Scale</Label>
@@ -562,21 +546,6 @@ export default function ThemeEnginePage() {
                             {align === 'left' && <AlignLeft className="h-4 w-4" />}
                             {align === 'center' && <AlignCenter className="h-4 w-4" />}
                             {align === 'right' && <AlignRight className="h-4 w-4" />}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Vertical Anchor (Lower axis)</Label>
-                      <div className="flex gap-2">
-                        {['center', 'bottom'].map((vAlign) => (
-                          <Button 
-                            key={vAlign}
-                            variant={categoryVerticalAlign === vAlign ? 'default' : 'outline'} 
-                            onClick={() => setCategoryVerticalAlign(vAlign)}
-                            className="flex-1 h-10 rounded-none border-gray-200 uppercase text-[9px] font-bold"
-                          >
-                            {vAlign === 'center' ? 'Middle' : 'Lower'}
                           </Button>
                         ))}
                       </div>
