@@ -22,8 +22,10 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
       
-      // Robust list protocol: Admin has absolute visibility; Members are strictly constrained to their own transactions.
-      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid && request.query.limit <= 100);
+      // Robust list protocol: Admin has absolute visibility
+      allow list: if isAdmin();
+      // Members are strictly constrained to their own transactions.
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid && request.query.limit <= 100;
       
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow update, delete: if isAdmin();

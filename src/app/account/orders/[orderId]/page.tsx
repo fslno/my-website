@@ -5,17 +5,19 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
-import { Loader2, ChevronLeft, Package, Truck, MapPin, Calendar, CreditCard, ExternalLink, ArrowLeft } from 'lucide-react';
+import { Loader2, Package, Truck, MapPin, Calendar, CreditCard, ExternalLink, ArrowLeft, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 
-export default function OrderDetailPage(props: { 
+export default function OrderDetailPage({ 
+  params 
+}: { 
   params: Promise<{ orderId: string }> 
 }) {
-  const params = React.use(props.params);
-  const { orderId } = params;
+  const { orderId } = React.use(params);
   
   const { user, isUserLoading } = useUser();
   const db = useFirestore();

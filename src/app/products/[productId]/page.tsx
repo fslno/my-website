@@ -43,13 +43,15 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage(props: { 
+export default function ProductDetailPage({ 
+  params, 
+  searchParams 
+}: { 
   params: Promise<{ productId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const params = React.use(props.params);
-  const searchParams = React.use(props.searchParams);
-  const { productId } = params;
+  const { productId } = React.use(params);
+  const sParams = React.use(searchParams);
   
   const db = useFirestore();
   const router = useRouter();

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   ChevronLeft, 
   Loader2,
@@ -79,19 +80,21 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-export default function OrderDetailPage(props: { 
+export default function OrderDetailPage({ 
+  params, 
+  searchParams 
+}: { 
   params: Promise<{ orderId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const params = React.use(props.params);
-  const searchParams = React.use(props.searchParams);
-  const { orderId } = params;
+  const { orderId } = React.use(params);
+  const sParams = React.use(searchParams);
   
   const db = useFirestore();
   const { toast } = useToast();
 
   const orderRef = useMemoFirebase(() => db ? doc(db, 'orders', orderId) : null, [db, orderId]);
-  const { data: order, loading } = useDoc(orderRef);
+  const { data: order, isLoading: loading } = useDoc(orderRef);
 
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
@@ -842,9 +845,9 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
           console.error('Error accessing camera:', error);
           setHasCameraPermission(false);
           toast({
-            variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in your browser settings to use the scanner.',
+            variant: "destructive",
+            title: "Camera Access Denied",
+            description: "Please enable camera permissions in your browser settings to use the scanner.",
           });
         }
       };
@@ -888,7 +891,6 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
             
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <div className="w-64 h-32 border-2 border-white/20 rounded-lg relative overflow-hidden">
-                {/* Scanning animation line */}
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-[scan_2s_infinite]" />
               </div>
               <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">Align Barcode within Frame</p>

@@ -10,13 +10,15 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 
-export default function CollectionPage(props: { 
+export default function CollectionPage({ 
+  params, 
+  searchParams 
+}: { 
   params: Promise<{ categoryId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const params = React.use(props.params);
-  const searchParams = React.use(props.searchParams);
-  const { categoryId } = params;
+  const { categoryId } = React.use(params);
+  const sParams = React.use(searchParams);
   
   const db = useFirestore();
 
