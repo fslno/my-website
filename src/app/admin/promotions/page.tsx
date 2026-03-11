@@ -19,7 +19,6 @@ import {
   Zap,
   Gift,
   Save,
-  Settings2,
   Star,
   Share2,
   Clock,
@@ -110,6 +109,12 @@ export default function PromotionsPage() {
   const [referralEnabled, setReferralEnabled] = useState(false);
   const [referralValue, setReferralValue] = useState(20);
 
+  // RECOVERY CAMPAIGN STATE
+  const [cartRecoveryEnabled, setCartRecoveryEnabled] = useState(true);
+  const [browseRecoveryEnabled, setBrowseRecoveryEnabled] = useState(false);
+  const [winbackEnabled, setWinbackEnabled] = useState(false);
+  const [loyaltyAppreciationPromoEnabled, setLoyaltyAppreciationPromoEnabled] = useState(true);
+
   // Coupon Form State
   const [code, setCode] = useState('');
   const [type, setType] = useState<'percent' | 'fixed'>('percent');
@@ -142,6 +147,11 @@ export default function PromotionsPage() {
 
       setReferralEnabled(config.referralEnabled ?? false);
       setReferralValue(config.referralValue ?? 20);
+
+      setCartRecoveryEnabled(config.cartRecoveryEnabled ?? true);
+      setBrowseRecoveryEnabled(config.browseRecoveryEnabled ?? false);
+      setWinbackEnabled(config.winbackEnabled ?? false);
+      setLoyaltyAppreciationPromoEnabled(config.loyaltyAppreciationPromoEnabled ?? true);
     }
   }, [config]);
 
@@ -165,6 +175,10 @@ export default function PromotionsPage() {
       loyaltyDiscount: Number(loyaltyDiscount),
       referralEnabled,
       referralValue: Number(referralValue),
+      cartRecoveryEnabled,
+      browseRecoveryEnabled,
+      winbackEnabled,
+      loyaltyAppreciationPromoEnabled,
       updatedAt: serverTimestamp()
     };
 
@@ -250,10 +264,10 @@ export default function PromotionsPage() {
   }
 
   const recoveryCampaigns = [
-    { id: 'cartRecovery', label: 'Abandoned Cart Recovery', description: 'Triggered 4h after last archival session.', status: 'Live', conversion: '12.4%' },
-    { id: 'browseRecovery', label: 'Browse Abandonment', description: 'Target high-intent silhouettes recently viewed.', status: 'Testing', conversion: '4.8%' },
-    { id: 'winback', label: 'Win-back Dispatch', description: 'Sent 60 days after last drop participation.', status: 'Inactive', conversion: '--' },
-    { id: 'loyaltyAppreciation', label: 'Loyalty Appreciation', description: 'Personalized reward for repeat archive members.', status: 'Live', conversion: '22.1%' }
+    { id: 'cartRecovery', label: 'Abandoned Cart Recovery', description: 'Triggered 4h after last archival session.', enabled: cartRecoveryEnabled, setter: setCartRecoveryEnabled, conversion: '12.4%' },
+    { id: 'browseRecovery', label: 'Browse Abandonment', description: 'Target high-intent silhouettes recently viewed.', enabled: browseRecoveryEnabled, setter: setBrowseRecoveryEnabled, conversion: '4.8%' },
+    { id: 'winback', label: 'Win-back Dispatch', description: 'Sent 60 days after last drop participation.', enabled: winbackEnabled, setter: setWinbackEnabled, conversion: '--' },
+    { id: 'loyaltyAppreciation', label: 'Loyalty Appreciation', description: 'Personalized reward for repeat archive members.', enabled: loyaltyAppreciationPromoEnabled, setter: setLoyaltyAppreciationPromoEnabled, conversion: '22.1%' }
   ];
 
   const getCategoryDisplay = () => {
@@ -530,7 +544,7 @@ export default function PromotionsPage() {
                 <RefreshCw className="h-5 w-5 text-blue-500" />
                 <h3 className="text-sm font-bold uppercase tracking-widest">Recovery & Retention Campaigns</h3>
               </div>
-              <Badge variant="secondary" className="bg-blue-50 text-blue-700 text-[9px] font-bold px-3 py-1">AUTOMATED</Badge>
+              <Badge variant="secondary" className="bg-primary text-primary-foreground text-[9px] font-bold px-3 py-1">MANUAL CONTROL</Badge>
             </div>
             
             <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
@@ -540,7 +554,7 @@ export default function PromotionsPage() {
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign Logic</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Automated Dispatch</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Conversion</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Status</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Manual Toggle</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -549,8 +563,8 @@ export default function PromotionsPage() {
                     <TableRow key={campaign.id} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
                       <TableCell className="p-6">
                         <div className="flex items-center gap-3">
-                          <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", campaign.status === 'Live' ? 'border-green-100' : 'border-gray-100')}>
-                            <Mail className={cn("h-5 w-5", campaign.status === 'Live' ? 'text-green-600' : 'text-gray-400')} />
+                          <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", campaign.enabled ? 'border-green-100' : 'border-gray-100')}>
+                            <Mail className={cn("h-5 w-5", campaign.enabled ? 'text-green-600' : 'text-gray-400')} />
                           </div>
                           <span className="font-bold text-sm tracking-tight text-primary uppercase">{campaign.label}</span>
                         </div>
@@ -566,12 +580,11 @@ export default function PromotionsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-center">
-                          <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest border-none", 
-                            campaign.status === 'Live' ? "bg-green-50 text-green-700" : 
-                            campaign.status === 'Testing' ? "bg-blue-50 text-blue-700" : 
-                            "bg-gray-100 text-gray-400")}>
-                            {campaign.status}
-                          </Badge>
+                          <Switch 
+                            checked={campaign.enabled} 
+                            onCheckedChange={(val) => campaign.setter(val)}
+                            className="data-[state=checked]:bg-black"
+                          />
                         </div>
                       </TableCell>
                       <TableCell>
