@@ -21,7 +21,6 @@ import {
   Megaphone, 
   Type, 
   Save, 
-  RefreshCcw,
   Monitor,
   Smartphone,
   Loader2,
@@ -187,31 +186,6 @@ export default function ThemeEnginePage() {
       .finally(() => setIsSaving(false));
   };
 
-  const handleReset = () => {
-    setPrimaryColor(DEFAULT_THEME.primaryColor);
-    setAccentColor(DEFAULT_THEME.accentColor);
-    setHeadlineFont(DEFAULT_THEME.headlineFont);
-    setBodyFont(DEFAULT_THEME.bodyFont);
-    setBorderRadius(DEFAULT_THEME.borderRadius);
-    setBannerEnabled(DEFAULT_THEME.bannerEnabled);
-    setBannerText(DEFAULT_THEME.bannerText);
-    setBannerBgColor(DEFAULT_THEME.bannerBgColor);
-    setBannerFont(DEFAULT_THEME.bannerFont);
-    setBannerFontSize(DEFAULT_THEME.bannerFontSize);
-    setHomepageLayout(DEFAULT_THEME.homepageLayout);
-    setHeroImageUrl(DEFAULT_THEME.heroImageUrl);
-    setHeroHeadline(DEFAULT_THEME.heroHeadline);
-    setHeroSubheadline(DEFAULT_THEME.heroSubheadline);
-    setHeroButtonText(DEFAULT_THEME.heroButtonText);
-    setHeroTextAlign(DEFAULT_THEME.heroTextAlign);
-    setHeroHeadlineSize(DEFAULT_THEME.heroHeadlineSize);
-    setCategoryTextAlign(DEFAULT_THEME.categoryTextAlign);
-    setCategoryTitleSize(DEFAULT_THEME.categoryTitleSize);
-    setFeaturedTextAlign(DEFAULT_THEME.featuredTextAlign);
-    setFeaturedTitleSize(DEFAULT_THEME.featuredTitleSize);
-    toast({ title: "Defaults Restored", description: "Save to commit these base styles permanently." });
-  };
-
   if (loading) {
     return null;
   }
@@ -264,9 +238,6 @@ export default function ThemeEnginePage() {
           <p className="text-[#5c5f62] mt-1 text-sm">Live-edit your storefront's global identity and luxury layouts.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px]" onClick={handleReset}>
-            <RefreshCcw className="h-4 w-4" /> Reset
-          </Button>
           <Button className="h-10 gap-2 bg-black text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out" onClick={handleSave} disabled={isSaving}>
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save Styles
