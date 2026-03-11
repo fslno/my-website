@@ -10,6 +10,7 @@ import { Footer } from '@/components/storefront/Footer';
 import { Loader2, ArrowRight, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const db = useFirestore();
@@ -66,9 +67,12 @@ export default function Home() {
                 priority
                 data-ai-hint="luxury landscape"
               />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-primary-foreground text-center p-6 bg-gradient-to-t from-black/60 via-transparent to-transparent">
+              <div className={cn(
+                "absolute inset-0 flex flex-col justify-center text-primary-foreground p-6 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align",
+                theme?.heroTextAlign === 'left' ? 'items-start' : theme?.heroTextAlign === 'right' ? 'items-end' : 'items-center'
+              )}>
                 <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
-                <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none">
+                <h2 className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none">
                   {theme?.heroHeadline || "Modern Silhouettes"}
                 </h2>
                 <Link href="#featured-products" className="bg-accent text-accent-foreground px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3] transition-all duration-300 ease-in-out shadow-xl active:scale-95">
@@ -86,15 +90,16 @@ export default function Home() {
           subheadline={theme?.heroSubheadline}
           buttonText={theme?.heroButtonText}
           fallbackImageUrl={categories?.[0]?.imageUrl}
+          textAlign={theme?.heroTextAlign}
         />
       )}
 
       {/* Shop by Category Section - Positioned above featured products */}
       <section className="py-20 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="mb-12">
+          <div className="mb-12 category-text-align">
             <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Discover</span>
-            <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight text-primary">Shop by Category</h2>
+            <h2 className="category-title-size font-headline mt-2 uppercase font-bold tracking-tight text-primary">Shop by Category</h2>
           </div>
           
           {!categories || categories.length === 0 ? (
@@ -133,11 +138,9 @@ export default function Home() {
       {/* Featured Products Section - High density responsive grid */}
       <section id="featured-products" className="py-20">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Curated Selection</span>
-              <h2 className="text-4xl font-headline mt-2 uppercase font-bold tracking-tight text-primary">Featured Products</h2>
-            </div>
+          <div className="mb-12 featured-text-align">
+            <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Curated Selection</span>
+            <h2 className="featured-title-size font-headline mt-2 uppercase font-bold tracking-tight text-primary">Featured Products</h2>
           </div>
           
           {!products || products.length === 0 ? (

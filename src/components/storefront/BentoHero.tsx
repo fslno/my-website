@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BentoHeroProps {
   isLoading: boolean;
@@ -12,6 +13,7 @@ interface BentoHeroProps {
   subheadline?: string;
   buttonText?: string;
   fallbackImageUrl?: string;
+  textAlign?: string;
 }
 
 export function BentoHero({ 
@@ -20,7 +22,8 @@ export function BentoHero({
   headline = 'The Collection', 
   subheadline = 'Modern Silhouettes',
   buttonText = 'Shop the Drops',
-  fallbackImageUrl
+  fallbackImageUrl,
+  textAlign = 'center'
 }: BentoHeroProps) {
   if (isLoading) {
     return <section className="pt-24 pb-12"><div className="w-full h-[70vh] bg-gray-50" /></section>;
@@ -40,11 +43,14 @@ export function BentoHero({
             priority
             data-ai-hint="fashion editorial"
           />
-          <div className="absolute inset-0 p-12 flex flex-col items-center justify-center text-center text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent">
+          <div className={cn(
+            "absolute inset-0 p-12 flex flex-col justify-center text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align",
+            textAlign === 'left' ? 'items-start' : textAlign === 'right' ? 'items-end' : 'items-center'
+          )}>
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {subheadline}
             </span>
-            <h2 className="text-5xl md:text-7xl font-headline mb-10 tracking-tighter uppercase font-bold leading-none animate-in fade-in slide-in-from-bottom-6 duration-1000">
+            <h2 className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none animate-in fade-in slide-in-from-bottom-6 duration-1000">
               {headline}
             </h2>
             <Link 

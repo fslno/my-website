@@ -32,7 +32,10 @@ import {
   Image as ImageIcon,
   Upload,
   Trash2,
-  Sparkles
+  Sparkles,
+  AlignCenter,
+  AlignLeft,
+  AlignRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -64,7 +67,13 @@ const DEFAULT_THEME = {
   heroImageUrl: '',
   heroHeadline: 'The Archive Selection',
   heroSubheadline: 'Modern Silhouettes',
-  heroButtonText: 'Shop the Drops'
+  heroButtonText: 'Shop the Drops',
+  heroTextAlign: 'center',
+  heroHeadlineSize: '72',
+  categoryTextAlign: 'left',
+  categoryTitleSize: '40',
+  featuredTextAlign: 'left',
+  featuredTitleSize: '40'
 };
 
 export default function ThemeEnginePage() {
@@ -93,6 +102,12 @@ export default function ThemeEnginePage() {
   const [heroHeadline, setHeroHeadline] = useState(DEFAULT_THEME.heroHeadline);
   const [heroSubheadline, setHeroSubheadline] = useState(DEFAULT_THEME.heroSubheadline);
   const [heroButtonText, setHeroButtonText] = useState(DEFAULT_THEME.heroButtonText);
+  const [heroTextAlign, setHeroTextAlign] = useState(DEFAULT_THEME.heroTextAlign);
+  const [heroHeadlineSize, setHeroHeadlineSize] = useState(DEFAULT_THEME.heroHeadlineSize);
+  const [categoryTextAlign, setCategoryTextAlign] = useState(DEFAULT_THEME.categoryTextAlign);
+  const [categoryTitleSize, setCategoryTitleSize] = useState(DEFAULT_THEME.categoryTitleSize);
+  const [featuredTextAlign, setFeaturedTextAlign] = useState(DEFAULT_THEME.featuredTextAlign);
+  const [featuredTitleSize, setFeaturedTitleSize] = useState(DEFAULT_THEME.featuredTitleSize);
 
   useEffect(() => {
     if (themeData) {
@@ -111,6 +126,12 @@ export default function ThemeEnginePage() {
       setHeroHeadline(themeData.heroHeadline || DEFAULT_THEME.heroHeadline);
       setHeroSubheadline(themeData.heroSubheadline || DEFAULT_THEME.heroSubheadline);
       setHeroButtonText(themeData.heroButtonText || DEFAULT_THEME.heroButtonText);
+      setHeroTextAlign(themeData.heroTextAlign || DEFAULT_THEME.heroTextAlign);
+      setHeroHeadlineSize(themeData.heroHeadlineSize?.toString() || DEFAULT_THEME.heroHeadlineSize);
+      setCategoryTextAlign(themeData.categoryTextAlign || DEFAULT_THEME.categoryTextAlign);
+      setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
+      setFeaturedTextAlign(themeData.featuredTextAlign || DEFAULT_THEME.featuredTextAlign);
+      setFeaturedTitleSize(themeData.featuredTitleSize?.toString() || DEFAULT_THEME.featuredTitleSize);
     }
   }, [themeData]);
 
@@ -143,6 +164,12 @@ export default function ThemeEnginePage() {
       heroHeadline,
       heroSubheadline,
       heroButtonText,
+      heroTextAlign,
+      heroHeadlineSize: Number(heroHeadlineSize),
+      categoryTextAlign,
+      categoryTitleSize: Number(categoryTitleSize),
+      featuredTextAlign,
+      featuredTitleSize: Number(featuredTitleSize),
       updatedAt: new Date().toISOString()
     };
 
@@ -176,18 +203,17 @@ export default function ThemeEnginePage() {
     setHeroHeadline(DEFAULT_THEME.heroHeadline);
     setHeroSubheadline(DEFAULT_THEME.heroSubheadline);
     setHeroButtonText(DEFAULT_THEME.heroButtonText);
+    setHeroTextAlign(DEFAULT_THEME.heroTextAlign);
+    setHeroHeadlineSize(DEFAULT_THEME.heroHeadlineSize);
+    setCategoryTextAlign(DEFAULT_THEME.categoryTextAlign);
+    setCategoryTitleSize(DEFAULT_THEME.categoryTitleSize);
+    setFeaturedTextAlign(DEFAULT_THEME.featuredTextAlign);
+    setFeaturedTitleSize(DEFAULT_THEME.featuredTitleSize);
     toast({ title: "Defaults Restored", description: "Save to commit these base styles permanently." });
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Initializing Theme Engine...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -201,6 +227,12 @@ export default function ThemeEnginePage() {
           --preview-body: "${bodyFont}", sans-serif;
           --preview-banner-font: "${bannerFont}", sans-serif;
           --preview-banner-font-size: ${bannerFontSize}px;
+          --preview-hero-align: ${heroTextAlign};
+          --preview-hero-size: ${heroHeadlineSize}px;
+          --preview-cat-align: ${categoryTextAlign};
+          --preview-cat-size: ${categoryTitleSize}px;
+          --preview-feat-align: ${featuredTextAlign};
+          --preview-feat-size: ${featuredTitleSize}px;
         }
         #theme-preview-root .font-headline {
           font-family: var(--preview-headline) !important;
@@ -211,6 +243,18 @@ export default function ThemeEnginePage() {
         #theme-preview-root .preview-banner {
           font-family: var(--preview-banner-font) !important;
           font-size: var(--preview-banner-font-size) !important;
+        }
+        #theme-preview-root .preview-hero-headline {
+          text-align: var(--preview-hero-align) !important;
+          font-size: var(--preview-hero-size) !important;
+        }
+        #theme-preview-root .preview-cat-title {
+          text-align: var(--preview-cat-align) !important;
+          font-size: var(--preview-cat-size) !important;
+        }
+        #theme-preview-root .preview-feat-title {
+          text-align: var(--preview-feat-align) !important;
+          font-size: var(--preview-feat-size) !important;
         }
       `}</style>
 
@@ -431,11 +475,57 @@ export default function ThemeEnginePage() {
                       <Input value={heroButtonText} onChange={(e) => setHeroButtonText(e.target.value)} className="h-12 uppercase tracking-widest font-bold" placeholder="e.g. SHOP THE DROP" />
                     </div>
                   </div>
+
+                  <div className="pt-4 border-t space-y-6">
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Text Alignment</Label>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant={heroTextAlign === 'left' ? 'default' : 'outline'} 
+                          size="icon" 
+                          onClick={() => setHeroTextAlign('left')}
+                          className="flex-1 h-12 rounded-none"
+                        >
+                          <AlignLeft className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant={heroTextAlign === 'center' ? 'default' : 'outline'} 
+                          size="icon" 
+                          onClick={() => setHeroTextAlign('center')}
+                          className="flex-1 h-12 rounded-none"
+                        >
+                          <AlignCenter className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant={heroTextAlign === 'right' ? 'default' : 'outline'} 
+                          size="icon" 
+                          onClick={() => setHeroTextAlign('right')}
+                          className="flex-1 h-12 rounded-none"
+                        >
+                          <AlignRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Headline Precision Scale</Label>
+                        <span className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="40" 
+                        max="120" 
+                        value={heroHeadlineSize} 
+                        onChange={(e) => setHeroHeadlineSize(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="layout" className="mt-6">
+            <TabsContent value="layout" className="mt-6 space-y-6">
                <Card className="border-[#e1e3e5] shadow-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Homepage Structural Mode</CardTitle>
@@ -469,6 +559,80 @@ export default function ThemeEnginePage() {
                         <span className="text-[9px] font-bold uppercase tracking-widest">Classic Full</span>
                       </button>
                    </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none">
+                <CardHeader>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Section Typography</CardTitle>
+                  <CardDescription>Control headers for Categories and Featured items.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Category Drop Typography</h3>
+                    <div className="space-y-4">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Alignment</Label>
+                      <div className="flex gap-2">
+                        {['left', 'center', 'right'].map((align) => (
+                          <Button 
+                            key={align}
+                            variant={categoryTextAlign === align ? 'default' : 'outline'} 
+                            size="icon" 
+                            onClick={() => setCategoryTextAlign(align)}
+                            className="flex-1 h-10 rounded-none"
+                          >
+                            {align === 'left' && <AlignLeft className="h-4 w-4" />}
+                            {align === 'center' && <AlignCenter className="h-4 w-4" />}
+                            {align === 'right' && <AlignRight className="h-4 w-4" />}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Header Scale</Label>
+                        <span className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</span>
+                      </div>
+                      <input 
+                        type="range" min="20" max="80" value={categoryTitleSize} 
+                        onChange={(e) => setCategoryTitleSize(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Featured Archive Typography</h3>
+                    <div className="space-y-4">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Alignment</Label>
+                      <div className="flex gap-2">
+                        {['left', 'center', 'right'].map((align) => (
+                          <Button 
+                            key={align}
+                            variant={featuredTextAlign === align ? 'default' : 'outline'} 
+                            size="icon" 
+                            onClick={() => setFeaturedTextAlign(align)}
+                            className="flex-1 h-10 rounded-none"
+                          >
+                            {align === 'left' && <AlignLeft className="h-4 w-4" />}
+                            {align === 'center' && <AlignCenter className="h-4 w-4" />}
+                            {align === 'right' && <AlignRight className="h-4 w-4" />}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Header Scale</Label>
+                        <span className="text-[10px] font-mono font-bold">{featuredTitleSize}PX</span>
+                      </div>
+                      <input 
+                        type="range" min="20" max="80" value={featuredTitleSize} 
+                        onChange={(e) => setFeaturedTitleSize(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -539,18 +703,22 @@ export default function ThemeEnginePage() {
                 {homepageLayout === 'bento' ? (
                   <div className="grid grid-cols-2 gap-6">
                     <div 
-                      className="col-span-2 aspect-[21/9] bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500 overflow-hidden relative" 
-                      style={{ borderRadius: `${borderRadius}px` }}
+                      className="col-span-2 aspect-[21/9] bg-gray-50 flex flex-col p-12 border shadow-sm transition-all duration-500 overflow-hidden relative" 
+                      style={{ 
+                        borderRadius: `${borderRadius}px`,
+                        alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center',
+                        textAlign: heroTextAlign as any
+                      }}
                     >
                       {heroImageUrl ? (
                         <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" />
                       ) : (
                         <div className="absolute inset-0 bg-gray-100" />
                       )}
-                      <div className="relative z-10">
+                      <div className="relative z-10 w-full">
                         <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 font-body block">{heroSubheadline}</span>
-                        <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
-                        <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body justify-center">
+                        <h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
+                        <div className={cn("mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body", heroTextAlign === 'center' && 'justify-center')}>
                           {heroButtonText} <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                         </div>
                       </div>
@@ -564,32 +732,40 @@ export default function ThemeEnginePage() {
                 ) : (
                   <div className="space-y-12">
                     <div 
-                      className="aspect-video w-full bg-gray-50 flex flex-col items-center justify-center text-center p-12 border shadow-sm transition-all duration-500 overflow-hidden relative" 
-                      style={{ borderRadius: `${borderRadius}px` }}
+                      className="aspect-video w-full bg-gray-50 flex flex-col p-12 border shadow-sm transition-all duration-500 overflow-hidden relative" 
+                      style={{ 
+                        borderRadius: `${borderRadius}px`,
+                        alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center',
+                        textAlign: heroTextAlign as any
+                      }}
                     >
                       {heroImageUrl ? (
                         <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" />
                       ) : (
                         <div className="absolute inset-0 bg-gray-100" />
                       )}
-                      <div className="relative z-10">
+                      <div className="relative z-10 w-full">
                         <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-6 font-body block">{heroSubheadline}</span>
-                        <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
-                        <div className="mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body justify-center">
+                        <h2 className="preview-hero-headline font-bold uppercase tracking-tighter leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
+                        <div className={cn("mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body", heroTextAlign === 'center' && 'justify-center')}>
                           {heroButtonText} <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-8">
-                      {[1, 2].map(i => (
-                        <div key={i} className="space-y-4">
-                          <div className="aspect-[3/4] bg-gray-50 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div>
-                          <div className="space-y-2">
-                            <div className="h-3 bg-gray-200 rounded-full w-full"></div>
-                            <div className="h-3 bg-gray-100 rounded-full w-1/4"></div>
+                    
+                    <div className="space-y-8">
+                      <h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight" style={{ color: primaryColor }}>Shop Category</h3>
+                      <div className="grid grid-cols-2 gap-8">
+                        {[1, 2].map(i => (
+                          <div key={i} className="space-y-4">
+                            <div className="aspect-[3/4] bg-gray-50 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div>
+                            <div className="space-y-2">
+                              <div className="h-3 bg-gray-200 rounded-full w-full"></div>
+                              <div className="h-3 bg-gray-100 rounded-full w-1/4"></div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}

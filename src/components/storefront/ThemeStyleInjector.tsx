@@ -56,6 +56,13 @@ export function ThemeStyleInjector() {
     const bodyFont = theme.bodyFont || 'Inter';
     const bannerFont = theme.bannerFont || 'Inter';
     const bannerFontSize = theme.bannerFontSize || 10;
+    
+    const heroTextAlign = theme.heroTextAlign || 'center';
+    const heroHeadlineSize = theme.heroHeadlineSize || 72;
+    const categoryTextAlign = theme.categoryTextAlign || 'left';
+    const categoryTitleSize = theme.categoryTitleSize || 40;
+    const featuredTextAlign = theme.featuredTextAlign || 'left';
+    const featuredTitleSize = theme.featuredTitleSize || 40;
 
     styleTag.innerHTML = `
       :root {
@@ -63,6 +70,12 @@ export function ThemeStyleInjector() {
         --font-body: "${bodyFont}", "Inter", sans-serif;
         --banner-font: "${bannerFont}", sans-serif;
         --banner-font-size: ${bannerFontSize}px;
+        --hero-text-align: ${heroTextAlign};
+        --hero-headline-size: ${heroHeadlineSize}px;
+        --category-text-align: ${categoryTextAlign};
+        --category-title-size: ${categoryTitleSize}px;
+        --featured-text-align: ${featuredTextAlign};
+        --featured-title-size: ${featuredTitleSize}px;
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
@@ -93,6 +106,24 @@ export function ThemeStyleInjector() {
       .banner-style {
         font-family: var(--banner-font) !important;
         font-size: var(--banner-font-size) !important;
+      }
+      .hero-text-align {
+        text-align: var(--hero-text-align) !important;
+      }
+      .hero-headline-size {
+        font-size: var(--hero-headline-size) !important;
+      }
+      .category-text-align {
+        text-align: var(--category-text-align) !important;
+      }
+      .category-title-size {
+        font-size: var(--category-title-size) !important;
+      }
+      .featured-text-align {
+        text-align: var(--featured-text-align) !important;
+      }
+      .featured-title-size {
+        font-size: var(--featured-title-size) !important;
       }
     `;
 
