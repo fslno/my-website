@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -17,7 +16,8 @@ import {
   Loader2,
   Lock,
   Globe,
-  X
+  X,
+  Store
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -44,18 +45,21 @@ export default function GoogleSyncPage() {
   
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isStoreDialogOpen, setIsStoreDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Local form state for settings
   const [merchantId, setMerchantId] = useState('');
   const [targetCountry, setTargetCountry] = useState('US');
   const [contentLanguage, setContentLanguage] = useState('en');
+  const [storeAddress, setStoreAddress] = useState('');
 
   useEffect(() => {
     if (config) {
       setMerchantId(config.merchantId || '');
       setTargetCountry(config.targetCountry || 'US');
       setContentLanguage(config.contentLanguage || 'en');
+      setStoreAddress(config.linkedStoreAddress || '');
     }
   }, [config]);
 
@@ -69,6 +73,9 @@ export default function GoogleSyncPage() {
       onDemandUpdates: true,
       partialSync: true,
       autoBackgroundRemoval: true,
+      youtubeTaggingEnabled: true,
+      localInventoryEnabled: false,
+      linkedStoreAddress: '',
       feedHealth: 98.4,
       syncLatency: '2.4 min',
       activeChannelsCount: 4,
@@ -103,6 +110,30 @@ export default function GoogleSyncPage() {
       .then(() => {
         setIsSettingsOpen(false);
         toast({ title: "Settings Saved", description: "Google Merchant API configuration has been updated." });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: configRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        }));
+      })
+      .finally(() => setIsSaving(false));
+  };
+
+  const handleSaveStoreAddress = () => {
+    if (!configRef) return;
+    setIsSaving(true);
+    const updates = {
+      linkedStoreAddress: storeAddress,
+      localInventoryEnabled: true,
+      updatedAt: serverTimestamp()
+    };
+
+    updateDoc(configRef, updates)
+      .then(() => {
+        setIsStoreDialogOpen(false);
+        toast({ title: "Address Linked", description: "Your local spot location has been synchronized." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -358,37 +389,92 @@ export default function GoogleSyncPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <div className="flex items-center gap-2">
                 <Youtube className="h-5 w-5 text-red-600" />
                 <CardTitle className="text-lg">YouTube Shopping</CardTitle>
               </div>
+              <Switch 
+                checked={config.youtubeTaggingEnabled} 
+                onCheckedChange={(checked) => handleToggleFeature('youtubeTaggingEnabled', config.youtubeTaggingEnabled)}
+              />
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-[#5c5f62]">
                 Automatically syncs your FSLNO catalog so you can tag products in YouTube videos or during live streams.
               </p>
-              <div className="flex items-center gap-2 text-xs font-bold text-green-700 bg-green-50 p-2 rounded border border-green-100">
-                <CheckCircle2 className="h-3 w-3" />
-                Catalog is ready for product tagging
-              </div>
+              {config.youtubeTaggingEnabled ? (
+                <div className="flex items-center gap-2 text-xs font-bold text-green-700 bg-green-50 p-2 rounded border border-green-100">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Catalog is ready for product tagging
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
+                  <AlertCircle className="h-3 w-3" />
+                  Tagging is currently disabled
+                </div>
+              )}
             </CardContent>
           </Card>
 
           <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-blue-600" />
                 <CardTitle className="text-lg">Local Inventory Ads</CardTitle>
               </div>
+              <Switch 
+                checked={config.localInventoryEnabled} 
+                onCheckedChange={(checked) => handleToggleFeature('localInventoryEnabled', config.localInventoryEnabled)}
+              />
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-[#5c5f62]">
                 Tell Google users exactly what is in stock at your physical "Spot" locations.
               </p>
-              <Button variant="outline" size="sm" className="h-8 gap-2 w-full border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
-                <MapPin className="h-3 w-3" /> Link Store Address
-              </Button>
+              
+              <div className="space-y-3">
+                {config.linkedStoreAddress ? (
+                  <div className="p-3 bg-blue-50 border border-blue-100 rounded-md flex items-start gap-3">
+                    <Store className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-blue-700">Linked Spot</p>
+                      <p className="text-xs text-blue-900 font-medium line-clamp-1">{config.linkedStoreAddress}</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <Dialog open={isStoreDialogOpen} onOpenChange={setIsStoreDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9 gap-2 w-full border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
+                      <MapPin className="h-3 w-3" /> {config.linkedStoreAddress ? 'Change Store Address' : 'Link Store Address'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md bg-white">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold uppercase tracking-tight">Local Spot Linking</DialogTitle>
+                      <DialogDescription className="text-xs">Identify your physical archive location for Google Local Inventory maps.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-6 py-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Business Address</Label>
+                        <Input 
+                          placeholder="e.g. 123 Archive Way, London, UK" 
+                          value={storeAddress} 
+                          onChange={(e) => setStoreAddress(e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={handleSaveStoreAddress} disabled={isSaving || !storeAddress} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]">
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        Authorize Location
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardContent>
           </Card>
         </div>
