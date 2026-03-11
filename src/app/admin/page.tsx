@@ -25,7 +25,7 @@ import {
   YAxis 
 } from 'recharts';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { 
@@ -46,12 +46,18 @@ import { Button } from '@/components/ui/button';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { type DateRange } from "react-day-picker";
 
 export default function AdminDashboard() {
   const db = useFirestore();
   const { toast } = useToast();
   const [timeRange, setTimeRange] = useState('7d');
-  const [date, setDate] = React.useState<Date | undefined>();
+  
+  // High-fidelity Date Range State
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 7),
+    to: new Date(),
+  });
 
   // Fetch orders with a larger limit for forensic lifetime visibility
   const ordersQuery = useMemoFirebase(() => {
@@ -77,8 +83,12 @@ export default function AdminDashboard() {
         const itemDate = item.createdAt?.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
         
         if (timeRange === 'lifetime') return true;
-        if (timeRange === 'custom' && date) {
-          return itemDate >= startOfDay(date) && itemDate <= endOfDay(date);
+        
+        // Forensic Range Logic: From and To
+        if (timeRange === 'custom' && date?.from) {
+          const from = startOfDay(date.from);
+          const to = date.to ? endOfDay(date.to) : endOfDay(date.from);
+          return itemDate >= from && itemDate <= to;
         }
 
         const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 60 * 60 * 24);
@@ -193,7 +203,13 @@ export default function AdminDashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `FSLNO_Audit_${timeRange.toUpperCase()}_${new Date().toISOString().split('T')[0]}.csv`);
+    
+    // Dynamic Filename reflects range
+    const dateRangeStr = timeRange === 'custom' && date?.from
+      ? `${format(date.from, 'yyyy-MM-dd')}_to_${date.to ? format(date.to, 'yyyy-MM-dd') : format(date.from, 'yyyy-MM-dd')}`
+      : timeRange.toUpperCase();
+
+    link.setAttribute("download", `FSLNO_Audit_${dateRangeStr}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -255,7 +271,7 @@ export default function AdminDashboard() {
                 <SelectItem value="90d" className="text-[10px] font-bold uppercase">Quarter (90d)</SelectItem>
                 <SelectItem value="365d" className="text-[10px] font-bold uppercase">Annually (365d)</SelectItem>
                 <SelectItem value="lifetime" className="text-[10px] font-bold uppercase">Lifetime</SelectItem>
-                <SelectItem value="custom" className="text-[10px] font-bold uppercase">Custom Date</SelectItem>
+                <SelectItem value="custom" className="text-[10px] font-bold uppercase">Custom Range</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -270,16 +286,30 @@ export default function AdminDashboard() {
                     !date && "text-muted-foreground"
                   )}
                 >
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                  {date?.from ? (
+                    date.to ? (
+                      <>
+                        {format(date.from, "LLL dd, y")} -{" "}
+                        {format(date.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(date.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Pick a date range</span>
+                  )}
                   <ChevronDown className="ml-2 h-3 w-3 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
                 <Calendar
-                  mode="single"
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
                   selected={date}
                   onSelect={setDate}
-                  initialFocus
+                  numberOfMonths={2}
                 />
               </PopoverContent>
             </Popover>
