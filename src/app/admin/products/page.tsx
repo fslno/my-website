@@ -33,7 +33,8 @@ import {
   Info,
   Settings2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Save
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -445,8 +446,6 @@ export default function ProductsPage() {
     if (editingId) {
       updateDoc(doc(db, 'products', editingId), productData)
         .then(() => {
-          setIsDialogOpen(false);
-          resetForm();
           toast({ title: "Product Updated", description: `${name} has been synchronized.` });
         })
         .catch((error) => {
@@ -460,9 +459,8 @@ export default function ProductsPage() {
     } else {
       const newData = { ...productData, createdAt: serverTimestamp() };
       addDoc(collection(db, 'products'), newData)
-        .then(() => {
-          setIsDialogOpen(false);
-          resetForm();
+        .then((docRef) => {
+          setEditingId(docRef.id);
           toast({ title: "Product Created", description: `${name} has been committed to the archive.` });
         })
         .catch((error) => {
@@ -511,22 +509,6 @@ export default function ProductsPage() {
     
     setEditingId(product.id);
     setIsDialogOpen(true);
-  };
-
-  const TABS_ORDER = ['general', 'inventory', 'seo', 'logistics'];
-
-  const handleNextTab = () => {
-    const currentIndex = TABS_ORDER.indexOf(activeTab);
-    if (currentIndex < TABS_ORDER.length - 1) {
-      setActiveTab(TABS_ORDER[currentIndex + 1]);
-    }
-  };
-
-  const handlePrevTab = () => {
-    const currentIndex = TABS_ORDER.indexOf(activeTab);
-    if (currentIndex > 0) {
-      setActiveTab(TABS_ORDER[currentIndex - 1]);
-    }
   };
 
   return (
@@ -702,36 +684,15 @@ export default function ProductsPage() {
                   </div>
                 </TabsContent>
               </div>
-              <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
-                <div className="flex gap-2">
-                  {activeTab !== 'general' && (
-                    <Button 
-                      variant="outline" 
-                      onClick={handlePrevTab} 
-                      className="h-11 px-6 font-bold uppercase tracking-widest text-[10px] border-black gap-2"
-                    >
-                      <ChevronLeft className="h-4 w-4" /> Previous
-                    </Button>
-                  )}
-                </div>
-                <div className="flex gap-3">
-                  {activeTab !== 'logistics' ? (
-                    <Button 
-                      onClick={handleNextTab} 
-                      className="h-11 px-8 bg-black text-white font-bold uppercase tracking-widest text-[10px] gap-2"
-                    >
-                      Next Step <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={handleSaveProduct} 
-                      disabled={isSaving || !name || !price || !categoryId} 
-                      className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl"
-                    >
-                      {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}{editingId ? 'Update Entry' : 'Commit to Archive'}
-                    </Button>
-                  )}
-                </div>
+              <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0 flex justify-end items-center">
+                <Button 
+                  onClick={handleSaveProduct} 
+                  disabled={isSaving || !name || !price || !categoryId} 
+                  className="h-12 px-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-black/90 transition-all duration-300"
+                >
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <Save className="h-4 w-4 mr-3" />}
+                  {editingId ? 'Save Changes' : 'Commit to Archive'}
+                </Button>
               </DialogFooter>
             </Tabs>
           </DialogContent>
