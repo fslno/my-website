@@ -15,8 +15,8 @@ interface ProductCardProps {
 
 export function ProductCard({ id, name, price, image, category }: ProductCardProps) {
   return (
-    <div className="group flex flex-col gap-3">
-      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square rounded-sm border shadow-sm">
+    <div className="group flex flex-col gap-3 product-text-align">
+      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
         <Image
           src={image}
           alt={name}
@@ -28,8 +28,8 @@ export function ProductCard({ id, name, price, image, category }: ProductCardPro
       
       <div className="flex flex-col gap-1">
         <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{category}</p>
-        <Link href={`/products/${id}`} className="text-sm font-medium line-clamp-1 text-primary group-hover:underline">{name}</Link>
-        <p className="text-sm font-semibold text-primary">{price}</p>
+        <Link href={`/products/${id}`} className="product-title-size font-medium line-clamp-1 text-primary group-hover:underline">{name}</Link>
+        <p className="product-price-size font-semibold text-primary">{price}</p>
       </div>
     </div>
   );

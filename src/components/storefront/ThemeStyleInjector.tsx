@@ -63,6 +63,9 @@ export function ThemeStyleInjector() {
     const categoryTitleSize = theme.categoryTitleSize || 40;
     const featuredTextAlign = theme.featuredTextAlign || 'left';
     const featuredTitleSize = theme.featuredTitleSize || 40;
+    const productTextAlign = theme.productTextAlign || 'left';
+    const productTitleSize = theme.productTitleSize || 14;
+    const productPriceSize = theme.productPriceSize || 14;
 
     styleTag.innerHTML = `
       :root {
@@ -76,6 +79,9 @@ export function ThemeStyleInjector() {
         --category-title-size: ${categoryTitleSize}px;
         --featured-text-align: ${featuredTextAlign};
         --featured-title-size: ${featuredTitleSize}px;
+        --product-text-align: ${productTextAlign};
+        --product-title-size: ${productTitleSize}px;
+        --product-price-size: ${productPriceSize}px;
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
@@ -124,6 +130,15 @@ export function ThemeStyleInjector() {
       }
       .featured-title-size {
         font-size: var(--featured-title-size) !important;
+      }
+      .product-text-align {
+        text-align: var(--product-text-align) !important;
+      }
+      .product-title-size {
+        font-size: var(--product-title-size) !important;
+      }
+      .product-price-size {
+        font-size: var(--product-price-size) !important;
       }
     `;
 

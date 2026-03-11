@@ -34,7 +34,9 @@ import {
   Sparkles,
   AlignCenter,
   AlignLeft,
-  AlignRight
+  AlignRight,
+  Layers,
+  Heading
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -72,7 +74,11 @@ const DEFAULT_THEME = {
   categoryTextAlign: 'left',
   categoryTitleSize: '40',
   featuredTextAlign: 'left',
-  featuredTitleSize: '40'
+  featuredTitleSize: '40',
+  productTitleSize: '14',
+  productPriceSize: '14',
+  productTextAlign: 'left',
+  stickyHeader: true
 };
 
 export default function ThemeEnginePage() {
@@ -107,6 +113,10 @@ export default function ThemeEnginePage() {
   const [categoryTitleSize, setCategoryTitleSize] = useState(DEFAULT_THEME.categoryTitleSize);
   const [featuredTextAlign, setFeaturedTextAlign] = useState(DEFAULT_THEME.featuredTextAlign);
   const [featuredTitleSize, setFeaturedTitleSize] = useState(DEFAULT_THEME.featuredTitleSize);
+  const [productTitleSize, setProductTitleSize] = useState(DEFAULT_THEME.productTitleSize);
+  const [productPriceSize, setProductPriceSize] = useState(DEFAULT_THEME.productPriceSize);
+  const [productTextAlign, setProductTextAlign] = useState(DEFAULT_THEME.productTextAlign);
+  const [stickyHeader, setStickyHeader] = useState(DEFAULT_THEME.stickyHeader);
 
   useEffect(() => {
     if (themeData) {
@@ -131,6 +141,10 @@ export default function ThemeEnginePage() {
       setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
       setFeaturedTextAlign(themeData.featuredTextAlign || DEFAULT_THEME.featuredTextAlign);
       setFeaturedTitleSize(themeData.featuredTitleSize?.toString() || DEFAULT_THEME.featuredTitleSize);
+      setProductTitleSize(themeData.productTitleSize?.toString() || DEFAULT_THEME.productTitleSize);
+      setProductPriceSize(themeData.productPriceSize?.toString() || DEFAULT_THEME.productPriceSize);
+      setProductTextAlign(themeData.productTextAlign || DEFAULT_THEME.productTextAlign);
+      setStickyHeader(themeData.stickyHeader ?? DEFAULT_THEME.stickyHeader);
     }
   }, [themeData]);
 
@@ -169,6 +183,10 @@ export default function ThemeEnginePage() {
       categoryTitleSize: Number(categoryTitleSize),
       featuredTextAlign,
       featuredTitleSize: Number(featuredTitleSize),
+      productTitleSize: Number(productTitleSize),
+      productPriceSize: Number(productPriceSize),
+      productTextAlign,
+      stickyHeader,
       updatedAt: new Date().toISOString()
     };
 
@@ -191,7 +209,7 @@ export default function ThemeEnginePage() {
   }
 
   return (
-    <div className="space-y-8 h-full">
+    <div className="space-y-8 h-full pb-20">
       <style>{`
         #theme-preview-root {
           --preview-primary: ${primaryColor};
@@ -207,6 +225,9 @@ export default function ThemeEnginePage() {
           --preview-cat-size: ${categoryTitleSize}px;
           --preview-feat-align: ${featuredTextAlign};
           --preview-feat-size: ${featuredTitleSize}px;
+          --preview-prod-align: ${productTextAlign};
+          --preview-prod-size: ${productTitleSize}px;
+          --preview-price-size: ${productPriceSize}px;
         }
         #theme-preview-root .font-headline {
           font-family: var(--preview-headline) !important;
@@ -230,6 +251,15 @@ export default function ThemeEnginePage() {
           text-align: var(--preview-feat-align) !important;
           font-size: var(--preview-feat-size) !important;
         }
+        #theme-preview-root .preview-prod-card {
+          text-align: var(--preview-prod-align) !important;
+        }
+        #theme-preview-root .preview-prod-title {
+          font-size: var(--preview-prod-size) !important;
+        }
+        #theme-preview-root .preview-price {
+          font-size: var(--preview-price-size) !important;
+        }
       `}</style>
 
       <div className="flex justify-between items-center">
@@ -251,7 +281,7 @@ export default function ThemeEnginePage() {
           <Tabs defaultValue="styles" className="w-full">
             <TabsList className="w-full bg-white border border-[#e1e3e5] h-12 p-1">
               <TabsTrigger value="styles" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Palette className="h-3 w-3" /> Global</TabsTrigger>
-              <TabsTrigger value="banner" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Megaphone className="h-3 w-3" /> Banners</TabsTrigger>
+              <TabsTrigger value="catalog" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layers className="h-3 w-3" /> Catalog</TabsTrigger>
               <TabsTrigger value="hero" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Sparkles className="h-3 w-3" /> Hero</TabsTrigger>
               <TabsTrigger value="layout" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layout className="h-3 w-3" /> Layout</TabsTrigger>
             </TabsList>
@@ -265,7 +295,7 @@ export default function ThemeEnginePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Primary Color (Typography & Main Elements)</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Primary Color</Label>
                     <div className="flex gap-2">
                       <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
                         <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
@@ -274,7 +304,7 @@ export default function ThemeEnginePage() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Accent Color (Interactive & Overlays)</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Accent Color</Label>
                     <div className="flex gap-2">
                       <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
                         <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} />
@@ -290,13 +320,12 @@ export default function ThemeEnginePage() {
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                     <Type className="h-3.5 w-3.5" /> Performance Typography
                   </CardTitle>
-                  <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Select from high-velocity athletic fonts.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div className="space-y-4">
-                    <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">01. Headline Identity</Label>
+                    <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Headline Identity</Label>
                     <Select value={headlineFont} onValueChange={setHeadlineFont}>
-                      <SelectTrigger className="h-14 bg-white border-2 border-primary/10 hover:border-primary transition-all rounded-none">
+                      <SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none">
                         <SelectValue placeholder="CHOOSE HEADLINE FONT" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
@@ -310,9 +339,9 @@ export default function ThemeEnginePage() {
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">02. Descriptor Identity</Label>
+                    <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Descriptor Identity</Label>
                     <Select value={bodyFont} onValueChange={setBodyFont}>
-                      <SelectTrigger className="h-14 bg-white border-2 border-primary/10 hover:border-primary transition-all rounded-none">
+                      <SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none">
                         <SelectValue placeholder="CHOOSE DESCRIPTION FONT" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
@@ -325,72 +354,14 @@ export default function ThemeEnginePage() {
                     </Select>
                   </div>
 
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Global Border Radius</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Border Radius</Label>
                       <span className="text-[10px] font-mono font-bold">{borderRadius}PX</span>
                     </div>
-                    <div className="mt-4 flex items-center gap-4">
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="40" 
-                        value={borderRadius} 
-                        onChange={(e) => setBorderRadius(e.target.value)} 
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="banner" className="mt-6">
-              <Card className="border-[#e1e3e5] shadow-none">
-                <CardHeader className="flex flex-row items-center justify-between pb-4">
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Announcement Bar</CardTitle>
-                  <Switch checked={bannerEnabled} onCheckedChange={setBannerEnabled} />
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Banner Content</Label>
-                    <Input value={bannerText} onChange={(e) => setBannerText(e.target.value)} className="h-12" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Bar Background Color</Label>
-                    <div className="flex gap-2">
-                      <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                        <Input type="color" value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" />
-                      </div>
-                      <Input value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
-                    </div>
-                  </div>
-                  <div className="space-y-4 pt-4 border-t">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Banner Identity Typography</Label>
-                    <Select value={bannerFont} onValueChange={setBannerFont}>
-                      <SelectTrigger className="h-12 bg-white rounded-none border-2 border-primary/5">
-                        <SelectValue placeholder="CHOOSE BANNER FONT" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        {sportsFonts.map(font => (
-                          <SelectItem key={font} value={font} className="text-xs font-bold uppercase py-2 cursor-pointer">
-                            <span style={{ fontFamily: font }}>{font}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Linguistic Scale (Font Size)</Label>
-                      <span className="text-[10px] font-mono font-bold">{bannerFontSize}PX</span>
-                    </div>
                     <input 
-                      type="range" 
-                      min="8" 
-                      max="16" 
-                      value={bannerFontSize} 
-                      onChange={(e) => setBannerFontSize(e.target.value)} 
+                      type="range" min="0" max="40" value={borderRadius} 
+                      onChange={(e) => setBorderRadius(e.target.value)} 
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
                     />
                   </div>
@@ -398,15 +369,78 @@ export default function ThemeEnginePage() {
               </Card>
             </TabsContent>
 
+            <TabsContent value="catalog" className="mt-6 space-y-6">
+              <Card className="border-[#e1e3e5] shadow-none">
+                <CardHeader>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Card Orchestration</CardTitle>
+                  <CardDescription>Configure alignment and scale for archival pieces.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="space-y-4">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Detail Alignment</Label>
+                    <div className="flex gap-2">
+                      {['left', 'center', 'right'].map((align) => (
+                        <Button 
+                          key={align}
+                          variant={productTextAlign === align ? 'default' : 'outline'} 
+                          size="icon" 
+                          onClick={() => setProductTextAlign(align)}
+                          className="flex-1 h-12 rounded-none border-gray-200"
+                        >
+                          {align === 'left' && <AlignLeft className="h-4 w-4" />}
+                          {align === 'center' && <AlignCenter className="h-4 w-4" />}
+                          {align === 'right' && <AlignRight className="h-4 w-4" />}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-6 pt-4 border-t">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Title Font Size</Label>
+                        <span className="text-[10px] font-mono font-bold">{productTitleSize}PX</span>
+                      </div>
+                      <input 
+                        type="range" min="10" max="24" value={productTitleSize} 
+                        onChange={(e) => setProductTitleSize(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Price Font Size</Label>
+                        <span className="text-[10px] font-mono font-bold">{productPriceSize}PX</span>
+                      </div>
+                      <input 
+                        type="range" min="10" max="24" value={productPriceSize} 
+                        onChange={(e) => setProductPriceSize(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none">
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
+                  <div className="space-y-1">
+                    <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Header Interaction</CardTitle>
+                    <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Lock navigation to viewport.</CardDescription>
+                  </div>
+                  <Switch checked={stickyHeader} onCheckedChange={setStickyHeader} />
+                </CardHeader>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="hero" className="mt-6">
               <Card className="border-[#e1e3e5] shadow-none">
                 <CardHeader>
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Visuals & Content</CardTitle>
-                  <CardDescription>Directly edit the primary entrance of your storefront.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Background Image</Label>
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Editorial Cover</Label>
                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
                     <div 
                       onClick={() => !heroImageUrl && fileInputRef.current?.click()}
@@ -424,8 +458,8 @@ export default function ThemeEnginePage() {
                         <>
                           <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors"><ImageIcon className="h-6 w-6" /></div>
                           <div className="text-center">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Upload Hero Visual</p>
-                            <p className="text-[8px] text-gray-400 mt-1">Recommended: 1920x1080px (landscape)</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Upload Covering Visual</p>
+                            <p className="text-[8px] text-gray-400 mt-1 uppercase">1920x1080 Recommended</p>
                           </div>
                         </>
                       )}
@@ -435,58 +469,40 @@ export default function ThemeEnginePage() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Headline</Label>
-                      <Input value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} className="h-12 font-headline text-lg" />
+                      <Input value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} className="h-12 font-headline" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Subheadline (Collection Tag)</Label>
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Subheadline</Label>
                       <Input value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} className="h-12 uppercase tracking-widest" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Call to Action (Button Text)</Label>
-                      <Input value={heroButtonText} onChange={(e) => setHeroButtonText(e.target.value)} className="h-12 uppercase tracking-widest font-bold" placeholder="e.g. SHOP THE DROP" />
                     </div>
                   </div>
 
                   <div className="pt-4 border-t space-y-6">
                     <div className="space-y-4">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Text Alignment</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Linguistic Alignment</Label>
                       <div className="flex gap-2">
-                        <Button 
-                          variant={heroTextAlign === 'left' ? 'default' : 'outline'} 
-                          size="icon" 
-                          onClick={() => setHeroTextAlign('left')}
-                          className="flex-1 h-12 rounded-none"
-                        >
-                          <AlignLeft className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant={heroTextAlign === 'center' ? 'default' : 'outline'} 
-                          size="icon" 
-                          onClick={() => setHeroTextAlign('center')}
-                          className="flex-1 h-12 rounded-none"
-                        >
-                          <AlignCenter className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant={heroTextAlign === 'right' ? 'default' : 'outline'} 
-                          size="icon" 
-                          onClick={() => setHeroTextAlign('right')}
-                          className="flex-1 h-12 rounded-none"
-                        >
-                          <AlignRight className="h-4 w-4" />
-                        </Button>
+                        {['left', 'center', 'right'].map((align) => (
+                          <Button 
+                            key={align}
+                            variant={heroTextAlign === align ? 'default' : 'outline'} 
+                            size="icon" 
+                            onClick={() => setHeroTextAlign(align)}
+                            className="flex-1 h-12 rounded-none border-gray-200"
+                          >
+                            {align === 'left' && <AlignLeft className="h-4 w-4" />}
+                            {align === 'center' && <AlignCenter className="h-4 w-4" />}
+                            {align === 'right' && <AlignRight className="h-4 w-4" />}
+                          </Button>
+                        ))}
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Headline Precision Scale</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Headline Scale</Label>
                         <span className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</span>
                       </div>
                       <input 
-                        type="range" 
-                        min="40" 
-                        max="120" 
-                        value={heroHeadlineSize} 
+                        type="range" min="40" max="120" value={heroHeadlineSize} 
                         onChange={(e) => setHeroHeadlineSize(e.target.value)} 
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
                       />
@@ -506,26 +522,32 @@ export default function ThemeEnginePage() {
                       <button 
                         onClick={() => setHomepageLayout('bento')}
                         className={cn(
-                          "p-4 border-2 rounded flex flex-col items-center gap-3 transition-all",
-                          homepageLayout === 'bento' ? "border-primary bg-primary/5" : "border-transparent bg-gray-50 hover:border-gray-200"
+                          "p-4 rounded flex flex-col items-center gap-3 transition-all border-none",
+                          homepageLayout === 'bento' ? "bg-black text-white shadow-xl scale-[1.02]" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100"
                         )}
                       >
-                        <div className="w-full h-24 grid grid-cols-2 gap-1 p-1 bg-white border rounded shadow-sm">
-                          <div className="bg-gray-200 col-span-2 rounded-sm"></div>
-                          <div className="bg-gray-100 rounded-sm"></div>
-                          <div className="bg-gray-100 rounded-sm"></div>
+                        <div className={cn(
+                          "w-full h-24 grid grid-cols-2 gap-1 p-1 rounded shadow-sm",
+                          homepageLayout === 'bento' ? "bg-white/10" : "bg-white border"
+                        )}>
+                          <div className={cn("col-span-2 rounded-sm", homepageLayout === 'bento' ? "bg-white/40" : "bg-gray-200")}></div>
+                          <div className={cn("rounded-sm", homepageLayout === 'bento' ? "bg-white/20" : "bg-gray-100")}></div>
+                          <div className={cn("rounded-sm", homepageLayout === 'bento' ? "bg-white/20" : "bg-gray-100")}></div>
                         </div>
                         <span className="text-[9px] font-bold uppercase tracking-widest">Bento Grid</span>
                       </button>
                       <button 
                         onClick={() => setHomepageLayout('classic')}
                         className={cn(
-                          "p-4 border-2 rounded flex flex-col items-center gap-3 transition-all",
-                          homepageLayout === 'classic' ? "border-primary bg-primary/5" : "border-transparent bg-gray-50 hover:border-gray-200"
+                          "p-4 rounded flex flex-col items-center gap-3 transition-all border-none",
+                          homepageLayout === 'classic' ? "bg-black text-white shadow-xl scale-[1.02]" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100"
                         )}
                       >
-                        <div className="w-full h-24 grid grid-cols-1 gap-1 p-1 bg-white border rounded shadow-sm">
-                          <div className="bg-gray-200 h-full rounded-sm"></div>
+                        <div className={cn(
+                          "w-full h-24 grid grid-cols-1 gap-1 p-1 rounded shadow-sm",
+                          homepageLayout === 'classic' ? "bg-white/10" : "bg-white border"
+                        )}>
+                          <div className={cn("h-full rounded-sm", homepageLayout === 'classic' ? "bg-white/40" : "bg-gray-200")}></div>
                         </div>
                         <span className="text-[9px] font-bold uppercase tracking-widest">Classic Full</span>
                       </button>
@@ -536,29 +558,10 @@ export default function ThemeEnginePage() {
               <Card className="border-[#e1e3e5] shadow-none">
                 <CardHeader>
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Section Typography</CardTitle>
-                  <CardDescription>Control headers for Categories and Featured items.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div className="space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Category Drop Typography</h3>
-                    <div className="space-y-4">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Alignment</Label>
-                      <div className="flex gap-2">
-                        {['left', 'center', 'right'].map((align) => (
-                          <Button 
-                            key={align}
-                            variant={categoryTextAlign === align ? 'default' : 'outline'} 
-                            size="icon" 
-                            onClick={() => setCategoryTextAlign(align)}
-                            className="flex-1 h-10 rounded-none"
-                          >
-                            {align === 'left' && <AlignLeft className="h-4 w-4" />}
-                            {align === 'center' && <AlignCenter className="h-4 w-4" />}
-                            {align === 'right' && <AlignRight className="h-4 w-4" />}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Category Titles</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Header Scale</Label>
@@ -571,27 +574,8 @@ export default function ThemeEnginePage() {
                       />
                     </div>
                   </div>
-
                   <div className="space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Featured Archive Typography</h3>
-                    <div className="space-y-4">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Alignment</Label>
-                      <div className="flex gap-2">
-                        {['left', 'center', 'right'].map((align) => (
-                          <Button 
-                            key={align}
-                            variant={featuredTextAlign === align ? 'default' : 'outline'} 
-                            size="icon" 
-                            onClick={() => setFeaturedTextAlign(align)}
-                            className="flex-1 h-10 rounded-none"
-                          >
-                            {align === 'left' && <AlignLeft className="h-4 w-4" />}
-                            {align === 'center' && <AlignCenter className="h-4 w-4" />}
-                            {align === 'right' && <AlignRight className="h-4 w-4" />}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Featured Titles</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Header Scale</Label>
@@ -619,18 +603,8 @@ export default function ThemeEnginePage() {
               <div className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></div>
             </div>
             <div className="flex gap-1 border bg-gray-50 p-1 rounded-lg">
-              <button 
-                onClick={() => setDevice('desktop')}
-                className={cn("p-2 rounded transition-all", device === 'desktop' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}
-              >
-                <Monitor className="h-4 w-4" />
-              </button>
-              <button 
-                onClick={() => setDevice('mobile')}
-                className={cn("p-2 rounded transition-all", device === 'mobile' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}
-              >
-                <Smartphone className="h-4 w-4" />
-              </button>
+              <button onClick={() => setDevice('desktop')} className={cn("p-2 rounded transition-all", device === 'desktop' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}><Monitor className="h-4 w-4" /></button>
+              <button onClick={() => setDevice('mobile')} className={cn("p-2 rounded transition-all", device === 'mobile' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}><Smartphone className="h-4 w-4" /></button>
             </div>
             <div className="flex items-center gap-2 text-[10px] text-green-600 uppercase font-bold tracking-widest">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -642,112 +616,38 @@ export default function ThemeEnginePage() {
               "bg-white transition-all duration-500 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] overflow-hidden relative flex flex-col",
               device === 'desktop' ? "w-full max-w-4xl aspect-[16/10]" : "w-[375px] h-[667px]"
             )}>
-              {/* Fake Storefront Banner */}
               {bannerEnabled && (
-                <div 
-                  className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white transition-all shrink-0 px-4 text-center"
-                  style={{ backgroundColor: bannerBgColor }}
-                >
-                  {bannerText}
-                </div>
+                <div className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white shrink-0 px-4 text-center" style={{ backgroundColor: bannerBgColor }}>{bannerText}</div>
               )}
-              {/* Fake Storefront Header */}
               <div className="h-16 bg-white border-b flex items-center justify-between px-8 shrink-0">
                 <span className="font-bold text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span>
-                <div className="flex gap-6 items-center">
-                  <div className="hidden md:flex gap-4">
-                    <div className="w-8 h-0.5 bg-gray-100 rounded-full"></div>
-                    <div className="w-8 h-0.5 bg-gray-100 rounded-full"></div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <SearchIcon className="h-4 w-4 text-gray-300" />
-                    <ShoppingBag className="h-4 w-4 text-gray-300" />
-                    <div className="w-10 h-10 rounded-full border bg-gray-50 flex items-center justify-center">
-                      <MousePointer2 className="h-4 w-4 text-gray-300" />
-                    </div>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <SearchIcon className="h-4 w-4 text-gray-300" />
+                  <ShoppingBag className="h-4 w-4 text-gray-300" />
+                  <div className="w-10 h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-300" /></div>
                 </div>
               </div>
-              
-              {/* Fake Storefront Content */}
               <div className="flex-1 overflow-y-auto p-8 space-y-12 font-body">
-                {homepageLayout === 'bento' ? (
-                  <div className="grid grid-cols-2 gap-6">
-                    <div 
-                      className="col-span-2 aspect-[21/9] bg-gray-50 flex flex-col p-12 border shadow-sm transition-all duration-500 overflow-hidden relative" 
-                      style={{ 
-                        borderRadius: `${borderRadius}px`,
-                        alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center',
-                        textAlign: heroTextAlign as any
-                      }}
-                    >
-                      {heroImageUrl ? (
-                        <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" />
-                      ) : (
-                        <div className="absolute inset-0 bg-gray-100" />
-                      )}
-                      <div className="relative z-10 w-full">
-                        <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 font-body block">{heroSubheadline}</span>
-                        <h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
-                        <div className={cn("mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body", heroTextAlign === 'center' && 'justify-center')}>
-                          {heroButtonText} <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                <div className="aspect-video bg-gray-50 flex flex-col p-12 border shadow-sm relative" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', textAlign: heroTextAlign as any }}>
+                  {heroImageUrl ? <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" /> : <div className="absolute inset-0 bg-gray-100" />}
+                  <div className="relative z-10 w-full">
+                    <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 block">{heroSubheadline}</span>
+                    <h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
+                  </div>
+                </div>
+                <div className="space-y-8">
+                  <h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight" style={{ color: primaryColor }}>Catalog Selection</h3>
+                  <div className="grid grid-cols-2 gap-8">
+                    {[1, 2].map(i => (
+                      <div key={i} className="preview-prod-card space-y-4">
+                        <div className="aspect-[3/4] bg-gray-50 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div>
+                        <div className="space-y-1">
+                          <p className="preview-prod-title font-bold uppercase tracking-tight leading-none" style={{ color: primaryColor }}>Sculpted Piece</p>
+                          <p className="preview-price font-bold opacity-60">$890.00 CAD</p>
                         </div>
                       </div>
-                    </div>
-                    <div className="aspect-square bg-gray-50 border shadow-sm flex flex-col justify-end p-6" style={{ borderRadius: `${borderRadius}px` }}>
-                       <div className="h-3 w-2/3 bg-gray-200 rounded-full mb-2"></div>
-                       <div className="h-3 w-1/3 bg-gray-100 rounded-full"></div>
-                    </div>
-                    <div className="aspect-square bg-gray-100 border shadow-sm transition-all" style={{ borderRadius: `${borderRadius}px` }}></div>
+                    ))}
                   </div>
-                ) : (
-                  <div className="space-y-12">
-                    <div 
-                      className="aspect-video w-full bg-gray-50 flex flex-col p-12 border shadow-sm transition-all duration-500 overflow-hidden relative" 
-                      style={{ 
-                        borderRadius: `${borderRadius}px`,
-                        alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center',
-                        textAlign: heroTextAlign as any
-                      }}
-                    >
-                      {heroImageUrl ? (
-                        <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" />
-                      ) : (
-                        <div className="absolute inset-0 bg-gray-100" />
-                      )}
-                      <div className="relative z-10 w-full">
-                        <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-6 font-body block">{heroSubheadline}</span>
-                        <h2 className="preview-hero-headline font-bold uppercase tracking-tighter leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2>
-                        <div className={cn("mt-8 flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest group cursor-pointer font-body", heroTextAlign === 'center' && 'justify-center')}>
-                          {heroButtonText} <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-8">
-                      <h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight" style={{ color: primaryColor }}>Shop Category</h3>
-                      <div className="grid grid-cols-2 gap-8">
-                        {[1, 2].map(i => (
-                          <div key={i} className="space-y-4">
-                            <div className="aspect-[3/4] bg-gray-50 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div>
-                            <div className="space-y-2">
-                              <div className="h-3 bg-gray-200 rounded-full w-full"></div>
-                              <div className="h-3 bg-gray-100 rounded-full w-1/4"></div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-center pt-8">
-                  <button 
-                    className="h-16 px-16 font-bold uppercase tracking-[0.3em] text-[11px] transition-all shadow-xl hover:scale-[1.02] active:scale-95 font-body"
-                    style={{ backgroundColor: primaryColor, color: accentColor, borderRadius: `${borderRadius}px` }}
-                  >
-                    {heroButtonText}
-                  </button>
                 </div>
               </div>
             </div>
