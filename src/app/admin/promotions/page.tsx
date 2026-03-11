@@ -87,7 +87,7 @@ export default function PromotionsPage() {
   // FLASH SALE STATE
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [flashValue, setFlashValue] = useState(15);
-  const [flashLabel, setFlashValueLabel] = useState('ARCHIVAL DISPATCH');
+  const [flashLabel, setFlashLabel] = useState('ARCHIVAL DISPATCH');
 
   // THRESHOLD STATE
   const [thresholdEnabled, setThresholdEnabled] = useState(false);
@@ -129,7 +129,6 @@ export default function PromotionsPage() {
       setBogoEnabled(config.bogoEnabled ?? false);
       setBogoMinQty(config.bogoMinQty ?? 2);
       
-      // Support legacy bogoCategoryId or new bogoCategoryIds array
       const legacyId = config.bogoCategoryId;
       const pluralIds = config.bogoCategoryIds;
       setBogoCategoryIds(Array.isArray(pluralIds) ? pluralIds : (legacyId ? [legacyId] : []));
@@ -376,7 +375,7 @@ export default function PromotionsPage() {
                     <Label className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-400' : 'text-gray-500')}>Sale Label</Label>
                     <Input 
                       value={flashLabel} 
-                      onChange={(e) => setFlashValueLabel(e.target.value.toUpperCase())}
+                      onChange={(e) => setFlashLabel(e.target.value.toUpperCase())}
                       className="h-10 bg-white text-black text-[9px] font-bold tracking-widest"
                       disabled={!flashEnabled}
                     />
