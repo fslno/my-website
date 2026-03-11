@@ -60,13 +60,19 @@ export function ThemeStyleInjector() {
     const heroTextAlign = theme.heroTextAlign || 'center';
     const heroVerticalAlign = theme.heroVerticalAlign || 'center';
     const heroHeadlineSize = theme.heroHeadlineSize || 72;
-    const categoryTextAlign = theme.categoryTextAlign || 'left';
+
+    const categoryTextAlign = theme.categoryTextAlign || 'center';
+    const categoryVerticalAlign = theme.categoryVerticalAlign || 'center';
     const categoryTitleSize = theme.categoryTitleSize || 40;
+
     const featuredTextAlign = theme.featuredTextAlign || 'left';
     const featuredTitleSize = theme.featuredTitleSize || 40;
+
     const productTextAlign = theme.productTextAlign || 'left';
     const productTitleSize = theme.productTitleSize || 14;
     const productPriceSize = theme.productPriceSize || 14;
+
+    const getFlexAlign = (align: string) => align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
 
     styleTag.innerHTML = `
       :root {
@@ -76,11 +82,15 @@ export function ThemeStyleInjector() {
         --banner-font-size: ${bannerFontSize}px;
         --hero-text-align: ${heroTextAlign};
         --hero-vertical-align: ${heroVerticalAlign === 'bottom' ? 'flex-end' : 'center'};
+        --hero-flex-align: ${getFlexAlign(heroTextAlign)};
         --category-text-align: ${categoryTextAlign};
+        --category-vertical-align: ${categoryVerticalAlign === 'bottom' ? 'flex-end' : 'center'};
+        --category-flex-align: ${getFlexAlign(categoryTextAlign)};
         --category-title-size: ${categoryTitleSize}px;
         --featured-text-align: ${featuredTextAlign};
         --featured-title-size: ${featuredTitleSize}px;
         --product-text-align: ${productTextAlign};
+        --product-flex-align: ${getFlexAlign(productTextAlign)};
         --product-title-size: ${productTitleSize}px;
         --product-price-size: ${productPriceSize}px;
         --hero-headline-size: ${heroHeadlineSize}px;

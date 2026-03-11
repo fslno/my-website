@@ -123,8 +123,14 @@ export default function Home() {
                     data-ai-hint="fashion category"
                   />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6 text-center">
-                    <h3 className="text-xl font-headline font-bold uppercase tracking-widest">{cat.name}</h3>
+                  <div 
+                    className="absolute inset-0 flex flex-col p-6 text-white category-text-align"
+                    style={{ 
+                      justifyContent: 'var(--category-vertical-align)',
+                      alignItems: 'var(--category-flex-align)'
+                    }}
+                  >
+                    <h3 className="text-xl font-headline font-bold uppercase tracking-widest category-title-size">{cat.name}</h3>
                     <span className="mt-4 text-[10px] uppercase font-bold tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 duration-300 flex items-center gap-2 border-b border-white pb-1">
                       Explore <ChevronRight className="h-3 w-3" />
                     </span>

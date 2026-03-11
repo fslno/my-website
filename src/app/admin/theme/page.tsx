@@ -72,7 +72,8 @@ const DEFAULT_THEME = {
   heroTextAlign: 'center',
   heroVerticalAlign: 'center',
   heroHeadlineSize: '72',
-  categoryTextAlign: 'left',
+  categoryTextAlign: 'center',
+  categoryVerticalAlign: 'center',
   categoryTitleSize: '40',
   featuredTextAlign: 'left',
   featuredTitleSize: '40',
@@ -112,6 +113,7 @@ export default function ThemeEnginePage() {
   const [heroVerticalAlign, setHeroVerticalAlign] = useState(DEFAULT_THEME.heroVerticalAlign);
   const [heroHeadlineSize, setHeroHeadlineSize] = useState(DEFAULT_THEME.heroHeadlineSize);
   const [categoryTextAlign, setCategoryTextAlign] = useState(DEFAULT_THEME.categoryTextAlign);
+  const [categoryVerticalAlign, setCategoryVerticalAlign] = useState(DEFAULT_THEME.categoryVerticalAlign);
   const [categoryTitleSize, setCategoryTitleSize] = useState(DEFAULT_THEME.categoryTitleSize);
   const [featuredTextAlign, setFeaturedTextAlign] = useState(DEFAULT_THEME.featuredTextAlign);
   const [featuredTitleSize, setFeaturedTitleSize] = useState(DEFAULT_THEME.featuredTitleSize);
@@ -141,6 +143,7 @@ export default function ThemeEnginePage() {
       setHeroVerticalAlign(themeData.heroVerticalAlign || DEFAULT_THEME.heroVerticalAlign);
       setHeroHeadlineSize(themeData.heroHeadlineSize?.toString() || DEFAULT_THEME.heroHeadlineSize);
       setCategoryTextAlign(themeData.categoryTextAlign || DEFAULT_THEME.categoryTextAlign);
+      setCategoryVerticalAlign(themeData.categoryVerticalAlign || DEFAULT_THEME.categoryVerticalAlign);
       setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
       setFeaturedTextAlign(themeData.featuredTextAlign || DEFAULT_THEME.featuredTextAlign);
       setFeaturedTitleSize(themeData.featuredTitleSize?.toString() || DEFAULT_THEME.featuredTitleSize);
@@ -184,6 +187,7 @@ export default function ThemeEnginePage() {
       heroVerticalAlign,
       heroHeadlineSize: Number(heroHeadlineSize),
       categoryTextAlign,
+      categoryVerticalAlign,
       categoryTitleSize: Number(categoryTitleSize),
       featuredTextAlign,
       featuredTitleSize: Number(featuredTitleSize),
@@ -227,6 +231,7 @@ export default function ThemeEnginePage() {
           --preview-hero-vertical: ${heroVerticalAlign === 'bottom' ? 'flex-end' : 'center'};
           --preview-hero-size: ${heroHeadlineSize}px;
           --preview-cat-align: ${categoryTextAlign};
+          --preview-cat-vertical: ${categoryVerticalAlign === 'bottom' ? 'flex-end' : 'center'};
           --preview-cat-size: ${categoryTitleSize}px;
           --preview-feat-align: ${featuredTextAlign};
           --preview-feat-size: ${featuredTitleSize}px;
@@ -532,7 +537,7 @@ export default function ThemeEnginePage() {
                 <CardContent className="space-y-8">
                   <div className="space-y-6">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Category Titles</h3>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Header Scale</Label>
                         <span className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</span>
@@ -543,8 +548,41 @@ export default function ThemeEnginePage() {
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
                       />
                     </div>
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Horizontal Alignment</Label>
+                      <div className="flex gap-2">
+                        {['left', 'center', 'right'].map((align) => (
+                          <Button 
+                            key={align}
+                            variant={categoryTextAlign === align ? 'default' : 'outline'} 
+                            size="icon" 
+                            onClick={() => setCategoryTextAlign(align)}
+                            className="flex-1 h-10 rounded-none border-gray-200"
+                          >
+                            {align === 'left' && <AlignLeft className="h-4 w-4" />}
+                            {align === 'center' && <AlignCenter className="h-4 w-4" />}
+                            {align === 'right' && <AlignRight className="h-4 w-4" />}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Vertical Anchor (Lower axis)</Label>
+                      <div className="flex gap-2">
+                        {['center', 'bottom'].map((vAlign) => (
+                          <Button 
+                            key={vAlign}
+                            variant={categoryVerticalAlign === vAlign ? 'default' : 'outline'} 
+                            onClick={() => setCategoryVerticalAlign(vAlign)}
+                            className="flex-1 h-10 rounded-none border-gray-200 uppercase text-[9px] font-bold"
+                          >
+                            {vAlign === 'center' ? 'Middle' : 'Lower'}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-6">
+                  <div className="space-y-6 pt-4 border-t">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2">Featured Titles</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
