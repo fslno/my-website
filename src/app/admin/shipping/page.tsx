@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Dialog, 
   DialogContent, 
@@ -36,7 +37,10 @@ import {
   RotateCcw,
   ShieldAlert,
   Activity,
-  Terminal
+  Terminal,
+  Clock,
+  Info,
+  Save
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -58,6 +62,19 @@ export default function ShippingPage() {
   const [newCarrierApiKey, setNewCarrierApiKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Physical Pickup State
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [pickupHours, setPickupHours] = useState('');
+  const [pickupInstructions, setPickupInstructions] = useState('');
+
+  useEffect(() => {
+    if (config) {
+      setPickupAddress(config.pickupAddress || '');
+      setPickupHours(config.pickupHours || '');
+      setPickupInstructions(config.pickupInstructions || '');
+    }
+  }, [config]);
+
   const handleInitialize = () => {
     if (!configRef) return;
     const initialData = {
@@ -76,6 +93,9 @@ export default function ShippingPage() {
       signatureRequired: true,
       insuranceAutoEnroll: true,
       realTimeTracking: true,
+      pickupAddress: '123 Archive Way, London, UK',
+      pickupHours: 'Mon-Fri: 10AM - 6PM\nSat: 11AM - 4PM',
+      pickupInstructions: 'Please show your order confirmation ID and a valid government-issued photo ID upon arrival.',
       updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -96,6 +116,29 @@ export default function ShippingPage() {
         requestResourceData: updates
       }));
     });
+  };
+
+  const handleSavePickupDetails = () => {
+    setIsSaving(true);
+    const updates = {
+      pickupAddress,
+      pickupHours,
+      pickupInstructions,
+      updatedAt: serverTimestamp()
+    };
+    updateDoc(configRef!, updates)
+      .then(() => {
+        setIsSaving(false);
+        toast({ title: "Pickup Details Synchronized", description: "Store collection parameters have been Authoritatively updated." });
+      })
+      .catch((error) => {
+        setIsSaving(false);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: configRef!.path,
+          operation: 'update',
+          requestResourceData: updates
+        }));
+      });
   };
 
   const handleAddCarrier = () => {
@@ -327,6 +370,65 @@ export default function ShippingPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
+            <CardHeader className="border-b bg-gray-50/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg uppercase tracking-tight">Physical Pickup Settings</CardTitle>
+                </div>
+                <Button 
+                  onClick={handleSavePickupDetails} 
+                  disabled={isSaving}
+                  className="h-9 px-6 bg-black text-white font-bold uppercase tracking-widest text-[9px] gap-2"
+                >
+                  {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save Details
+                </Button>
+              </div>
+              <CardDescription className="text-xs uppercase font-bold tracking-tight">Configure customer-facing data for in-person fulfillment.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-8">
+              <div className="grid gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Navigation className="h-3 w-3" /> Pickup Location Address
+                  </Label>
+                  <Input 
+                    placeholder="Enter full address for the Spot" 
+                    value={pickupAddress} 
+                    onChange={(e) => setPickupAddress(e.target.value)}
+                    className="h-12 uppercase font-medium"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <Clock className="h-3 w-3" /> Operating Hours
+                    </Label>
+                    <Textarea 
+                      placeholder="e.g. Mon-Fri: 10AM - 6PM" 
+                      value={pickupHours} 
+                      onChange={(e) => setPickupHours(e.target.value)}
+                      className="min-h-[100px] uppercase font-medium"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <Info className="h-3 w-3" /> Pickup Instructions
+                    </Label>
+                    <Textarea 
+                      placeholder="e.g. Please show your order confirmation ID..." 
+                      value={pickupInstructions} 
+                      onChange={(e) => setPickupInstructions(e.target.value)}
+                      className="min-h-[100px] uppercase font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="border-b bg-gray-50/50">
