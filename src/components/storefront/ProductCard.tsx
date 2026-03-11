@@ -26,10 +26,10 @@ export function ProductCard({ id, name, price, image, category }: ProductCardPro
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
       </Link>
       
-      <div className="flex flex-col gap-1">
-        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{category}</p>
-        <Link href={`/products/${id}`} className="product-title-size font-medium line-clamp-1 text-primary group-hover:underline">{name}</Link>
-        <p className="product-price-size font-semibold text-primary">{price}</p>
+      <div className="flex flex-col">
+        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">{category}</p>
+        <Link href={`/products/${id}`} className="product-title-size font-medium line-clamp-1 text-primary group-hover:underline leading-tight">{name}</Link>
+        <p className="product-price-size font-semibold text-primary mt-0.5">{price}</p>
       </div>
     </div>
   );
