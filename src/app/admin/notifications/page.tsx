@@ -27,7 +27,11 @@ import {
   FileText,
   Zap,
   Sparkles,
-  TicketPercent
+  TicketPercent,
+  MessageSquare,
+  Info,
+  Terminal,
+  ChevronRight
 } from 'lucide-react';
 import { 
   Card, 
@@ -53,6 +57,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface NotificationConfig {
   enabled: boolean;
@@ -65,90 +70,76 @@ interface NotificationConfig {
 const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
   orderConfirmation: {
     label: "Order Confirmation",
-    description: "Sent immediately after successful placement. Includes items, billing, and status link.",
+    description: "Sent immediately after successful placement. Confirms pieces and studio preparation.",
     enabled: true,
-    subject: "Thank you for your order #{{order_id}}",
-    body: "Your purchase is being processed by the team..."
+    subject: "Confirmed: Your {{business_name}} Archive Selection #{{order_id}}",
+    body: "Hi {{customer_name}},\n\nWe're thrilled to confirm your archive selection! Our studio team has received order #{{order_id}} and is now preparing your pieces with absolute precision.\n\nYOUR ARCHIVE SELECTION:\n{{product_list}}\n\nOrder Total: {{order_total}}\n\nSTUDIO DETAILS:\n{{business_address}}\n{{business_phone}}\n\nWe'll notify you as soon as your items are dispatched. Thank you for your trust."
   },
   statusChanged: {
     label: "Order Status Changed",
     description: "Sent whenever you manually update the progress of an order fulfillment.",
     enabled: true,
-    subject: "Update: Your order #{{order_id}} status has changed",
-    body: "The status of your order has been updated to {{status}}..."
+    subject: "Update: The status of order #{{order_id}} has evolved",
+    body: "Hi {{customer_name}},\n\nJust a quick update from the {{business_name}} studio. The status of your archive order #{{order_id}} has been updated to: {{status}}.\n\nWe are moving through the fulfillment stages to ensure your pieces reach you in perfect condition.\n\nRegards,\n{{business_name}} Team"
   },
   shipped: {
     label: "Order Shipped",
     description: "Triggered when a tracking number is assigned or status moves to 'Shipped.'",
     enabled: true,
-    subject: "Good news! Your order #{{order_id}} has shipped!",
-    body: "Your items are in transit via {{courier}}. Tracking: {{tracking_number}}..."
+    subject: "In Transit: Your {{business_name}} order #{{order_id}} is on the move",
+    body: "Excellent news, {{customer_name}}!\n\nYour archive selection has been Authoritatively dispatched from our studio. \n\nCARRIER: {{courier}}\nLOGISTICS ID: {{tracking_number}}\n\nYou can track the journey of your pieces using the link below:\nhttps://fslno.com/track/{{tracking_number}}\n\nThank you for shopping the archive."
   },
   readyForPickup: {
     label: "Order Ready for Pickup",
-    description: "Sent to notify customers that their items are waiting at your store location.",
+    description: "Sent to notify customers that their items are waiting at your physical location.",
     enabled: false,
-    subject: "Ready for Pickup: Your order #{{order_id}}",
-    body: "Your items are ready for pickup. Please bring your ID..."
+    subject: "Ready for Pickup: Your selection is waiting at the Spot",
+    body: "Hi {{customer_name}},\n\nYour archive pieces for order #{{order_id}} are ready for collection at our physical location.\n\nPICKUP ADDRESS:\n{{business_address}}\n\nHOURS:\nMon-Fri: 10AM - 6PM\n\nPlease ensure you bring a valid government-issued photo ID and your order confirmation ID for biometric validation."
   },
   delivered: {
     label: "Order Delivered",
     description: "Sent once the carrier confirms delivery or status is updated to 'Delivered.'",
     enabled: true,
-    subject: "Delivered: Your order #{{order_id}}",
-    body: "We hope you enjoy your new items. Let us know what you think..."
+    subject: "Arrived: Your {{business_name}} pieces have been delivered",
+    body: "Hi {{customer_name}},\n\nAccording to our records, order #{{order_id}} has arrived at its destination. We hope these archive pieces become a cornerstone of your wardrobe.\n\nWe'd love to hear your thoughts on the silhouette and fit. Feel free to reply to this email or tag us on Instagram.\n\nEnjoy the drop,\n{{business_name}}"
   },
   refunded: {
     label: "Order Refunded",
     description: "Notifies the customer of a processed refund and expected payment return.",
     enabled: true,
-    subject: "Refund Processed: Order #{{order_id}}",
-    body: "A refund has been initiated for your order..."
+    subject: "Refund Processed: Order #{{order_id}} Reconciliation",
+    body: "Hi {{customer_name}},\n\nThis email confirms that a refund has been processed for your order #{{order_id}}. The funds should return to your original payment method within 3-5 business days, depending on your bank's protocol.\n\nIf you have any questions regarding this reconciliation, please contact our support team at {{business_phone}}."
   }
 };
 
 const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
   favReminder: {
     label: "Wishlist Reminder",
-    description: "Sent 3 days after a customer adds items to their favorites without checking out.",
+    description: "Sent 3 days after a customer adds items to their favorites.",
     enabled: false,
-    subject: "Still thinking about these? {{product_list}}",
-    body: "Hi {{customer_name}}, we noticed you saved some items to your wishlist..."
+    subject: "Still on your mind? Your archive favorites",
+    body: "Hi {{customer_name}},\n\nWe noticed you saved some architectural pieces to your wishlist recently. Items in the archive move quickly—don't miss the chance to secure your size before the spot closes.\n\nREVISIT YOUR FAVORITES:\n{{product_list}}\n\n{{business_name}}"
   },
   cartRecovery: {
     label: "Abandoned Cart Recovery",
     description: "Automatically reminds shoppers about unfinished orders left in their cart.",
     enabled: true,
-    subject: "You left something in your cart",
-    body: "Finish your purchase before it sells out..."
+    subject: "Incomplete selection: Finish your order at {{business_name}}",
+    body: "Hi {{customer_name}},\n\nYou left some high-fidelity pieces in your bag! We've reserved them for a limited time, but we can't guarantee stock forever.\n\nRESUME CHECKOUT:\nhttps://fslno.com/checkout\n\nYour pending selection:\n{{product_list}}\n\nComplete your purchase now to secure these archive drops."
   },
   feedbackRequest: {
     label: "Feedback Request",
-    description: "Sent after an order is marked 'Delivered' to gather reviews or ratings.",
+    description: "Sent after an order is marked 'Delivered' to gather reviews.",
     enabled: true,
-    subject: "How is your new purchase?",
-    body: "We would love to hear your thoughts on order #{{order_id}}..."
+    subject: "How is the fit? Share your thoughts on {{business_name}}",
+    body: "Hi {{customer_name}},\n\nNow that you've had a few days with your archive pieces from order #{{order_id}}, we'd love to know what you think. \n\nWas the silhouette as expected? How was the logistics experience?\n\n[LEAVE A REVIEW]\n\nYour feedback helps us refine the archive experience."
   },
   loyaltyAppreciation: {
     label: "Loyalty Appreciation",
-    description: "Sent 1 day after a customer’s 2nd paid order to say thanks.",
+    description: "Sent 1 day after a customer’s 2nd order to say thanks.",
     enabled: true,
-    subject: "A special thanks from the team",
-    body: "As a frequent shopper, we want to offer you..."
-  },
-  inactiveReminder: {
-    label: "Inactive Customer Reminder",
-    description: "Sent 6 months after a customer’s last purchase to re-spark interest.",
-    enabled: false,
-    subject: "It's been a while, {{customer_name}}",
-    body: "New items have arrived in the shop since your last visit..."
-  },
-  anniversaryCelebration: {
-    label: "Purchase Anniversary",
-    description: "Sent 1 year after an order to celebrate the milestone and offer new products.",
-    enabled: false,
-    subject: "1 Year Anniversary: Your order milestone",
-    body: "It's been exactly one year since your purchase of..."
+    subject: "A special thank you from the {{business_name}} studio",
+    body: "Hi {{customer_name}},\n\nAs a recurring participant in our archive drops, we wanted to reach out and express our appreciation. Use the code LOYALTY10 at your next checkout for an Authoritative 10% off.\n\nThank you for being part of the FSLNO journey."
   }
 };
 
@@ -218,7 +209,7 @@ export default function NotificationsPage() {
     setDoc(configRef, updates, { merge: true })
       .then(() => {
         setEditingKey(null);
-        toast({ title: "Notification Updated", description: "Subject and content have been saved." });
+        toast({ title: "Template Saved", description: "Email content has been Authoritatively updated." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -242,7 +233,7 @@ export default function NotificationsPage() {
 
     setDoc(configRef, { global: globalData }, { merge: true })
       .then(() => {
-        toast({ title: "Settings Saved", description: "Global settings have been updated." });
+        toast({ title: "Branding Finalized", description: "Global notification settings are now live." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -258,7 +249,11 @@ export default function NotificationsPage() {
     setIsSendingTest(true);
     setTimeout(() => {
       setIsSendingTest(false);
-      toast({ title: "Test Email Sent", description: "Check your inbox for the preview." });
+      toast({ 
+        title: "Test Sent", 
+        description: "A friendly high-fidelity preview has been sent to your staff email.",
+        variant: "default"
+      });
     }, 1500);
   };
 
@@ -279,274 +274,284 @@ export default function NotificationsPage() {
     );
   }
 
+  const activeNotification = editingKey 
+    ? (isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey])) 
+    : null;
+
   return (
     <div className="space-y-12">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Notifications</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Manage automated emails and marketing campaigns.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Notifications & Automation</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Manage friendly automated emails, marketing recovery, and global branding.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px]" onClick={handleSendTest} disabled={isSendingTest}>
-            {isSendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send Test Email
+          <Button variant="outline" className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black" onClick={handleSendTest} disabled={isSendingTest}>
+            {isSendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send Live Preview
           </Button>
         </div>
       </div>
 
-      <section className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Mail className="h-5 w-5 text-gray-400" />
-          <h2 className="text-sm font-bold uppercase tracking-widest">Order Notifications</h2>
-        </div>
-        <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-          <Table>
-            <TableHeader className="bg-gray-50/50">
-              <TableRow>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Notification Type</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Description</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
-                const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
-                return (
-                  <TableRow key={key} className="hover:bg-gray-50/30">
-                    <TableCell className="pl-6 py-4">
-                      <span className="font-bold text-sm tracking-tight">{data.label}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs text-gray-500">{data.description}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center">
-                        <Switch 
-                          checked={data.enabled} 
-                          onCheckedChange={(checked) => handleToggle(key, checked, false)}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="pr-6">
-                      <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, false)}>
-                        Edit
-                      </Button>
-                    </TableCell>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="xl:col-span-8 space-y-12">
+          <section className="space-y-6">
+            <div className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-gray-400" />
+              <h2 className="text-sm font-bold uppercase tracking-widest">Fulfillment Notifications</h2>
+            </div>
+            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+              <Table>
+                <TableHeader className="bg-gray-50/50">
+                  <TableRow>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Touchpoint</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Logistical Trigger</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </section>
+                </TableHeader>
+                <TableBody>
+                  {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
+                    const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
+                    return (
+                      <TableRow key={key} className="hover:bg-gray-50/30 transition-colors">
+                        <TableCell className="pl-6 py-4">
+                          <span className="font-bold text-sm tracking-tight">{data.label}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs text-gray-500">{data.description}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center">
+                            <Switch 
+                              checked={data.enabled} 
+                              onCheckedChange={(checked) => handleToggle(key, checked, false)}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="pr-6">
+                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px] hover:underline" onClick={() => handleEdit(key, false)}>
+                            Refine
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </section>
 
-      <section className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-orange-500" />
-          <h2 className="text-sm font-bold uppercase tracking-widest">Marketing Emails</h2>
-        </div>
-        <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-          <Table>
-            <TableHeader className="bg-gray-50/50">
-              <TableRow>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Campaign Type</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Description</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Object.keys(DEFAULT_MARKETING).map((key) => {
-                const data = config?.[key] || DEFAULT_MARKETING[key];
-                return (
-                  <TableRow key={key} className="hover:bg-gray-50/30">
-                    <TableCell className="pl-6 py-4">
-                      <span className="font-bold text-sm tracking-tight">{data.label}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs text-gray-500">{data.description}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center">
-                        <Switch 
-                          checked={data.enabled} 
-                          onCheckedChange={(checked) => handleToggle(key, checked, true)}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="pr-6">
-                      <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, true)}>
-                        Edit
-                      </Button>
-                    </TableCell>
+          <section className="space-y-6">
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-orange-500" />
+              <h2 className="text-sm font-bold uppercase tracking-widest">Growth & Recovery Campaigns</h2>
+            </div>
+            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+              <Table>
+                <TableHeader className="bg-gray-50/50">
+                  <TableRow>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Campaign</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Automated Logic</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {Object.keys(DEFAULT_MARKETING).map((key) => {
+                    const data = config?.[key] || DEFAULT_MARKETING[key];
+                    return (
+                      <TableRow key={key} className="hover:bg-gray-50/30 transition-colors">
+                        <TableCell className="pl-6 py-4">
+                          <span className="font-bold text-sm tracking-tight">{data.label}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs text-gray-500">{data.description}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center">
+                            <Switch 
+                              checked={data.enabled} 
+                              onCheckedChange={(checked) => handleToggle(key, checked, true)}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="pr-6">
+                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px] hover:underline" onClick={() => handleEdit(key, true)}>
+                            Refine
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </section>
         </div>
-      </section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div className="xl:col-span-2 space-y-8">
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                <CardTitle className="text-lg">Global Branding</CardTitle>
-              </div>
-              <CardDescription>
-                Apply your store's branding to all automated emails.
-              </CardDescription>
+        <div className="xl:col-span-4 space-y-8">
+          <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none">
+            <CardHeader className="border-b border-white/10">
+              <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
+                <Terminal className="h-3.5 w-3.5 text-blue-400" /> Placeholder Legend
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Accent Color</Label>
-                  <div className="flex gap-2">
-                    <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                      <Input 
-                        type="color" 
-                        className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
-                        value={accentColor} 
-                        onChange={(e) => setAccentColor(e.target.value)} 
-                      />
+            <CardContent className="pt-6">
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-bold uppercase text-blue-400">Customer Identity</p>
+                    <div className="space-y-1 text-[10px] font-mono">
+                      <p><span className="text-zinc-500">{"{{customer_name}}"}</span> - Full Name</p>
+                      <p><span className="text-zinc-500">{"{{order_id}}"}</span> - Confirmation ID</p>
                     </div>
-                    <Input 
-                      value={accentColor} 
-                      onChange={(e) => setAccentColor(e.target.value)} 
-                      className="h-12 font-mono text-xs uppercase" 
-                    />
+                  </div>
+                  <div className="space-y-2 border-t border-white/5 pt-4">
+                    <p className="text-[9px] font-bold uppercase text-orange-400">Archival Data</p>
+                    <div className="space-y-1 text-[10px] font-mono">
+                      <p><span className="text-zinc-500">{"{{product_list}}"}</span> - Formatted items</p>
+                      <p><span className="text-zinc-500">{"{{order_total}}"}</span> - Grand total</p>
+                      <p><span className="text-zinc-500">{"{{status}}"}</span> - Fulfillment stage</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 border-t border-white/5 pt-4">
+                    <p className="text-[9px] font-bold uppercase text-emerald-400">Business Context</p>
+                    <div className="space-y-1 text-[10px] font-mono">
+                      <p><span className="text-zinc-500">{"{{business_name}}"}</span> - Store Identity</p>
+                      <p><span className="text-zinc-500">{"{{business_address}}"}</span> - Physical Spot</p>
+                      <p><span className="text-zinc-500">{"{{business_phone}}"}</span> - Contact line</p>
+                    </div>
                   </div>
                 </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
-                <div className="space-y-4">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Logo</Label>
-                  <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-4 bg-gray-50 hover:border-black transition-all cursor-pointer group h-24"
-                  >
-                    {logoUrl ? (
-                      <div className="relative w-full max-w-[150px] h-12">
-                        <Image src={logoUrl} alt="Logo" fill className="object-contain" />
-                      </div>
-                    ) : (
-                      <>
-                        <ImageIcon className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Upload PNG/JPG</p>
-                      </>
-                    )}
-                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
+            <CardHeader className="bg-gray-50/50 border-b">
+              <div className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                <CardTitle className="text-[10px] uppercase tracking-widest font-bold">Global Email Styles</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-8">
+              <div className="space-y-4">
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Accent Color</Label>
+                <div className="flex gap-2">
+                  <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                    <Input 
+                      type="color" 
+                      className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
+                      value={accentColor} 
+                      onChange={(e) => setAccentColor(e.target.value)} 
+                    />
                   </div>
+                  <Input 
+                    value={accentColor} 
+                    onChange={(e) => setAccentColor(e.target.value)} 
+                    className="h-12 font-mono text-xs uppercase" 
+                  />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email Footer</Label>
-                <Textarea 
-                  placeholder="Business Address & Social links..." 
-                  value={footerContent} 
-                  onChange={(e) => setFooterContent(e.target.value)}
-                  className="min-h-[100px] text-xs resize-none"
-                />
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Visual (Logo)</Label>
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-4 bg-gray-50 hover:border-black transition-all cursor-pointer group h-24"
+                >
+                  {logoUrl ? (
+                    <div className="relative w-full max-w-[150px] h-12">
+                      <Image src={logoUrl} alt="Logo" fill className="object-contain" />
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Upload Visual</p>
+                    </>
+                  )}
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Settings2 className="h-5 w-5" />
-                <CardTitle className="text-lg">Additional Settings</CardTitle>
-              </div>
-              <CardDescription>Other document delivery options.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
-                <div className="space-y-1">
+              <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-blue-500" />
-                    <p className="text-sm font-bold">Attach Invoices to Order Confirmation</p>
+                    <Label className="text-[10px] font-bold uppercase">Attach Invoices</Label>
                   </div>
-                  <p className="text-xs text-[#5c5f62]">Automatically attach a PDF invoice to the first confirmation email.</p>
+                  <Switch 
+                    checked={attachInvoice} 
+                    onCheckedChange={setAttachInvoice}
+                  />
                 </div>
-                <Switch 
-                  checked={attachInvoice} 
-                  onCheckedChange={setAttachInvoice}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card className="border-[#e1e3e5] shadow-none bg-black text-white">
-            <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-widest text-gray-400">Tools</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold">Placeholders</p>
-                  <p className="text-[10px] text-gray-400 mt-1">Use tags like &#123;&#123;customer_name&#125;&#125; or &#123;&#123;order_id&#125;&#125;.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
-                  <TicketPercent className="h-4 w-4 text-orange-400" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold">Discount Codes</p>
-                  <p className="text-[10px] text-gray-400 mt-1">Easily insert coupon codes into marketing emails.</p>
-                </div>
+                <p className="text-[9px] text-gray-400 uppercase leading-relaxed italic">Automatically attach forensic PDF invoices to confirmation emails.</p>
               </div>
             </CardContent>
           </Card>
 
-          <Button className="w-full bg-black text-white px-10 h-14 font-bold uppercase tracking-widest text-[11px]" onClick={handleSaveGlobal} disabled={isSaving}>
+          <Button 
+            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all" 
+            onClick={handleSaveGlobal} 
+            disabled={isSaving}
+          >
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-            Save All Settings
+            Save All Styles
           </Button>
         </div>
       </div>
 
       <Dialog open={!!editingKey} onOpenChange={(open) => !open && setEditingKey(null)}>
-        <DialogContent className="sm:max-w-2xl bg-white">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold uppercase tracking-tight">
-              Edit: {editingKey && (isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey])).label}
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Change the subject line and content for this email.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-6 py-4">
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Subject Line</Label>
-              <Input 
-                value={editSubject} 
-                onChange={(e) => setEditingSubject(e.target.value)} 
-                className="h-11"
-              />
+        <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none shadow-2xl p-0 overflow-hidden">
+          <div className="p-10 space-y-8">
+            <DialogHeader className="p-0 border-none space-y-2">
+              <div className="flex items-center gap-2 text-primary">
+                <Sparkles className="h-5 w-5 text-purple-500" />
+                <DialogTitle className="text-2xl font-headline font-bold uppercase tracking-tight">
+                  Refining: {activeNotification?.label}
+                </DialogTitle>
+              </div>
+              <DialogDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Ensure templates contain essential business and product placeholders for high-fidelity communication.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-8">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Linguistic Identity (Subject Line)</Label>
+                <div className="relative">
+                  <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input 
+                    value={editSubject} 
+                    onChange={(e) => setEditingSubject(e.target.value)} 
+                    className="h-12 pl-10 text-sm font-medium"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Dispatch Content (Body Copy)</Label>
+                <Textarea 
+                  value={editBody} 
+                  onChange={(e) => setEditingBody(e.target.value)} 
+                  className="min-h-[350px] text-sm leading-relaxed p-6 bg-gray-50 border-gray-200 resize-none font-medium"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email Content</Label>
-              <Textarea 
-                value={editBody} 
-                onChange={(e) => setEditingBody(e.target.value)} 
-                className="min-h-[250px] text-sm leading-relaxed"
-              />
+
+            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100">
+              <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+              <p className="text-[10px] text-blue-800 uppercase font-medium leading-relaxed">
+                Use <code className="bg-blue-100 px-1 rounded text-blue-900 font-bold">{"{{product_list}}"}</code> to Authoritatively inject ordered items and <code className="bg-blue-100 px-1 rounded text-blue-900 font-bold">{"{{business_address}}"}</code> for the studio Spot.
+              </p>
             </div>
+
+            <DialogFooter className="flex-row items-center justify-between pt-4">
+              <Button variant="ghost" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground" onClick={handleSendTest}>Preview in Inbox</Button>
+              <Button className="bg-black text-white h-12 px-10 font-bold uppercase tracking-widest text-[10px]" onClick={saveNotificationEdit}>
+                Finalize Template
+              </Button>
+            </DialogFooter>
           </div>
-          <DialogFooter className="flex-row items-center justify-between">
-            <Button variant="outline" className="text-[10px] font-bold uppercase tracking-widest" onClick={handleSendTest}>Send Test</Button>
-            <Button className="bg-black text-white h-11 px-8 font-bold uppercase tracking-widest text-[10px]" onClick={saveNotificationEdit}>
-              Update Notification
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
