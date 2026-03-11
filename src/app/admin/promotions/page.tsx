@@ -27,7 +27,11 @@ import {
   X,
   Target,
   Sparkles,
-  MousePointer2
+  MousePointer2,
+  RefreshCw,
+  Mail,
+  Activity,
+  ChevronRight
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -233,6 +237,14 @@ export default function PromotionsPage() {
     );
   }
 
+  // RECOVERY CAMPAIGNS LIST
+  const recoveryCampaigns = [
+    { id: 'cartRecovery', label: 'Abandoned Cart Recovery', description: 'Triggered 4h after last archival session.', status: 'Live', conversion: '12.4%' },
+    { id: 'browseRecovery', label: 'Browse Abandonment', description: 'Target high-intent silhouettes recently viewed.', status: 'Testing', conversion: '4.8%' },
+    { id: 'winback', label: 'Win-back Dispatch', description: 'Sent 60 days after last drop participation.', status: 'Inactive', conversion: '--' },
+    { id: 'loyaltyAppreciation', label: 'Loyalty Appreciation', description: 'Personalized reward for repeat archive members.', status: 'Live', conversion: '22.1%' }
+  ];
+
   return (
     <div className="space-y-8 pb-20">
       <div className="flex justify-between items-end">
@@ -315,7 +327,7 @@ export default function PromotionsPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        <div className="xl:col-span-8 space-y-8">
+        <div className="xl:col-span-8 space-y-12">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className={cn("border-[#e1e3e5] shadow-none transition-all duration-500", flashEnabled ? 'bg-black text-white ring-2 ring-black' : 'bg-gray-50/50')}>
@@ -460,77 +472,141 @@ export default function PromotionsPage() {
             </CardContent>
           </Card>
 
-          <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-            <div className="p-6 border-b bg-gray-50/50 flex items-center justify-between">
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-blue-500" />
+                <h3 className="text-sm font-bold uppercase tracking-widest">Recovery & Retention Campaigns</h3>
+              </div>
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 text-[9px] font-bold px-3 py-1">AUTOMATED</Badge>
+            </div>
+            
+            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+              <Table>
+                <TableHeader className="bg-gray-50/50">
+                  <TableRow className="border-b border-black/5">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign Logic</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Automated Dispatch</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Conversion</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Status</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recoveryCampaigns.map((campaign) => (
+                    <TableRow key={campaign.id} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
+                      <TableCell className="p-6">
+                        <div className="flex items-center gap-3">
+                          <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", campaign.status === 'Live' ? 'border-green-100' : 'border-gray-100')}>
+                            <Mail className={cn("h-5 w-5", campaign.status === 'Live' ? 'text-green-600' : 'text-gray-400')} />
+                          </div>
+                          <span className="font-bold text-sm tracking-tight text-primary uppercase">{campaign.label}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-[10px] font-medium text-gray-500 uppercase leading-relaxed">{campaign.description}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex flex-col items-center">
+                          <span className="text-xs font-bold text-primary">{campaign.conversion}</span>
+                          <Activity className="h-3 w-3 text-gray-300 mt-1" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center">
+                          <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest border-none", 
+                            campaign.status === 'Live' ? "bg-green-50 text-green-700" : 
+                            campaign.status === 'Testing' ? "bg-blue-50 text-blue-700" : 
+                            "bg-gray-100 text-gray-400")}>
+                            {campaign.status}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </section>
+
+          <section className="space-y-6">
+            <div className="p-6 border-b bg-gray-50/50 flex items-center justify-between rounded-t-xl">
               <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
                 <TicketPercent className="h-4 w-4 text-purple-500" /> Authorized Deduction Manifest
               </h3>
               <Badge variant="secondary" className="bg-black text-white text-[9px] font-bold px-3 py-1">{coupons?.length || 0} TOTAL</Badge>
             </div>
-            <Table>
-              <TableHeader className="bg-gray-50/20">
-                <TableRow className="border-b border-black/5">
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Manifest ID</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Protocol</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Redemptions</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Auth Status</TableHead>
-                  <TableHead className="w-[100px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {couponsLoading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
-                ) : !coupons || coupons.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-20 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">No deductive handshakes cataloged.</TableCell></TableRow>
-                ) : (
-                  coupons.map((coupon: any) => (
-                    <TableRow key={coupon.id} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
-                      <TableCell className="p-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded border bg-white flex items-center justify-center shadow-sm">
-                            <TicketPercent className="h-5 w-5 text-gray-400" />
+            <div className="bg-white border rounded-b-xl overflow-hidden shadow-sm">
+              <Table>
+                <TableHeader className="bg-gray-50/20">
+                  <TableRow className="border-b border-black/5">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Manifest ID</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Protocol</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Redemptions</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Auth Status</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {couponsLoading ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+                  ) : !coupons || coupons.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-20 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">No deductive handshakes cataloged.</TableCell></TableRow>
+                  ) : (
+                    coupons.map((coupon: any) => (
+                      <TableRow key={coupon.id} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
+                        <TableCell className="p-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded border bg-white flex items-center justify-center shadow-sm">
+                              <TicketPercent className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <span className="font-bold text-sm tracking-widest text-primary uppercase">{coupon.code}</span>
                           </div>
-                          <span className="font-bold text-sm tracking-widest text-primary uppercase">{coupon.code}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[10px] font-bold uppercase bg-purple-50 text-purple-700 border-purple-100">
-                          {coupon.type === 'percent' ? `${coupon.value}% DEDUCTION` : `$${coupon.value} DEDUCTION`}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold text-primary">{coupon.usedCount || 0} REDEEMED</span>
-                          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">LIMIT: {coupon.usageLimit || '∞'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-center">
-                          <Switch 
-                            checked={coupon.active} 
-                            onCheckedChange={() => handleToggleActive(coupon)}
-                            className="data-[state=checked]:bg-black"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end pr-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDelete(coupon.id)}
-                            className="h-9 w-9 hover:bg-red-50 text-red-500"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[10px] font-bold uppercase bg-purple-50 text-purple-700 border-purple-100">
+                            {coupon.type === 'percent' ? `${coupon.value}% DEDUCTION` : `$${coupon.value} DEDUCTION`}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-primary">{coupon.usedCount || 0} REDEEMED</span>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">LIMIT: {coupon.usageLimit || '∞'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center">
+                            <Switch 
+                              checked={coupon.active} 
+                              onCheckedChange={() => handleToggleActive(coupon)}
+                              className="data-[state=checked]:bg-black"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end pr-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleDelete(coupon.id)}
+                              className="h-9 w-9 hover:bg-red-50 text-red-500"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </section>
         </div>
 
         <div className="xl:col-span-4 space-y-8">
