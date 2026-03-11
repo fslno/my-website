@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   ChevronLeft, 
@@ -26,7 +26,10 @@ import {
   Terminal,
   Fingerprint,
   History,
-  Shield
+  Shield,
+  CreditCard,
+  CheckCircle2,
+  X
 } from 'lucide-react';
 import { 
   Table, 
@@ -45,7 +48,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -69,6 +72,7 @@ import { doc, updateDoc, query, where, collection } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function OrderDetailPage(props: { 
   params: Promise<{ orderId: string }>,
@@ -84,11 +88,9 @@ export default function OrderDetailPage(props: {
   const orderRef = useMemoFirebase(() => db ? doc(db, 'orders', orderId) : null, [db, orderId]);
   const { data: order, loading } = useDoc(orderRef);
 
-  // Fetch Store Config for Branding
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
 
-  // Fetch all orders for this customer email
   const customerOrdersQuery = useMemoFirebase(() => {
     if (!db || !order?.email) return null;
     return query(collection(db, 'orders'), where('email', '==', order.email));
@@ -152,7 +154,8 @@ export default function OrderDetailPage(props: {
   const handleSaveTracking = () => {
     if (!db || !order) return;
     setIsSavingTracking(true);
-    updateDoc(doc(db, 'orders', orderId), { trackingNumber })
+    const updateData = { trackingNumber };
+    updateDoc(doc(db, 'orders', orderId), updateData)
       .then(() => {
         toast({ title: "Tracking Saved", description: "Logistics ID has been updated." });
       })
@@ -160,7 +163,7 @@ export default function OrderDetailPage(props: {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: `orders/${orderId}`,
           operation: 'update',
-          requestResourceData: { trackingNumber }
+          requestResourceData: updateData
         }));
       })
       .finally(() => setIsSavingTracking(false));
@@ -217,16 +220,6 @@ export default function OrderDetailPage(props: {
     });
   };
 
-  const getReferralLabel = (ref: string) => {
-    switch (ref) {
-      case 'google_pinterest': return 'Google/Pinterest';
-      case 'facebook_instagram': return 'Facebook/Instagram';
-      case 'from_friend': return 'From Friend';
-      case 'repeat_customer': return 'Repeat Customer';
-      default: return ref || 'Direct Traffic';
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -253,7 +246,7 @@ export default function OrderDetailPage(props: {
 
   return (
     <div className="space-y-8">
-      {/* Professional A4 Invoice - Visible only during print */}
+      {/* Printable Invoice Logic */}
       <div id="printable-invoice" className="hidden print:block w-[210mm] mx-auto bg-white text-black p-12 font-sans min-h-[297mm]">
         <style type="text/css" dangerouslySetInnerHTML={{ __html: `
           @media print {
@@ -370,7 +363,6 @@ export default function OrderDetailPage(props: {
         </div>
       </div>
 
-      {/* Admin UI Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="space-y-1">
           <Link href="/admin/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
@@ -399,7 +391,6 @@ export default function OrderDetailPage(props: {
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Order Management</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-8">
-              {/* Payment and Shipping Status Selectors Side-by-Side */}
               <div className="grid grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Payment Status</Label>
@@ -436,52 +427,6 @@ export default function OrderDetailPage(props: {
                   </Select>
                 </div>
               </div>
-
-              {order.deliveryMethod === 'shipping' && (
-                <div className="space-y-4 pt-6 border-t">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Tracking & Logistics</Label>
-                    {order.trackingNumber && (
-                      <Link 
-                        href={aftershipUrl} 
-                        target="_blank" 
-                        className="text-[9px] font-bold uppercase text-blue-600 flex items-center gap-1.5 hover:underline"
-                      >
-                        Track on AfterShip <ExternalLink className="h-2.5 w-2.5" />
-                      </Link>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Input 
-                          placeholder="ENTER LOGISTICS ID" 
-                          value={trackingNumber}
-                          onChange={(e) => setTrackingNumber(e.target.value)}
-                          className="h-12 bg-gray-50 border-gray-200 text-black text-xs font-mono uppercase pl-10"
-                        />
-                        <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      </div>
-                      <Button 
-                        size="icon" 
-                        variant="outline" 
-                        className="h-12 w-12 border-gray-200 bg-white hover:bg-gray-50"
-                        onClick={() => setIsScannerOpen(true)}
-                      >
-                        <ScanBarcode className="h-5 w-5" />
-                      </Button>
-                    </div>
-                    <Button 
-                      onClick={handleSaveTracking} 
-                      disabled={isSavingTracking || trackingNumber === order.trackingNumber}
-                      className="w-full h-12 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-black/90"
-                    >
-                      {isSavingTracking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      Update Tracking Number
-                    </Button>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -559,21 +504,13 @@ export default function OrderDetailPage(props: {
 
             <Card className="border-[#e1e3e5] shadow-sm rounded-none bg-black text-white">
               <CardHeader className="border-b border-white/10 py-4">
-                <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Order Details</CardTitle>
+                <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Order Context</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 <div className="space-y-1">
                   <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Referral Source</p>
-                  <p className="text-xs font-bold uppercase">{getReferralLabel(order.referral)}</p>
+                  <p className="text-xs font-bold uppercase">{order.referral || 'Direct Traffic'}</p>
                 </div>
-                {order.deliveryMethod === 'pickup' && order.pickupDate && (
-                  <div className="space-y-1">
-                    <p className="text-[9px] uppercase font-bold text-gray-400 tracking-widest">Pickup Schedule</p>
-                    <p className="text-xs font-bold uppercase flex items-center gap-2 text-white">
-                      <Calendar className="h-3 w-3" /> {order.pickupDate} at {order.pickupTime}
-                    </p>
-                  </div>
-                )}
                 <div className="space-y-1">
                   <p className="text-[9px] uppercase font-bold text-gray-500 tracking-widest">Delivery Method</p>
                   <p className="text-xs font-bold uppercase flex items-center gap-2">
@@ -588,23 +525,19 @@ export default function OrderDetailPage(props: {
                     {formatDate(order.createdAt)}
                   </p>
                 </div>
-
                 <div className="pt-2">
                   <Sheet>
                     <SheetTrigger asChild>
                       <Button variant="outline" className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest h-10">
-                        View Studio Logs <ExternalLink className="ml-2 h-3 w-3" />
+                        View Logs <Terminal className="ml-2 h-3 w-3" />
                       </Button>
                     </SheetTrigger>
-                    <SheetContent className="bg-black text-white border-white/10 sm:max-w-lg overflow-y-auto">
+                    <SheetContent className="bg-black text-white border-white/10 sm:max-w-lg">
                       <SheetHeader className="pt-12 border-b border-white/10 pb-6 mb-6">
                         <div className="flex items-center gap-3 text-white">
                           <Terminal className="h-5 w-5 text-green-500" />
                           <SheetTitle className="text-xl font-headline font-bold text-white uppercase tracking-tight">Studio Logs</SheetTitle>
                         </div>
-                        <SheetDescription className="text-gray-400 text-xs">
-                          Forensic metadata for transaction {order.id}
-                        </SheetDescription>
                       </SheetHeader>
                       <div className="space-y-8 font-mono">
                         <section className="space-y-4">
@@ -614,33 +547,11 @@ export default function OrderDetailPage(props: {
                           <div className="bg-white/5 p-4 rounded border border-white/10 space-y-3">
                             <div className="flex justify-between border-b border-white/5 pb-2">
                               <span className="text-[10px] text-gray-400">TRANSACTION_ID</span>
-                              <span className="text-[10px] text-green-400">{order.transactionId || 'STUDIO-CONFIRMED'}</span>
-                            </div>
-                            <div className="flex justify-between border-b border-white/5 pb-2">
-                              <span className="text-[10px] text-gray-400">ORIGIN_IP</span>
-                              <span className="text-[10px] text-white">{order.ipAddress || 'AUTHENTICATED'}</span>
+                              <span className="text-[10px] text-green-400">{order.id.toUpperCase()}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-[10px] text-gray-400">PROTOCOL_HASH</span>
-                              <span className="text-[10px] text-zinc-500 truncate max-w-[180px]">sha256:{(order.id || '').split('').reverse().join('')}</span>
-                            </div>
-                          </div>
-                        </section>
-
-                        <section className="space-y-4">
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            <History className="h-3 w-3" /> Event Lifecycle
-                          </div>
-                          <div className="space-y-4 border-l border-white/10 ml-1 pl-4">
-                            <div className="relative">
-                              <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-green-500" />
-                              <p className="text-[10px] text-white font-bold uppercase">Order Finalized</p>
-                              <p className="text-[9px] text-gray-500">{formatDate(order.createdAt)}</p>
-                            </div>
-                            <div className="relative">
-                              <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-blue-500" />
-                              <p className="text-[10px] text-white font-bold uppercase">Logistics Status: {order.status?.replace('_', ' ').toUpperCase()}</p>
-                              <p className="text-[9px] text-gray-500">Live Synchronization Active</p>
+                              <span className="text-[10px] text-gray-400">ORIGIN_UID</span>
+                              <span className="text-[10px] text-white truncate max-w-[180px]">{order.userId}</span>
                             </div>
                           </div>
                         </section>
@@ -653,8 +564,62 @@ export default function OrderDetailPage(props: {
           </div>
         </div>
 
-        {/* Customer Sidebar Profile */}
         <div className="w-full xl:w-[320px] space-y-8 print:hidden">
+          {/* Tracking Card added to sidebar per request */}
+          {order.deliveryMethod === 'shipping' && (
+            <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
+              <CardHeader className="bg-blue-50/30 border-b py-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2">
+                    <Truck className="h-3 w-3" /> Logistics Tracing
+                  </CardTitle>
+                  {order.trackingNumber && (
+                    <a 
+                      href={aftershipUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[9px] font-bold uppercase text-blue-700 hover:underline flex items-center gap-1"
+                    >
+                      AfterShip <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase font-bold text-gray-400">Tracking Number</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input 
+                        placeholder="ENTER LOGISTICS ID" 
+                        value={trackingNumber}
+                        onChange={(e) => setTrackingNumber(e.target.value)}
+                        className="h-11 bg-white border-blue-200 text-black text-xs font-mono uppercase pl-9"
+                      />
+                      <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-300" />
+                    </div>
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      className="h-11 w-11 border-blue-200 bg-white hover:bg-blue-50 text-blue-600"
+                      onClick={() => setIsScannerOpen(true)}
+                    >
+                      <ScanBarcode className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleSaveTracking} 
+                  disabled={isSavingTracking || trackingNumber === order.trackingNumber}
+                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold uppercase tracking-widest transition-all"
+                >
+                  {isSavingTracking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                  Commit Tracking
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="bg-gray-50/50 border-b py-4">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
@@ -664,10 +629,10 @@ export default function OrderDetailPage(props: {
             <CardContent className="p-6 space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded bg-black flex items-center justify-center text-white font-bold text-lg">
-                  {(order.customer?.name || 'G')[0].toUpperCase()}
+                  {(order.customer?.name || order.email || 'G')[0].toUpperCase()}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-sm uppercase">{order.customer?.name || 'Client'}</span>
+                  <span className="font-bold text-sm uppercase truncate max-w-[180px]">{order.customer?.name || 'Guest Client'}</span>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tighter flex items-center gap-1">
                       <Sparkles className="h-2.5 w-2.5" /> Purchase Count: {orderCount}
@@ -750,10 +715,11 @@ export default function OrderDetailPage(props: {
 }
 
 function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const { toast } = useToast();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       const getCameraPermission = async () => {
         try {
@@ -765,6 +731,11 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
         } catch (error) {
           console.error('Error accessing camera:', error);
           setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings to use the scanner.',
+          });
         }
       };
       getCameraPermission();
@@ -774,7 +745,7 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
         stream.getTracks().forEach(track => track.stop());
       }
     }
-  }, [isOpen]);
+  }, [isOpen, toast]);
 
   const simulateScan = () => {
     const randomTracking = "1Z" + Math.random().toString(36).substring(2, 12).toUpperCase();
@@ -784,30 +755,69 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-black text-white border-white/10">
-        <DialogHeader className="pt-12">
-          <DialogTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Logistics Scanner</DialogTitle>
-        </DialogHeader>
-        <div className="relative aspect-video bg-zinc-900 rounded-lg overflow-hidden border border-white/5">
-          <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-          {hasCameraPermission && (
+      <DialogContent className="sm:max-w-md bg-black text-white border-none rounded-none p-0 overflow-hidden shadow-2xl">
+        <div className="p-8 space-y-6">
+          <DialogHeader className="p-0 space-y-2">
+            <div className="flex items-center gap-3 text-white">
+              <ScanBarcode className="h-6 w-6 text-blue-400" />
+              <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Logistics Scanner</DialogTitle>
+            </div>
+            <DialogDescription className="text-xs uppercase tracking-widest font-bold text-zinc-500">
+              Point your device at the shipping label barcode.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative aspect-[4/3] bg-zinc-900 overflow-hidden border border-white/10 group">
+            <video 
+              ref={videoRef} 
+              className="w-full h-full object-cover" 
+              autoPlay 
+              muted 
+              playsInline 
+            />
+            
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <div className="w-64 h-32 border-2 border-white/20 rounded-lg relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 animate-[scan_2s_infinite]" />
+                {/* Scanning animation line */}
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-[scan_2s_infinite]" />
               </div>
+              <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">Align Barcode within Frame</p>
             </div>
-          )}
-          {!hasCameraPermission && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-4">
-              <AlertCircle className="h-8 w-8 text-amber-500" />
-              <p className="text-xs font-bold uppercase tracking-widest">Camera Access Required</p>
-            </div>
-          )}
+
+            {hasCameraPermission === false && (
+              <div className="absolute inset-0 bg-black flex flex-col items-center justify-center text-center p-6 space-y-4">
+                <AlertCircle className="h-8 w-8 text-amber-500" />
+                <p className="text-xs font-bold uppercase tracking-widest text-white">Camera Access Required</p>
+                <p className="text-[10px] text-zinc-500 uppercase leading-relaxed max-w-[200px]">
+                  Please verify browser permissions to Authoritatively access the hardware.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="p-0 border-t border-white/10 pt-6 flex flex-row items-center justify-between gap-4">
+            <Button 
+              variant="ghost" 
+              className="text-[10px] uppercase font-bold text-zinc-500 hover:text-white" 
+              onClick={() => onOpenChange(false)}
+            >
+              Decline Scanner
+            </Button>
+            <Button 
+              className="bg-white text-black text-[10px] font-bold uppercase tracking-widest h-12 px-8 rounded-none hover:bg-zinc-200" 
+              onClick={simulateScan}
+            >
+              Manual Bypass (Mock Scan)
+            </Button>
+          </DialogFooter>
         </div>
-        <DialogFooter className="flex-row justify-between items-center gap-4">
-          <Button variant="ghost" className="text-[10px] uppercase font-bold text-gray-500" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="bg-white text-black text-[10px] font-bold uppercase tracking-widest h-10 px-6" onClick={simulateScan}>Simulate Scan</Button>
-        </DialogFooter>
+        <style jsx global>{`
+          @keyframes scan {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(128px); }
+            100% { transform: translateY(0); }
+          }
+        `}</style>
       </DialogContent>
     </Dialog>
   );
