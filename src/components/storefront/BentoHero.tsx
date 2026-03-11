@@ -31,7 +31,7 @@ export function BentoHero({
     return <section className="pt-24 pb-12"><div className="w-full h-[70vh] bg-gray-50" /></section>;
   }
 
-  const imageSrc = heroImageUrl || fallbackImageUrl || ""; // strictly removed random fallback
+  const imageSrc = heroImageUrl || fallbackImageUrl || "";
 
   return (
     <section className="pt-24 pb-12">

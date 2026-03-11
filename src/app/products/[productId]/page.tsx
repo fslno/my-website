@@ -211,7 +211,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
   }
 
   const media = product.media || [];
-  const currentMedia = media[activeImageIndex] || { url: '', type: 'image' }; // strictly removed random fallback
+  const currentMedia = media[activeImageIndex] || { url: '', type: 'image' };
 
   return (
     <main className="min-h-screen bg-white">
@@ -405,7 +405,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
                       No
                     </button>
                     <button
-                      onClick={() => wantsCustomization && setWantsCustomization(true)}
+                      onClick={() => setWantsCustomization(true)}
                       className={cn(
                         "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
                         wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"

@@ -15,7 +15,6 @@ import {
   Search, 
   Plus, 
   Filter, 
-  MoreHorizontal, 
   Loader2,
   Tag,
   Trash2,
@@ -206,7 +205,11 @@ export default function ProductsPage() {
 
   const handleBulkDelete = async () => {
     if (!db || selectedIds.length === 0) return;
-    if (!confirm(`Are you sure you want to permanently delete these ${selectedIds.length} archival entries?`)) return;
+    const confirmMessage = selectedIds.length === 1 
+      ? "Are you sure you want to permanently delete this archival entry?" 
+      : `Are you sure you want to permanently delete these ${selectedIds.length} archival entries?`;
+    
+    if (!confirm(confirmMessage)) return;
 
     setIsSaving(true);
     const batch = writeBatch(db);
@@ -226,23 +229,6 @@ export default function ProductsPage() {
         }));
       })
       .finally(() => setIsSaving(false));
-  };
-
-  const handleDeleteSingle = (id: string, name: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!db) return;
-    if (!confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
-
-    deleteDoc(doc(db, 'products', id))
-      .then(() => {
-        toast({ title: "Product Deleted", description: "Entry has been decommissioned from the archive." });
-      })
-      .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: `products/${id}`,
-          operation: 'delete'
-        }));
-      });
   };
 
   const handleBulkUpdate = async () => {
@@ -821,14 +807,13 @@ export default function ProductsPage() {
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Collection</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Total Stock</TableHead>
               <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Price</TableHead>
-              <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {productsLoading || categoriesLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
             ) : filteredProducts.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-20 text-gray-400">No archive entries match your criteria.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400">No archive entries match your criteria.</TableCell></TableRow>
             ) : (
               filteredProducts.map((product: any) => {
                 const category = categories?.find((c: any) => c.id === product.categoryId);
@@ -859,21 +844,6 @@ export default function ProductsPage() {
                     <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
                     <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
                     <TableCell className="text-sm font-semibold">${formatCurrency(Number(product.price))}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity pr-4">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 hover:bg-red-50" 
-                          onClick={(e) => handleDeleteSingle(product.id, product.name, e)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4 text-[#5c5f62]" />
-                        </Button>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 );
               })

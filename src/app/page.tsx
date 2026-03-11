@@ -48,7 +48,7 @@ export default function Home() {
     });
   };
 
-  const heroImageSrc = theme?.heroImageUrl || categories?.[0]?.imageUrl || ""; // strictly removed random fallback
+  const heroImageSrc = theme?.heroImageUrl || categories?.[0]?.imageUrl || "";
 
   return (
     <main className="min-h-screen bg-background">
@@ -172,7 +172,7 @@ export default function Home() {
                     id={product.id}
                     name={product.name}
                     price={`$${formatCurrency(Number(product.price))} CAD`}
-                    image={product.media?.[0]?.url || ''} // strictly removed random fallback
+                    image={product.media?.[0]?.url || ''}
                     category={category?.name || product.brand || 'Featured Piece'}
                   />
                 );

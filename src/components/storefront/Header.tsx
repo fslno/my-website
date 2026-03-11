@@ -231,12 +231,14 @@ export function Header() {
                             className="group flex gap-4 p-4 hover:bg-gray-50 transition-all duration-300"
                           >
                             <div className="w-16 h-16 relative bg-gray-100 shrink-0 overflow-hidden border">
-                              <Image 
-                                src={product.media?.[0]?.url || 'https://picsum.photos/seed/placeholder/400/400'} 
-                                alt={product.name} 
-                                fill 
-                                className="object-cover group-hover:scale-110 transition-transform duration-700" 
-                              />
+                              {product.media?.[0]?.url && (
+                                <Image 
+                                  src={product.media[0].url} 
+                                  alt={product.name} 
+                                  fill 
+                                  className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                                />
+                              )}
                             </div>
                             <div className="flex-1 flex flex-col justify-center gap-0.5 overflow-hidden">
                               <p className="text-[8px] uppercase tracking-widest font-bold text-muted-foreground truncate">{product.brand || 'FSLNO ARCHIVE'}</p>
@@ -281,7 +283,7 @@ export function Header() {
                       {wishlist.map((item) => (
                         <div key={item.id} className="flex gap-4">
                           <Link href={`/products/${item.id}`} className="w-20 h-20 relative bg-gray-100 border shrink-0">
-                            <Image src={item.image} alt={item.name} fill className="object-cover" />
+                            {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
                           </Link>
                           <div className="flex-1 flex flex-col justify-between py-1">
                             <div className="space-y-1">
@@ -346,7 +348,7 @@ export function Header() {
                       {cart.map((item) => (
                         <div key={item.variantId} className="flex gap-4">
                           <div className="w-24 h-24 relative bg-gray-100 overflow-hidden border shrink-0">
-                            <Image src={item.image} alt={item.name} fill className="object-cover" />
+                            {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
                           </div>
                           <div className="flex-1 flex flex-col justify-between py-1">
                             <div className="space-y-1">
