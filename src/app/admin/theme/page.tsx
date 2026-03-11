@@ -43,16 +43,16 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
 const sportsFonts = [
-  "Gameday", "Hyper Oxide", "Quarterback", "Rushblade", "Cricket", 
-  "Crossfly", "Bancher", "Racing", "Zonex", "Microsport", 
-  "Promesh", "Reach Sports", "Aguante", "MADE Soulmaze", "Backed", 
-  "Claymale", "Slam Dunk", "Holigan", "Jaguar", "New Varsity"
+  "Anton", "Bebas Neue", "Oswald", "Teko", "Kanit", 
+  "Roboto Condensed", "Chakra Petch", "Rajdhani", "Titillium Web", "Exo 2", 
+  "Michroma", "Orbitron", "Montserrat", "Squada One", "Racing Sans One", 
+  "Archivo Black", "Russo One", "Black Ops One", "Stardos Stencil", "Syncopate"
 ];
 
 const DEFAULT_THEME = {
   primaryColor: '#000000',
   accentColor: '#FFFFFF',
-  headlineFont: 'Playfair Display',
+  headlineFont: 'Anton',
   bodyFont: 'Inter',
   borderRadius: '0',
   bannerEnabled: true,
@@ -252,41 +252,58 @@ export default function ThemeEnginePage() {
               <Card className="border-[#e1e3e5] shadow-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                    <Type className="h-3.5 w-3.5" /> Global Typography
+                    <Type className="h-3.5 w-3.5" /> Performance Typography
                   </CardTitle>
+                  <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Select from 20 high-velocity athletic e-commerce fonts.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Headline Font (Athletic Selection)</Label>
+                <CardContent className="space-y-8">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">01. Headline Identity</Label>
                     <Select value={headlineFont} onValueChange={setHeadlineFont}>
-                      <SelectTrigger className="bg-white h-12 text-xs font-bold">
-                        <SelectValue placeholder="Select headline font" />
+                      <SelectTrigger className="h-14 bg-white border-2 border-primary/10 hover:border-primary transition-all rounded-none">
+                        <SelectValue placeholder="CHOOSE HEADLINE FONT" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Playfair Display">Standard Serif</SelectItem>
+                      <SelectContent className="max-h-[300px]">
                         {sportsFonts.map(font => (
-                          <SelectItem key={font} value={font} style={{ fontFamily: font }}>{font}</SelectItem>
+                          <SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 cursor-pointer">
+                            <span style={{ fontFamily: font }}>{font}</span>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Body Font (System Standard)</Label>
+
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">02. Descriptor Identity</Label>
                     <Select value={bodyFont} onValueChange={setBodyFont}>
-                      <SelectTrigger className="bg-white h-12 text-xs font-bold">
-                        <SelectValue placeholder="Select body font" />
+                      <SelectTrigger className="h-14 bg-white border-2 border-primary/10 hover:border-primary transition-all rounded-none">
+                        <SelectValue placeholder="CHOOSE DESCRIPTION FONT" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Inter">Inter UI</SelectItem>
+                      <SelectContent className="max-h-[300px]">
                         {sportsFonts.map(font => (
-                          <SelectItem key={font} value={font} style={{ fontFamily: font }}>{font}</SelectItem>
+                          <SelectItem key={font} value={font} className="text-sm font-medium py-3 cursor-pointer">
+                            <span style={{ fontFamily: font }}>{font}</span>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid gap-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Global Border Radius (px)</Label>
-                    <Input type="number" value={borderRadius} onChange={(e) => setBorderRadius(e.target.value)} className="h-12" />
+
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Global Border Radius</Label>
+                      <span className="text-[10px] font-mono font-bold">{borderRadius}PX</span>
+                    </div>
+                    <div className="mt-4 flex items-center gap-4">
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="40" 
+                        value={borderRadius} 
+                        onChange={(e) => setBorderRadius(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
