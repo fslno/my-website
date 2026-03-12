@@ -150,7 +150,14 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Archive Explorer</SheetTitle>
+                  <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight text-primary flex items-center gap-3">
+                    {storeConfig?.logoUrl && (
+                      <div className="relative w-6 h-6 rounded-sm overflow-hidden">
+                        <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
+                      </div>
+                    )}
+                    {storeConfig?.businessName || "FSLNO"}
+                  </SheetTitle>
                 </SheetHeader>
                 
                 <ScrollArea className="flex-1">
@@ -204,7 +211,7 @@ export function Header() {
                   <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                 </div>
               ) : null}
-              <h1 className="text-3xl font-headline font-bold tracking-tighter text-primary">
+              <h1 className="text-3xl font-headline font-bold tracking-tighter text-primary hidden lg:block">
                 {storeConfig?.businessName || "FSLNO"}
               </h1>
             </Link>
