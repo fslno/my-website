@@ -169,6 +169,30 @@ export function Header() {
                         ))}
                       </nav>
                     </div>
+
+                    <div className="pt-8 border-t space-y-6">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Account</h3>
+                      {user ? (
+                        <div className="space-y-4">
+                          <p className="text-[10px] font-bold uppercase text-primary truncate">{user.displayName || user.email}</p>
+                          <nav className="flex flex-col gap-4">
+                            <Link href="/account/orders" className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                              <Package className="h-4 w-4" /> Order History
+                            </Link>
+                            <button onClick={handleLogout} className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-destructive">
+                              <LogOut className="h-4 w-4" /> Sign Out
+                            </button>
+                          </nav>
+                        </div>
+                      ) : (
+                        <Button 
+                          onClick={() => setIsAuthOpen(true)}
+                          className="w-full h-12 bg-black text-white font-bold uppercase tracking-widest text-[10px] rounded-none"
+                        >
+                          Sign In / Join
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </ScrollArea>
               </SheetContent>
@@ -287,47 +311,49 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-1">
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm">
-                      <UserIcon className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-white border border-black/10 shadow-xl rounded-none p-0 mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <DropdownMenuLabel className="p-4">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary truncate">
-                          {user.displayName || user.email}
-                        </p>
-                        <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                          Archive Member
-                        </p>
+              <div className="hidden lg:flex">
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm">
+                        <UserIcon className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 bg-white border border-black/10 shadow-xl rounded-none p-0 mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <DropdownMenuLabel className="p-4">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-primary truncate">
+                            {user.displayName || user.email}
+                          </p>
+                          <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                            Archive Member
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator className="m-0 bg-black/5" />
+                      <div className="py-1">
+                        <DropdownMenuItem asChild>
+                          <Link href="/account/orders" className="flex items-center px-4 py-3 text-[9px] font-bold uppercase tracking-widest cursor-pointer hover:bg-gray-50">
+                            <Package className="mr-3 h-3.5 w-3.5" /> Order History
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 text-[9px] font-bold uppercase tracking-widest cursor-pointer text-destructive hover:bg-red-50">
+                          <LogOut className="mr-3 h-3.5 w-3.5" /> Sign Out
+                        </DropdownMenuItem>
                       </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="m-0 bg-black/5" />
-                    <div className="py-1">
-                      <DropdownMenuItem asChild>
-                        <Link href="/account/orders" className="flex items-center px-4 py-3 text-[9px] font-bold uppercase tracking-widest cursor-pointer hover:bg-gray-50">
-                          <Package className="mr-3 h-3.5 w-3.5" /> Order History
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 text-[9px] font-bold uppercase tracking-widest cursor-pointer text-destructive hover:bg-red-50">
-                        <LogOut className="mr-3 h-3.5 w-3.5" /> Sign Out
-                      </DropdownMenuItem>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm"
-                  onClick={() => setIsAuthOpen(true)}
-                >
-                  <UserIcon className="h-5 w-5" />
-                </Button>
-              )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm"
+                    onClick={() => setIsAuthOpen(true)}
+                  >
+                    <UserIcon className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
 
               <Sheet>
                 <SheetTrigger asChild>

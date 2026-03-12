@@ -107,10 +107,6 @@ export default function CategoriesPage() {
   const handleSave = async () => {
     if (!db || !name) return;
     
-    if (!confirm(editingId ? "Update this collection?" : "Commit this collection to the archive?")) {
-      return;
-    }
-
     setIsSaving(true);
     
     const categoryData = {
@@ -464,21 +460,28 @@ export default function CategoriesPage() {
 
             <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
               <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)}
+                  className="h-11 px-6 font-bold uppercase tracking-widest text-[10px]"
+                >
+                  Close
+                </Button>
                 {activeTab !== 'general' && (
                   <Button 
-                    variant="outline" 
+                    variant="ghost" 
                     onClick={() => {
                       const idx = visibleTabs.findIndex(t => t.id === activeTab);
                       setActiveTab(visibleTabs[idx-1].id);
                     }}
                     className="gap-2 h-11 px-6 font-bold uppercase tracking-widest text-[10px]"
                   >
-                    <ChevronLeft className="h-4 w-4" /> Previous
+                    <ChevronLeft className="h-4 w-4" /> Back
                   </Button>
                 )}
                 {activeTab !== visibleTabs[visibleTabs.length - 1].id && (
                   <Button 
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => {
                       const idx = visibleTabs.findIndex(t => t.id === activeTab);
                       setActiveTab(visibleTabs[idx+1].id);
