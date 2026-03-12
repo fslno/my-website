@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { 
   Table, 
   TableBody, 
@@ -35,7 +35,10 @@ import {
   Clock,
   ShieldCheck,
   Globe,
-  Navigation
+  Navigation,
+  MessageSquareMore,
+  Palette,
+  Settings2
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -44,24 +47,21 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 export default function SettingsPage() {
   const db = useFirestore();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Input Refs for "Edit" functionality
-  const staffNameRef = useRef<HTMLInputElement>(null);
-  const staffEmailRef = useRef<HTMLInputElement>(null);
-  const staffPhoneRef = useRef<HTMLInputElement>(null);
-  const staffTimezoneRef = useRef<HTMLInputElement>(null);
-
   // Firestore References
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const staffConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'staff') : null, [db]);
+  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
 
   const { data: storeConfig, loading: storeLoading } = useDoc(storeConfigRef);
   const { data: staffConfig, loading: staffLoading } = useDoc(staffConfigRef);
+  const { data: themeData, loading: themeLoading } = useDoc(themeRef);
 
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('store');
@@ -78,6 +78,12 @@ export default function SettingsPage() {
   const [staffEmail, setStaffEmail] = useState('admin@yourstore.com');
   const [staffPhone, setStaffPhone] = useState('+1 (000) 000-0000');
   const [timezone, setTimezone] = useState('(UTC-05:00) Eastern Time');
+
+  // Chatbot State
+  const [chatbotEnabled, setChatbotEnabled] = useState(true);
+  const [chatbotColor, setChatbotColor] = useState('#1c4673');
+  const [chatbotSize, setChatbotSize] = useState('60');
+  const [chatbotPosition, setChatbotPosition] = useState('right');
 
   // Initialize forms when data loads
   useEffect(() => {
@@ -98,6 +104,15 @@ export default function SettingsPage() {
       setTimezone(staffConfig.timezone || '(UTC-05:00) Eastern Time');
     }
   }, [staffConfig]);
+
+  useEffect(() => {
+    if (themeData) {
+      setChatbotEnabled(themeData.chatbotEnabled ?? true);
+      setChatbotColor(themeData.chatbotColor || '#1c4673');
+      setChatbotSize(themeData.chatbotSize?.toString() || '60');
+      setChatbotPosition(themeData.chatbotPosition || 'right');
+    }
+  }, [themeData]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -135,11 +150,23 @@ export default function SettingsPage() {
       .finally(() => setIsSaving(false));
   };
 
-  const focusInput = (ref: React.RefObject<HTMLInputElement>) => {
-    ref.current?.focus();
+  const handleSaveChatbot = async () => {
+    if (!themeRef) return;
+    setIsSaving(true);
+    const updates = {
+      chatbotEnabled,
+      chatbotColor,
+      chatbotSize: Number(chatbotSize),
+      chatbotPosition,
+      updatedAt: new Date().toISOString()
+    };
+    setDoc(themeRef, updates, { merge: true })
+      .then(() => toast({ title: "Chatbot Config Saved", description: "Archival support protocols updated." }))
+      .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
+      .finally(() => setIsSaving(false));
   };
 
-  if (storeLoading || staffLoading) {
+  if (storeLoading || staffLoading || themeLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -161,6 +188,9 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="staff" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white transition-all">
             <User className="h-3.5 w-3.5" /> Staff Profile
+          </TabsTrigger>
+          <TabsTrigger value="chatbot" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white transition-all">
+            <MessageSquareMore className="h-3.5 w-3.5" /> Support & Chat
           </TabsTrigger>
         </TabsList>
 
@@ -272,7 +302,6 @@ export default function SettingsPage() {
                     </TableCell>
                     <TableCell className="py-4">
                       <Input 
-                        ref={staffNameRef}
                         value={staffName} 
                         onChange={(e) => setStaffName(e.target.value)} 
                         className="h-10 text-xs font-medium max-w-xs bg-white" 
@@ -282,14 +311,7 @@ export default function SettingsPage() {
                       <Badge variant="outline" className="text-[9px] font-bold border-black uppercase bg-black text-white">Public</Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[10px] font-bold uppercase tracking-widest"
-                        onClick={() => focusInput(staffNameRef)}
-                      >
-                        Edit
-                      </Button>
+                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
                     </TableCell>
                   </TableRow>
                   <TableRow className="hover:bg-transparent border-[#e1e3e5]">
@@ -298,7 +320,6 @@ export default function SettingsPage() {
                     </TableCell>
                     <TableCell className="py-4">
                       <Input 
-                        ref={staffEmailRef}
                         value={staffEmail} 
                         onChange={(e) => setStaffEmail(e.target.value)} 
                         className="h-10 text-xs font-medium max-w-xs bg-white" 
@@ -310,14 +331,7 @@ export default function SettingsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[10px] font-bold uppercase tracking-widest"
-                        onClick={() => focusInput(staffEmailRef)}
-                      >
-                        Edit
-                      </Button>
+                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
                     </TableCell>
                   </TableRow>
                   <TableRow className="hover:bg-transparent border-[#e1e3e5]">
@@ -326,7 +340,6 @@ export default function SettingsPage() {
                     </TableCell>
                     <TableCell className="py-4">
                       <Input 
-                        ref={staffPhoneRef}
                         value={staffPhone} 
                         onChange={(e) => setStaffPhone(e.target.value)} 
                         className="h-10 text-xs font-medium max-w-xs bg-white" 
@@ -336,14 +349,7 @@ export default function SettingsPage() {
                       <Badge variant="outline" className="text-[9px] font-bold border-gray-200 text-gray-500 uppercase">Private</Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[10px] font-bold uppercase tracking-widest"
-                        onClick={() => focusInput(staffPhoneRef)}
-                      >
-                        Edit
-                      </Button>
+                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
                     </TableCell>
                   </TableRow>
                   <TableRow className="hover:bg-transparent border-0">
@@ -352,7 +358,6 @@ export default function SettingsPage() {
                     </TableCell>
                     <TableCell className="py-4">
                       <Input 
-                        ref={staffTimezoneRef}
                         value={timezone} 
                         onChange={(e) => setTimezone(e.target.value)} 
                         className="h-10 text-xs font-medium max-w-xs bg-white" 
@@ -364,14 +369,7 @@ export default function SettingsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[10px] font-bold uppercase tracking-widest"
-                        onClick={() => focusInput(staffTimezoneRef)}
-                      >
-                        Edit
-                      </Button>
+                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -382,6 +380,99 @@ export default function SettingsPage() {
             <Button onClick={handleSaveStaff} disabled={isSaving} className="bg-black text-white h-12 px-10 font-bold uppercase tracking-[0.2em] text-[10px]">
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
               Commit Staff Changes
+            </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="chatbot" className="space-y-6">
+          <Card className="border-[#e1e3e5] shadow-none">
+            <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
+              <div>
+                <div className="flex items-center gap-2">
+                  <MessageSquareMore className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Support Chatbot Orchestrator</CardTitle>
+                </div>
+                <CardDescription>Configure the floating communication dispatch for the storefront.</CardDescription>
+              </div>
+              <Switch checked={chatbotEnabled} onCheckedChange={setChatbotEnabled} />
+            </CardHeader>
+            <CardContent className="pt-8 space-y-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                      <Palette className="h-3.5 w-3.5" /> Handshake Color
+                    </Label>
+                    <div className="flex gap-3">
+                      <div className="w-14 h-14 rounded-sm border p-1 bg-white shadow-sm overflow-hidden shrink-0">
+                        <Input 
+                          type="color" 
+                          className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
+                          value={chatbotColor} 
+                          onChange={(e) => setChatbotColor(e.target.value)} 
+                        />
+                      </div>
+                      <Input 
+                        value={chatbotColor} 
+                        onChange={(e) => setChatbotColor(e.target.value)} 
+                        className="h-14 font-mono text-xs uppercase" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Dimensional Scale</Label>
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{chatbotSize}PX</Badge>
+                    </div>
+                    <input 
+                      type="range" min="40" max="80" value={chatbotSize} 
+                      onChange={(e) => setChatbotSize(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                    <div className="flex justify-between text-[8px] font-bold text-gray-400 uppercase">
+                      <span>Subtle</span>
+                      <span>Prominent</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5" /> Viewport Alignment
+                    </Label>
+                    <div className="flex border p-1 rounded-sm bg-gray-50 gap-1">
+                      <Button 
+                        variant={chatbotPosition === 'left' ? 'default' : 'ghost'} 
+                        className={cn("flex-1 h-12 uppercase font-bold text-[10px] rounded-none", chatbotPosition === 'left' ? "bg-black text-white" : "text-gray-400")} 
+                        onClick={() => setChatbotPosition('left')}
+                      >
+                        Left Side
+                      </Button>
+                      <Button 
+                        variant={chatbotPosition === 'right' ? 'default' : 'ghost'} 
+                        className={cn("flex-1 h-12 uppercase font-bold text-[10px] rounded-none", chatbotPosition === 'right' ? "bg-black text-white" : "text-gray-400")} 
+                        onClick={() => setChatbotPosition('right')}
+                      >
+                        Right Side
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-blue-50 border border-blue-100 rounded-sm">
+                    <p className="text-[10px] text-blue-800 leading-relaxed uppercase font-medium">
+                      The chatbot Authoritatively surfaces contact paths defined in the <strong>Store Profile</strong> tab (Phone, Email, Social).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleSaveChatbot} disabled={isSaving} className="bg-black text-white h-12 px-10 font-bold uppercase tracking-[0.2em] text-[10px]">
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+              Commit Chatbot Config
             </Button>
           </div>
         </TabsContent>
