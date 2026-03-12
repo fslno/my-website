@@ -365,12 +365,12 @@ export default function ThemeEnginePage() {
         {/* Editor sidebar */}
         <div className="xl:col-span-4 overflow-y-auto pr-2 space-y-6 scrollbar-hide">
           <Tabs defaultValue="styles" className="w-full">
-            <TabsList className="w-full bg-white border border-[#e1e3e5] h-12 p-1 overflow-x-auto justify-start lg:justify-between scrollbar-hide">
-              <TabsTrigger value="styles" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Palette className="h-3 w-3" /> Global</TabsTrigger>
-              <TabsTrigger value="catalog" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layers className="h-3 w-3" /> Navigation</TabsTrigger>
-              <TabsTrigger value="hero" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Sparkles className="h-3 w-3" /> Hero</TabsTrigger>
-              <TabsTrigger value="layout" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Layout className="h-3 w-3" /> Layout</TabsTrigger>
-              <TabsTrigger value="admin" className="flex-1 gap-2 font-bold uppercase tracking-widest text-[10px]"><Settings2 className="h-3 w-3" /> Backend</TabsTrigger>
+            <TabsList className="w-full bg-white border border-[#e1e3e5] h-14 p-1 flex flex-nowrap overflow-hidden">
+              <TabsTrigger value="styles" className="flex-1 gap-1.5 font-bold uppercase tracking-widest text-[9px] px-1"><Palette className="h-3 w-3" /> Global</TabsTrigger>
+              <TabsTrigger value="catalog" className="flex-1 gap-1.5 font-bold uppercase tracking-widest text-[9px] px-1"><Layers className="h-3 w-3" /> Navigation</TabsTrigger>
+              <TabsTrigger value="hero" className="flex-1 gap-1.5 font-bold uppercase tracking-widest text-[9px] px-1"><Sparkles className="h-3 w-3" /> Hero</TabsTrigger>
+              <TabsTrigger value="layout" className="flex-1 gap-1.5 font-bold uppercase tracking-widest text-[9px] px-1"><Layout className="h-3 w-3" /> Layout</TabsTrigger>
+              <TabsTrigger value="admin" className="flex-1 gap-1.5 font-bold uppercase tracking-widest text-[9px] px-1"><Settings2 className="h-3 w-3" /> Backend</TabsTrigger>
             </TabsList>
 
             <TabsContent value="styles" className="mt-6 space-y-6">
