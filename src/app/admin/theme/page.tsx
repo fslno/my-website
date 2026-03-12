@@ -36,7 +36,8 @@ import {
   AlignRight,
   Layers,
   Settings2,
-  MessageSquareMore
+  MessageSquareMore,
+  ShoppingBag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -350,7 +351,7 @@ export default function ThemeEnginePage() {
         <div className="xl:col-span-4 overflow-y-auto pr-2 space-y-6 scrollbar-hide">
           <Tabs defaultValue="styles" className="w-full">
             <TabsList className="w-full bg-white border border-[#e1e3e5] h-14 p-1 flex flex-nowrap overflow-hidden justify-between">
-              <TabsTrigger value="styles" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Palette className="h-3 w-3" /> Global</TabsTrigger>
+              <TabsTrigger value="styles" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Palette className="h-3 w-3" /> Global & Support</TabsTrigger>
               <TabsTrigger value="catalog" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Layers className="h-3 w-3" /> Navigation</TabsTrigger>
               <TabsTrigger value="hero" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Sparkles className="h-3 w-3" /> Hero</TabsTrigger>
               <TabsTrigger value="layout" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Layout className="h-3 w-3" /> Layout</TabsTrigger>
