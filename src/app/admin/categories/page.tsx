@@ -28,7 +28,8 @@ import {
   LayoutGrid,
   ShoppingBag,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Save
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -475,29 +476,27 @@ export default function CategoriesPage() {
                     <ChevronLeft className="h-4 w-4" /> Previous
                   </Button>
                 )}
-              </div>
-              <div className="flex gap-3">
-                {activeTab !== visibleTabs[visibleTabs.length - 1].id ? (
+                {activeTab !== visibleTabs[visibleTabs.length - 1].id && (
                   <Button 
+                    variant="outline"
                     onClick={() => {
                       const idx = visibleTabs.findIndex(t => t.id === activeTab);
                       setActiveTab(visibleTabs[idx+1].id);
                     }}
-                    className="gap-2 h-11 px-6 bg-black text-white font-bold uppercase tracking-widest text-[10px]"
+                    className="gap-2 h-11 px-6 font-bold uppercase tracking-widest text-[10px]"
                   >
                     Next Step <ChevronRight className="h-4 w-4" />
                   </Button>
-                ) : (
-                  <Button 
-                    onClick={handleSave} 
-                    disabled={isSaving || !name}
-                    className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px]"
-                  >
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    {editingId ? 'Update Collection' : 'Commit Category'}
-                  </Button>
                 )}
               </div>
+              <Button 
+                onClick={handleSave} 
+                disabled={isSaving || !name}
+                className="h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px]"
+              >
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                {editingId ? 'Update Collection' : 'Commit Category'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
