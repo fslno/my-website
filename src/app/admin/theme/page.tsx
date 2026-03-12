@@ -55,7 +55,10 @@ const sportsFonts = [
   "Anton", "Bebas Neue", "Oswald", "Teko", "Kanit", 
   "Roboto Condensed", "Chakra Petch", "Rajdhani", "Titillium Web", "Exo 2", 
   "Michroma", "Orbitron", "Montserrat", "Squada One", "Racing Sans One", 
-  "Archivo Black", "Russo One", "Black Ops One", "Stardos Stencil", "Syncopate", "Inter"
+  "Archivo Black", "Russo One", "Black Ops One", "Stardos Stencil", "Syncopate", 
+  "Inter", "Playfair Display", "Cinzel", "Syne", "Space Mono", "Bodoni Moda", 
+  "Unbounded", "Italiana", "Tenor Sans", "Cormorant Garamond", "Fraunces", 
+  "Outfit", "DM Sans", "Host Grotesk", "Bricolage Grotesque"
 ];
 
 const DEFAULT_THEME = {
