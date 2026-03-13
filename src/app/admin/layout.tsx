@@ -211,14 +211,6 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="SEO" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/seo">
-                  <Search />
-                  <span>SEO</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
