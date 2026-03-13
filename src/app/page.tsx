@@ -131,13 +131,6 @@ export default function Home() {
                       <h3 className="font-headline font-bold uppercase tracking-widest text-sm sm:text-lg leading-tight line-clamp-2">{cat.name}</h3>
                       <span className="text-[8px] sm:text-[9px] font-mono font-bold text-gray-400 mt-1 shrink-0">NO. 0{idx + 1}</span>
                     </div>
-                    <Separator className="bg-black/5" />
-                    <Link 
-                      href={`/collections/${cat.id}`} 
-                      className="inline-flex items-center gap-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      View Series <ArrowRight className="h-3 w-3" />
-                    </Link>
                   </div>
                 </div>
               ))}
