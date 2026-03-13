@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef, useMemo } from 'react';
@@ -397,7 +396,7 @@ export default function CategoriesPage() {
                       <p className="text-blue-700 text-lg sm:text-xl hover:underline cursor-pointer font-medium line-clamp-1">
                         {seoTitle || (name || 'Category Title')} | FSLNO STUDIO
                       </p>
-                      <p className="text-green-800 text-xs sm:text-sm line-clamp-1 truncate">https://fslno.com/collections/{(name || 'category').toLowerCase().replace(/\s+/g, '-')}</p>
+                      <p className="text-green-800 text-xs sm:text-sm line-clamp-1 truncate">https://fslno.ca/collections/{(name || 'category').toLowerCase().replace(/\s+/g, '-')}</p>
                       <p className="text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-2">
                         {seoDescription || (description || 'Add a refined meta description to improve click-through rates from search results.')}
                       </p>

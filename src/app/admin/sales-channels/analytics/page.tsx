@@ -154,7 +154,7 @@ export default function AnalyticsPage() {
               </span>
               42
             </div>
-            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Currently active on FSLNO.com</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Currently active on FSLNO.ca</p>
           </CardContent>
         </Card>
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
@@ -319,7 +319,7 @@ export default function AnalyticsPage() {
                     { event: 'purchase', time: '18m ago', user: 'UID_...Z2', color: 'text-green-400' },
                   ].map((log, i) => (
                     <div key={i} className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-white/5 pb-3 last:border-0 gap-2">
-                      <div className="space-y-1 min-w-0">
+                      <div className="space-y-1 min-w-0 overflow-hidden">
                         <div className="flex items-center gap-2">
                           <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse bg-current", log.color)} />
                           <p className={cn("text-[10px] font-mono font-bold uppercase truncate", log.color)}>{log.event}</p>

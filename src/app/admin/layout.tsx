@@ -392,7 +392,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Staff Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input id="email" type="email" placeholder="admin@fslno.com" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Input id="email" type="email" placeholder="admin@fslno.ca" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
               </div>
               <div className="space-y-2 text-left">

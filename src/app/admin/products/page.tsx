@@ -765,7 +765,7 @@ export default function ProductsPage() {
                   <div className="space-y-6">
                     <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Custom Meta Title</Label><Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className="h-12 bg-white" /></div>
                     <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Meta Description</Label><Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} className="min-h-[120px] bg-white resize-none" /></div>
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Archival Handle (URL)</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-[10px] text-gray-400 hidden sm:inline">fslno.com/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0 h-12 flex-1" /></div></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Archival Handle (URL)</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-[10px] text-gray-400 hidden sm:inline">fslno.ca/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0 h-12 flex-1" /></div></div>
                   </div>
                 </TabsContent>
                 <TabsContent value="logistics" className="p-4 sm:p-8 m-0 space-y-12 max-w-5xl mx-auto">

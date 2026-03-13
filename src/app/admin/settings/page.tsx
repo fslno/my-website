@@ -423,7 +423,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase font-bold text-gray-500">Dispatch Email</Label>
-                      <Input type="email" placeholder="staff@fslno.com" value={staffEmail} onChange={(e) => setStaffEmail(e.target.value)} className="h-12 lowercase" />
+                      <Input type="email" placeholder="staff@fslno.ca" value={staffEmail} onChange={(e) => setStaffEmail(e.target.value)} className="h-12 lowercase" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">

@@ -89,7 +89,7 @@ const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
     description: "Triggered when a tracking number is assigned or status moves to 'Shipped.'",
     enabled: true,
     subject: "In Transit: Your {{business_name}} order #{{order_id}} is on the move",
-    body: "Excellent news, {{customer_name}}!\n\nYour archive selection has been Authoritatively dispatched from our studio. \n\nCARRIER: {{courier}}\nLOGISTICS ID: {{tracking_number}}\n\nYou can track the journey of your pieces using the link below:\nhttps://fslno.com/track/{{tracking_number}}\n\nThank you for shopping the archive."
+    body: "Excellent news, {{customer_name}}!\n\nYour archive selection has been Authoritatively dispatched from our studio. \n\nCARRIER: {{courier}}\nLOGISTICS ID: {{tracking_number}}\n\nYou can track the journey of your pieces using the link below:\nhttps://fslno.ca/track/{{tracking_number}}\n\nThank you for shopping the archive."
   },
   readyForPickup: {
     label: "Order Ready for Pickup",
@@ -127,7 +127,7 @@ const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
     description: "Automatically reminds shoppers about unfinished orders left in their cart.",
     enabled: true,
     subject: "Incomplete selection: Finish your order at {{business_name}}",
-    body: "Hi {{customer_name}},\n\nYou left some high-fidelity pieces in your bag! We've reserved them for a limited time, but we can't guarantee stock forever.\n\nRESUME CHECKOUT:\nhttps://fslno.com/checkout\n\nYour pending selection:\n{{product_list}}\n\nComplete your purchase now to secure these archive drops."
+    body: "Hi {{customer_name}},\n\nYou left some high-fidelity pieces in your bag! We've reserved them for a limited time, but we can't guarantee stock forever.\n\nRESUME CHECKOUT:\nhttps://fslno.ca/checkout\n\nYour pending selection:\n{{product_list}}\n\nComplete your purchase now to secure these archive drops."
   },
   feedbackRequest: {
     label: "Feedback Request",
@@ -308,7 +308,7 @@ export default function NotificationsPage() {
                   <TableRow>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Touchpoint</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Logistical Trigger</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Status</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>

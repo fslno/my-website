@@ -68,7 +68,7 @@ export default function DomainPage() {
   const [isTokenDialogOpen, setIsTokenDialogOpen] = useState(false);
 
   // Local Form State
-  const [domain, setDomain] = useState('fslno.com');
+  const [domain, setDomain] = useState('fslno.ca');
   const [metaTags, setMetaTags] = useState<MetaTag[]>([]);
   const [robotsTxt, setRobotsTxt] = useState('User-agent: *\nAllow: /');
   const [indexingEnabled, setIndexingEnabled] = useState(true);
@@ -79,7 +79,7 @@ export default function DomainPage() {
 
   useEffect(() => {
     if (config) {
-      setDomain(config.primaryDomain || 'fslno.com');
+      setDomain(config.primaryDomain || 'fslno.ca');
       setMetaTags(config.metaTags || []);
       setRobotsTxt(config.robotsTxt || 'User-agent: *\nAllow: /');
       setIndexingEnabled(config.searchIndexingEnabled ?? true);
@@ -90,12 +90,12 @@ export default function DomainPage() {
   const handleInitialize = () => {
     if (!configRef) return;
     const initialData = {
-      primaryDomain: 'fslno.com',
+      primaryDomain: 'fslno.ca',
       status: 'connected',
       metaTags: [
         { id: '1', name: 'google-site-verification', content: 'G-ARCHIVE-777' }
       ],
-      sitemapUrl: 'https://fslno.com/sitemap.xml',
+      sitemapUrl: 'https://fslno.ca/sitemap.xml',
       robotsTxt: 'User-agent: *\nAllow: /',
       searchIndexingEnabled: true,
       sslStatus: 'valid',
@@ -254,7 +254,7 @@ export default function DomainPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 min-w-0">
                   <Input 
-                    placeholder="Enter your domain (e.g. fslno.com)" 
+                    placeholder="Enter your domain (e.g. fslno.ca)" 
                     value={domain} 
                     onChange={(e) => setDomain(e.target.value)}
                     className="h-12 uppercase font-bold tracking-tight" 
@@ -579,7 +579,7 @@ export default function DomainPage() {
               <div className="flex items-start justify-between border-b border-white/5 pb-4 gap-4">
                 <div className="space-y-1 min-w-0">
                   <p className="text-[10px] font-bold uppercase">CNAME (WWW)</p>
-                  <p className="text-[9px] text-gray-400 font-mono truncate">fslno.com</p>
+                  <p className="text-[9px] text-gray-400 font-mono truncate">fslno.ca</p>
                 </div>
                 <Badge variant="outline" className="bg-green-500/10 text-green-400 border-none text-[8px] font-bold uppercase tracking-widest shrink-0">Matched</Badge>
               </div>
