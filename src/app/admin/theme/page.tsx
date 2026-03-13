@@ -485,7 +485,7 @@ export default function ThemeEnginePage() {
                 <CardContent className="space-y-6">
                   <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Button Text</Label><Input value={heroButtonText} onChange={(e) => setHeroButtonText(e.target.value)} className="h-12 uppercase font-bold text-xs" /></div>
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Background</Label><Input type="color" value={heroButtonBgColor} onChange={(e) => setHeroButtonBgColor(e.target.value)} className="h-10 p-1" /></div>
+                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background</Label><Input type="color" value={heroButtonBgColor} onChange={(e) => setHeroButtonBgColor(e.target.value)} className="h-10 p-1" /></div>
                     <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Text Color</Label><Input type="color" value={heroButtonTextColor} onChange={(e) => setHeroButtonTextColor(e.target.value)} className="h-10 p-1" /></div>
                   </div>
                 </CardContent>
@@ -508,6 +508,7 @@ export default function ThemeEnginePage() {
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                     <Type className="h-3.5 w-3.5" /> Catalog Typography Scales
                   </CardTitle>
+                  <CardDescription className="text-[9px] uppercase font-bold tracking-tight text-blue-600">Scaling is handled Authoritatively for mobile.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div className="space-y-4">

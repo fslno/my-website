@@ -7,6 +7,7 @@ import { doc } from 'firebase/firestore';
 /**
  * Listens for global theme configuration from Firestore
  * and injects dynamic CSS variables and style rules into the document.
+ * Implements a high-fidelity fluid typography protocol for automatic mobile scaling.
  */
 export function ThemeStyleInjector() {
   const db = useFirestore();
@@ -99,6 +100,9 @@ export function ThemeStyleInjector() {
     const getFlexAlign = (align: string) => align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
     const getVerticalAlign = (align: string) => align === 'bottom' ? 'flex-end' : align === 'top' ? 'flex-start' : 'center';
 
+    // Automatic Mobile Scaling Handshake:
+    // We calculate a mobile baseline (min) based on 60-80% of the admin-defined size.
+    // clamp(min, preferred, max) ensures fluid scaling between 375px and 1440px viewports.
     styleTag.innerHTML = `
       :root {
         --font-headline: "${headlineFont}", "Playfair Display", serif;
@@ -160,40 +164,21 @@ export function ThemeStyleInjector() {
         justify-content: var(--hero-vertical-align) !important;
       }
       
-      @media (max-width: 768px) {
-        .hero-headline-size {
-          font-size: clamp(2rem, 10vw, calc(var(--hero-headline-size) * 0.6)) !important;
-        }
-        .category-title-size {
-          font-size: clamp(1.5rem, 8vw, calc(var(--category-title-size) * 0.7)) !important;
-        }
-        .featured-title-size {
-          font-size: clamp(1.5rem, 8vw, calc(var(--featured-title-size) * 0.7)) !important;
-        }
-        .product-title-size {
-          font-size: clamp(0.75rem, 4vw, calc(var(--product-title-size) * 0.9)) !important;
-        }
-        .product-price-size {
-          font-size: clamp(0.75rem, 4vw, calc(var(--product-price-size) * 0.9)) !important;
-        }
+      /* AUTOMATIC MOBILE SCALING PROTOCOL */
+      .hero-headline-size {
+        font-size: clamp(calc(var(--hero-headline-size) * 0.5), 10vw, var(--hero-headline-size)) !important;
       }
-      
-      @media (min-width: 769px) {
-        .hero-headline-size {
-          font-size: var(--hero-headline-size) !important;
-        }
-        .category-title-size {
-          font-size: var(--category-title-size) !important;
-        }
-        .featured-title-size {
-          font-size: var(--featured-title-size) !important;
-        }
-        .product-title-size {
-          font-size: var(--product-title-size) !important;
-        }
-        .product-price-size {
-          font-size: var(--product-price-size) !important;
-        }
+      .category-title-size {
+        font-size: clamp(calc(var(--category-title-size) * 0.6), 8vw, var(--category-title-size)) !important;
+      }
+      .featured-title-size {
+        font-size: clamp(calc(var(--featured-title-size) * 0.6), 8vw, var(--featured-title-size)) !important;
+      }
+      .product-title-size {
+        font-size: clamp(calc(var(--product-title-size) * 0.8), 4vw, var(--product-title-size)) !important;
+      }
+      .product-price-size {
+        font-size: clamp(calc(var(--product-price-size) * 0.8), 4vw, var(--product-price-size)) !important;
       }
 
       .category-text-align {
