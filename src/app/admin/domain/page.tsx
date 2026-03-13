@@ -69,7 +69,7 @@ export default function DomainPage() {
 
   const [domain, setDomain] = useState('fslno.ca');
   const [metaTags, setMetaTags] = useState<MetaTag[]>([]);
-  const [robotsTxt, setRobotsTxt] = useState('User-agent: *\nAllow: /');
+  const [robotsTxt, setRobotsTxt] = useState('User-agent: *\nDisallow: /_next/\nDisallow: /static/\nAllow: /');
   const [indexingEnabled, setIndexingEnabled] = useState(true);
   
   const [apiTokens, setApiTokens] = useState<ApiToken[]>([]);
@@ -79,7 +79,7 @@ export default function DomainPage() {
     if (config) {
       setDomain(config.primaryDomain || 'fslno.ca');
       setMetaTags(config.metaTags || []);
-      setRobotsTxt(config.robotsTxt || 'User-agent: *\nAllow: /');
+      setRobotsTxt(config.robotsTxt || 'User-agent: *\nDisallow: /_next/\nDisallow: /static/\nAllow: /');
       setIndexingEnabled(config.searchIndexingEnabled ?? true);
       setApiTokens(config.apiTokens || []);
     }
@@ -94,7 +94,7 @@ export default function DomainPage() {
         { id: '1', name: 'google-site-verification', content: 'G-ARCHIVE-777' }
       ],
       sitemapUrl: 'https://fslno.ca/sitemap.xml',
-      robotsTxt: 'User-agent: *\nAllow: /',
+      robotsTxt: 'User-agent: *\nDisallow: /_next/\nDisallow: /static/\nAllow: /',
       searchIndexingEnabled: true,
       sslStatus: 'valid',
       sslExpiry: '2026-12-31T23:59:59Z',
@@ -456,14 +456,14 @@ export default function DomainPage() {
                 <CardTitle className="text-lg uppercase tracking-tight">Robots.txt</CardTitle>
               </div>
               <CardDescription className="text-xs font-medium uppercase tracking-tight mt-1">
-                Tell search engines which pages to crawl.
+                Tell search engines which pages to crawl. Folders like _next are hidden for speed and privacy.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <Textarea 
                 value={robotsTxt} 
                 onChange={(e) => setRobotsTxt(e.target.value)}
-                placeholder="User-agent: *\nAllow: /"
+                placeholder="User-agent: *\nDisallow: /_next/\nAllow: /"
                 className="min-h-[150px] font-mono text-xs p-4 bg-gray-50 resize-none border-primary/10 rounded-none"
               />
             </CardContent>
