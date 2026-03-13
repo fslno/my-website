@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -48,19 +47,17 @@ import {
   Trash2,
   Image as ImageIcon,
   User,
-  Mail,
-  Clock,
-  ShieldCheck,
-  Globe,
-  Navigation,
   MessageSquareMore,
   Palette,
   Settings2,
-  Plus,
   PlusCircle,
   X,
-  UserCheck,
-  ShieldAlert
+  Navigation,
+  Sparkles,
+  Zap,
+  AlignLeft,
+  AlignRight,
+  Maximize2
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -105,6 +102,13 @@ export default function SettingsPage() {
   const [staffTimezone, setStaffTimezone] = useState('(UTC-05:00) Eastern Time');
   const [staffStatus, setStaffStatus] = useState<'Active' | 'Inactive'>('Active');
 
+  // Chatbot State
+  const [chatbotEnabled, setChatbotEnabled] = useState(true);
+  const [chatbotPosition, setChatbotPosition] = useState<'left' | 'right'>('right');
+  const [chatbotColor, setChatbotColor] = useState('#000000');
+  const [chatbotSize, setChatbotSize] = useState('60');
+  const [chatbotEffect, setChatbotEffect] = useState('pulsate');
+
   // Initialize forms when data loads
   useEffect(() => {
     if (storeConfig) {
@@ -114,7 +118,14 @@ export default function SettingsPage() {
       setPhone(storeConfig.phone || '');
       setLogoUrl(storeConfig.logoUrl || '');
     }
-  }, [storeConfig]);
+    if (themeData) {
+      setChatbotEnabled(themeData.chatbotEnabled ?? true);
+      setChatbotPosition(themeData.chatbotPosition || 'right');
+      setChatbotColor(themeData.chatbotColor || '#000000');
+      setChatbotSize(themeData.chatbotSize?.toString() || '60');
+      setChatbotEffect(themeData.chatbotEffect || 'pulsate');
+    }
+  }, [storeConfig, themeData]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -139,6 +150,23 @@ export default function SettingsPage() {
     setDoc(storeConfigRef, updates, { merge: true })
       .then(() => toast({ title: "Store Settings Saved", description: "Business identity has been updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: storeConfigRef.path, operation: 'write', requestResourceData: updates })))
+      .finally(() => setIsSaving(false));
+  };
+
+  const handleSaveChatbot = async () => {
+    if (!themeRef) return;
+    setIsSaving(true);
+    const updates = { 
+      chatbotEnabled,
+      chatbotPosition,
+      chatbotColor,
+      chatbotSize: Number(chatbotSize),
+      chatbotEffect,
+      updatedAt: new Date().toISOString() 
+    };
+    setDoc(themeRef, updates, { merge: true })
+      .then(() => toast({ title: "Chat Settings Saved", description: "Support & Chat interface updated." }))
+      .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
       .finally(() => setIsSaving(false));
   };
 
@@ -222,6 +250,9 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="staff" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white transition-all">
             <User className="h-3.5 w-3.5" /> Staff Manifest
+          </TabsTrigger>
+          <TabsTrigger value="support" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white transition-all">
+            <MessageSquareMore className="h-3.5 w-3.5" /> Support & Chat
           </TabsTrigger>
         </TabsList>
 
@@ -423,6 +454,107 @@ export default function SettingsPage() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="support" className="space-y-6">
+          <Card className="border-[#e1e3e5] shadow-none">
+            <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
+              <div>
+                <div className="flex items-center gap-2">
+                  <MessageSquareMore className="h-5 w-5" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Floating Dispatch Orchestration</CardTitle>
+                </div>
+                <CardDescription>Configure the high-fidelity chatbot and support interface.</CardDescription>
+              </div>
+              <Switch checked={chatbotEnabled} onCheckedChange={setChatbotEnabled} />
+            </CardHeader>
+            <CardContent className="pt-6 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Interface Position</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        onClick={() => setChatbotPosition('left')}
+                        className={cn(
+                          "h-12 border rounded-sm flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] transition-all",
+                          chatbotPosition === 'left' ? "bg-black text-white border-black" : "bg-white text-gray-400 border-gray-200 hover:border-gray-400"
+                        )}
+                      >
+                        <AlignLeft className="h-3.5 w-3.5" /> Left Aligned
+                      </button>
+                      <button 
+                        onClick={() => setChatbotPosition('right')}
+                        className={cn(
+                          "h-12 border rounded-sm flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] transition-all",
+                          chatbotPosition === 'right' ? "bg-black text-white border-black" : "bg-white text-gray-400 border-gray-200 hover:border-gray-400"
+                        )}
+                      >
+                        <AlignRight className="h-3.5 w-3.5" /> Right Aligned
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Dispatch Accent Color</Label>
+                    <div className="flex gap-2">
+                      <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} />
+                      </div>
+                      <Input value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} className="h-12 font-mono text-xs uppercase" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Interface Diameter (Size)</Label>
+                    <div className="flex items-center gap-4">
+                      <input 
+                        type="range" min="40" max="100" value={chatbotSize} 
+                        onChange={(e) => setChatbotSize(e.target.value)} 
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold w-12 h-8 flex items-center justify-center">{chatbotSize}PX</Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Animation Protocol (Effect)</Label>
+                    <Select value={chatbotEffect} onValueChange={setChatbotEffect}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pulsate" className="text-[10px] font-bold uppercase">Pulsate (Warning)</SelectItem>
+                        <SelectItem value="breathe" className="text-[10px] font-bold uppercase">Breathe (Soft)</SelectItem>
+                        <SelectItem value="bounce" className="text-[10px] font-bold uppercase">Bounce (High Energy)</SelectItem>
+                        <SelectItem value="none" className="text-[10px] font-bold uppercase">Static (Minimalist)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-sm flex items-start gap-4">
+                <Sparkles className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-blue-800">High-Fidelity Preview</p>
+                  <p className="text-[11px] text-blue-700 leading-relaxed uppercase">
+                    Changes to the support interface are Authoritatively synchronized with the global theme manifest. Ensure the chosen color maintains high-fidelity contrast with your storefront background.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleSaveChatbot} disabled={isSaving} className="bg-black text-white h-12 px-10 font-bold uppercase tracking-[0.2em] text-[10px]">
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+              Synchronize Dispatch UI
+            </Button>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -71,7 +70,6 @@ export function Chatbot() {
   
   // 04. Social Channels
   socialChannels.forEach(s => {
-    // Skip legacy WhatsApp entries if they exist in the array
     if (s.platform === 'WhatsApp') return;
 
     let icon = <Globe className="h-4 w-4" />;
@@ -102,6 +100,15 @@ export function Chatbot() {
       <path d="M60 70 L70 85 L80 70 Z" />
     </svg>
   );
+
+  const getAnimationClass = () => {
+    switch (theme?.chatbotEffect) {
+      case 'pulsate': return 'animate-[pulsate_2s_infinite]';
+      case 'bounce': return 'animate-bounce';
+      case 'breathe': return 'animate-pulse';
+      default: return '';
+    }
+  };
 
   return (
     <div 
@@ -144,10 +151,10 @@ export function Chatbot() {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "relative flex items-center justify-center rounded-full shadow-2xl transition-all duration-500 ease-in-out hover:scale-110 active:scale-95 group z-10",
-          isOpen ? 'rotate-90' : 'animate-[pulsate_2s_infinite]'
+          isOpen ? 'rotate-90' : getAnimationClass()
         )}
         style={{ 
-          backgroundColor: theme?.chatbotColor || '#1c4673',
+          backgroundColor: theme?.chatbotColor || '#000000',
           width: `${theme?.chatbotSize || 60}px`,
           height: `${theme?.chatbotSize || 60}px`
         }}
