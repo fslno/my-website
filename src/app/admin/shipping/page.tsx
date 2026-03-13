@@ -305,14 +305,14 @@ export default function ShippingPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-end">
+    <div className="space-y-8 min-w-0 pb-12">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Shipping & Pickup Logistics</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Manage global carrier integrations, carbon-neutral shipping, and locker pickup APIs.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Shipping & Pickup Logistics</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase tracking-tight font-medium">Manage global carrier integrations, carbon-neutral shipping, and locker pickup APIs.</p>
         </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="text-green-600 bg-green-50 border-green-100 py-1 px-3 flex items-center gap-2 font-bold uppercase text-[9px] tracking-widest">
+        <div className="flex gap-2 w-full sm:w-auto justify-start sm:justify-end">
+          <Badge variant="outline" className="text-green-600 bg-green-50 border-green-100 py-1 px-3 flex items-center gap-2 font-bold uppercase text-[9px] tracking-widest whitespace-nowrap">
             <Zap className="h-3 w-3" /> Real-time Rates Active
           </Badge>
         </div>
@@ -321,36 +321,36 @@ export default function ShippingPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 space-y-6">
           <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
-            <CardHeader className="border-b bg-blue-50/30">
-              <div className="flex items-center justify-between">
+            <CardHeader className="border-b bg-blue-50/30 px-4 sm:px-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <Layers className="h-5 w-5 text-blue-600" />
-                  <CardTitle className="text-lg uppercase tracking-tight">Global Archive Logistics Defaults</CardTitle>
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Global Archive Logistics Defaults</CardTitle>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Button 
                     onClick={handleBatchSyncProducts}
                     disabled={isSaving}
                     variant="outline"
-                    className="h-9 px-4 border-blue-200 text-blue-700 bg-white hover:bg-blue-50 font-bold uppercase tracking-widest text-[9px] gap-2"
+                    className="h-9 px-4 border-blue-200 text-blue-700 bg-white hover:bg-blue-50 font-bold uppercase tracking-widest text-[9px] gap-2 w-full sm:w-auto"
                   >
-                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} Commit to All Products
+                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} <span className="truncate">Commit to All</span>
                   </Button>
                   <Button 
                     onClick={handleSaveGlobalLogistics} 
                     disabled={isSaving}
-                    className="h-9 px-6 bg-blue-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-blue-700 transition-colors"
+                    className="h-9 px-6 bg-blue-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto"
                   >
-                    {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Sync Defaults
+                    {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Sync
                   </Button>
                 </div>
               </div>
-              <CardDescription className="text-xs uppercase font-bold tracking-tight text-blue-800/60">Forensic fallbacks for products missing dimensional metadata.</CardDescription>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-blue-800/60 mt-1">Forensic fallbacks for products missing dimensional metadata.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-6 space-y-8">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <CardContent className="pt-6 px-4 sm:px-6 space-y-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                  <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                     <Scale className="h-3 w-3" /> Weight (kg)
                   </Label>
                   <Input 
@@ -358,62 +358,62 @@ export default function ShippingPage() {
                     placeholder="0.5" 
                     value={defaultWeight} 
                     onChange={(e) => setDefaultWeight(e.target.value)}
-                    className="h-12 font-mono bg-white"
+                    className="h-11 sm:h-12 font-mono bg-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Length (cm)</Label>
+                  <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Length (cm)</Label>
                   <Input 
                     type="number"
                     placeholder="30" 
                     value={defaultLength} 
                     onChange={(e) => setDefaultLength(e.target.value)}
-                    className="h-12 font-mono bg-white"
+                    className="h-11 sm:h-12 font-mono bg-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Width (cm)</Label>
+                  <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Width (cm)</Label>
                   <Input 
                     type="number"
                     placeholder="20" 
                     value={defaultWidth} 
                     onChange={(e) => setDefaultWidth(e.target.value)}
-                    className="h-12 font-mono bg-white"
+                    className="h-11 sm:h-12 font-mono bg-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Height (cm)</Label>
+                  <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Height (cm)</Label>
                   <Input 
                     type="number"
                     placeholder="10" 
                     value={defaultHeight} 
                     onChange={(e) => setDefaultHeight(e.target.value)}
-                    className="h-12 font-mono bg-white"
+                    className="h-11 sm:h-12 font-mono bg-white"
                   />
                 </div>
               </div>
-              <p className="text-[10px] text-blue-800/70 font-medium leading-relaxed uppercase">
+              <p className="text-[9px] sm:text-[10px] text-blue-800/70 font-medium leading-relaxed uppercase">
                 Note: These parameters Authoritatively override zero-value fields in the product manifest for real-time rate calculations.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none rounded-none">
-            <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/50">
-              <div>
+          <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between border-b bg-gray-50/50 p-4 sm:p-6 gap-4">
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Globe className="h-5 w-5 text-blue-500" />
-                  <CardTitle className="text-lg uppercase tracking-tight">Global Carrier Integrations</CardTitle>
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Global Carrier Integrations</CardTitle>
                 </div>
-                <CardDescription className="text-xs uppercase font-bold tracking-tight text-muted-foreground">Direct API connections for North America & Europe.</CardDescription>
+                <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-muted-foreground">Direct API connections for North America & Europe.</CardDescription>
               </div>
               <Dialog open={isAddCarrierOpen} onOpenChange={setIsAddCarrierOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black hover:bg-black hover:text-white transition-all">
+                  <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black hover:bg-black hover:text-white transition-all w-full sm:w-auto">
                     <Plus className="h-3.5 w-3.5" /> Add Platform
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-white border-none rounded-none shadow-2xl">
+                <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
                   <DialogHeader className="pt-8">
                     <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Carrier API Integration</DialogTitle>
                     <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Establish a new logistics handshake for real-time rate calculations.</DialogDescription>
@@ -457,31 +457,34 @@ export default function ShippingPage() {
                   const active = typeof carrier === 'string' ? true : carrier.active;
                   
                   return (
-                    <div key={idx} className="flex items-center justify-between p-6 hover:bg-gray-50 transition-colors group">
-                      <div className="flex items-center gap-4">
-                        <div className={cn("w-12 h-12 rounded border flex items-center justify-center font-bold text-sm transition-all", active ? 'bg-black text-white border-black' : 'bg-white text-gray-300 border-gray-200')}>
+                    <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors group gap-4">
+                      <div className="flex items-center gap-4 w-full sm:w-auto">
+                        <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded border flex items-center justify-center font-bold text-xs sm:text-sm transition-all shrink-0", active ? 'bg-black text-white border-black' : 'bg-white text-gray-300 border-gray-200')}>
                           {name.substring(0, 2)}
                         </div>
-                        <div className="space-y-0.5">
-                          <p className={cn("text-sm font-bold uppercase tracking-tight", !active && 'text-gray-400')}>{name}</p>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={cn("text-[8px] h-4 font-bold uppercase border-none", active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-400")}>
+                        <div className="space-y-0.5 min-w-0">
+                          <p className={cn("text-xs sm:text-sm font-bold uppercase tracking-tight truncate", !active && 'text-gray-400')}>{name}</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline" className={cn("text-[7px] sm:text-[8px] h-4 font-bold uppercase border-none px-1.5", active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-400")}>
                               {active ? 'API Linked' : 'Decommissioned'}
                             </Badge>
-                            <span className="text-[9px] text-gray-400 font-mono">LATENCY: 142MS</span>
+                            <span className="text-[8px] sm:text-[9px] text-gray-400 font-mono whitespace-nowrap">LATENCY: 142MS</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Switch 
-                          checked={active} 
-                          onCheckedChange={(checked) => handleToggleCarrier(name, checked)}
-                        />
+                      <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest sm:hidden">Active</span>
+                          <Switch 
+                            checked={active} 
+                            onCheckedChange={(checked) => handleToggleCarrier(name, checked)}
+                          />
+                        </div>
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           onClick={() => handleRemoveCarrier(name)}
-                          className="h-9 w-9 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-9 w-9 text-gray-300 hover:text-red-500 transition-opacity"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -490,8 +493,8 @@ export default function ShippingPage() {
                   );
                 })}
                 {(!config.carriers || config.carriers.length === 0) && (
-                  <div className="py-12 text-center bg-gray-50/50 border-dashed border-2 m-6">
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">No carrier platforms integrated into the archive.</p>
+                  <div className="py-12 text-center bg-gray-50/50 border-dashed border-2 m-4 sm:m-6">
+                    <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest">No carrier platforms integrated.</p>
                   </div>
                 )}
               </div>
@@ -514,7 +517,7 @@ export default function ShippingPage() {
                 <CardDescription className="text-[10px] font-bold uppercase tracking-tight text-green-800/60">DHL GoGreen Plus Integration</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-[11px] text-green-800 leading-relaxed uppercase font-medium">
+                <p className="text-[10px] sm:text-[11px] text-green-800 leading-relaxed uppercase font-medium">
                   Authoritatively offset the carbon footprint of your high-velocity drops using Sustainable Aviation Fuel (SAF). Displays the "GoGreen" mark at checkout.
                 </p>
               </CardContent>
@@ -535,7 +538,7 @@ export default function ShippingPage() {
                 <CardDescription className="text-[10px] font-bold uppercase tracking-tight text-orange-800/60">Google Local Inventory Sync</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-[11px] text-orange-800 leading-relaxed uppercase font-medium">
+                <p className="text-[10px] sm:text-[11px] text-orange-800 leading-relaxed uppercase font-medium">
                   Inform customers exactly what is in stock at your physical "Spot" locations. Checkout only offers pickup if the local Firestore inventory validates the selection.
                 </p>
               </CardContent>
@@ -543,52 +546,52 @@ export default function ShippingPage() {
           </div>
 
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
-            <CardHeader className="border-b bg-gray-50/50">
-              <div className="flex items-center justify-between">
+            <CardHeader className="border-b bg-gray-50/50 p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg uppercase tracking-tight">Physical Pickup Settings</CardTitle>
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Physical Pickup Settings</CardTitle>
                 </div>
                 <Button 
                   onClick={handleSavePickupDetails} 
                   disabled={isSaving}
-                  className="h-9 px-6 bg-black text-white font-bold uppercase tracking-widest text-[9px] gap-2"
+                  className="h-10 px-6 bg-black text-white font-bold uppercase tracking-widest text-[10px] gap-2 w-full sm:w-auto"
                 >
                   {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save Details
                 </Button>
               </div>
-              <CardDescription className="text-xs uppercase font-bold tracking-tight">Configure customer-facing data for in-person fulfillment.</CardDescription>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight mt-1">Configure customer-facing data for in-person fulfillment.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-6 space-y-8">
+            <CardContent className="pt-6 px-4 sm:px-6 space-y-8">
               <div className="grid gap-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                       <Navigation className="h-3 w-3" /> Pickup Location Address
                     </Label>
                     <Input 
                       placeholder="Enter full address for the Spot" 
                       value={pickupAddress} 
                       onChange={(e) => setPickupAddress(e.target.value)}
-                      className="h-12 uppercase font-medium"
+                      className="h-11 sm:h-12 uppercase font-medium"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                       <ExternalLink className="h-3 w-3" /> Location URL (Maps Link)
                     </Label>
                     <Input 
                       placeholder="https://maps.google.com/..." 
                       value={pickupLocationUrl} 
                       onChange={(e) => setPickupLocationUrl(e.target.value)}
-                      className="h-12 text-[10px] font-bold uppercase"
+                      className="h-11 sm:h-12 text-[10px] font-bold uppercase"
                     />
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                       <Clock className="h-3 w-3" /> Operating Hours
                     </Label>
                     <Textarea 
@@ -599,7 +602,7 @@ export default function ShippingPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                       <Info className="h-3 w-3" /> Pickup Instructions
                     </Label>
                     <Textarea 
@@ -615,33 +618,33 @@ export default function ShippingPage() {
           </Card>
 
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
-            <CardHeader className="border-b bg-gray-50/50">
+            <CardHeader className="border-b bg-gray-50/50 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <RotateCcw className="h-5 w-5 text-purple-500" />
-                  <CardTitle className="text-lg uppercase tracking-tight">Returns Orchestration</CardTitle>
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Returns Orchestration</CardTitle>
                 </div>
                 <Switch 
                   checked={config.returnsEnabled} 
                   onCheckedChange={(checked) => handleUpdate({ returnsEnabled: checked })}
                 />
               </div>
-              <CardDescription className="text-xs uppercase font-bold tracking-tight">Automated reverse logistics and restock validation.</CardDescription>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight">Automated reverse logistics and restock validation.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-6 space-y-6">
+            <CardContent className="pt-6 px-4 sm:px-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 border rounded-sm space-y-3 bg-gray-50/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                    <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                       <Truck className="h-3 w-3" /> Return Portal API
                     </span>
-                    <Badge variant="secondary" className="text-[8px] h-4 font-bold uppercase bg-purple-100 text-purple-700">PRO</Badge>
+                    <Badge variant="secondary" className="text-[7px] sm:text-[8px] h-4 font-bold uppercase bg-purple-100 text-purple-700">PRO</Badge>
                   </div>
-                  <p className="text-[10px] text-muted-foreground uppercase leading-relaxed font-medium">Allow customers to Authoritatively generate return labels directly from their order history.</p>
+                  <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase leading-relaxed font-medium">Allow customers to Authoritatively generate return labels directly from their order history.</p>
                 </div>
                 <div className="p-4 border rounded-sm space-y-3 bg-gray-50/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                    <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                       <CheckCircle2 className="h-3 w-3" /> Restock Logic
                     </span>
                     <Switch 
@@ -649,7 +652,7 @@ export default function ShippingPage() {
                       onCheckedChange={(checked) => handleUpdate({ restockLogicEnabled: checked })}
                     />
                   </div>
-                  <p className="text-[10px] text-muted-foreground uppercase leading-relaxed font-medium">Automatically increment Firestore inventory count once a return is Authoritatively processed.</p>
+                  <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase leading-relaxed font-medium">Automatically increment Firestore inventory count once a return is Authoritatively processed.</p>
                 </div>
               </div>
             </CardContent>
@@ -695,7 +698,7 @@ export default function ShippingPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none bg-zinc-900 text-white rounded-none">
+          <Card className="border-[#e1e3e5] shadow-none bg-zinc-900 text-white rounded-none overflow-hidden">
             <CardHeader className="border-b border-white/10">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
@@ -720,7 +723,7 @@ export default function ShippingPage() {
                         <p className={cn("text-[9px] font-mono font-bold uppercase", log.color)}>{log.event}</p>
                         <p className="text-[8px] text-gray-500 font-mono">{log.val}</p>
                       </div>
-                      <span className="text-[8px] text-gray-600 font-bold uppercase">{log.time}</span>
+                      <span className="text-[8px] text-gray-600 font-bold uppercase whitespace-nowrap ml-4">{log.time}</span>
                     </div>
                   ))}
                 </div>
@@ -732,7 +735,7 @@ export default function ShippingPage() {
             <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
               <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Integrity Note
             </h3>
-            <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight font-bold opacity-70">
+            <p className="text-[9px] sm:text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight font-bold opacity-70">
               Logistics protocol changes strictly apply to the live production manifest. Ensure all carrier API handshakes are Authoritatively validated before clearing "Canceled" fulfillment statuses.
             </p>
           </div>
