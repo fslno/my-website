@@ -9,8 +9,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Strictly restricted to UID 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
-      return isSignedIn() && request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+      // Strictly restricted to authorized admin email
+      return isSignedIn() && request.auth.token.email == 'fslno.dev@gmail.com';
     }
 
     function isOwner(userId) {
@@ -19,14 +19,11 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
+    // FORCE_REDEPLOY_V16_ULTIMATE_STABILITY
+
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
-      
-      // Robust list protocol: Admin has absolute visibility
-      allow list: if isAdmin();
-      // Members are strictly constrained to their own transactions.
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid && request.query.limit <= 100;
-      
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid && request.query.limit <= 100);
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
@@ -53,14 +50,13 @@ service cloud.firestore {
     }
 
     match /reviews/{reviewId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if isAdmin();
       allow write: if isAdmin();
     }
 
     match /users/{userId} {
-      // Only administrators can list the unified member manifest
       allow list: if isAdmin();
-      
       allow get: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId);
       allow update: if isOwner(userId);
@@ -80,7 +76,7 @@ service cloud.firestore {
     }
 
     match /config/{configId} {
-      allow get: if true;
+      allow read: if true;
       allow write: if isAdmin();
     }
   }

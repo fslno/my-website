@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
@@ -13,19 +13,31 @@ export function ThemeStyleInjector() {
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!theme) return;
 
     const root = document.documentElement;
     
     // Contrast Helper: Returns white or black based on background hex
     const getContrastColor = (hexcolor: string) => {
-      if (!hexcolor || hexcolor === 'transparent') return '#000000';
-      const r = parseInt(hexcolor.substring(1, 3), 16);
-      const g = parseInt(hexcolor.substring(3, 5), 16);
-      const b = parseInt(hexcolor.substring(5, 7), 16);
-      const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-      return (yiq >= 128) ? '#000000' : '#FFFFFF';
+      // Safety guard for invalid strings to prevent crashes
+      if (!hexcolor || hexcolor === 'transparent' || typeof hexcolor !== 'string' || hexcolor.length < 6) {
+        return '#000000';
+      }
+      
+      try {
+        const cleanHex = hexcolor.replace('#', '');
+        const r = parseInt(cleanHex.substring(0, 2), 16);
+        const g = parseInt(cleanHex.substring(2, 4), 16);
+        const b = parseInt(cleanHex.substring(4, 6), 16);
+        
+        if (isNaN(r) || isNaN(g) || isNaN(b)) return '#000000';
+        
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return (yiq >= 128) ? '#000000' : '#FFFFFF';
+      } catch (e) {
+        return '#000000';
+      }
     };
 
     if (theme.primaryColor) {
@@ -33,6 +45,10 @@ export function ThemeStyleInjector() {
       root.style.setProperty('--foreground', theme.primaryColor);
       root.style.setProperty('--primary-foreground', getContrastColor(theme.primaryColor));
     }
+
+    // Set background variable based on theme or default
+    const bgColor = theme.accentColor || '#F4F4F4';
+    root.style.setProperty('--background', bgColor);
 
     if (theme.accentColor) {
       root.style.setProperty('--accent', theme.accentColor);
