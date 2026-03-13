@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, use } from 'react';
+import React, { useState, useMemo, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   useFirestore, 
@@ -38,6 +38,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi
+} from "@/components/ui/carousel";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
@@ -86,6 +94,7 @@ export default function ProductDetailPage(props: {
   const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [api, setApi] = useState<CarouselApi>();
 
   const isSaved = isInWishlist(productId);
 
@@ -125,6 +134,20 @@ export default function ProductDetailPage(props: {
     if (!selectedVariant) return false;
     return currentQtyInCart >= selectedVariant.stock;
   }, [selectedVariant, currentQtyInCart]);
+
+  // Sync Carousel with Thumbnail selection
+  useEffect(() => {
+    if (!api) return;
+    
+    api.on("select", () => {
+      setActiveImageIndex(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  const handleThumbnailClick = (index: number) => {
+    setActiveImageIndex(index);
+    api?.scrollTo(index);
+  };
 
   const handleAddToCart = () => {
     if (!product || !selectedSize || isStockReached) return;
@@ -223,7 +246,6 @@ export default function ProductDetailPage(props: {
   }
 
   const media = product.media || [];
-  const currentMedia = media[activeImageIndex] || { url: '', type: 'image' };
 
   return (
     <main className="min-h-screen bg-white">
@@ -242,26 +264,42 @@ export default function ProductDetailPage(props: {
           
           <div className="space-y-6">
             <div className="space-y-4">
-              <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
-                {currentMedia.url ? (
-                  <Image 
-                    src={currentMedia.url} 
-                    alt={product.name} 
-                    fill 
-                    className="object-cover"
-                    priority
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gray-200" />
+              <Carousel setApi={setApi} className="w-full">
+                <CarouselContent>
+                  {media.length > 0 ? (
+                    media.map((item: any, idx: number) => (
+                      <CarouselItem key={idx}>
+                        <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
+                          <Image 
+                            src={item.url} 
+                            alt={product.name} 
+                            fill 
+                            className="object-cover"
+                            priority={idx === 0}
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))
+                  ) : (
+                    <CarouselItem>
+                      <div className="aspect-square relative bg-gray-200 rounded-sm border" />
+                    </CarouselItem>
+                  )}
+                </CarouselContent>
+                {media.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-4 bg-white/80 hover:bg-white text-primary border-none shadow-lg" />
+                    <CarouselNext className="right-4 bg-white/80 hover:bg-white text-primary border-none shadow-lg" />
+                  </>
                 )}
-              </div>
+              </Carousel>
               
               {media.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {media.map((item: any, idx: number) => (
                     <button 
                       key={idx}
-                      onClick={() => setActiveImageIndex(idx)}
+                      onClick={() => handleThumbnailClick(idx)}
                       className={cn(
                         "w-16 h-16 shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
                         activeImageIndex === idx ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
