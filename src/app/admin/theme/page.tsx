@@ -256,7 +256,7 @@ export default function ThemeEnginePage() {
   }
 
   return (
-    <div className="space-y-8 h-full pb-20">
+    <div className="space-y-8 min-h-screen pb-20 overflow-x-hidden">
       <style>{`
         #theme-preview-root {
           --preview-primary: ${primaryColor};
@@ -317,30 +317,37 @@ export default function ThemeEnginePage() {
         }
       `}</style>
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Theme Engine</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Live-edit your storefront's global identity and luxury layouts.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Theme Engine</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm">Live-edit your storefront's global identity.</p>
         </div>
-        <Button className="h-10 gap-2 bg-black text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" onClick={handleSave} disabled={isSaving}>
+        <Button className="w-full sm:w-auto h-10 gap-2 bg-black text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 shadow-lg" onClick={handleSave} disabled={isSaving}>
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Styles
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 h-[calc(100vh-250px)]">
-        <div className="xl:col-span-4 overflow-y-auto pr-2 space-y-6 scrollbar-hide">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 xl:h-[calc(100vh-250px)] h-auto">
+        {/* Configuration Column */}
+        <div className="xl:col-span-4 xl:overflow-y-auto pr-0 xl:pr-4 space-y-6 scrollbar-hide h-full">
           <Tabs defaultValue="styles" className="w-full">
-            <TabsList className="w-full bg-white border border-[#e1e3e5] h-14 p-1 flex flex-nowrap overflow-hidden justify-between">
-              <TabsTrigger value="styles" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Palette className="h-3 w-3" /> Global Styles</TabsTrigger>
-              <TabsTrigger value="catalog" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Layers className="h-3 w-3" /> Navigation</TabsTrigger>
-              <TabsTrigger value="hero" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Sparkles className="h-3 w-3" /> Hero</TabsTrigger>
-              <TabsTrigger value="layout" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Layout className="h-3 w-3" /> Layout</TabsTrigger>
-              <TabsTrigger value="admin" className="flex-1 gap-1 font-bold uppercase tracking-widest text-[9px] px-1"><Settings2 className="h-3 w-3" /> Backend</TabsTrigger>
+            <TabsList className="w-full bg-white border border-[#e1e3e5] h-14 p-1 flex overflow-x-auto scrollbar-hide justify-start xl:justify-between rounded-none">
+              {[
+                { id: 'styles', label: 'Styles', icon: Palette },
+                { id: 'catalog', label: 'Nav', icon: Layers },
+                { id: 'hero', label: 'Hero', icon: Sparkles },
+                { id: 'layout', label: 'Layout', icon: Layout },
+                { id: 'admin', label: 'Admin', icon: Settings2 },
+              ].map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.id} className="flex-1 min-w-[80px] gap-1.5 font-bold uppercase tracking-widest text-[9px] px-2 h-full rounded-none">
+                  <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <TabsContent value="styles" className="mt-6 space-y-6">
-              <Card className="border-[#e1e3e5] shadow-none">
+            <TabsContent value="styles" className="mt-6 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                     <Palette className="h-3.5 w-3.5" /> Brand Identity Colors
@@ -368,7 +375,7 @@ export default function ThemeEnginePage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-[#e1e3e5] shadow-none">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                     <Type className="h-3.5 w-3.5" /> Performance Typography
@@ -379,7 +386,7 @@ export default function ThemeEnginePage() {
                     <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Headline Identity</Label>
                     <Select value={headlineFont} onValueChange={setHeadlineFont}>
                       <SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none">
-                        <SelectValue placeholder="CHOOSE HEADLINE FONT" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
                         {sportsFonts.map(font => (
@@ -394,7 +401,7 @@ export default function ThemeEnginePage() {
                     <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Descriptor Identity</Label>
                     <Select value={bodyFont} onValueChange={setBodyFont}>
                       <SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none">
-                        <SelectValue placeholder="CHOOSE DESCRIPTION FONT" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
                         {sportsFonts.map(font => (
@@ -420,8 +427,8 @@ export default function ThemeEnginePage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="catalog" className="mt-6 space-y-6">
-              <Card className="border-[#e1e3e5] shadow-none">
+            <TabsContent value="catalog" className="mt-6 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div className="space-y-1">
                     <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Header Interaction</CardTitle>
@@ -430,7 +437,7 @@ export default function ThemeEnginePage() {
                   <Switch checked={stickyHeader} onCheckedChange={setStickyHeader} />
                 </CardHeader>
               </Card>
-              <Card className="border-[#e1e3e5] shadow-none">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
                   <div>
                     <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
@@ -459,27 +466,32 @@ export default function ThemeEnginePage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="hero" className="mt-6 space-y-6">
-              <Card className="border-[#e1e3e5] shadow-none">
+            <TabsContent value="hero" className="mt-6 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Visuals</CardTitle></CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
                     <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Editorial Cover</Label>
                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
-                    <div onClick={() => !heroImageUrl && fileInputRef.current?.click()} className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-gray-50 cursor-pointer min-h-[150px]">
+                    <div onClick={() => !heroImageUrl && fileInputRef.current?.click()} className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-gray-50 cursor-pointer min-h-[150px] hover:border-black transition-all">
                       {heroImageUrl ? (
-                        <div className="relative w-full aspect-video rounded overflow-hidden"><Image src={heroImageUrl} alt="Hero" fill className="object-cover" /><Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8" onClick={(e) => { e.stopPropagation(); setHeroImageUrl(''); }}><Trash2 className="h-4 w-4" /></Button></div>
+                        <div className="relative w-full aspect-video rounded-sm overflow-hidden">
+                          <Image src={heroImageUrl} alt="Hero" fill className="object-cover" />
+                          <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 shadow-xl" onClick={(e) => { e.stopPropagation(); setHeroImageUrl(''); }}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       ) : (
                         <><ImageIcon className="h-6 w-6 text-gray-400" /><p className="text-[10px] font-bold uppercase text-gray-500">Upload visual</p></>
                       )}
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Headline</Label><Input value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} className="h-12 font-headline" /></div>
+                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Headline</Label><Input value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} className="h-12" /></div>
                     <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subheadline</Label><Input value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} className="h-12 uppercase tracking-widest" /></div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
+                  <div className="grid grid-cols-1 gap-6 pt-4 border-t">
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Headline Size</Label>
@@ -509,100 +521,56 @@ export default function ThemeEnginePage() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-[#e1e3e5] shadow-none">
-                <CardHeader><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Button Styles</CardTitle></CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Button Text</Label><Input value={heroButtonText} onChange={(e) => setHeroButtonText(e.target.value)} className="h-12 uppercase font-bold text-xs" /></div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background</Label><Input type="color" value={heroButtonBgColor} onChange={(e) => setHeroButtonBgColor(e.target.value)} className="h-10 p-1" /></div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Text Color</Label><Input type="color" value={heroButtonTextColor} onChange={(e) => setHeroButtonTextColor(e.target.value)} className="h-10 p-1" /></div>
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
 
-            <TabsContent value="layout" className="mt-6 space-y-6">
-               <Card className="border-[#e1e3e5] shadow-none">
+            <TabsContent value="layout" className="mt-6 space-y-6 animate-in fade-in duration-300">
+               <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Homepage Layout Mode</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                    <div className="grid grid-cols-2 gap-4">
-                      <button onClick={() => setHomepageLayout('bento')} className={cn("p-4 rounded flex flex-col items-center gap-3 transition-all", homepageLayout === 'bento' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Bento Grid</span></button>
-                      <button onClick={() => setHomepageLayout('classic')} className={cn("p-4 rounded flex flex-col items-center gap-3 transition-all", homepageLayout === 'classic' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Classic Full</span></button>
+                      <button onClick={() => setHomepageLayout('bento')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'bento' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Bento Grid</span></button>
+                      <button onClick={() => setHomepageLayout('classic')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'classic' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Classic Full</span></button>
                    </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-[#e1e3e5] shadow-none">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                     <Type className="h-3.5 w-3.5" /> Catalog Typography Scales
                   </CardTitle>
-                  <CardDescription className="text-[9px] uppercase font-bold tracking-tight text-blue-600">Scaling is handled Authoritatively for mobile.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category Heading Size</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category Heading</Label>
                       <Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</Badge>
                     </div>
-                    <input 
-                      type="range" min="12" max="120" value={categoryTitleSize} 
-                      onChange={(e) => setCategoryTitleSize(e.target.value)} 
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                    />
+                    <input type="range" min="12" max="120" value={categoryTitleSize} onChange={(e) => setCategoryTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
                   </div>
-
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Featured Pieces Heading Size</Label>
-                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{featuredTitleSize}PX</Badge>
-                    </div>
-                    <input 
-                      type="range" min="12" max="120" value={featuredTitleSize} 
-                      onChange={(e) => setFeaturedTitleSize(e.target.value)} 
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                    />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Product Title Size</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Product Title</Label>
                       <Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge>
                     </div>
-                    <input 
-                      type="range" min="10" max="40" value={productTitleSize} 
-                      onChange={(e) => setProductTitleSize(e.target.value)} 
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Product Price Size</Label>
-                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge>
-                    </div>
-                    <input 
-                      type="range" min="10" max="40" value={productPriceSize} 
-                      onChange={(e) => setProductPriceSize(e.target.value)} 
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                    />
+                    <input type="range" min="10" max="40" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="admin" className="mt-6 space-y-6">
-              <Card className="border-blue-100 bg-blue-50/10 shadow-none">
-                <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2"><Settings2 className="h-3.5 w-3.5" /> Backend Architecture</CardTitle></CardHeader>
+            <TabsContent value="admin" className="mt-6 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-blue-100 bg-blue-50/10 shadow-none rounded-none">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2">
+                    <Settings2 className="h-3.5 w-3.5" /> Backend Architecture
+                  </CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-8">
                   <div className="grid gap-6">
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-primary">Backend Brand Color</Label>
                       <Input type="color" value={adminPrimaryColor} onChange={(e) => setAdminPrimaryColor(e.target.value)} className="h-10 p-1" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-primary">Backend Interface Color</Label>
-                      <Input type="color" value={adminAccentColor} onChange={(e) => setAdminAccentColor(e.target.value)} className="h-10 p-1" />
                     </div>
                     <Separator />
                     <div className="space-y-4">
@@ -612,13 +580,6 @@ export default function ThemeEnginePage() {
                         <SelectContent>{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-primary">Backend Body Font</Label>
-                      <Select value={adminBodyFont} onValueChange={setAdminBodyFont}>
-                        <SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none"><SelectValue /></SelectTrigger>
-                        <SelectContent>{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-medium py-3"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent>
-                      </Select>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -626,26 +587,30 @@ export default function ThemeEnginePage() {
           </Tabs>
         </div>
 
-        {/* Live Preview */}
-        <div id="theme-preview-root" className="xl:col-span-8 bg-[#f6f6f7] rounded-xl flex flex-col border border-[#e1e3e5] overflow-hidden">
-          <div className="h-14 bg-white border-b flex items-center justify-between px-6 shrink-0">
-            <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></div><div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-200"></div><div className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></div></div>
-            <div className="flex gap-1 border bg-gray-50 p-1 rounded-lg">
-              <button onClick={() => setDevice('desktop')} className={cn("p-2 rounded transition-all", device === 'desktop' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}><Monitor className="h-4 w-4" /></button>
-              <button onClick={() => setDevice('mobile')} className={cn("p-2 rounded transition-all", device === 'mobile' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}><Smartphone className="h-4 w-4" /></button>
+        {/* Live Preview Column */}
+        <div id="theme-preview-root" className="xl:col-span-8 bg-[#f6f6f7] rounded-none flex flex-col border border-[#e1e3e5] overflow-hidden xl:h-full h-[600px] min-w-0">
+          <div className="h-14 bg-white border-b flex items-center justify-between px-4 sm:px-6 shrink-0">
+            <div className="hidden sm:flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></div><div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-200"></div><div className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></div></div>
+            <div className="flex gap-1 border bg-gray-50 p-1 rounded-sm">
+              <button onClick={() => setDevice('desktop')} className={cn("p-2 rounded-sm transition-all", device === 'desktop' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}><Monitor className="h-4 w-4" /></button>
+              <button onClick={() => setDevice('mobile')} className={cn("p-2 rounded-sm transition-all", device === 'mobile' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}><Smartphone className="h-4 w-4" /></button>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-green-600 uppercase font-bold tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />Live Sync Active</div>
+            <div className="flex items-center gap-2 text-[9px] text-green-600 uppercase font-bold tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />Live Sync</div>
           </div>
-          <div className="flex-1 overflow-y-auto p-8 lg:p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:24px_24px]">
-            <div className={cn("bg-white transition-all duration-500 shadow-2xl overflow-hidden relative flex flex-col", device === 'desktop' ? "w-full max-w-4xl aspect-[16/10]" : "w-[375px] h-[667px]")}>
+          
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8 xl:p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:24px_24px]">
+            <div className={cn(
+              "bg-white transition-all duration-500 shadow-2xl overflow-hidden relative flex flex-col border border-black/5",
+              device === 'desktop' ? "w-full max-w-4xl aspect-[16/10]" : "w-[320px] h-[568px] sm:w-[375px] sm:h-[667px]"
+            )}>
               {bannerEnabled && (<div className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white shrink-0 px-4 text-center" style={{ backgroundColor: bannerBgColor }}>{bannerText}</div>)}
-              <div className="h-16 bg-white border-b flex items-center justify-between px-8 shrink-0"><span className="font-bold text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span><div className="flex items-center gap-3"><SearchIcon className="h-4 w-4 text-gray-300" /><ShoppingBag className="h-4 w-4 text-gray-300" /><div className="w-10 h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-300" /></div></div></div>
-              <div className="flex-1 overflow-y-auto p-8 space-y-12 font-body">
-                <div className="aspect-video bg-gray-50 flex flex-col p-12 border shadow-sm relative" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', textAlign: heroTextAlign as any }}>
+              <div className="h-16 bg-white border-b flex items-center justify-between px-6 sm:px-8 shrink-0"><span className="font-bold text-lg sm:text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span><div className="flex items-center gap-3"><SearchIcon className="h-4 w-4 text-gray-200" /><ShoppingBag className="h-4 w-4 text-gray-200" /><div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-200" /></div></div></div>
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-12 font-body">
+                <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', textAlign: heroTextAlign as any }}>
                   {heroImageUrl ? <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" /> : <div className="absolute inset-0 bg-gray-100" />}
-                  <div className="relative z-10 w-full"><span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 block">{heroSubheadline}</span><h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2><div className="mt-8 flex justify-center" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}><div className="hero-button-preview px-8 h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg">{heroButtonText}</div></div></div>
+                  <div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">{heroSubheadline}</span><h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2><div className="mt-6 sm:mt-8 flex" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}><div className="hero-button-preview px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">{heroButtonText}</div></div></div>
                 </div>
-                <div className="space-y-8"><h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight" style={{ color: primaryColor }}>Catalog Selection</h3><div className="grid grid-cols-2 gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-4"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none" style={{ color: primaryColor }}>Piece</p><p className="preview-price font-bold opacity-60">$890.00 CAD</p></div></div>))}</div></div>
+                <div className="space-y-8"><h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight" style={{ color: primaryColor }}>Catalog Selection</h3><div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none" style={{ color: primaryColor }}>Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div></div>
               </div>
             </div>
           </div>
