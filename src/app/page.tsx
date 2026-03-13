@@ -125,7 +125,6 @@ export default function Home() {
                   <div className="space-y-3 text-center">
                     <div className="flex flex-col items-center gap-1">
                       <h3 className="font-headline font-bold uppercase tracking-widest text-sm sm:text-lg leading-tight line-clamp-2">{cat.name}</h3>
-                      <span className="text-[8px] sm:text-[9px] font-mono font-bold text-gray-400 uppercase tracking-tighter">COLLECTION {idx + 1}</span>
                     </div>
                   </div>
                 </div>
