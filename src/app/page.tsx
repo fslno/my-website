@@ -105,12 +105,13 @@ export default function Home() {
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Archival Series pending dispatch.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
               {categories.map((cat: any, idx: number) => (
-                <div key={cat.id} className="group flex flex-col gap-6">
+                <div key={cat.id} className="group flex flex-col gap-4">
                   <Link 
                     href={`/collections/${cat.id}`} 
-                    className="relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-none shadow-sm border"
+                    className="relative aspect-square overflow-hidden bg-gray-100 rounded-none shadow-sm border"
+                    style={{ borderRadius: 'var(--radius)' }}
                   >
                     {cat.imageUrl ? (
                       <Image 
@@ -125,15 +126,15 @@ export default function Home() {
                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   </Link>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-start">
-                      <h3 className="font-headline font-bold uppercase tracking-widest text-lg leading-none">{cat.name}</h3>
-                      <span className="text-[9px] font-mono font-bold text-gray-400 mt-1">NO. 0{idx + 1}</span>
+                      <h3 className="font-headline font-bold uppercase tracking-widest text-sm sm:text-lg leading-tight line-clamp-2">{cat.name}</h3>
+                      <span className="text-[8px] sm:text-[9px] font-mono font-bold text-gray-400 mt-1 shrink-0">NO. 0{idx + 1}</span>
                     </div>
                     <Separator className="bg-black/5" />
                     <Link 
                       href={`/collections/${cat.id}`} 
-                      className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                      className="inline-flex items-center gap-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                     >
                       View Series <ArrowRight className="h-3 w-3" />
                     </Link>
