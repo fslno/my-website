@@ -68,7 +68,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
   const handleLogout = async () => {
     if (!auth) return;
     try {
-      await signOut(auth);
+      await auth.signOut();
       toast({
         title: "Signed out",
         description: "Your session is closed.",
@@ -105,7 +105,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               <SidebarMenuButton asChild tooltip="Home" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin">
                   <LayoutDashboard />
-                  <span>Home</span>
+                  <span>Dashboard</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -161,10 +161,10 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         </SidebarGroup>
 
         <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Management</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Settings</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Theme Engine" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/theme">
                   <Palette />
                   <span>Theme Engine</span>
@@ -172,15 +172,15 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Footer Editor" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Footer" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/footer">
                   <MenuIcon />
                   <span>Footer Editor</span>
                 </Link>
-              </SidebarMenuItem>
+              </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Notifications" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/notifications">
                   <MailWarning />
                   <span>Notifications</span>
@@ -188,7 +188,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Shipping & Pickup" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Shipping" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/shipping">
                   <Truck />
                   <span>Shipping & Pickup</span>
@@ -223,10 +223,10 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         </SidebarGroup>
 
         <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Sales Channels</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Channels</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Google Sync" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Google" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/google">
                   <RefreshCw />
                   <span>Google Sync</span>
@@ -234,7 +234,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Social Commerce" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Social" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/social">
                   <Share2 />
                   <span>Social Commerce</span>
@@ -242,10 +242,10 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Analytics (GA4)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/analytics">
                   <BarChart />
-                  <span>Analytics (GA4)</span>
+                  <span>Analytics</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -412,7 +412,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const adminThemeStyles = `
     :root {
       --admin-primary: ${theme?.adminPrimaryColor || '#000000'};
-      --admin-accent: ${theme?.adminAccentColor || '#FFFFFF'};
+      --admin-accent: #FFFFFF;
       --admin-header-h: ${theme?.adminHeaderHeight || 64}px;
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
       --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
