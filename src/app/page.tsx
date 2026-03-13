@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 export default function Home() {
   const db = useFirestore();
 
-  // Fetch top 4 categories for the Archival Series
+  // Fetch top 4 categories for the collection grid
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'categories'), limit(4));
@@ -86,7 +86,7 @@ export default function Home() {
         />
       )}
 
-      {/* Archival Series Manifest */}
+      {/* Simplified Category Grid */}
       <section className="py-24 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col items-center text-center mb-16 gap-6">
@@ -135,7 +135,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Selection Manifest */}
+      {/* Featured Products Selection */}
       <section className="py-24 bg-background">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col items-center text-center mb-16 gap-6">
@@ -162,7 +162,7 @@ export default function Home() {
                   name={product.name}
                   price={`$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD`}
                   image={product.media?.[0]?.url || ''}
-                  category={product.brand || 'FSLNO'}
+                  category={product.brand || 'FSLNO Studio'}
                 />
               ))}
             </div>

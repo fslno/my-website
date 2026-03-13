@@ -60,19 +60,19 @@ export default function CollectionPage({
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col gap-6">
             <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors w-fit">
-              <ChevronLeft className="h-3 w-3" /> Back to Archive
+              <ChevronLeft className="h-3 w-3" /> Back to Studio
             </Link>
             
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="space-y-3">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Archive Selection</span>
+                <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Studio Selection</span>
                 <h1 className="text-4xl md:text-6xl font-headline font-bold uppercase tracking-tight">
-                  {categoryId === 'all' ? 'All Archive Drops' : (category?.name || 'Collection')}
+                  {categoryId === 'all' ? 'All Studio Drops' : (category?.name || 'Collection')}
                 </h1>
                 {(category?.description || categoryId === 'all') && (
                   <p className="text-sm text-gray-500 max-w-2xl leading-relaxed uppercase tracking-tight">
                     {categoryId === 'all' 
-                      ? 'Discover the full breadth of our sculptural silhouettes and technical archive pieces.' 
+                      ? 'Discover our sculptural silhouettes and technical studio pieces.' 
                       : category?.description}
                   </p>
                 )}
@@ -89,7 +89,7 @@ export default function CollectionPage({
         <div className="max-w-[1440px] mx-auto px-4">
           {!products || products.length === 0 ? (
             <div className="text-center py-32 border-2 border-dashed rounded-none bg-gray-50/50">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">The archive is currently empty for this drop.</p>
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">The studio is currently empty for this drop.</p>
               <Button asChild variant="outline" className="mt-8 border-black font-bold uppercase tracking-[0.2em] text-[10px] h-14 px-10 rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
                 <Link href="/">Explore Featured Drops</Link>
               </Button>
@@ -103,7 +103,7 @@ export default function CollectionPage({
                   name={product.name}
                   price={`$${formatCurrency(Number(product.price))} CAD`}
                   image={product.media?.[0]?.url || ''}
-                  category={category?.name || product.brand || 'FSLNO Archive'}
+                  category={category?.name || product.brand || 'FSLNO Studio'}
                 />
               ))}
             </div>

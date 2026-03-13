@@ -99,7 +99,7 @@ export default function OrderDetailPage({
         <Header />
         <div className="pt-40 pb-24 px-4 text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Transaction Not Found.</p>
-          <Link href="/account/orders" className="mt-8 inline-block text-[10px] font-bold uppercase underline tracking-widest">Return to Archive</Link>
+          <Link href="/account/orders" className="mt-8 inline-block text-[10px] font-bold uppercase underline tracking-widest">Return to Studio</Link>
         </div>
         <Footer />
       </main>
@@ -254,7 +254,7 @@ export default function OrderDetailPage({
             <div className="bg-black text-white p-8 space-y-6">
               <h3 className="text-sm font-headline font-bold uppercase tracking-tight">Need Assistance?</h3>
               <p className="text-[10px] uppercase font-bold text-gray-400 leading-relaxed tracking-widest">
-                Our studio team is available for forensic support regarding your archival selection.
+                Our studio team is available for forensic support regarding your selection.
               </p>
               <Separator className="bg-white/10" />
               <div className="space-y-4">
@@ -271,10 +271,10 @@ export default function OrderDetailPage({
 
             <div className="p-8 border bg-white space-y-4">
               <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                <Calendar className="h-3 w-3 text-gray-400" /> Archival Integrity
+                <Calendar className="h-3 w-3 text-gray-400" /> Operational Integrity
               </h3>
               <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-medium">
-                Every transaction in the FSLNO archive is Authoritatively logged and verified. Once a status reaches "Delivered", the logistical cycle is strictly finalized.
+                Every transaction in the FSLNO studio is Authoritatively logged and verified. Once a status reaches "Delivered", the logistical cycle is strictly finalized.
               </p>
             </div>
           </div>

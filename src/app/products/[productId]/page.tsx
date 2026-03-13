@@ -169,7 +169,7 @@ export default function ProductDetailPage({
       name: product.name,
       price: Number(product.price),
       image: product.media?.[0]?.url || '',
-      brand: product.brand
+      brand: product.brand || 'FSLNO Studio'
     });
     toast({
       title: isSaved ? "Removed from Wishlist" : "Saved to Wishlist",
@@ -180,8 +180,8 @@ export default function ProductDetailPage({
   const handleShare = async () => {
     if (!product) return;
     const shareData = {
-      title: `FSLNO | ${product.name}`,
-      text: product.description || `Check out this ${product.name} from FSLNO.`,
+      title: `FSLNO Studio | ${product.name}`,
+      text: product.description || `Check out this ${product.name} from FSLNO Studio.`,
       url: window.location.href,
     };
 
@@ -300,7 +300,7 @@ export default function ProductDetailPage({
               <div className="flex items-center gap-4">
                 <p className="text-lg font-bold text-primary">${formatCurrency(totalPrice)} CAD</p>
               </div>
-              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO'}</p>
+              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">
                 REF: {displayedSku}
               </p>

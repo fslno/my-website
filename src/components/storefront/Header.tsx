@@ -280,7 +280,7 @@ export function Header() {
                   <ScrollArea className="max-h-[60vh]">
                     {filteredProducts.length === 0 ? (
                       <div className="p-12 text-center">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">No archival pieces found.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">No pieces found.</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 divide-y">
@@ -305,7 +305,7 @@ export function Header() {
                               )}
                             </div>
                             <div className="flex-1 flex flex-col justify-center gap-0.5 overflow-hidden">
-                              <p className="text-[8px] uppercase tracking-widest font-bold text-muted-foreground truncate">{product.brand || 'FSLNO ARCHIVE'}</p>
+                              <p className="text-[8px] uppercase tracking-widest font-bold text-muted-foreground truncate">{product.brand || 'FSLNO Studio'}</p>
                               <h3 className="text-xs font-headline font-bold uppercase tracking-tight truncate text-primary group-hover:underline">{product.name}</h3>
                               <p className="text-[10px] font-bold text-primary">${formatCurrency(Number(product.price))} CAD</p>
                             </div>
@@ -337,7 +337,7 @@ export function Header() {
                             {user.displayName || user.email}
                           </p>
                           <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                            Archive Member
+                            Studio Member
                           </p>
                         </div>
                       </DropdownMenuLabel>

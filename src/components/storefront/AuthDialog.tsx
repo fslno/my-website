@@ -47,7 +47,6 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     setIsLoading(true);
     
     try {
-      // We use initiateEmailSignIn from our helper which triggers the global auth listener
       initiateEmailSignIn(auth, email, password);
       onOpenChange(false);
       resetForm();
@@ -68,22 +67,12 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     setIsLoading(true);
 
     try {
-      // In sign-up we need to create the user doc, so we handle it more directly here
-      // but still using the standard Firebase SDK pattern
-      const userCredential = await initiateEmailSignUp(auth, email, password);
-      
-      // Since initiateEmailSignUp returns void in our helper, we should probably 
-      // rely on the auth state listener to create the profile, or do it here.
-      // For profile creation integrity, we'll use the non-blocking setDoc.
-      
-      // Note: In Next.js with Firebase, we usually listen for auth state changes in a provider.
-      // But for registration name capture, we do a quick profile update.
-      
+      await initiateEmailSignUp(auth, email, password);
       onOpenChange(false);
       resetForm();
       toast({
         title: "Account Created",
-        description: "Welcome to the archive. You can now track your orders.",
+        description: "Welcome to FSLNO Studio. You can now track your orders.",
       });
     } catch (error: any) {
       toast({
@@ -109,7 +98,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
           <DialogHeader className="mb-8">
             <div className="flex items-center gap-3 mb-2 text-primary">
               <ShieldCheck className="h-6 w-6" />
-              <DialogTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Archive Identity</DialogTitle>
+              <DialogTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Studio Identity</DialogTitle>
             </div>
             <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
               Sign in to track orders and manage your selection.
@@ -119,7 +108,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-gray-50 h-12 p-1 mb-8 rounded-none border">
               <TabsTrigger value="login" className="font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Sign In</TabsTrigger>
-              <TabsTrigger value="register" className="font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Join Archive</TabsTrigger>
+              <TabsTrigger value="register" className="font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Join Studio</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">

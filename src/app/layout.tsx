@@ -9,13 +9,13 @@ import { PushNotificationManager } from '@/components/storefront/PushNotificatio
 import { Chatbot } from '@/components/storefront/Chatbot';
 
 export const metadata: Metadata = {
-  title: 'FSLNO | Luxury Archive Storefront',
-  description: 'High-end minimalist archive e-commerce experience.',
+  title: 'FSLNO | Luxury Studio Storefront',
+  description: 'High-end minimalist studio e-commerce experience.',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'FSLNO Archive',
+    title: 'FSLNO Studio',
   },
   formatDetection: {
     telephone: false,

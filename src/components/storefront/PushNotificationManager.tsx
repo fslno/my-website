@@ -18,7 +18,6 @@ export function PushNotificationManager() {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setPermission(Notification.permission);
       
-      // Register Service Worker for PWA/FCM
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/firebase-messaging-sw.js')
@@ -31,7 +30,6 @@ export function PushNotificationManager() {
         });
       }
 
-      // Show prompt if permission is not yet granted/denied
       if (Notification.permission === 'default') {
         const timer = setTimeout(() => setShowPrompt(true), 5000);
         return () => clearTimeout(timer);
@@ -49,12 +47,12 @@ export function PushNotificationManager() {
         const messaging = await getMessagingInstance(app);
         if (messaging) {
           const token = await getToken(messaging, {
-            vapidKey: 'BHz_YOUR_VAPID_KEY_HERE' // Replace with your actual VAPID key from Firebase Console
+            vapidKey: 'BHz_YOUR_VAPID_KEY_HERE'
           });
           console.log('FCM Token generated:', token);
           toast({
             title: "Notifications Active",
-            description: "You will now receive archive updates."
+            description: "You will now receive Studio updates."
           });
         }
       }
@@ -78,8 +76,8 @@ export function PushNotificationManager() {
           <Bell className="h-5 w-5 text-white" />
         </div>
         <div className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-widest leading-none">Drop Notifications</h3>
-          <p className="text-[10px] text-gray-400 leading-relaxed uppercase">Enable alerts for new archival drops and private spot closings.</p>
+          <h3 className="text-xs font-bold uppercase tracking-widest leading-none">Studio Notifications</h3>
+          <p className="text-[10px] text-gray-400 leading-relaxed uppercase">Enable alerts for new Studio drops and private spot closings.</p>
           <Button 
             onClick={requestPermission}
             className="w-full h-10 bg-white text-black font-bold uppercase tracking-widest text-[9px] hover:bg-[#D3D3D3]"
