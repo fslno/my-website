@@ -49,8 +49,7 @@ export function BentoHero({
             <div className="absolute inset-0 bg-primary opacity-20" />
           )}
           <div className={cn(
-            "absolute inset-0 p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align hero-vertical-align",
-            textAlign === 'left' ? 'items-start' : textAlign === 'right' ? 'items-end' : 'items-center'
+            "absolute inset-0 p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent hero-vertical-align"
           )}>
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {subheadline}

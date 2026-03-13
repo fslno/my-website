@@ -100,8 +100,8 @@ export function ThemeStyleInjector() {
     const getFlexAlign = (align: string) => align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
     const getVerticalAlign = (align: string) => align === 'bottom' ? 'flex-end' : align === 'top' ? 'flex-start' : 'center';
 
-    // Automatic Mobile Scaling Handshake:
-    // We calculate a mobile baseline (min) based on 60-80% of the admin-defined size.
+    // Automatic Mobile Scaling Protocol:
+    // We calculate a mobile baseline (min) based on 50-80% of the admin-defined size.
     // clamp(min, preferred, max) ensures fluid scaling between 375px and 1440px viewports.
     styleTag.innerHTML = `
       :root {
@@ -162,6 +162,7 @@ export function ThemeStyleInjector() {
       }
       .hero-vertical-align {
         justify-content: var(--hero-vertical-align) !important;
+        align-items: var(--hero-flex-align) !important;
       }
       
       /* AUTOMATIC MOBILE SCALING PROTOCOL */

@@ -40,7 +40,7 @@ import {
   ShoppingBag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -478,6 +478,35 @@ export default function ThemeEnginePage() {
                     <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Headline</Label><Input value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} className="h-12 font-headline" /></div>
                     <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subheadline</Label><Input value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} className="h-12 uppercase tracking-widest" /></div>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Headline Size</Label>
+                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</Badge>
+                      </div>
+                      <input 
+                        type="range" min="32" max="160" value={heroHeadlineSize} 
+                        onChange={(e) => setHeroHeadlineSize(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Alignment Orchestration</Label>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex border p-1 rounded-sm bg-gray-50 flex-1">
+                          <Button variant={heroTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
+                          <Button variant={heroTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
+                          <Button variant={heroTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
+                        </div>
+                        <div className="flex border p-1 rounded-sm bg-gray-50 flex-1">
+                          <Button variant={heroVerticalAlign === 'top' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('top')} title="Top Alignment"><AlignLeft className="h-4 w-4 rotate-90" /></Button>
+                          <Button variant={heroVerticalAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('center')} title="Center Alignment"><AlignCenter className="h-4 w-4 rotate-90" /></Button>
+                          <Button variant={heroVerticalAlign === 'bottom' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('bottom')} title="Bottom Alignment"><AlignRight className="h-4 w-4 rotate-90" /></Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="border-[#e1e3e5] shadow-none">
@@ -486,7 +515,7 @@ export default function ThemeEnginePage() {
                   <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Button Text</Label><Input value={heroButtonText} onChange={(e) => setHeroButtonText(e.target.value)} className="h-12 uppercase font-bold text-xs" /></div>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background</Label><Input type="color" value={heroButtonBgColor} onChange={(e) => setHeroButtonBgColor(e.target.value)} className="h-10 p-1" /></div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Text Color</Label><Input type="color" value={heroButtonTextColor} onChange={(e) => setHeroButtonTextColor(e.target.value)} className="h-10 p-1" /></div>
+                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Text Color</Label><Input type="color" value={heroButtonTextColor} onChange={(e) => setHeroButtonTextColor(e.target.value)} className="h-10 p-1" /></div>
                   </div>
                 </CardContent>
               </Card>

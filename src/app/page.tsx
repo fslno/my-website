@@ -71,8 +71,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-primary opacity-20" />
               )}
               <div className={cn(
-                "absolute inset-0 flex flex-col text-primary-foreground p-12 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-text-align hero-vertical-align",
-                theme?.heroTextAlign === 'left' ? 'items-start' : theme?.heroTextAlign === 'right' ? 'items-end' : 'items-center'
+                "absolute inset-0 flex flex-col text-primary-foreground p-12 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-vertical-align"
               )}>
                 <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
                 <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none block">
