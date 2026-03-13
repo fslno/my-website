@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -22,7 +23,7 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
-    // FORCE_REDEPLOY_PROTOCOL_V17_ULTIMATE_STABILITY
+    // FORCE_REDEPLOY_PROTOCOL_V18_BANDWIDTH_LIMIT_RESOLVED
 
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
@@ -75,6 +76,11 @@ service cloud.firestore {
 
     match /partners/{partnerId} {
       allow read, write: if isAdmin();
+    }
+
+    match /staff/{staffId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /config/{configId} {

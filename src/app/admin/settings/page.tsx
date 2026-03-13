@@ -30,6 +30,15 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger, 
+  DialogFooter,
+  DialogDescription 
+} from '@/components/ui/dialog';
+import { 
   Building2, 
   MapPin, 
   Phone, 
@@ -48,14 +57,13 @@ import {
   Palette,
   Settings2,
   Plus,
-  Instagram,
-  Twitter,
-  MessageSquare,
-  Facebook,
-  MessageCircle
+  PlusCircle,
+  X,
+  UserCheck,
+  ShieldAlert
 } from 'lucide-react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -64,16 +72,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-interface ContactItem {
-  label: string;
-  value: string;
-}
-
-interface SocialItem {
-  platform: string;
-  url: string;
-}
-
 export default function SettingsPage() {
   const db = useFirestore();
   const { toast } = useToast();
@@ -81,11 +79,11 @@ export default function SettingsPage() {
 
   // Firestore References
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
-  const staffConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'staff') : null, [db]);
+  const staffQuery = useMemoFirebase(() => db ? collection(db, 'staff') : null, [db]);
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
 
   const { data: storeConfig, loading: storeLoading } = useDoc(storeConfigRef);
-  const { data: staffConfig, loading: staffLoading } = useDoc(staffConfigRef);
+  const { data: staffMembers, isLoading: staffLoading } = useCollection(staffQuery);
   const { data: themeData, loading: themeLoading } = useDoc(themeRef);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -97,24 +95,15 @@ export default function SettingsPage() {
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [phone, setPhone] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
-  const [whatsAppNumber, setWhatsAppNumber] = useState('');
 
-  // Contact Manifest State
-  const [phoneNumbers, setPhoneNumbers] = useState<ContactItem[]>([]);
-  const [emailAddresses, setEmailAddresses] = useState<ContactItem[]>([]);
-  const [socialChannels, setSocialChannels] = useState<SocialItem[]>([]);
-
-  // Staff Form State
-  const [staffName, setStaffName] = useState('Admin Name');
-  const [staffEmail, setStaffEmail] = useState('admin@yourstore.com');
-  const [staffPhone, setStaffPhone] = useState('+1 (000) 000-0000');
-  const [timezone, setTimezone] = useState('(UTC-05:00) Eastern Time');
-
-  // Chatbot State
-  const [chatbotEnabled, setChatbotEnabled] = useState(true);
-  const [chatbotColor, setChatbotColor] = useState('#1c4673');
-  const [chatbotSize, setChatbotSize] = useState('60');
-  const [chatbotPosition, setChatbotPosition] = useState('right');
+  // Staff Dialog State
+  const [isStaffDialogOpen, setIsStaffDialogOpen] = useState(false);
+  const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
+  const [staffName, setStaffName] = useState('');
+  const [staffEmail, setStaffEmail] = useState('');
+  const [staffPhone, setStaffPhone] = useState('');
+  const [staffTimezone, setStaffTimezone] = useState('(UTC-05:00) Eastern Time');
+  const [staffStatus, setStaffStatus] = useState<'Active' | 'Inactive'>('Active');
 
   // Initialize forms when data loads
   useEffect(() => {
@@ -124,31 +113,8 @@ export default function SettingsPage() {
       setGoogleMapsUrl(storeConfig.googleMapsUrl || '');
       setPhone(storeConfig.phone || '');
       setLogoUrl(storeConfig.logoUrl || '');
-      setWhatsAppNumber(storeConfig.whatsAppNumber || '');
-      
-      setPhoneNumbers(storeConfig.phoneNumbers || []);
-      setEmailAddresses(storeConfig.emailAddresses || []);
-      setSocialChannels(storeConfig.socialChannels || []);
     }
   }, [storeConfig]);
-
-  useEffect(() => {
-    if (staffConfig) {
-      setStaffName(staffConfig.fullName || 'Admin Name');
-      setStaffEmail(staffConfig.email || 'admin@yourstore.com');
-      setStaffPhone(staffConfig.phone || '+1 (000) 000-0000');
-      setTimezone(staffConfig.timezone || '(UTC-05:00) Eastern Time');
-    }
-  }, [staffConfig]);
-
-  useEffect(() => {
-    if (themeData) {
-      setChatbotEnabled(themeData.chatbotEnabled ?? true);
-      setChatbotColor(themeData.chatbotColor || '#1c4673');
-      setChatbotSize(themeData.chatbotSize?.toString() || '60');
-      setChatbotPosition(themeData.chatbotPosition || 'right');
-    }
-  }, [themeData]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -177,75 +143,64 @@ export default function SettingsPage() {
   };
 
   const handleSaveStaff = async () => {
-    if (!staffConfigRef) return;
-    setIsSaving(true);
-    const updates = { fullName: staffName, email: staffEmail, phone: staffPhone, timezone, updatedAt: new Date().toISOString() };
-    setDoc(staffConfigRef, updates, { merge: true })
-      .then(() => toast({ title: "Staff Profile Saved", description: "Personal administrative identity updated." }))
-      .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: staffConfigRef.path, operation: 'write', requestResourceData: updates })))
-      .finally(() => setIsSaving(false));
-  };
-
-  const handleSaveChatbot = async () => {
-    if (!themeRef || !storeConfigRef) return;
+    if (!db || !staffName || !staffEmail) return;
     setIsSaving(true);
     
-    const themeUpdates = {
-      chatbotEnabled,
-      chatbotColor,
-      chatbotSize: Number(chatbotSize),
-      chatbotPosition,
-      updatedAt: new Date().toISOString()
+    const staffData = {
+      fullName: staffName,
+      email: staffEmail,
+      phone: staffPhone,
+      timezone: staffTimezone,
+      status: staffStatus,
+      updatedAt: serverTimestamp()
     };
 
-    const storeUpdates = {
-      phoneNumbers,
-      emailAddresses,
-      socialChannels,
-      whatsAppNumber,
-      updatedAt: new Date().toISOString()
-    };
-
-    Promise.all([
-      setDoc(themeRef, themeUpdates, { merge: true }),
-      setDoc(storeConfigRef, storeUpdates, { merge: true })
-    ])
-      .then(() => toast({ title: "Chatbot & Contacts Saved", description: "Studio support protocols updated." }))
-      .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: { ...themeUpdates, ...storeUpdates } })))
-      .finally(() => setIsSaving(false));
-  };
-
-  const addContact = (type: 'phone' | 'email' | 'social') => {
-    if (type === 'phone') setPhoneNumbers([...phoneNumbers, { label: '', value: '' }]);
-    if (type === 'email') setEmailAddresses([...emailAddresses, { label: '', value: '' }]);
-    if (type === 'social') setSocialChannels([...socialChannels, { platform: 'Instagram', url: '' }]);
-  };
-
-  const removeContact = (type: 'phone' | 'email' | 'social', index: number) => {
-    if (type === 'phone') setPhoneNumbers(phoneNumbers.filter((_, i) => i !== index));
-    if (type === 'email') setEmailAddresses(emailAddresses.filter((_, i) => i !== index));
-    if (type === 'social') setSocialChannels(socialChannels.filter((_, i) => i !== index));
-  };
-
-  const updateContact = (type: 'phone' | 'email' | 'social', index: number, field: string, value: string) => {
-    if (type === 'phone') {
-      const next = [...phoneNumbers];
-      (next[index] as any)[field] = value;
-      setPhoneNumbers(next);
-    }
-    if (type === 'email') {
-      const next = [...emailAddresses];
-      (next[index] as any)[field] = value;
-      setEmailAddresses(next);
-    }
-    if (type === 'social') {
-      const next = [...socialChannels];
-      (next[index] as any)[field] = value;
-      setSocialChannels(next);
+    if (editingStaffId) {
+      updateDoc(doc(db, 'staff', editingStaffId), staffData)
+        .then(() => {
+          setIsStaffDialogOpen(false);
+          resetStaffForm();
+          toast({ title: "Staff Member Updated", description: "Profile details synchronized." });
+        })
+        .finally(() => setIsSaving(false));
+    } else {
+      addDoc(collection(db, 'staff'), { ...staffData, createdAt: serverTimestamp() })
+        .then(() => {
+          setIsStaffDialogOpen(false);
+          resetStaffForm();
+          toast({ title: "Staff Member Added", description: "New identity registered in studio." });
+        })
+        .finally(() => setIsSaving(false));
     }
   };
 
-  if (storeLoading || staffLoading || themeLoading) {
+  const deleteStaff = (id: string) => {
+    if (!db || !confirm("Authoritatively decommission this staff access?")) return;
+    deleteDoc(doc(db, 'staff', id)).then(() => {
+      toast({ title: "Staff Removed", description: "Identity decommissioned." });
+    });
+  };
+
+  const openStaffEdit = (staff: any) => {
+    setStaffName(staff.fullName || '');
+    setStaffEmail(staff.email || '');
+    setStaffPhone(staff.phone || '');
+    setStaffTimezone(staff.timezone || '(UTC-05:00) Eastern Time');
+    setStaffStatus(staff.status || 'Active');
+    setEditingStaffId(staff.id);
+    setIsStaffDialogOpen(true);
+  };
+
+  const resetStaffForm = () => {
+    setStaffName('');
+    setStaffEmail('');
+    setStaffPhone('');
+    setStaffTimezone('(UTC-05:00) Eastern Time');
+    setStaffStatus('Active');
+    setEditingStaffId(null);
+  };
+
+  if (storeLoading || themeLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -266,10 +221,7 @@ export default function SettingsPage() {
             <Building2 className="h-3.5 w-3.5" /> Store Profile
           </TabsTrigger>
           <TabsTrigger value="staff" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white transition-all">
-            <User className="h-3.5 w-3.5" /> Staff Profile
-          </TabsTrigger>
-          <TabsTrigger value="chatbot" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white transition-all">
-            <MessageSquareMore className="h-3.5 w-3.5" /> Support & Chat
+            <User className="h-3.5 w-3.5" /> Staff Manifest
           </TabsTrigger>
         </TabsList>
 
@@ -357,303 +309,120 @@ export default function SettingsPage() {
 
         <TabsContent value="staff" className="space-y-6">
           <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                <CardTitle className="text-lg font-headline uppercase tracking-tight">Staff Profile</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
+              <div>
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Staff Manifest</CardTitle>
+                </div>
+                <CardDescription>Manage Authoritative administrative identities and access roles.</CardDescription>
               </div>
-              <CardDescription>Manage your personal administrative identity and accessibility.</CardDescription>
+              <Dialog open={isStaffDialogOpen} onOpenChange={(open) => { setIsStaffDialogOpen(open); if (!open) resetStaffForm(); }}>
+                <DialogTrigger asChild>
+                  <Button className="bg-black text-white h-9 px-4 font-bold uppercase tracking-widest text-[9px] gap-2">
+                    <PlusCircle className="h-3.5 w-3.5" /> Add Staff
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+                  <DialogHeader className="pt-8">
+                    <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Identity Provisioning</DialogTitle>
+                    <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Register a new studio operator manifest.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Full Legal Name</Label>
+                      <Input placeholder="e.g. Alexander McQueen" value={staffName} onChange={(e) => setStaffName(e.target.value)} className="h-12" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Dispatch Email</Label>
+                      <Input type="email" placeholder="staff@fslno.com" value={staffEmail} onChange={(e) => setStaffEmail(e.target.value)} className="h-12" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Voice Line</Label>
+                        <Input placeholder="+1..." value={staffPhone} onChange={(e) => setStaffPhone(e.target.value)} className="h-12" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Status</Label>
+                        <Select value={staffStatus} onValueChange={(v: any) => setStaffStatus(v)}>
+                          <SelectTrigger className="h-12">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Active" className="text-[10px] font-bold uppercase">Active</SelectItem>
+                            <SelectItem value="Inactive" className="text-[10px] font-bold uppercase">Inactive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleSaveStaff} disabled={isSaving || !staffName || !staffEmail} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]">
+                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                      Commit Identity
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent className="p-0 overflow-hidden">
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow className="border-[#e1e3e5]">
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest py-4 pl-6">Field Name</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest">Current Value / Setting</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest">Status</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest py-4 pl-6">Operator Identity</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest">Dispatch Channels</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest">Temporal Zone</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Status</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow className="hover:bg-transparent border-[#e1e3e5]">
-                    <TableCell className="pl-6 font-bold text-sm flex items-center gap-3">
-                      <User className="h-4 w-4 text-gray-400" /> Full Name
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <Input 
-                        value={staffName} 
-                        onChange={(e) => setStaffName(e.target.value)} 
-                        className="h-10 text-xs font-medium max-w-xs bg-white" 
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-[9px] font-bold border-black uppercase bg-black text-white">Public</Badge>
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-transparent border-[#e1e3e5]">
-                    <TableCell className="pl-6 font-bold text-sm flex items-center gap-3">
-                      <Mail className="h-4 w-4 text-gray-400" /> Email Address
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <Input 
-                        value={staffEmail} 
-                        onChange={(e) => setStaffEmail(e.target.value)} 
-                        className="h-10 text-xs font-medium max-w-xs bg-white" 
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-[9px] font-bold border-green-200 text-green-700 bg-green-50 uppercase flex items-center gap-1 w-fit">
-                        <ShieldCheck className="h-2.5 w-2.5" /> Verified
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-transparent border-[#e1e3e5]">
-                    <TableCell className="pl-6 font-bold text-sm flex items-center gap-3">
-                      <Phone className="h-4 w-4 text-gray-400" /> Phone Number
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <Input 
-                        value={staffPhone} 
-                        onChange={(e) => setStaffPhone(e.target.value)} 
-                        className="h-10 text-xs font-medium max-w-xs bg-white" 
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-[9px] font-bold border-gray-200 text-gray-500 uppercase">Private</Badge>
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-transparent border-0">
-                    <TableCell className="pl-6 font-bold text-sm flex items-center gap-3">
-                      <Globe className="h-4 w-4 text-gray-400" /> Timezone
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <Input 
-                        value={timezone} 
-                        onChange={(e) => setTimezone(e.target.value)} 
-                        className="h-10 text-xs font-medium max-w-xs bg-white" 
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-[9px] font-bold border-blue-200 text-blue-700 bg-blue-50 uppercase flex items-center gap-1 w-fit">
-                        <Clock className="h-2.5 w-2.5" /> ON
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" size="sm" className="text-[10px] font-bold uppercase tracking-widest">Edit</Button>
-                    </TableCell>
-                  </TableRow>
+                  {staffLoading ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+                  ) : !staffMembers || staffMembers.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-12 text-[10px] font-bold uppercase text-gray-400">No staff identities cataloged.</TableCell></TableRow>
+                  ) : (
+                    staffMembers.map((staff) => (
+                      <TableRow key={staff.id} className="hover:bg-gray-50/30 transition-all group">
+                        <TableCell className="pl-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-[10px] border shadow-sm uppercase">
+                              {staff.fullName?.substring(0, 2)}
+                            </div>
+                            <span className="font-bold text-sm uppercase">{staff.fullName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] font-bold text-primary lowercase">{staff.email}</span>
+                            <span className="text-[9px] text-gray-400 font-mono">{staff.phone || 'NO-PHONE'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-[10px] font-medium text-gray-500 uppercase tracking-tight">
+                          {staff.timezone}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline" className={cn("text-[8px] font-bold uppercase tracking-widest border-none", staff.status === 'Active' ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")}>
+                            {staff.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="pr-6">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black hover:text-white" onClick={() => openStaffEdit(staff)}>
+                              <Save className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-50" onClick={() => deleteStaff(staff.id)}>
+                              <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSaveStaff} disabled={isSaving} className="bg-black text-white h-12 px-10 font-bold uppercase tracking-[0.2em] text-[10px]">
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-              Commit Staff Changes
-            </Button>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="chatbot" className="space-y-8">
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
-              <div>
-                <div className="flex items-center gap-2">
-                  <MessageSquareMore className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Support Chatbot Orchestrator</CardTitle>
-                </div>
-                <CardDescription>Configure visual and behavioral parameters for the Studio floating dispatch.</CardDescription>
-              </div>
-              <Switch checked={chatbotEnabled} onCheckedChange={setChatbotEnabled} />
-            </CardHeader>
-            <CardContent className="pt-8 space-y-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="space-y-8">
-                  <div className="space-y-4">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                      <Palette className="h-3.5 w-3.5" /> Handshake Color
-                    </Label>
-                    <div className="flex gap-3">
-                      <div className="w-14 h-14 rounded-sm border p-1 bg-white shadow-sm overflow-hidden shrink-0">
-                        <Input 
-                          type="color" 
-                          className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
-                          value={chatbotColor} 
-                          onChange={(e) => setChatbotColor(e.target.value)} 
-                        />
-                      </div>
-                      <Input 
-                        value={chatbotColor} 
-                        onChange={(e) => setChatbotColor(e.target.value)} 
-                        className="h-14 font-mono text-xs uppercase" 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Dimensional Scale</Label>
-                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{chatbotSize}PX</Badge>
-                    </div>
-                    <input 
-                      type="range" min="40" max="80" value={chatbotSize} 
-                      onChange={(e) => setChatbotSize(e.target.value)} 
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                    />
-                    <div className="flex justify-between text-[8px] font-bold text-gray-400 uppercase">
-                      <span>Subtle</span>
-                      <span>Prominent</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-8">
-                  <div className="space-y-4">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                      <MapPin className="h-3.5 w-3.5" /> Viewport Alignment
-                    </Label>
-                    <div className="flex border p-1 rounded-sm bg-gray-50 gap-1">
-                      <Button 
-                        variant={chatbotPosition === 'left' ? 'default' : 'ghost'} 
-                        className={cn("flex-1 h-12 uppercase font-bold text-[10px] rounded-none", chatbotPosition === 'left' ? "bg-black text-white" : "text-gray-400")} 
-                        onClick={() => setChatbotPosition('left')}
-                      >
-                        Left Side
-                      </Button>
-                      <Button 
-                        variant={chatbotPosition === 'right' ? 'default' : 'ghost'} 
-                        className={cn("flex-1 h-12 uppercase font-bold text-[10px] rounded-none", chatbotPosition === 'right' ? "bg-black text-white" : "text-gray-400")} 
-                        onClick={() => setChatbotPosition('right')}
-                      >
-                        Right Side
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-blue-50 border border-blue-100 rounded-sm">
-                    <p className="text-[10px] text-blue-800 leading-relaxed uppercase font-medium">
-                      The chatbot Authoritatively surfaces all contact paths defined in the <strong>Contact Manifest</strong> sections below.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="border-[#e1e3e5] shadow-none">
-              <CardHeader className="flex flex-row items-center justify-between border-b">
-                <div>
-                  <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-blue-500" /> Phone & WhatsApp Manifest
-                  </CardTitle>
-                  <CardDescription className="text-[10px]">Voice and instant message dispatch paths.</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => addContact('phone')} className="h-8 text-[9px] font-bold uppercase border-black">
-                  <Plus className="h-3 w-3 mr-1" /> Add Voice Path
-                </Button>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                <div className="space-y-2 pb-4 border-b">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                    <MessageCircle className="h-3 w-3 text-[#25D366]" /> Primary WhatsApp Number
-                  </Label>
-                  <Input 
-                    placeholder="e.g. 15550000000 (Digits only)" 
-                    value={whatsAppNumber} 
-                    onChange={(e) => setWhatsAppNumber(e.target.value.replace(/[^0-9]/g, ''))} 
-                    className="h-11 font-mono text-xs" 
-                  />
-                  <p className="text-[8px] text-gray-400 uppercase font-medium">Use international format without + or 00.</p>
-                </div>
-                <div className="space-y-4">
-                  {phoneNumbers.map((item, idx) => (
-                    <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <Input placeholder="Label (e.g. Sales)" value={item.label} onChange={(e) => updateContact('phone', idx, 'label', e.target.value)} className="h-10 text-[10px] font-bold uppercase" />
-                      <Input placeholder="Number" value={item.value} onChange={(e) => updateContact('phone', idx, 'value', e.target.value)} className="h-10 text-xs font-mono" />
-                      <Button variant="ghost" size="icon" onClick={() => removeContact('phone', idx)} className="h-10 w-10 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                  ))}
-                  {phoneNumbers.length === 0 && <p className="text-center py-4 text-[9px] text-gray-400 font-bold uppercase">No additional phones cataloged.</p>}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-[#e1e3e5] shadow-none">
-              <CardHeader className="flex flex-row items-center justify-between border-b">
-                <div>
-                  <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-purple-500" /> Email Manifest
-                  </CardTitle>
-                  <CardDescription className="text-[10px]">Additional digital dispatch paths.</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => addContact('email')} className="h-8 text-[9px] font-bold uppercase border-black">
-                  <Plus className="h-3 w-3 mr-1" /> Add Path
-                </Button>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                {emailAddresses.map((item, idx) => (
-                  <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <Input placeholder="Label (e.g. Support)" value={item.label} onChange={(e) => updateContact('email', idx, 'label', e.target.value)} className="h-10 text-[10px] font-bold uppercase" />
-                    <Input placeholder="Email" value={item.value} onChange={(e) => updateContact('email', idx, 'value', e.target.value)} className="h-10 text-xs font-mono" />
-                    <Button variant="ghost" size="icon" onClick={() => removeContact('email', idx)} className="h-10 w-10 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                ))}
-                {emailAddresses.length === 0 && <p className="text-center py-4 text-[9px] text-gray-400 font-bold uppercase">No additional emails cataloged.</p>}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between border-b">
-              <div>
-                <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                  <Instagram className="h-4 w-4 text-pink-500" /> Social Discovery Manifest
-                </CardTitle>
-                <CardDescription className="text-[10px]">Connect your Studio channels to the chatbot.</CardDescription>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => addContact('social')} className="h-8 text-[9px] font-bold uppercase border-black">
-                <Plus className="h-3 w-3 mr-1" /> Add Channel
-              </Button>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              {socialChannels.map((item, idx) => (
-                <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <Select value={item.platform} onValueChange={(v) => updateContact('social', idx, 'platform', v)}>
-                    <SelectTrigger className="h-10 w-[150px] text-[10px] font-bold uppercase">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Instagram" className="text-[10px] uppercase font-bold">Instagram</SelectItem>
-                      <SelectItem value="TikTok" className="text-[10px] uppercase font-bold">TikTok</SelectItem>
-                      <SelectItem value="Messenger" className="text-[10px] uppercase font-bold">Messenger</SelectItem>
-                      <SelectItem value="Twitter" className="text-[10px] uppercase font-bold">Twitter / X</SelectItem>
-                      <SelectItem value="Other" className="text-[10px] uppercase font-bold">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input placeholder="Channel URL" value={item.url} onChange={(e) => updateContact('social', idx, 'url', e.target.value)} className="flex-1 h-10 text-xs font-mono" />
-                  <Button variant="ghost" size="icon" onClick={() => removeContact('social', idx)} className="h-10 w-10 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              ))}
-              {socialChannels.length === 0 && <p className="text-center py-4 text-[9px] text-gray-400 font-bold uppercase">No social discovery paths cataloged.</p>}
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSaveChatbot} disabled={isSaving} className="bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all">
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-              Save Support & Chat Protocols
-            </Button>
-          </div>
         </TabsContent>
       </Tabs>
     </div>

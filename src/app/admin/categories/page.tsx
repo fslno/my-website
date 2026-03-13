@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useMemo } from 'react';
@@ -29,7 +30,9 @@ import {
   ShoppingBag,
   ChevronRight,
   ChevronLeft,
-  Save
+  Save,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -49,10 +52,12 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, query, where, orderBy, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 export default function CategoriesPage() {
@@ -65,8 +70,11 @@ export default function CategoriesPage() {
     return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
   }, [user]);
 
-  // Stable references for queries - strictly guarded
-  const categoriesQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'categories') : null, [db, isAdmin]);
+  // Stable references for queries - strictly guarded and sorted by order
+  const categoriesQuery = useMemoFirebase(() => 
+    db && isAdmin ? query(collection(db, 'categories'), orderBy('order', 'asc')) : null, 
+    [db, isAdmin]
+  );
   const chartsQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'sizeCharts') : null, [db, isAdmin]);
 
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
@@ -109,7 +117,7 @@ export default function CategoriesPage() {
     
     setIsSaving(true);
     
-    const categoryData = {
+    const categoryData: any = {
       name,
       description,
       imageUrl: imageUrl || '',
@@ -135,7 +143,16 @@ export default function CategoriesPage() {
         })
         .finally(() => setIsSaving(false));
     } else {
-      const newData = { ...categoryData, createdAt: new Date().toISOString() };
+      const nextOrder = categories && categories.length > 0 
+        ? Math.max(...categories.map(c => c.order || 0)) + 1 
+        : 0;
+      
+      const newData = { 
+        ...categoryData, 
+        order: nextOrder,
+        createdAt: new Date().toISOString() 
+      };
+      
       addDoc(collection(db, 'categories'), newData)
         .then(() => {
           setIsDialogOpen(false);
@@ -151,6 +168,27 @@ export default function CategoriesPage() {
         })
         .finally(() => setIsSaving(false));
     }
+  };
+
+  const handleMoveOrder = async (id: string, direction: 'up' | 'down', e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!db || !categories) return;
+    
+    const index = categories.findIndex(c => c.id === id);
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === categories.length - 1) return;
+
+    const otherIndex = direction === 'up' ? index - 1 : index + 1;
+    const current = categories[index];
+    const other = categories[otherIndex];
+
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'categories', current.id), { order: other.order ?? otherIndex });
+    batch.update(doc(db, 'categories', other.id), { order: current.order ?? index });
+
+    await batch.commit().then(() => {
+      toast({ title: "Order Synchronized", description: "Category hierarchy updated." });
+    });
   };
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
@@ -357,7 +395,7 @@ export default function CategoriesPage() {
                     </div>
                     <div className="space-y-1 max-w-2xl">
                       <p className="text-blue-700 text-xl hover:underline cursor-pointer font-medium line-clamp-1">
-                        {seoTitle || (name || 'Category Title')} | FSLNO ARCHIVE
+                        {seoTitle || (name || 'Category Title')} | FSLNO STUDIO
                       </p>
                       <p className="text-green-800 text-sm line-clamp-1">https://fslno.com/collections/{(name || 'category').toLowerCase().replace(/\s+/g, '-')}</p>
                       <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
@@ -418,8 +456,8 @@ export default function CategoriesPage() {
                           <TableRow>
                             <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-widest">Preview</TableHead>
                             <TableHead className="text-[10px] font-bold uppercase tracking-widest">Product Name</TableHead>
-                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">Price</TableHead>
-                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">Stock Status</TableHead>
+                            <TableHead className="text-[10px] font-bold uppercase tracking-widest text-right">Price</TableHead>
+                            <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Stock Status</TableHead>
                             <TableHead className="w-[100px]"></TableHead>
                           </TableRow>
                         </TableHeader>
@@ -433,13 +471,13 @@ export default function CategoriesPage() {
                               </TableCell>
                               <TableCell>
                                 <div className="flex flex-col">
-                                  <span className="font-bold text-sm">{product.name}</span>
-                                  <span className="text-[10px] font-mono text-gray-400">{product.sku || 'NO-SKU'}</span>
+                                  <span className="font-bold text-sm uppercase">{product.name}</span>
+                                  <span className="text-[10px] font-mono text-gray-400 uppercase">{product.sku || 'NO-SKU'}</span>
                                 </div>
                               </TableCell>
-                              <TableCell className="font-medium">${Number(product.price).toFixed(2)}</TableCell>
-                              <TableCell>
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded ${Number(product.inventory) > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                              <TableCell className="text-right font-medium font-mono">${Number(product.price).toFixed(2)}</TableCell>
+                              <TableCell className="text-center">
+                                <span className={cn("text-[10px] font-bold px-2 py-1 rounded", Number(product.inventory) > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}>
                                   {Number(product.inventory) > 0 ? `${product.inventory} IN STOCK` : 'OUT OF STOCK'}
                                 </span>
                               </TableCell>
@@ -524,13 +562,13 @@ export default function CategoriesPage() {
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Category Identity</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">SEO Status</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Technical Chart</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Display Order</TableHead>
                   <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {categories.map((category: any) => {
+                {categories.map((category: any, idx: number) => {
                   const chart = sizeCharts?.find((c: any) => c.id === category.sizeChartId);
-                  const isSeoComplete = category.seoTitle && category.seoDescription;
                   
                   return (
                     <TableRow 
@@ -556,20 +594,14 @@ export default function CategoriesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-bold text-sm">{category.name}</span>
+                          <span className="font-bold text-sm uppercase">{category.name}</span>
                           <span className="text-[10px] text-gray-500 line-clamp-1 uppercase tracking-tight">{category.description}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {isSeoComplete ? (
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-50 w-fit px-2 py-1 rounded">
-                            <Globe className="h-3 w-3" /> OPTIMIZED
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-orange-500 bg-orange-50 w-fit px-2 py-1 rounded">
-                            <Search className="h-3 w-3" /> PENDING
-                          </div>
-                        )}
+                        <Badge variant="outline" className={cn("text-[9px] font-bold uppercase", category.seoTitle ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700")}>
+                          {category.seoTitle ? 'OPTIMIZED' : 'PENDING'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {chart ? (
@@ -582,15 +614,35 @@ export default function CategoriesPage() {
                         )}
                       </TableCell>
                       <TableCell>
+                        <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 hover:bg-black hover:text-white disabled:opacity-20"
+                            onClick={(e) => handleMoveOrder(category.id, 'up', e)}
+                            disabled={idx === 0}
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </Button>
+                          <span className="text-[10px] font-mono font-bold w-6 text-center">{idx + 1}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 hover:bg-black hover:text-white disabled:opacity-20"
+                            onClick={(e) => handleMoveOrder(category.id, 'down', e)}
+                            disabled={idx === categories.length - 1}
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button 
                             variant="ghost" 
                             size="icon" 
                             className="h-8 w-8 hover:bg-red-50" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(category.id, e);
-                            }}
+                            onClick={(e) => handleDelete(category.id, e)}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>

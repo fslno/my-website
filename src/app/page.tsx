@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -15,10 +16,10 @@ import { cn } from '@/lib/utils';
 export default function Home() {
   const db = useFirestore();
 
-  // Fetch top 4 categories for the collection grid
+  // Fetch top categories for the collection grid - strictly ordered by curated 'order' field
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'categories'), limit(4));
+    return query(collection(db, 'categories'), orderBy('order', 'asc'), limit(12));
   }, [db]);
 
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
@@ -86,7 +87,7 @@ export default function Home() {
         />
       )}
 
-      {/* Simplified Category Grid */}
+      {/* Categories Selection - Reflects the curated sort order */}
       <section className="pt-24 pb-12 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col items-center text-center mb-16 gap-6">
@@ -102,7 +103,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-              {categories.map((cat: any, idx: number) => (
+              {categories.map((cat: any) => (
                 <div key={cat.id} className="group flex flex-col gap-4">
                   <Link 
                     href={`/collections/${cat.id}`} 
