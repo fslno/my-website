@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Phone, Mail, Instagram, Twitter, MessageSquare, X, Globe, Facebook, MessageCircle } from 'lucide-react';
@@ -12,6 +12,12 @@ import { cn } from '@/lib/utils';
  * Each platform icon is Authoritatively differentiated by its brand-specific color.
  */
 export function Chatbot() {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
@@ -21,13 +27,13 @@ export function Chatbot() {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  if (!mounted) return null;
   if (theme?.chatbotEnabled === false) return null;
 
   const phoneNumbers = config?.phoneNumbers || (config?.phone ? [{ label: 'Voice', value: config.phone }] : []);
   const emailAddresses = config?.emailAddresses || (config?.email ? [{ label: 'Dispatch', value: config.email }] : []);
   const socialChannels = config?.socialChannels || [];
 
-  // Unified Manifest for staggered circles with Authoritative brand colors
   const contactMethods: any[] = [];
   
   phoneNumbers.forEach(p => contactMethods.push({ 
@@ -36,7 +42,7 @@ export function Chatbot() {
     value: p.value, 
     icon: <Phone className="h-4 w-4" />, 
     href: `tel:${p.value}`,
-    color: '#3B82F6' // Standard Blue for Voice
+    color: '#3B82F6'
   }));
   
   emailAddresses.forEach(e => contactMethods.push({ 
@@ -45,7 +51,7 @@ export function Chatbot() {
     value: e.value, 
     icon: <Mail className="h-4 w-4" />, 
     href: `mailto:${e.value}`,
-    color: '#8B5CF6' // Sophisticated Purple for Dispatch
+    color: '#8B5CF6'
   }));
   
   socialChannels.forEach(s => {
@@ -54,19 +60,19 @@ export function Chatbot() {
     
     if (s.platform === 'Instagram') {
       icon = <Instagram className="h-4 w-4" />;
-      color = '#E1306C'; // Instagram Brand Identity
+      color = '#E1306C';
     } else if (s.platform === 'Twitter' || s.platform === 'X') {
       icon = <Twitter className="h-4 w-4" />;
-      color = '#000000'; // X Brand Identity
+      color = '#000000';
     } else if (s.platform === 'TikTok') {
       icon = <MessageCircle className="h-4 w-4" />;
-      color = '#FF0050'; // TikTok Brand Identity
+      color = '#FF0050';
     } else if (s.platform === 'Messenger') {
       icon = <Facebook className="h-4 w-4" />;
-      color = '#0084FF'; // Meta Messenger Blue
+      color = '#0084FF';
     } else if (s.platform === 'WhatsApp') {
       icon = <MessageSquare className="h-4 w-4" />;
-      color = '#25D366'; // WhatsApp Green
+      color = '#25D366';
     }
     
     contactMethods.push({ type: 'social', label: s.platform, value: s.url, icon, href: s.url, color });
@@ -89,7 +95,6 @@ export function Chatbot() {
         left: theme?.chatbotPosition === 'left' ? '2rem' : 'auto'
       }}
     >
-      {/* Pop-up Circles Container - Positioned Authoritatively above the button */}
       <div className="absolute bottom-full left-0 right-0 flex flex-col-reverse items-center gap-2 mb-3">
         {contactMethods.map((method, index) => (
           <a
@@ -109,8 +114,6 @@ export function Chatbot() {
             }}
           >
             {method.icon}
-            
-            {/* Tooltip Label */}
             <div className={cn(
               "absolute px-3 py-1.5 bg-black text-white text-[8px] font-bold uppercase tracking-widest rounded-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl",
               theme?.chatbotPosition === 'right' ? "right-full mr-4" : "left-full ml-4"
@@ -121,12 +124,11 @@ export function Chatbot() {
         ))}
       </div>
 
-      {/* Main Chat Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "relative flex items-center justify-center rounded-full shadow-2xl transition-all duration-500 ease-in-out hover:scale-110 active:scale-95 group z-10",
-          isOpen ? 'rotate-90' : 'hover:animate-[pulsate_2s_infinite]'
+          isOpen ? 'rotate-90' : 'animate-[pulsate_2s_infinite]'
         )}
         style={{ 
           backgroundColor: theme?.chatbotColor || '#1c4673',
@@ -140,14 +142,6 @@ export function Chatbot() {
           <ChatIcon />
         )}
       </button>
-
-      <style jsx global>{`
-        @keyframes pulsate {
-          0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.4); }
-          70% { box-shadow: 0 0 0 15px rgba(0,0,0,0); }
-          100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
-        }
-      `}</style>
     </div>
   );
 }

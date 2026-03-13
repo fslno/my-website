@@ -96,7 +96,6 @@ export default function OrderDetailPage({
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
 
-  // Fetch all orders by this email for history manifest
   const customerOrdersQuery = useMemoFirebase(() => {
     if (!db || !order?.email) return null;
     return query(collection(db, 'orders'), where('email', '==', order.email));
@@ -105,7 +104,6 @@ export default function OrderDetailPage({
   const { data: customerOrders } = useCollection(customerOrdersQuery);
   const orderCount = customerOrders?.length || 0;
 
-  // Extract unique shipping addresses from history
   const addressHistory = useMemo(() => {
     if (!customerOrders) return [];
     const addresses = new Map<string, any>();
@@ -268,7 +266,6 @@ export default function OrderDetailPage({
 
   return (
     <div className="space-y-8">
-      {/* Printable Invoice Logic */}
       <div id="printable-invoice" className="hidden print:block w-[210mm] mx-auto bg-white text-black p-12 font-sans min-h-[297mm]">
         <style type="text/css" dangerouslySetInnerHTML={{ __html: `
           @media print {
@@ -918,13 +915,6 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
             </Button>
           </DialogFooter>
         </div>
-        <style jsx global>{`
-          @keyframes scan {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(128px); }
-            100% { transform: translateY(0); }
-          }
-        `}</style>
       </DialogContent>
     </Dialog>
   );
