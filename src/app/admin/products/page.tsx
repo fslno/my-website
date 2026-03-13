@@ -50,7 +50,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -549,13 +549,13 @@ export default function ProductsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
+              <DialogTitle className="text-xl font-headline font-bold">
+                {editingId ? `Edit Archive Piece: ${name}` : 'New Archive Entry'}
+              </DialogTitle>
+              
               <div className="flex items-center gap-4">
-                <DialogTitle className="text-xl font-headline font-bold">
-                  {editingId ? `Edit Archive Piece: ${name}` : 'New Archive Entry'}
-                </DialogTitle>
-                
                 {editingId && (
-                  <div className="flex items-center gap-1 border-l pl-4 ml-2">
+                  <div className="flex items-center gap-1 border-r pr-4 mr-2">
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -579,10 +579,10 @@ export default function ProductsPage() {
                     </Button>
                   </div>
                 )}
+                <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
-                <X className="h-5 w-5" />
-              </Button>
             </DialogHeader>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
               <div className="px-6 border-b bg-gray-50/50 shrink-0">
