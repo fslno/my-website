@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   TrendingUp, 
@@ -14,7 +14,8 @@ import {
   CreditCard,
   Calendar as CalendarIcon,
   ChevronDown,
-  Download
+  Download,
+  RefreshCw
 } from 'lucide-react';
 import { 
   Area, 
@@ -52,17 +53,44 @@ export default function AdminDashboard() {
   const db = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  const [timeRange, setTimeRange] = useState('7d');
   
-  const isAdmin = useMemo(() => {
-    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-  }, [user]);
-
-  // High-fidelity Date Range State
+  // Default State
+  const [timeRange, setTimeRange] = useState('7d');
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 7),
     to: new Date(),
   });
+
+  const isAdmin = useMemo(() => {
+    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+  }, [user]);
+
+  // Authoritative Persistence Protocol
+  useEffect(() => {
+    const savedRange = localStorage.getItem('fslno_admin_timerange');
+    const savedDate = localStorage.getItem('fslno_admin_daterange');
+    
+    if (savedRange) setTimeRange(savedRange);
+    
+    if (savedDate) {
+      try {
+        const parsed = JSON.parse(savedDate);
+        setDate({
+          from: parsed.from ? new Date(parsed.from) : undefined,
+          to: parsed.to ? new Date(parsed.to) : undefined
+        });
+      } catch (e) {
+        console.error("Forensic date hydration failed", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('fslno_admin_timerange', timeRange);
+    if (date) {
+      localStorage.setItem('fslno_admin_daterange', JSON.stringify(date));
+    }
+  }, [timeRange, date]);
 
   // Fetch orders with a larger limit for forensic lifetime visibility - strictly guarded
   const ordersQuery = useMemoFirebase(() => {
@@ -141,27 +169,56 @@ export default function AdminDashboard() {
     const { orders: fOrders } = filteredData;
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
-    // Default to last 7 units of the selected range for visualization
-    const rangeLimit = timeRange === '1d' ? 24 : 7;
-    const dataPoints = Array.from({ length: rangeLimit }, (_, i) => {
+    let rangeLimit = 7;
+    let unit: 'hour' | 'day' | 'month' = 'day';
+
+    if (timeRange === '1d') { rangeLimit = 24; unit = 'hour'; }
+    else if (timeRange === '7d') { rangeLimit = 7; unit = 'day'; }
+    else if (timeRange === '15d') { rangeLimit = 15; unit = 'day'; }
+    else if (timeRange === '30d') { rangeLimit = 30; unit = 'day'; }
+    else if (timeRange === '90d') { rangeLimit = 90; unit = 'day'; }
+    else if (timeRange === '365d') { rangeLimit = 12; unit = 'month'; }
+    else if (timeRange === 'custom' && date?.from && date?.to) {
+      const diffTime = Math.abs(date.to.getTime() - date.from.getTime());
+      rangeLimit = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      unit = 'day';
+      if (rangeLimit > 60) {
+         rangeLimit = Math.ceil(rangeLimit / 30);
+         unit = 'month';
+      }
+    } else {
+      rangeLimit = 7; unit = 'day';
+    }
+
+    const dataPoints = Array.from({ length: Math.min(rangeLimit, 100) }, (_, i) => {
       const d = new Date();
-      if (timeRange === '1d') {
+      if (timeRange === 'custom' && date?.to) {
+        d.setTime(date.to.getTime());
+      }
+
+      if (unit === 'hour') {
         d.setHours(d.getHours() - i);
         return { name: `${d.getHours()}:00`, time: d.getTime(), sales: 0 };
+      } else if (unit === 'month') {
+        d.setMonth(d.getMonth() - i);
+        return { name: d.toLocaleString('default', { month: 'short' }), month: d.getMonth(), year: d.getFullYear(), sales: 0 };
+      } else {
+        d.setDate(d.getDate() - i);
+        return { 
+          name: days[d.getDay()], 
+          date: d.toLocaleDateString(),
+          sales: 0 
+        };
       }
-      d.setDate(d.getDate() - i);
-      return { 
-        name: days[d.getDay()], 
-        date: d.toLocaleDateString(),
-        sales: 0 
-      };
     }).reverse();
 
     fOrders.forEach(order => {
       const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
       const point = dataPoints.find(p => {
-        if (timeRange === '1d') {
-          return new Date(p.time).getHours() === orderDate.getHours();
+        if (unit === 'hour') {
+          return new Date(p.time!).getHours() === orderDate.getHours() && new Date(p.time!).getDate() === orderDate.getDate();
+        } else if (unit === 'month') {
+          return (p as any).month === orderDate.getMonth() && (p as any).year === orderDate.getFullYear();
         }
         return (p as any).date === orderDate.toLocaleDateString();
       });
@@ -171,7 +228,7 @@ export default function AdminDashboard() {
     });
 
     return dataPoints;
-  }, [filteredData, timeRange]);
+  }, [filteredData, timeRange, date]);
 
   const handleExportCSV = () => {
     if (!filteredData.orders || filteredData.orders.length === 0) {
@@ -209,7 +266,6 @@ export default function AdminDashboard() {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     
-    // Dynamic Filename reflects range
     const dateRangeStr = timeRange === 'custom' && date?.from
       ? `${format(date.from, 'yyyy-MM-dd')}_to_${date.to ? format(date.to, 'yyyy-MM-dd') : format(date.from, 'yyyy-MM-dd')}`
       : timeRange.toUpperCase();
