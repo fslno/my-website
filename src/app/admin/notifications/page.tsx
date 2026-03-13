@@ -31,7 +31,8 @@ import {
   MessageSquare,
   Info,
   Terminal,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { 
   Card, 
@@ -58,6 +59,7 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface NotificationConfig {
   enabled: boolean;
@@ -279,27 +281,28 @@ export default function NotificationsPage() {
     : null;
 
   return (
-    <div className="space-y-12">
-      <div className="flex justify-between items-end">
+    <div className="space-y-8 sm:space-y-12 min-w-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Notifications & Automation</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Manage friendly automated emails, marketing recovery, and global branding.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Notifications & Automation</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage friendly automated emails, marketing recovery, and global branding.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black" onClick={handleSendTest} disabled={isSendingTest}>
-            {isSendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send Live Preview
-          </Button>
-        </div>
+        <Button variant="outline" className="w-full sm:w-auto h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black" onClick={handleSendTest} disabled={isSendingTest}>
+          {isSendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send Live Preview
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 space-y-12">
+          {/* Fulfillment Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-gray-400" />
               <h2 className="text-sm font-bold uppercase tracking-widest">Fulfillment Notifications</h2>
             </div>
-            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+            
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow>
@@ -339,20 +342,45 @@ export default function NotificationsPage() {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden grid grid-cols-1 gap-4">
+              {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
+                const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
+                return (
+                  <Card key={key} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm uppercase tracking-tight text-primary">{data.label}</span>
+                      <Switch 
+                        checked={data.enabled} 
+                        onCheckedChange={(checked) => handleToggle(key, checked, false)}
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500 uppercase leading-relaxed font-medium">{data.description}</p>
+                    <Button variant="outline" className="w-full h-10 border-black font-bold uppercase tracking-widest text-[9px]" onClick={() => handleEdit(key, false)}>
+                      Refine Template
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
           </section>
 
+          {/* Marketing Recovery Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-orange-500" />
               <h2 className="text-sm font-bold uppercase tracking-widest">Growth & Recovery Campaigns</h2>
             </div>
-            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+            
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Campaign</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Automated Logic</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 text-center">Status</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign Logic</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Automated Dispatch</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Status</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -385,6 +413,28 @@ export default function NotificationsPage() {
                   })}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden grid grid-cols-1 gap-4">
+              {Object.keys(DEFAULT_MARKETING).map((key) => {
+                const data = config?.[key] || DEFAULT_MARKETING[key];
+                return (
+                  <Card key={key} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm uppercase tracking-tight text-primary">{data.label}</span>
+                      <Switch 
+                        checked={data.enabled} 
+                        onCheckedChange={(checked) => handleToggle(key, checked, true)}
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500 uppercase leading-relaxed font-medium">{data.description}</p>
+                    <Button variant="outline" className="w-full h-10 border-black font-bold uppercase tracking-widest text-[9px]" onClick={() => handleEdit(key, true)}>
+                      Refine Template
+                    </Button>
+                  </Card>
+                );
+              })}
             </div>
           </section>
         </div>
@@ -431,7 +481,7 @@ export default function NotificationsPage() {
             <CardHeader className="bg-gray-50/50 border-b">
               <div className="flex items-center gap-2">
                 <Palette className="h-5 w-5" />
-                <CardTitle className="text-[10px] uppercase tracking-widest font-bold">Global Email Styles</CardTitle>
+                <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Global Email Styles</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-8">
@@ -491,7 +541,7 @@ export default function NotificationsPage() {
           </Card>
 
           <Button 
-            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all" 
+            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
             onClick={handleSaveGlobal} 
             disabled={isSaving}
           >
@@ -502,16 +552,21 @@ export default function NotificationsPage() {
       </div>
 
       <Dialog open={!!editingKey} onOpenChange={(open) => !open && setEditingKey(null)}>
-        <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none shadow-2xl p-0 overflow-hidden">
-          <div className="p-10 space-y-8">
+        <DialogContent className="max-w-[100vw] w-screen h-screen sm:max-w-2xl sm:h-auto m-0 rounded-none bg-white border-none shadow-2xl p-0 overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8">
             <DialogHeader className="p-0 border-none space-y-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Sparkles className="h-5 w-5 text-purple-500" />
-                <DialogTitle className="text-2xl font-headline font-bold uppercase tracking-tight">
-                  Refining: {activeNotification?.label}
-                </DialogTitle>
+              <div className="flex items-center justify-between sm:justify-start gap-2 text-primary">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-purple-500" />
+                  <DialogTitle className="text-xl sm:text-2xl font-headline font-bold uppercase tracking-tight">
+                    Refining: {activeNotification?.label}
+                  </DialogTitle>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setEditingKey(null)} className="rounded-full sm:hidden">
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
-              <DialogDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <DialogDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Ensure templates contain essential business and product placeholders for high-fidelity communication.
               </DialogDescription>
             </DialogHeader>
@@ -533,25 +588,25 @@ export default function NotificationsPage() {
                 <Textarea 
                   value={editBody} 
                   onChange={(e) => setEditingBody(e.target.value)} 
-                  className="min-h-[350px] text-sm leading-relaxed p-6 bg-gray-50 border-gray-200 resize-none font-medium"
+                  className="min-h-[250px] sm:min-h-[350px] text-sm leading-relaxed p-4 sm:p-6 bg-gray-50 border-gray-200 resize-none font-medium"
                 />
               </div>
             </div>
 
             <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100">
               <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
-              <p className="text-[10px] text-blue-800 uppercase font-medium leading-relaxed">
+              <p className="text-[9px] sm:text-[10px] text-blue-800 uppercase font-medium leading-relaxed">
                 Use <code className="bg-blue-100 px-1 rounded text-blue-900 font-bold">{"{{product_list}}"}</code> to Authoritatively inject ordered items and <code className="bg-blue-100 px-1 rounded text-blue-900 font-bold">{"{{business_address}}"}</code> for the studio Spot.
               </p>
             </div>
-
-            <DialogFooter className="flex-row items-center justify-between pt-4">
-              <Button variant="ghost" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground" onClick={handleSendTest}>Preview in Inbox</Button>
-              <Button className="bg-black text-white h-12 px-10 font-bold uppercase tracking-widest text-[10px]" onClick={saveNotificationEdit}>
-                Finalize Template
-              </Button>
-            </DialogFooter>
           </div>
+
+          <DialogFooter className="p-6 sm:p-10 border-t bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+            <Button variant="ghost" className="w-full sm:w-auto text-[10px] font-bold uppercase tracking-widest text-muted-foreground order-2 sm:order-1" onClick={handleSendTest}>Preview in Inbox</Button>
+            <Button className="w-full sm:w-auto bg-black text-white h-12 px-10 font-bold uppercase tracking-widest text-[10px] order-1 sm:order-2" onClick={saveNotificationEdit}>
+              Finalize Template
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
