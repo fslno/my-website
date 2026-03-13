@@ -56,7 +56,7 @@ import {
 } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, setDoc, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -279,27 +279,27 @@ export default function PromotionsPage() {
   };
 
   return (
-    <div className="space-y-8 pb-20">
-      <div className="flex justify-between items-end">
+    <div className="space-y-8 pb-20 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Growth & Rewards Orchestration</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Orchestrate automated discounts, loyalty handshakes, and technical promo logic.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Growth & Rewards Orchestration</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Orchestrate automated discounts, loyalty handshakes, and technical promo logic.</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={handleSaveConfig} disabled={isUpdatingConfig} className="h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <Button variant="outline" onClick={handleSaveConfig} disabled={isUpdatingConfig} className="flex-1 sm:flex-none h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black">
             {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Protocols
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="bg-black text-white font-bold h-10 gap-2">
+              <Button className="flex-1 sm:flex-none bg-black text-white font-bold h-10 gap-2">
                 <Plus className="h-4 w-4" /> Create Archive Code
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-white border-none rounded-none shadow-2xl">
-              <DialogHeader className="pt-8">
+            <DialogContent className="max-w-[100vw] w-screen h-screen sm:max-w-md sm:h-auto m-0 rounded-none bg-white border-none shadow-2xl flex flex-col p-0 sm:p-6 overflow-y-auto">
+              <DialogHeader className="p-6 sm:p-0">
                 <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Deduction Manifest</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-6 py-6">
+              <div className="flex-1 p-6 sm:p-0 grid gap-6 py-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Archive Code String</Label>
                   <Input 
@@ -309,7 +309,7 @@ export default function PromotionsPage() {
                     className="h-12 uppercase font-bold text-sm tracking-widest"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Discount Protocol</Label>
                     <Select value={type} onValueChange={(v: any) => setType(v)}>
@@ -344,7 +344,7 @@ export default function PromotionsPage() {
                   />
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="p-6 sm:p-0 pt-4 border-t sm:border-none">
                 <Button 
                   onClick={handleSaveCoupon} 
                   disabled={isSaving || !code || !value}
@@ -360,7 +360,7 @@ export default function PromotionsPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        <div className="xl:col-span-8 space-y-12">
+        <div className="xl:col-span-8 space-y-8 sm:space-y-12">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className={cn("border-[#e1e3e5] shadow-none transition-all duration-500", flashEnabled ? 'bg-black text-white ring-2 ring-black' : 'bg-gray-50/50')}>
@@ -374,7 +374,7 @@ export default function PromotionsPage() {
                 <Switch checked={flashEnabled} onCheckedChange={setFlashEnabled} className="data-[state=checked]:bg-orange-500" />
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-400' : 'text-gray-500')}>Deduction (%)</Label>
                     <Input 
@@ -409,7 +409,7 @@ export default function PromotionsPage() {
                 <Switch checked={thresholdEnabled} onCheckedChange={setThresholdEnabled} />
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-bold text-gray-500">Spend Goal ($)</Label>
                     <Input 
@@ -446,7 +446,7 @@ export default function PromotionsPage() {
               <Switch checked={bogoEnabled} onCheckedChange={setBogoEnabled} className="data-[state=checked]:bg-emerald-600" />
             </CardHeader>
             <CardContent className="pt-6 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-500">Trigger Quantity</Label>
                   <Input 
@@ -547,7 +547,8 @@ export default function PromotionsPage() {
               <Badge variant="secondary" className="bg-primary text-primary-foreground text-[9px] font-bold px-3 py-1">MANUAL CONTROL</Badge>
             </div>
             
-            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow className="border-b border-black/5">
@@ -597,6 +598,31 @@ export default function PromotionsPage() {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Mobile Card View - Avoid Slide System */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+              {recoveryCampaigns.map((campaign) => (
+                <Card key={campaign.id} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", campaign.enabled ? 'border-green-100' : 'border-gray-100')}>
+                        <Mail className={cn("h-5 w-5", campaign.enabled ? 'text-green-600' : 'text-gray-400')} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs uppercase tracking-tight text-primary">{campaign.label}</span>
+                        <span className="text-[8px] font-bold text-green-600 uppercase tracking-widest">{campaign.conversion} Conv.</span>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={campaign.enabled} 
+                      onCheckedChange={(val) => campaign.setter(val)}
+                      className="data-[state=checked]:bg-black"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-500 uppercase leading-relaxed font-medium">{campaign.description}</p>
+                </Card>
+              ))}
+            </div>
           </section>
 
           <section className="space-y-6">
@@ -606,7 +632,9 @@ export default function PromotionsPage() {
               </h3>
               <Badge variant="secondary" className="bg-black text-white text-[9px] font-bold px-3 py-1">{coupons?.length || 0} TOTAL</Badge>
             </div>
-            <div className="bg-white border rounded-b-xl overflow-hidden shadow-sm">
+            
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white border rounded-b-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/20">
                   <TableRow className="border-b border-black/5">
@@ -661,7 +689,7 @@ export default function PromotionsPage() {
                               onClick={() => handleDelete(coupon.id)}
                               className="h-9 w-9 hover:bg-red-50 text-red-500"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                           </div>
                         </TableCell>
@@ -670,6 +698,52 @@ export default function PromotionsPage() {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile Card View - Avoid Slide System */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+              {couponsLoading ? (
+                <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-300" /></div>
+              ) : !coupons || coupons.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-none bg-gray-50/50"><p className="text-[10px] font-bold uppercase text-gray-400">No codes cataloged.</p></div>
+              ) : (
+                coupons.map((coupon: any) => (
+                  <Card key={coupon.id} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded border bg-white flex items-center justify-center shadow-sm">
+                          <TicketPercent className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm tracking-widest text-primary uppercase">{coupon.code}</span>
+                          <span className="text-[8px] font-bold text-purple-600 uppercase tracking-widest">
+                            {coupon.type === 'percent' ? `${coupon.value}% OFF` : `$${coupon.value} OFF`}
+                          </span>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={coupon.active} 
+                        onCheckedChange={() => handleToggleActive(coupon)}
+                        className="data-[state=checked]:bg-black"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between border-t pt-3">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Redemptions</span>
+                        <span className="text-[10px] font-bold text-primary uppercase">{coupon.usedCount || 0} / {coupon.usageLimit || '∞'}</span>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete(coupon.id)}
+                        className="h-8 w-8 text-red-500 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Card>
+                ))
+              )}
             </div>
           </section>
         </div>
