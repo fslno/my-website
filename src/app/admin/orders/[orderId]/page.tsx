@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -81,14 +81,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
 export default function OrderDetailPage({ 
-  params, 
-  searchParams 
+  params 
 }: { 
-  params: Promise<{ orderId: string }>,
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  params: Promise<{ orderId: string }> 
 }) {
-  const { orderId } = React.use(params);
-  const sParams = React.use(searchParams);
+  const { orderId } = use(params);
   
   const db = useFirestore();
   const { toast } = useToast();
@@ -411,7 +408,6 @@ export default function OrderDetailPage({
 
       <div className="flex flex-col xl:flex-row gap-8 print:hidden">
         <div className="flex-1 space-y-8">
-          {/* Logistics Tracing - Moved to main column and visible for all orders */}
           <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
             <CardHeader className="bg-blue-50/30 border-b py-4">
               <div className="flex items-center justify-between">

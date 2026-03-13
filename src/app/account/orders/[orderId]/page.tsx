@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { use } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
@@ -17,7 +17,7 @@ export default function OrderDetailPage({
 }: { 
   params: Promise<{ orderId: string }> 
 }) {
-  const { orderId } = React.use(params);
+  const { orderId } = use(params);
   
   const { user, isUserLoading } = useUser();
   const db = useFirestore();

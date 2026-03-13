@@ -6,7 +6,8 @@ import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { Footer } from '@/components/storefront/Footer';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { ProductCard } from '@/components/storefront/ProductCard';
+import { ArrowRight, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,14 @@ export default function Home() {
   }, [db]);
 
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
+
+  // Fetch top 8 products for "Featured Selection"
+  const featuredQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(8));
+  }, [db]);
+
+  const { data: featuredProducts, isLoading: productsLoading } = useCollection(featuredQuery);
 
   // Fetch theme for layout decisions
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
@@ -130,6 +139,44 @@ export default function Home() {
                     </Link>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Featured Selection Manifest */}
+      <section className="py-24 bg-background">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+            <div className="space-y-3">
+              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Selection</span>
+              <h2 className="text-4xl md:text-6xl font-headline uppercase font-bold tracking-tighter text-primary">Featured Pieces</h2>
+            </div>
+            <Link href="/collections/all" className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-60 transition-opacity flex items-center gap-2 pb-1 border-b border-black">
+              View Entire Catalog <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+          
+          {productsLoading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : !featuredProducts || featuredProducts.length === 0 ? (
+            <div className="py-20 text-center border-2 border-dashed rounded-none bg-gray-50/50">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Inventory pending archival status.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
+              {featuredProducts.map((product: any) => (
+                <ProductCard 
+                  key={product.id} 
+                  id={product.id}
+                  name={product.name}
+                  price={`$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD`}
+                  image={product.media?.[0]?.url || ''}
+                  category={product.brand || 'FSLNO Archive'}
+                />
               ))}
             </div>
           )}

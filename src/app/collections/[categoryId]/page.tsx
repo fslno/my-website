@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { use } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
@@ -11,14 +11,11 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 
 export default function CollectionPage({ 
-  params, 
-  searchParams 
+  params 
 }: { 
-  params: Promise<{ categoryId: string }>,
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  params: Promise<{ categoryId: string }>
 }) {
-  const { categoryId } = React.use(params);
-  const sParams = React.use(searchParams);
+  const { categoryId } = use(params);
   
   const db = useFirestore();
 

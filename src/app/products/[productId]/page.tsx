@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -44,14 +44,11 @@ import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ProductDetailPage({ 
-  params, 
-  searchParams 
+  params 
 }: { 
-  params: Promise<{ productId: string }>,
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  params: Promise<{ productId: string }>
 }) {
-  const { productId } = React.use(params);
-  const sParams = React.use(searchParams);
+  const { productId } = use(params);
   
   const db = useFirestore();
   const router = useRouter();
