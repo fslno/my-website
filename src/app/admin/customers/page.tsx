@@ -265,10 +265,10 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Archive Member Manifest</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm uppercase tracking-tight font-medium">Manage unified profiles and monitor forensic archival engagement.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Archive Member Manifest</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase tracking-tight font-medium">Manage unified profiles and monitor forensic archival engagement.</p>
         </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="bg-black text-white px-4 py-1.5 rounded-sm font-bold uppercase tracking-widest text-[10px]">
@@ -277,7 +277,7 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard 
           title="Registered" 
           value={unifiedCustomers.filter(c => c.tier === 'Registered').length.toString()} 
@@ -305,24 +305,24 @@ export default function CustomersPage() {
       </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-lg overflow-hidden shadow-sm">
-        <div className="p-4 border-b bg-gray-50/50 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex items-center gap-4 flex-1 w-full max-w-2xl">
-            <div className="relative flex-1">
+        <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col md:flex-row items-center gap-4 w-full lg:max-w-3xl">
+            <div className="relative w-full md:flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
               <Input 
                 placeholder="Quick search (Name, Email, ID)..." 
-                className="pl-10 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold"
+                className="pl-10 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex border rounded-md p-1 bg-white shadow-sm">
+            <div className="flex w-full md:w-auto border rounded-md p-1 bg-white shadow-sm overflow-x-auto scrollbar-hide">
               {(['all', 'registered', 'guest', 'abandoned'] as const).map((tier) => (
                 <button
                   key={tier}
                   onClick={() => setFilterTier(tier)}
                   className={cn(
-                    "px-4 py-1.5 text-[9px] font-bold uppercase tracking-widest transition-all rounded",
+                    "flex-1 md:flex-none px-4 py-1.5 text-[9px] font-bold uppercase tracking-widest transition-all rounded whitespace-nowrap",
                     filterTier === tier ? "bg-black text-white shadow-md" : "text-gray-400 hover:text-black"
                   )}
                 >
@@ -332,12 +332,12 @@ export default function CustomersPage() {
             </div>
           </div>
 
-          <Dialog open={isAuditOpen} onOpenChange={setIsAuditOpen}>
+          <Dialog open={isAuditOpen} onOpenChange={isAuditOpen => setIsAuditOpen(isAuditOpen)}>
             <DialogTrigger asChild>
               <Button 
                 variant="outline" 
                 className={cn(
-                  "h-10 border-[#e1e3e5] gap-2 font-bold uppercase tracking-widest text-[10px]",
+                  "h-10 border-[#e1e3e5] gap-2 font-bold uppercase tracking-widest text-[10px] w-full lg:w-auto",
                   isAuditActive && "bg-blue-50 border-blue-200 text-blue-700"
                 )}
               >
@@ -346,8 +346,8 @@ export default function CustomersPage() {
                 {isAuditActive && <Badge className="ml-1 h-4 px-1.5 bg-blue-600 text-[8px]">ACTIVE</Badge>}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl bg-white border-none rounded-none shadow-2xl">
-              <DialogHeader className="pt-8 border-b pb-6">
+            <DialogContent className="max-w-[100vw] w-screen h-screen sm:max-w-xl sm:h-auto m-0 rounded-none bg-white border-none shadow-2xl flex flex-col p-0">
+              <DialogHeader className="p-6 sm:p-8 border-b shrink-0">
                 <div className="flex items-center gap-3 text-primary mb-2">
                   <Filter className="h-5 w-5 text-blue-600" />
                   <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Forensic Audit Protocol</DialogTitle>
@@ -355,104 +355,106 @@ export default function CustomersPage() {
                 <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Orchestrate specific temporal and behavioral filters.</DialogDescription>
               </DialogHeader>
               
-              <div className="grid grid-cols-2 gap-6 py-8">
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                    <UserCircle className="h-3 w-3" /> Participant Name
-                  </Label>
-                  <Input 
-                    placeholder="Search by handle..." 
-                    value={advName}
-                    onChange={(e) => setAdvName(e.target.value)}
-                    className="h-11 uppercase text-[10px] font-bold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                    <Hash className="h-3 w-3" /> Forensic Order ID
-                  </Label>
-                  <Input 
-                    placeholder="e.g. #ORD-7721" 
-                    value={advOrderNum}
-                    onChange={(e) => setAdvOrderNum(e.target.value)}
-                    className="h-11 uppercase font-mono text-[10px]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                    <Phone className="h-3 w-3" /> Phone Manifest
-                  </Label>
-                  <Input 
-                    placeholder="+1..." 
-                    value={advPhone}
-                    onChange={(e) => setAdvPhone(e.target.value)}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                    <MapPin className="h-3 w-3" /> Delivery Address
-                  </Label>
-                  <Input 
-                    placeholder="Search locations..." 
-                    value={advAddress}
-                    onChange={(e) => setAdvAddress(e.target.value)}
-                    className="h-11 uppercase text-[10px] font-bold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                    <Tag className="h-3 w-3" /> Archival Product
-                  </Label>
-                  <Input 
-                    placeholder="Search piece name..." 
-                    value={advProduct}
-                    onChange={(e) => setAdvProduct(e.target.value)}
-                    className="h-11 uppercase text-[10px] font-bold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                    <CalendarIcon className="h-3 w-3" /> Temporal Window
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full h-11 justify-start text-left font-bold uppercase text-[9px] tracking-widest border-gray-200",
-                          !advDateRange && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-3 w-3" />
-                        {advDateRange?.from ? (
-                          advDateRange.to ? (
-                            <>
-                              {format(advDateRange.from, "LLL dd")} - {format(advDateRange.to, "LLL dd")}
-                            </>
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <UserCircle className="h-3 w-3" /> Participant Name
+                    </Label>
+                    <Input 
+                      placeholder="Search by handle..." 
+                      value={advName}
+                      onChange={(e) => setAdvName(e.target.value)}
+                      className="h-11 uppercase text-[10px] font-bold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <Hash className="h-3 w-3" /> Forensic Order ID
+                    </Label>
+                    <Input 
+                      placeholder="e.g. #ORD-7721" 
+                      value={advOrderNum}
+                      onChange={(e) => setAdvOrderNum(e.target.value)}
+                      className="h-11 uppercase font-mono text-[10px]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <Phone className="h-3 w-3" /> Phone Manifest
+                    </Label>
+                    <Input 
+                      placeholder="+1..." 
+                      value={advPhone}
+                      onChange={(e) => setAdvPhone(e.target.value)}
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <MapPin className="h-3 w-3" /> Delivery Address
+                    </Label>
+                    <Input 
+                      placeholder="Search locations..." 
+                      value={advAddress}
+                      onChange={(e) => setAdvAddress(e.target.value)}
+                      className="h-11 uppercase text-[10px] font-bold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <Tag className="h-3 w-3" /> Archival Product
+                    </Label>
+                    <Input 
+                      placeholder="Search piece name..." 
+                      value={advProduct}
+                      onChange={(e) => setAdvProduct(e.target.value)}
+                      className="h-11 uppercase text-[10px] font-bold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                      <CalendarIcon className="h-3 w-3" /> Temporal Window
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full h-11 justify-start text-left font-bold uppercase text-[9px] tracking-widest border-gray-200",
+                            !advDateRange && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-3 w-3" />
+                          {advDateRange?.from ? (
+                            advDateRange.to ? (
+                              <>
+                                {format(advDateRange.from, "LLL dd")} - {format(advDateRange.to, "LLL dd")}
+                              </>
+                            ) : (
+                              format(advDateRange.from, "LLL dd")
+                            )
                           ) : (
-                            format(advDateRange.from, "LLL dd")
-                          )
-                        ) : (
-                          <span>Registration Date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 border-none shadow-2xl" align="start">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={advDateRange?.from}
-                        selected={advDateRange}
-                        onSelect={setAdvDateRange}
-                        numberOfMonths={2}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                            <span>Registration Date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 border-none shadow-2xl" align="start">
+                        <Calendar
+                          initialFocus
+                          mode="range"
+                          defaultMonth={advDateRange?.from}
+                          selected={advDateRange}
+                          onSelect={setAdvDateRange}
+                          numberOfMonths={2}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
               </div>
 
-              <DialogFooter className="border-t pt-6 flex flex-row items-center justify-between gap-4">
+              <DialogFooter className="p-6 sm:p-8 border-t shrink-0 flex flex-row items-center justify-between gap-4">
                 <Button 
                   variant="ghost" 
                   className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground h-12"
@@ -486,34 +488,128 @@ export default function CustomersPage() {
           </div>
         )}
 
-        <Table>
-          <TableHeader className="bg-[#f6f6f7]">
-            <TableRow className="border-[#e1e3e5]">
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 pl-6">Participant Identity</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Contact Manifest</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Archival Entry</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Purchase Profile</TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Status Protocol</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-20">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" />
-                </TableCell>
+        {/* Desktop Table View */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader className="bg-[#f6f6f7]">
+              <TableRow className="border-[#e1e3e5]">
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 pl-6">Participant Identity</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Contact Manifest</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Archival Entry</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Purchase Profile</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Status Protocol</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
-            ) : filteredCustomers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">
-                  No participants match the active temporal filter.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredCustomers.map((customer) => (
-                <TableRow key={customer.id} className="hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group">
-                  <TableCell className="pl-6">
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-20">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" />
+                  </TableCell>
+                </TableRow>
+              ) : filteredCustomers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">
+                    No participants match the active temporal filter.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredCustomers.map((customer) => (
+                  <TableRow key={customer.id} className="hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group">
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+                          {customer.photoURL ? (
+                            <img src={customer.photoURL} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <UserCircle className="h-6 w-6 text-gray-300" />
+                          )}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold uppercase tracking-tight text-primary">{customer.displayName}</span>
+                          <span className="text-[9px] font-mono text-gray-400 uppercase">ID: {customer.id.substring(0, 8)}...</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-xs font-medium">
+                          <Mail className="h-3 w-3 text-gray-400" />
+                          <span className="lowercase">{customer.email}</span>
+                        </div>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Level: {customer.tier}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase">
+                        <CalendarIcon className="h-3 w-3" />
+                        {formatDate(customer.createdAt)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-bold text-primary">${customer.totalSpent.toFixed(2)}</span>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase">{customer.orderCount} TRANSACTIONS</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          "uppercase text-[9px] font-bold border-none px-3",
+                          customer.isAbandoned ? "bg-purple-50 text-purple-700" : 
+                          customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" :
+                          "bg-blue-50 text-blue-700"
+                        )}
+                      >
+                        {customer.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="pr-6">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-white border-black/10 shadow-xl rounded-none animate-in fade-in slide-in-from-top-2 duration-300">
+                          <DropdownMenuLabel className="text-[10px] uppercase font-bold text-gray-400">Management</DropdownMenuLabel>
+                          <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer hover:bg-gray-50 py-3">
+                            <ArrowRight className="h-3 w-3 mr-2" /> View Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer hover:bg-gray-50 py-3">
+                            <ShoppingBag className="h-3 w-3 mr-2" /> Order History
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer text-red-600 hover:bg-red-50 py-3">
+                            Suspend Access
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile Card View - Strictly avoids horizontal slide */}
+        <div className="md:hidden">
+          {isLoading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
+            </div>
+          ) : filteredCustomers.length === 0 ? (
+            <div className="p-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+              No participants match the active temporal filter.
+            </div>
+          ) : (
+            <div className="divide-y border-t">
+              {filteredCustomers.map((customer) => (
+                <div key={customer.id} className="p-4 space-y-4 bg-white hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
                         {customer.photoURL ? (
@@ -524,71 +620,47 @@ export default function CustomersPage() {
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-bold uppercase tracking-tight text-primary">{customer.displayName}</span>
-                        <span className="text-[9px] font-mono text-gray-400 uppercase">ID: {customer.id.substring(0, 8)}...</span>
+                        <Badge 
+                          variant="secondary" 
+                          className={cn(
+                            "w-fit uppercase text-[7px] font-bold border-none px-1.5 h-4 mt-0.5",
+                            customer.isAbandoned ? "bg-purple-50 text-purple-700" : 
+                            customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" :
+                            "bg-blue-50 text-blue-700"
+                          )}
+                        >
+                          {customer.status}
+                        </Badge>
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-xs font-medium">
-                        <Mail className="h-3 w-3 text-gray-400" />
-                        <span className="lowercase">{customer.email}</span>
-                      </div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Level: {customer.tier}</span>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Contact</p>
+                      <p className="text-[10px] font-medium truncate lowercase">{customer.email}</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase">
-                      <CalendarIcon className="h-3 w-3" />
-                      {formatDate(customer.createdAt)}
+                    <div className="space-y-1 text-right">
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Joined</p>
+                      <p className="text-[10px] font-bold uppercase">{formatDate(customer.createdAt)}</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-bold text-primary">${customer.totalSpent.toFixed(2)}</span>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase">{customer.orderCount} TRANSACTIONS</span>
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Spent</p>
+                      <p className="text-[10px] font-bold text-primary">${customer.totalSpent.toFixed(2)}</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="secondary" 
-                      className={cn(
-                        "uppercase text-[9px] font-bold border-none px-3",
-                        customer.isAbandoned ? "bg-purple-50 text-purple-700" : 
-                        customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" :
-                        "bg-blue-50 text-blue-700"
-                      )}
-                    >
-                      {customer.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="pr-6">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4 text-gray-400" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 bg-white border-black/10 shadow-xl rounded-none animate-in fade-in slide-in-from-top-2 duration-300">
-                        <DropdownMenuLabel className="text-[10px] uppercase font-bold text-gray-400">Management</DropdownMenuLabel>
-                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer hover:bg-gray-50 py-3">
-                          <ArrowRight className="h-3 w-3 mr-2" /> View Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer hover:bg-gray-50 py-3">
-                          <ShoppingBag className="h-3 w-3 mr-2" /> Order History
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer text-red-600 hover:bg-red-50 py-3">
-                          Suspend Access
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                    <div className="space-y-1 text-right">
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Orders</p>
+                      <p className="text-[10px] font-bold">{customer.orderCount} Trans</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
