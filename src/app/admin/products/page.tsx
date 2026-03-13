@@ -35,7 +35,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Save,
-  Clock
+  Clock,
+  Scale,
+  Maximize2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -759,10 +761,79 @@ export default function ProductsPage() {
                     <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">URL Handle</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-xs text-gray-400">fslno.com/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0 h-12" /></div></div>
                   </div>
                 </TabsContent>
-                <TabsContent value="logistics" className="p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Weight (kg)</Label><Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="h-12 bg-white" /></div>
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Shipping Class</Label><Select value={shippingClass} onValueChange={setShippingClass}><SelectTrigger className="h-12 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="standard">Standard Dispatch</SelectItem><SelectItem value="heavy">Heavy Goods</SelectItem><SelectItem value="fragile">White Glove Service</SelectItem></SelectContent></Select></div>
+                <TabsContent value="logistics" className="p-8 m-0 space-y-12 max-w-5xl mx-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="space-y-8">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Scale className="h-4 w-4 text-gray-400" />
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Weight & Classification</h3>
+                      </div>
+                      <div className="grid gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Weight (kg)</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            placeholder="0.00"
+                            value={weight} 
+                            onChange={(e) => setWeight(e.target.value)} 
+                            className="h-12 bg-white font-mono" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Shipping Class</Label>
+                          <Select value={shippingClass} onValueChange={setShippingClass}>
+                            <SelectTrigger className="h-12 bg-white">
+                              <SelectValue placeholder="Identify protocol..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="standard" className="text-[10px] font-bold uppercase">Standard Dispatch</SelectItem>
+                              <SelectItem value="heavy" className="text-[10px] font-bold uppercase">Heavy Goods</SelectItem>
+                              <SelectItem value="fragile" className="text-[10px] font-bold uppercase">White Glove Service</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-8">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Maximize2 className="h-4 w-4 text-gray-400" />
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Physical Dimensions</h3>
+                      </div>
+                      <div className="grid grid-cols-1 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-400">Length (cm)</Label>
+                          <Input 
+                            type="number" 
+                            placeholder="0"
+                            value={length} 
+                            onChange={(e) => setLength(e.target.value)} 
+                            className="h-12 bg-white font-mono" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-400">Width (cm)</Label>
+                          <Input 
+                            type="number" 
+                            placeholder="0"
+                            value={width} 
+                            onChange={(e) => setWidth(e.target.value)} 
+                            className="h-12 bg-white font-mono" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-400">Height (cm)</Label>
+                          <Input 
+                            type="number" 
+                            placeholder="0"
+                            value={height} 
+                            onChange={(e) => setHeight(e.target.value)} 
+                            className="h-12 bg-white font-mono" 
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
               </div>

@@ -45,7 +45,7 @@ import {
   Scale
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -187,6 +187,49 @@ export default function ShippingPage() {
       });
   };
 
+  const handleBatchSyncProducts = async () => {
+    if (!db || !config) return;
+    setIsSaving(true);
+    
+    try {
+      const productsRef = collection(db, 'products');
+      const snapshot = await getDocs(productsRef);
+      
+      const batch = writeBatch(db);
+      let updatedCount = 0;
+
+      snapshot.docs.forEach(docSnap => {
+        const p = docSnap.data();
+        const l = p.logistics || {};
+        
+        // Authoritatively check if any logistics fields are zero or missing
+        const needsUpdate = !l.weight || !l.length || !l.width || !l.height;
+        
+        if (needsUpdate) {
+          batch.update(docSnap.ref, {
+            'logistics.weight': parseFloat(l.weight) || parseFloat(defaultWeight) || 0,
+            'logistics.length': parseFloat(l.length) || parseFloat(defaultLength) || 0,
+            'logistics.width': parseFloat(l.width) || parseFloat(defaultWidth) || 0,
+            'logistics.height': parseFloat(l.height) || parseFloat(defaultHeight) || 0,
+            'updatedAt': serverTimestamp()
+          });
+          updatedCount++;
+        }
+      });
+
+      if (updatedCount > 0) {
+        await batch.commit();
+        toast({ title: "Catalog Synchronized", description: `${updatedCount} pieces updated with default logistics parameters.` });
+      } else {
+        toast({ title: "Catalog Validated", description: "All products already manifest high-fidelity logistics data." });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Sync Failed", description: "Archival synchronization encountered an exception." });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleAddCarrier = () => {
     if (!newCarrierName || !config) return;
     const currentCarriers = Array.isArray(config.carriers) ? config.carriers : [];
@@ -228,14 +271,6 @@ export default function ShippingPage() {
       return c;
     });
     handleUpdate({ carriers: updatedCarriers });
-  };
-
-  const handleSaveAll = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast({ title: "Logistics Finalized", description: "Global shipping protocols have been Authoritatively synchronized." });
-    }, 1000);
   };
 
   if (loading) {
@@ -280,13 +315,23 @@ export default function ShippingPage() {
                   <Layers className="h-5 w-5 text-blue-600" />
                   <CardTitle className="text-lg uppercase tracking-tight">Global Archive Logistics Defaults</CardTitle>
                 </div>
-                <Button 
-                  onClick={handleSaveGlobalLogistics} 
-                  disabled={isSaving}
-                  className="h-9 px-6 bg-blue-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-blue-700 transition-colors"
-                >
-                  {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Sync Defaults
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleBatchSyncProducts}
+                    disabled={isSaving}
+                    variant="outline"
+                    className="h-9 px-4 border-blue-200 text-blue-700 bg-white hover:bg-blue-50 font-bold uppercase tracking-widest text-[9px] gap-2"
+                  >
+                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} Commit to All Products
+                  </Button>
+                  <Button 
+                    onClick={handleSaveGlobalLogistics} 
+                    disabled={isSaving}
+                    className="h-9 px-6 bg-blue-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-blue-700 transition-colors"
+                  >
+                    {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Sync Defaults
+                  </Button>
+                </div>
               </div>
               <CardDescription className="text-xs uppercase font-bold tracking-tight text-blue-800/60">Forensic fallbacks for products missing dimensional metadata.</CardDescription>
             </CardHeader>
