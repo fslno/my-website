@@ -505,11 +505,30 @@ export default function DomainPage() {
               </p>
               <div className="flex items-center justify-between p-3 bg-[#f6f6f7] rounded-sm border gap-3 min-w-0">
                 <span className="text-[9px] sm:text-[10px] font-mono font-bold truncate flex-1">{config.sitemapUrl}</span>
-                <Button variant="ghost" size="sm" className="h-8 gap-2 uppercase text-[9px] font-bold shrink-0 bg-white border" asChild>
-                  <a href={config.sitemapUrl} target="_blank">
-                    <ExternalLink className="h-3 w-3" /> View
-                  </a>
-                </Button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 gap-2 uppercase text-[9px] font-bold bg-white border"
+                    onClick={() => {
+                      try {
+                        const url = new URL(config.sitemapUrl);
+                        navigator.clipboard.writeText(url.hostname);
+                        toast({ title: "Copied", description: "Domain name saved to clipboard." });
+                      } catch (e) {
+                        navigator.clipboard.writeText(config.sitemapUrl);
+                        toast({ title: "Copied", description: "URL saved to clipboard." });
+                      }
+                    }}
+                  >
+                    <Copy className="h-3 w-3" /> Copy Domain
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 gap-2 uppercase text-[9px] font-bold bg-white border" asChild>
+                    <a href={config.sitemapUrl} target="_blank">
+                      <ExternalLink className="h-3 w-3" /> View
+                    </a>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
