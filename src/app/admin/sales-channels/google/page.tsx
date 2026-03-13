@@ -39,6 +39,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 export default function GoogleSyncPage() {
   const db = useFirestore();
@@ -343,7 +344,7 @@ export default function GoogleSyncPage() {
                 </div>
               </div>
               <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-muted-foreground mt-1">
-                Unlike standard feeds, the API pushes price or stock changes to Google in minutes.
+                Unlike standard feeds that update once a day, the API pushes price or stock changes to Google in minutes.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
