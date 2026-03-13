@@ -90,7 +90,7 @@ export default function Home() {
       {/* Archival Series Manifest */}
       <section className="py-24 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 category-text-align">
+          <div className="flex flex-col items-center text-center mb-16 gap-6">
             <div className="space-y-3">
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Archive Manifest</span>
               <h2 className="category-title-size font-headline uppercase font-bold tracking-tighter text-primary">Archival Series</h2>
@@ -142,7 +142,7 @@ export default function Home() {
       {/* Featured Selection Manifest */}
       <section className="py-24 bg-background">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 featured-text-align">
+          <div className="flex flex-col items-center text-center mb-16 gap-6">
             <div className="space-y-3">
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Selection</span>
               <h2 className="featured-title-size font-headline uppercase font-bold tracking-tighter text-primary">Featured Pieces</h2>
