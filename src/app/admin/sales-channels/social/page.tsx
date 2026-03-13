@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -208,20 +207,20 @@ export default function SocialCommercePage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Social Commerce</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Sync your FSLNO inventory with TikTok and Meta platforms for cross-channel sales.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Social Commerce</h1>
+          <p className="text-[#5c5f62] mt-1 text-xs sm:text-sm uppercase font-medium tracking-tight">Sync archival inventory with TikTok and Meta platforms.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="h-10 gap-2 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
+              <Button variant="outline" className="h-10 flex-1 sm:flex-none gap-2 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
                 <Plus className="h-4 w-4" /> Add Channel
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-white">
+            <DialogContent className="sm:max-w-md bg-white">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold uppercase tracking-tight text-primary">New Sales Channel</DialogTitle>
                 <DialogDescription className="text-xs">
@@ -258,44 +257,42 @@ export default function SocialCommercePage() {
           <Button 
             onClick={handleSaveTokens} 
             disabled={isSaving}
-            className="h-10 px-8 bg-black text-white font-bold uppercase tracking-widest text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out"
+            className="h-10 flex-1 sm:flex-none px-8 bg-black text-white font-bold uppercase tracking-widest text-[10px] shadow-md"
           >
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-            Commit API Config
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            <span className="hidden xs:inline ml-2">Commit API Config</span>
+            <span className="xs:hidden ml-2">Save</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-6">
-        <Card className="border-[#e1e3e5] shadow-none">
-          <CardHeader>
+      <div className="grid grid-cols-1 gap-6">
+        <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+          <CardHeader className="bg-gray-50/50 border-b">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <MessageCircle className="h-5 w-5 text-[#ff0050]" />
-                <CardTitle className="text-lg">TikTok Shop Seller API</CardTitle>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest">TikTok Shop Seller API</CardTitle>
               </div>
-              <Badge variant="outline" className="text-green-600 border-green-100 bg-green-50 uppercase text-[9px] font-bold tracking-widest">Active</Badge>
+              <Badge variant="outline" className="text-green-600 border-green-100 bg-green-50 uppercase text-[8px] font-bold tracking-widest">Active</Badge>
             </div>
-            <CardDescription>
-              Enable in-app checkout and affiliate creator management for viral drops.
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="pt-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
+              <div className="flex items-center justify-between p-4 bg-white border rounded-sm">
                 <div className="space-y-1">
-                  <p className="text-sm font-bold uppercase tracking-tight">In-App Checkout</p>
-                  <p className="text-xs text-[#5c5f62]">Allow customers to buy FSLNO gear without leaving TikTok.</p>
+                  <p className="text-[11px] font-bold uppercase tracking-tight">In-App Checkout</p>
+                  <p className="text-[10px] text-[#5c5f62] uppercase leading-tight">Biometric native shopping.</p>
                 </div>
                 <Switch 
                   checked={config.tiktokInAppCheckout} 
                   onCheckedChange={(checked) => handleUpdate({ tiktokInAppCheckout: checked })}
                 />
               </div>
-              <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
+              <div className="flex items-center justify-between p-4 bg-white border rounded-sm">
                 <div className="space-y-1">
-                  <p className="text-sm font-bold uppercase tracking-tight">Affiliate Management</p>
-                  <p className="text-xs text-[#5c5f62]">Automated dashboard to send samples to creators and track ROI.</p>
+                  <p className="text-[11px] font-bold uppercase tracking-tight">Affiliate Dashboard</p>
+                  <p className="text-[10px] text-[#5c5f62] uppercase leading-tight">Creator sample tracking.</p>
                 </div>
                 <Button 
                   variant="outline" 
@@ -303,83 +300,78 @@ export default function SocialCommercePage() {
                   className="h-8 border-[#babfc3] font-bold uppercase tracking-widest text-[9px]"
                   onClick={() => setIsPartnersDialogOpen(true)}
                 >
-                  Configure
+                  Orchestrate
                 </Button>
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">TikTok Shop Access Token</Label>
+            <div className="space-y-2">
+              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">TikTok Shop Access Token</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input 
                   type="password" 
                   value={tiktokToken} 
                   onChange={(e) => setTiktokToken(e.target.value)}
-                  className="pl-10 font-mono text-xs h-11" 
+                  className="pl-10 font-mono text-xs h-11 bg-gray-50/50" 
                 />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-[#e1e3e5] shadow-none">
-          <CardHeader>
+        <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+          <CardHeader className="bg-gray-50/50 border-b">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <ShieldCheck className="h-5 w-5 text-[#0668E1]" />
-                <CardTitle className="text-lg">Meta Conversions API (CAPI)</CardTitle>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest">Meta Conversions API</CardTitle>
               </div>
-              <Badge variant="outline" className="text-green-600 border-green-100 bg-green-50 uppercase text-[9px] font-bold tracking-widest">Active</Badge>
+              <Badge variant="outline" className="text-green-600 border-green-100 bg-green-50 uppercase text-[8px] font-bold tracking-widest">Linked</Badge>
             </div>
-            <CardDescription>
-              High-performance server-to-server tracking for Facebook and Instagram ads.
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="p-4 bg-blue-50 border border-blue-100 rounded-md">
+          <CardContent className="pt-6 space-y-6">
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-sm">
               <div className="flex gap-3">
-                <Zap className="h-5 w-5 text-blue-600 shrink-0" />
+                <Zap className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-blue-900 uppercase tracking-tight">Bypass Privacy Restrictions</p>
-                  <p className="text-xs text-blue-800 leading-relaxed uppercase tracking-tight">
-                    CAPI sends event data directly from your Firebase instance to Meta, bypassing browser-based ad-blockers.
+                  <p className="text-[10px] font-bold text-blue-900 uppercase tracking-tight">Direct Server Dispatch</p>
+                  <p className="text-[10px] text-blue-800 leading-relaxed uppercase tracking-tight opacity-70">
+                    Bypass browser ad-blockers for forensic attribution accuracy.
                   </p>
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Pixel ID</Label>
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Meta Pixel ID</Label>
                 <div className="relative">
                   <BarChart3 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input 
                     value={pixelId} 
                     onChange={(e) => setPixelId(e.target.value)}
-                    className="pl-10 h-11 font-mono text-xs"
+                    className="pl-10 h-11 font-mono text-xs bg-gray-50/50"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Access Token</Label>
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Server Access Token</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input 
                     type="password" 
                     value={metaToken}
                     onChange={(e) => setMetaToken(e.target.value)}
-                    placeholder="Enter your token" 
-                    className="pl-10 h-11 font-mono text-xs"
+                    className="pl-10 h-11 font-mono text-xs bg-gray-50/50"
                   />
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="space-y-1">
-                <span className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
-                  <span>Event Match Quality (EMQ)</span>
-                  <Badge variant="secondary" className="text-[9px] h-4 font-bold uppercase tracking-widest">Advanced</Badge>
-                </span>
-                <p className="text-xs text-[#5c5f62]">Sends hashed customer data to improve attribution accuracy.</p>
+                <p className="text-[11px] font-bold uppercase tracking-tight flex items-center gap-2">
+                  Match Quality Protocol <Badge variant="secondary" className="text-[7px] h-3.5 px-1.5 font-bold uppercase tracking-widest">Advanced</Badge>
+                </p>
+                <p className="text-[10px] text-[#5c5f62] uppercase leading-tight">Stitch sessions across architectural touchpoints.</p>
               </div>
               <Switch 
                 checked={config.metaEmqEnabled} 
@@ -390,194 +382,84 @@ export default function SocialCommercePage() {
         </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
+          <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Instagram className="h-5 w-5 text-[#E1306C]" />
-                  <CardTitle className="text-lg">Instagram Shopping</CardTitle>
+                  <CardTitle className="text-sm font-bold uppercase tracking-widest">Instagram Shopping</CardTitle>
                 </div>
                 {config.lastInstagramSync && (
-                  <span className="text-[8px] font-bold text-green-600 flex items-center gap-1 uppercase tracking-widest">
-                    <CheckCircle2 className="h-2 w-2" /> Synced: {formatDate(config.lastInstagramSync)}
+                  <span className="text-[8px] font-bold text-green-600 uppercase tracking-widest">
+                    Synced: {formatDate(config.lastInstagramSync)}
                   </span>
                 )}
               </div>
-              <CardDescription>
-                Sync your Bento Grid categories directly into shoppable visual content.
-              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 border rounded-md flex flex-col gap-3 group relative overflow-hidden bg-gray-50/50">
+            <CardContent className="pt-6">
+              <div className="p-4 border border-dashed rounded-sm flex flex-col gap-4 bg-gray-50/30">
                 <div className="flex items-center justify-between">
-                  <Target className="h-5 w-5 text-primary" />
-                  <Badge variant="outline" className="text-[8px] font-bold uppercase">Real-time Feed</Badge>
+                  <Target className="h-4 w-4 text-primary opacity-40" />
+                  <Badge variant="outline" className="text-[7px] font-bold uppercase tracking-widest h-4 px-1.5">Live Feed</Badge>
                 </div>
-                <h4 className="text-sm font-bold uppercase tracking-tight">Product Tagging</h4>
-                <p className="text-xs text-[#5c5f62]">Sync your archive drops into Instagram "Guides" and Shoppable Reels.</p>
+                <p className="text-[10px] text-[#5c5f62] uppercase leading-relaxed font-medium">Sync bento categories into shoppable visual guides and product reels.</p>
                 <Button 
-                  className="h-10 bg-black text-white font-bold uppercase tracking-widest text-[9px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all"
+                  className="h-10 bg-black text-white font-bold uppercase tracking-widest text-[9px] w-full"
                   onClick={handleInstagramSync}
                   disabled={isSyncing}
                 >
-                  {isSyncing ? (
-                    <span className="flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" /> Pushing Catalog...</span>
-                  ) : 'Sync Catalog Now'}
+                  {isSyncing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
+                  {isSyncing ? 'Pushing Catalog...' : 'Sync Catalog Now'}
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
+          <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">Creator Marketplace</CardTitle>
+                  <CardTitle className="text-sm font-bold uppercase tracking-widest">Partner Network</CardTitle>
                 </div>
               </div>
-              <CardDescription>Enable white-listed ads for FSLNO archive partners.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 border rounded-md flex flex-col gap-3 bg-gray-50/50">
+            <CardContent className="pt-6">
+              <div className="p-4 border border-dashed rounded-sm flex flex-col gap-4 bg-gray-50/30">
                 <div className="flex items-center justify-between">
-                  <Zap className="h-5 w-5 text-orange-500" />
-                  <Badge variant="outline" className="text-[8px] font-bold uppercase">Auth Required</Badge>
+                  <Zap className="h-4 w-4 text-orange-500 opacity-40" />
+                  <Badge variant="outline" className="text-[7px] font-bold uppercase tracking-widest h-4 px-1.5">ROI Active</Badge>
                 </div>
-                <h4 className="text-sm font-bold uppercase tracking-tight">Partner Orchestration</h4>
-                <p className="text-xs text-[#5c5f62]">Grant advertising permissions to authorized archive content creators.</p>
-                
-                <Dialog open={isPartnersDialogOpen} onOpenChange={setIsPartnersDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="h-10 border-black font-bold uppercase tracking-widest text-[9px] hover:bg-secondary">
-                      View Partners Archive
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-3xl bg-white border-none rounded-none shadow-2xl p-0 overflow-hidden">
-                    <DialogHeader className="p-8 border-b bg-gray-50/50">
-                      <div className="flex items-center gap-3 text-primary mb-2">
-                        <Users className="h-5 w-5" />
-                        <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Archive Partners</DialogTitle>
-                      </div>
-                      <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Manage authorized social commerce creators.</DialogDescription>
-                    </DialogHeader>
-                    
-                    <div className="flex-1 overflow-y-auto max-h-[60vh]">
-                      {isInviting ? (
-                        <div className="p-8 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                          <h3 className="text-sm font-bold uppercase tracking-widest border-b pb-2">Invite New Creator</h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label className="text-[10px] uppercase font-bold text-gray-500">Handle Name</Label>
-                              <Input 
-                                placeholder="@username" 
-                                value={newPartner.name}
-                                onChange={(e) => setNewPartner({...newPartner, name: e.target.value})}
-                                className="h-11"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-[10px] uppercase font-bold text-gray-500">Platform</Label>
-                              <select 
-                                className="w-full h-11 border rounded-md px-3 text-sm font-bold uppercase bg-white focus:ring-1 focus:ring-black outline-none"
-                                value={newPartner.platform}
-                                onChange={(e) => setNewPartner({...newPartner, platform: e.target.value})}
-                              >
-                                <option value="Instagram">Instagram</option>
-                                <option value="TikTok">TikTok</option>
-                                <option value="YouTube">YouTube</option>
-                                <option value="X (Twitter)">X (Twitter)</option>
-                                <option value="Facebook">Facebook</option>
-                                <option value="Pinterest">Pinterest</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" className="flex-1 h-11 uppercase font-bold text-[10px]" onClick={() => setIsInviting(false)}>Cancel</Button>
-                            <Button className="flex-1 h-11 bg-black text-white uppercase font-bold text-[10px]" onClick={handleInvitePartner} disabled={isSaving}>
-                              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Invitation'}
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-8">
-                          <Table>
-                            <TableHeader className="bg-gray-50/20">
-                              <TableRow className="border-b border-black/5">
-                                <TableHead className="text-[10px] font-bold uppercase tracking-widest py-4">Creator</TableHead>
-                                <TableHead className="text-[10px] font-bold uppercase tracking-widest">Platform</TableHead>
-                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Status</TableHead>
-                                <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">ROI</TableHead>
-                                <TableHead className="w-[50px]"></TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {partnersLoading ? (
-                                <TableRow><TableCell colSpan={5} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
-                              ) : !partners || partners.length === 0 ? (
-                                <TableRow><TableCell colSpan={5} className="text-center py-12 text-[10px] font-bold uppercase text-gray-400">No archival partners cataloged.</TableCell></TableRow>
-                              ) : (
-                                partners.map((partner) => (
-                                  <TableRow key={partner.id} className="hover:bg-gray-50/30 border-b border-black/5 last:border-0 transition-all duration-300 group">
-                                    <TableCell className="font-bold text-xs py-4 text-primary uppercase">{partner.name}</TableCell>
-                                    <TableCell className="text-xs text-gray-500 uppercase font-medium">{partner.platform}</TableCell>
-                                    <TableCell className="text-center">
-                                      <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest border-none mx-auto", partner.status === 'Active' ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700")}>
-                                        {partner.status}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right font-mono text-xs font-bold text-primary">{partner.roi}</TableCell>
-                                    <TableCell>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        onClick={() => removePartner(partner.id)}
-                                        className="h-8 w-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </TableCell>
-                                  </TableRow>
-                                ))
-                              )}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {!isInviting && (
-                      <DialogFooter className="p-8 bg-gray-50/50 border-t flex flex-row items-center justify-between">
-                        <Button variant="ghost" onClick={() => setIsPartnersDialogOpen(false)} className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Close</Button>
-                        <Button className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px] gap-2" onClick={() => setIsInviting(true)}>
-                          <PlusCircle className="h-4 w-4" /> Invite New Creator
-                        </Button>
-                      </DialogFooter>
-                    )}
-                  </DialogContent>
-                </Dialog>
+                <p className="text-[10px] text-[#5c5f62] uppercase leading-relaxed font-medium">Manage permissions and white-listed ad access for studio partners.</p>
+                <Button 
+                  variant="outline" 
+                  className="h-10 border-black font-bold uppercase tracking-widest text-[9px] w-full hover:bg-black hover:text-white transition-all"
+                  onClick={() => setIsPartnersDialogOpen(true)}
+                >
+                  View Archive Partners
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {config.customIntegrations?.map((integration: any) => (
-          <Card key={integration.id} className="border-[#e1e3e5] shadow-none border-dashed border-2">
+          <Card key={integration.id} className="border-[#e1e3e5] shadow-none border-dashed border-2 rounded-none bg-gray-50/20">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Share2 className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg font-bold uppercase tracking-tight">{integration.name}</CardTitle>
+                  <Share2 className="h-4 w-4 text-primary opacity-40" />
+                  <CardTitle className="text-sm font-bold uppercase tracking-widest">{integration.name}</CardTitle>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => removeIntegration(integration.id)} className="h-8 w-8 text-destructive hover:bg-red-50 transition-colors">
-                  <Trash2 className="h-4 w-4" />
+                <Button variant="ghost" size="icon" onClick={() => removeIntegration(integration.id)} className="h-8 w-8 text-destructive hover:bg-red-50">
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              <CardDescription className="text-xs font-medium uppercase tracking-widest">{integration.description}</CardDescription>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-tight opacity-60">{integration.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4 bg-[#f6f6f7] rounded-md border text-center text-[10px] text-[#5c5f62] uppercase font-bold tracking-[0.1em]">
-                Integration configuration pending API key validation.
+              <div className="p-4 bg-white border border-black/5 rounded-sm text-center">
+                <p className="text-[9px] text-[#8c9196] uppercase font-bold tracking-widest">Awaiting forensic API validation.</p>
               </div>
             </CardContent>
           </Card>
@@ -586,15 +468,135 @@ export default function SocialCommercePage() {
       
       <div className="flex justify-end pt-8 border-t">
         <Button 
-          className="bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
+          className="w-full sm:w-auto bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
           onClick={() => {
             handleSaveTokens();
-            toast({ title: "Settings Finalized", description: "All social commerce configurations are now Authoritatively live." });
+            toast({ title: "Manifest Finalized", description: "Channel protocols have been Authoritatively synchronized." });
           }}
         >
-          Save All Channel Settings
+          Synchronize All Channels
         </Button>
       </div>
+
+      {/* Partners Dialog - Fixed for Mobile */}
+      <Dialog open={isPartnersDialogOpen} onOpenChange={setIsPartnersDialogOpen}>
+        <DialogContent className="max-w-[100vw] w-screen h-screen m-0 sm:max-w-3xl sm:h-auto sm:rounded-none bg-white border-none p-0 overflow-hidden flex flex-col shadow-2xl">
+          <DialogHeader className="p-6 sm:p-8 border-b bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3 text-primary">
+                <Users className="h-5 w-5" />
+                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Archive Partners</DialogTitle>
+              </div>
+              <DialogDescription className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Manage authorized social commerce creators.</DialogDescription>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setIsPartnersDialogOpen(false)} className="rounded-full h-10 w-10 sm:hidden">
+              <X className="h-5 w-5" />
+            </Button>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto">
+            {isInviting ? (
+              <div className="p-6 sm:p-8 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                <h3 className="text-sm font-bold uppercase tracking-widest border-b pb-2">Invite New Creator</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Handle Identity</Label>
+                    <Input 
+                      placeholder="@username" 
+                      value={newPartner.name}
+                      onChange={(e) => setNewPartner({...newPartner, name: e.target.value})}
+                      className="h-12 bg-gray-50/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Target Platform</Label>
+                    <select 
+                      className="w-full h-12 border rounded-none px-3 text-[10px] font-bold uppercase bg-white focus:ring-1 focus:ring-black outline-none"
+                      value={newPartner.platform}
+                      onChange={(e) => setNewPartner({...newPartner, platform: e.target.value})}
+                    >
+                      <option value="Instagram">Instagram</option>
+                      <option value="TikTok">TikTok</option>
+                      <option value="YouTube">YouTube</option>
+                      <option value="X (Twitter)">X (Twitter)</option>
+                      <option value="Facebook">Facebook</option>
+                      <option value="Pinterest">Pinterest</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" className="flex-1 h-12 uppercase font-bold text-[10px] rounded-none" onClick={() => setIsInviting(false)}>Cancel</Button>
+                  <Button className="flex-1 h-12 bg-black text-white uppercase font-bold text-[10px] rounded-none" onClick={handleInvitePartner} disabled={isSaving}>
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Authorize Invitation'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-0 sm:p-8">
+                <Table>
+                  <TableHeader className="bg-gray-50/20">
+                    <TableRow className="border-b border-black/5">
+                      <TableHead className="text-[9px] font-bold uppercase tracking-widest py-4 px-6">Creator</TableHead>
+                      <TableHead className="text-[9px] font-bold uppercase tracking-widest hidden xs:table-cell">Platform</TableHead>
+                      <TableHead className="text-[9px] font-bold uppercase tracking-widest text-center">Status</TableHead>
+                      <TableHead className="text-right text-[9px] font-bold uppercase tracking-widest px-6">ROI</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {partnersLoading ? (
+                      <TableRow><TableCell colSpan={5} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+                    ) : !partners || partners.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} className="text-center py-12 text-[10px] font-bold uppercase text-gray-400 tracking-widest">No partners cataloged.</TableCell></TableRow>
+                    ) : (
+                      partners.map((partner) => (
+                        <TableRow key={partner.id} className="hover:bg-gray-50/30 border-b border-black/5 last:border-0 transition-all group">
+                          <TableCell className="font-bold text-xs py-5 px-6 text-primary uppercase">
+                            <div className="flex flex-col">
+                              <span>{partner.name}</span>
+                              <span className="xs:hidden text-[8px] text-gray-400 font-medium mt-0.5">{partner.platform}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-[10px] text-gray-500 uppercase font-medium hidden xs:table-cell">{partner.platform}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="outline" className={cn("text-[8px] font-bold uppercase tracking-widest border-none mx-auto", partner.status === 'Active' ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700")}>
+                              {partner.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs font-bold text-primary px-6">{partner.roi}</TableCell>
+                          <TableCell>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => removePartner(partner.id)}
+                              className="h-8 w-8 text-gray-300 hover:text-red-500 opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="p-6 sm:p-8 bg-gray-50/50 border-t flex flex-row items-center justify-between shrink-0">
+            {!isInviting ? (
+              <>
+                <Button variant="ghost" onClick={() => setIsPartnersDialogOpen(false)} className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Close Manifest</Button>
+                <Button className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px] gap-2 rounded-none shadow-lg" onClick={() => setIsInviting(true)}>
+                  <PlusCircle className="h-4 w-4" /> Invite Creator
+                </Button>
+              </>
+            ) : (
+              <p className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest mx-auto">Identity registration pending confirmation.</p>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
