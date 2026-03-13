@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -36,6 +37,7 @@ export function Chatbot() {
 
   const contactMethods: any[] = [];
   
+  // 01. Phone Paths
   phoneNumbers.forEach(p => contactMethods.push({ 
     type: 'phone', 
     label: p.label, 
@@ -45,6 +47,19 @@ export function Chatbot() {
     color: '#3B82F6'
   }));
   
+  // 02. WhatsApp Path - High-Fidelity API Link
+  if (config?.whatsAppNumber) {
+    contactMethods.push({
+      type: 'social',
+      label: 'WhatsApp',
+      value: config.whatsAppNumber,
+      icon: <MessageCircle className="h-4 w-4" />,
+      href: `https://wa.me/${config.whatsAppNumber}`,
+      color: '#25D366'
+    });
+  }
+
+  // 03. Email Paths
   emailAddresses.forEach(e => contactMethods.push({ 
     type: 'email', 
     label: e.label, 
@@ -54,7 +69,11 @@ export function Chatbot() {
     color: '#8B5CF6'
   }));
   
+  // 04. Social Channels
   socialChannels.forEach(s => {
+    // Skip legacy WhatsApp entries if they exist in the array
+    if (s.platform === 'WhatsApp') return;
+
     let icon = <Globe className="h-4 w-4" />;
     let color = '#000000';
     
@@ -70,9 +89,6 @@ export function Chatbot() {
     } else if (s.platform === 'Messenger') {
       icon = <Facebook className="h-4 w-4" />;
       color = '#0084FF';
-    } else if (s.platform === 'WhatsApp') {
-      icon = <MessageSquare className="h-4 w-4" />;
-      color = '#25D366';
     }
     
     contactMethods.push({ type: 'social', label: s.platform, value: s.url, icon, href: s.url, color });

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -50,7 +51,8 @@ import {
   Instagram,
   Twitter,
   MessageSquare,
-  Facebook
+  Facebook,
+  MessageCircle
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -95,6 +97,7 @@ export default function SettingsPage() {
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [phone, setPhone] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [whatsAppNumber, setWhatsAppNumber] = useState('');
 
   // Contact Manifest State
   const [phoneNumbers, setPhoneNumbers] = useState<ContactItem[]>([]);
@@ -121,6 +124,7 @@ export default function SettingsPage() {
       setGoogleMapsUrl(storeConfig.googleMapsUrl || '');
       setPhone(storeConfig.phone || '');
       setLogoUrl(storeConfig.logoUrl || '');
+      setWhatsAppNumber(storeConfig.whatsAppNumber || '');
       
       setPhoneNumbers(storeConfig.phoneNumbers || []);
       setEmailAddresses(storeConfig.emailAddresses || []);
@@ -198,6 +202,7 @@ export default function SettingsPage() {
       phoneNumbers,
       emailAddresses,
       socialChannels,
+      whatsAppNumber,
       updatedAt: new Date().toISOString()
     };
 
@@ -205,7 +210,7 @@ export default function SettingsPage() {
       setDoc(themeRef, themeUpdates, { merge: true }),
       setDoc(storeConfigRef, storeUpdates, { merge: true })
     ])
-      .then(() => toast({ title: "Chatbot & Contacts Saved", description: "Archival support protocols updated." }))
+      .then(() => toast({ title: "Chatbot & Contacts Saved", description: "Studio support protocols updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: { ...themeUpdates, ...storeUpdates } })))
       .finally(() => setIsSaving(false));
   };
@@ -466,7 +471,7 @@ export default function SettingsPage() {
                   <MessageSquareMore className="h-5 w-5 text-primary" />
                   <CardTitle className="text-lg font-headline uppercase tracking-tight">Support Chatbot Orchestrator</CardTitle>
                 </div>
-                <CardDescription>Configure visual and behavioral parameters for the archival floating dispatch.</CardDescription>
+                <CardDescription>Configure visual and behavioral parameters for the Studio floating dispatch.</CardDescription>
               </div>
               <Switch checked={chatbotEnabled} onCheckedChange={setChatbotEnabled} />
             </CardHeader>
@@ -549,23 +554,37 @@ export default function SettingsPage() {
               <CardHeader className="flex flex-row items-center justify-between border-b">
                 <div>
                   <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-blue-500" /> Phone Manifest
+                    <Phone className="h-4 w-4 text-blue-500" /> Phone & WhatsApp Manifest
                   </CardTitle>
-                  <CardDescription className="text-[10px]">Additional voice dispatch paths.</CardDescription>
+                  <CardDescription className="text-[10px]">Voice and instant message dispatch paths.</CardDescription>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => addContact('phone')} className="h-8 text-[9px] font-bold uppercase border-black">
-                  <Plus className="h-3 w-3 mr-1" /> Add Path
+                  <Plus className="h-3 w-3 mr-1" /> Add Voice Path
                 </Button>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                {phoneNumbers.map((item, idx) => (
-                  <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <Input placeholder="Label (e.g. Sales)" value={item.label} onChange={(e) => updateContact('phone', idx, 'label', e.target.value)} className="h-10 text-[10px] font-bold uppercase" />
-                    <Input placeholder="Number" value={item.value} onChange={(e) => updateContact('phone', idx, 'value', e.target.value)} className="h-10 text-xs font-mono" />
-                    <Button variant="ghost" size="icon" onClick={() => removeContact('phone', idx)} className="h-10 w-10 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                ))}
-                {phoneNumbers.length === 0 && <p className="text-center py-4 text-[9px] text-gray-400 font-bold uppercase">No additional phones cataloged.</p>}
+              <CardContent className="pt-6 space-y-6">
+                <div className="space-y-2 pb-4 border-b">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
+                    <MessageCircle className="h-3 w-3 text-[#25D366]" /> Primary WhatsApp Number
+                  </Label>
+                  <Input 
+                    placeholder="e.g. 15550000000 (Digits only)" 
+                    value={whatsAppNumber} 
+                    onChange={(e) => setWhatsAppNumber(e.target.value.replace(/[^0-9]/g, ''))} 
+                    className="h-11 font-mono text-xs" 
+                  />
+                  <p className="text-[8px] text-gray-400 uppercase font-medium">Use international format without + or 00.</p>
+                </div>
+                <div className="space-y-4">
+                  {phoneNumbers.map((item, idx) => (
+                    <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <Input placeholder="Label (e.g. Sales)" value={item.label} onChange={(e) => updateContact('phone', idx, 'label', e.target.value)} className="h-10 text-[10px] font-bold uppercase" />
+                      <Input placeholder="Number" value={item.value} onChange={(e) => updateContact('phone', idx, 'value', e.target.value)} className="h-10 text-xs font-mono" />
+                      <Button variant="ghost" size="icon" onClick={() => removeContact('phone', idx)} className="h-10 w-10 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  ))}
+                  {phoneNumbers.length === 0 && <p className="text-center py-4 text-[9px] text-gray-400 font-bold uppercase">No additional phones cataloged.</p>}
+                </div>
               </CardContent>
             </Card>
 
@@ -600,7 +619,7 @@ export default function SettingsPage() {
                 <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                   <Instagram className="h-4 w-4 text-pink-500" /> Social Discovery Manifest
                 </CardTitle>
-                <CardDescription className="text-[10px]">Connect your FSLNO channels to the chatbot.</CardDescription>
+                <CardDescription className="text-[10px]">Connect your Studio channels to the chatbot.</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => addContact('social')} className="h-8 text-[9px] font-bold uppercase border-black">
                 <Plus className="h-3 w-3 mr-1" /> Add Channel
@@ -617,7 +636,6 @@ export default function SettingsPage() {
                       <SelectItem value="Instagram" className="text-[10px] uppercase font-bold">Instagram</SelectItem>
                       <SelectItem value="TikTok" className="text-[10px] uppercase font-bold">TikTok</SelectItem>
                       <SelectItem value="Messenger" className="text-[10px] uppercase font-bold">Messenger</SelectItem>
-                      <SelectItem value="WhatsApp" className="text-[10px] uppercase font-bold">WhatsApp</SelectItem>
                       <SelectItem value="Twitter" className="text-[10px] uppercase font-bold">Twitter / X</SelectItem>
                       <SelectItem value="Other" className="text-[10px] uppercase font-bold">Other</SelectItem>
                     </SelectContent>
