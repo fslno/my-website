@@ -450,9 +450,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
                 <Image src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} alt="Admin" fill className="object-cover" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                   <Settings className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
               </div>
             </div>
           </header>
