@@ -77,6 +77,8 @@ export default function PaymentsPage() {
       adyenEnabled: false,
       adyenMerchantAccount: '',
       adyenApiKey: '',
+      adyenDescription: 'Global merchant payments',
+      adyenFee: '2.1% + 12¢',
       applePayEnabled: true,
       googlePayEnabled: true,
       fraudGuardLevel: 'high',
@@ -155,7 +157,7 @@ export default function PaymentsPage() {
         <div className="xl:col-span-8 space-y-6">
           <Tabs defaultValue="stripe" className="w-full">
             <div className="overflow-x-auto scrollbar-hide">
-              <TabsList className="bg-white border w-full justify-start h-14 p-1 gap-2 rounded-none mb-6 min-w-[700px]">
+              <TabsList className="bg-white border w-full justify-start h-14 p-1 gap-2 rounded-none mb-6 min-w-[800px]">
                 <TabsTrigger value="stripe" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white">
                   <Zap className="h-3.5 w-3.5" /> Stripe
                 </TabsTrigger>
@@ -167,6 +169,9 @@ export default function PaymentsPage() {
                 </TabsTrigger>
                 <TabsTrigger value="afterpay" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-[#B2FCE4] data-[state=active]:text-black">
                   <History className="h-3.5 w-3.5" /> Afterpay
+                </TabsTrigger>
+                <TabsTrigger value="adyen" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-[#00FF66] data-[state=active]:text-black">
+                  <Banknote className="h-3.5 w-3.5" /> Adyen
                 </TabsTrigger>
                 <TabsTrigger value="scope" className="gap-2 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
                   <Globe className="h-3.5 w-3.5" /> Global Scope
@@ -408,6 +413,54 @@ export default function PaymentsPage() {
                       <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Split Payment Margin</p>
                       <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight">
                         Afterpay applies ~6.0% commission for high-fidelity split-payment orchestration.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="adyen" className="m-0 space-y-6">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="bg-gray-50/50 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Banknote className="h-5 w-5 text-[#00FF66]" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Adyen Global Payments</CardTitle>
+                    </div>
+                    <Switch 
+                      checked={config.adyenEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ adyenEnabled: checked })}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Account</Label>
+                        <Input 
+                          value={config.adyenMerchantAccount} 
+                          onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
+                          placeholder="FSLNO_STUDIO_ECOM"
+                          className="text-xs font-bold uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">API Key</Label>
+                        <Input 
+                          type="password"
+                          value={config.adyenApiKey} 
+                          onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
+                          placeholder="AQE..."
+                          className="text-xs font-mono" 
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Enterprise Protocol</p>
+                      <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight">
+                        Adyen facilitates high-fidelity multi-currency settlement and local payment method mapping.
                       </p>
                     </div>
                   </div>
