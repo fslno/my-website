@@ -89,8 +89,8 @@ export function Chatbot() {
         left: theme?.chatbotPosition === 'left' ? '2rem' : 'auto'
       }}
     >
-      {/* Pop-up Circles */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-3">
+      {/* Pop-up Circles Container - Positioned Authoritatively above the button */}
+      <div className="absolute bottom-full left-0 right-0 flex flex-col-reverse items-center gap-2 mb-3">
         {contactMethods.map((method, index) => (
           <a
             key={index}
@@ -99,14 +99,13 @@ export function Chatbot() {
             rel="noopener noreferrer"
             className={cn(
               "flex items-center justify-center rounded-full border border-black/5 shadow-lg text-white transition-all duration-500 ease-out hover:scale-110 group relative",
-              isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+              isOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-4 scale-0 pointer-events-none"
             )}
             style={{ 
               backgroundColor: method.color,
-              width: `${(theme?.chatbotSize || 60) * 0.7}px`,
-              height: `${(theme?.chatbotSize || 60) * 0.7}px`,
-              transitionDelay: `${index * 50}ms`,
-              marginBottom: isOpen ? '0' : `-${(theme?.chatbotSize || 60) * 0.7}px`
+              width: `${(theme?.chatbotSize || 60) * 0.75}px`,
+              height: `${(theme?.chatbotSize || 60) * 0.75}px`,
+              transitionDelay: `${index * 40}ms`
             }}
           >
             {method.icon}
