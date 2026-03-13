@@ -507,27 +507,21 @@ export default function DomainPage() {
                 Your sitemap.xml is Authoritatively generated to help Google index your new drops instantly.
               </p>
               <div className="flex items-center justify-between p-3 bg-[#f6f6f7] rounded-sm border gap-3 min-w-0">
-                <span className="text-[9px] sm:text-[10px] font-mono font-bold truncate flex-1">{config.sitemapUrl}</span>
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold truncate flex-1">https://{domain}/sitemap.xml</span>
                 <div className="flex items-center gap-2 shrink-0">
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     className="h-8 gap-2 uppercase text-[9px] font-bold bg-white border"
                     onClick={() => {
-                      try {
-                        const url = new URL(config.sitemapUrl);
-                        navigator.clipboard.writeText(url.hostname);
-                        toast({ title: "Copied", description: "Domain name saved to clipboard." });
-                      } catch (e) {
-                        navigator.clipboard.writeText(domain);
-                        toast({ title: "Copied", description: "Domain name saved to clipboard." });
-                      }
+                      navigator.clipboard.writeText(domain);
+                      toast({ title: "Copied", description: "Domain name saved to clipboard." });
                     }}
                   >
                     <Copy className="h-3 w-3" /> Copy Domain
                   </Button>
                   <Button variant="ghost" size="sm" className="h-8 gap-2 uppercase text-[9px] font-bold bg-white border" asChild>
-                    <a href={config.sitemapUrl} target="_blank">
+                    <a href={`https://${domain}/sitemap.xml`} target="_blank">
                       <ExternalLink className="h-3 w-3" /> View
                     </a>
                   </Button>
@@ -582,7 +576,7 @@ export default function DomainPage() {
               <div className="flex items-start justify-between border-b border-white/5 pb-4 gap-4">
                 <div className="space-y-1 min-w-0">
                   <p className="text-[10px] font-bold uppercase">CNAME (WWW)</p>
-                  <p className="text-[9px] text-gray-400 font-mono truncate">fslno.ca</p>
+                  <p className="text-[9px] text-gray-400 font-mono truncate">{domain}</p>
                 </div>
                 <Badge variant="outline" className="bg-green-500/10 text-green-400 border-none text-[8px] font-bold uppercase tracking-widest shrink-0">Matched</Badge>
               </div>
