@@ -87,7 +87,7 @@ export default function Home() {
       )}
 
       {/* Simplified Category Grid */}
-      <section className="py-24 border-b bg-white">
+      <section className="pt-24 pb-12 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col items-center text-center mb-16 gap-6">
             <div className="space-y-3">
@@ -135,7 +135,7 @@ export default function Home() {
       </section>
 
       {/* Featured Products Selection */}
-      <section className="py-24 bg-background">
+      <section className="pt-12 pb-24 bg-background">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col items-center text-center mb-16 gap-6">
             <div className="space-y-3">
