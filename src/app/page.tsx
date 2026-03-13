@@ -67,7 +67,7 @@ export default function Home() {
                   {theme?.heroHeadline || "Modern Silhouettes"}
                 </span>
                 <Link href="/collections/all" className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95">
-                  {theme?.heroButtonText || "Shop All Archive"}
+                  {theme?.heroButtonText || "Shop All"}
                 </Link>
               </div>
             </div>
@@ -91,14 +91,14 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col items-center text-center mb-16 gap-6">
             <div className="space-y-3">
-              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Archive Manifest</span>
-              <h2 className="category-title-size font-headline uppercase font-bold tracking-tighter text-primary">Archival Series</h2>
+              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">BROWSE</span>
+              <h2 className="category-title-size font-headline uppercase font-bold tracking-tighter text-primary">OUR CATEGORIES</h2>
             </div>
           </div>
           
           {!categories || categories.length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed rounded-none bg-gray-50/50">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Archival Series pending dispatch.</p>
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Collections coming soon.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
@@ -125,7 +125,7 @@ export default function Home() {
                   <div className="space-y-3 text-center">
                     <div className="flex flex-col items-center gap-1">
                       <h3 className="font-headline font-bold uppercase tracking-widest text-sm sm:text-lg leading-tight line-clamp-2">{cat.name}</h3>
-                      <span className="text-[8px] sm:text-[9px] font-mono font-bold text-gray-400 uppercase tracking-tighter">NO. 0{idx + 1}</span>
+                      <span className="text-[8px] sm:text-[9px] font-mono font-bold text-gray-400 uppercase tracking-tighter">COLLECTION {idx + 1}</span>
                     </div>
                   </div>
                 </div>
@@ -140,8 +140,8 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col items-center text-center mb-16 gap-6">
             <div className="space-y-3">
-              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Selection</span>
-              <h2 className="featured-title-size font-headline uppercase font-bold tracking-tighter text-primary">Featured Pieces</h2>
+              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">TOP RATED</span>
+              <h2 className="featured-title-size font-headline uppercase font-bold tracking-tighter text-primary">FEATURED PRODUCTS</h2>
             </div>
           </div>
           
@@ -151,7 +151,7 @@ export default function Home() {
             </div>
           ) : !featuredProducts || featuredProducts.length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed rounded-none bg-gray-50/50">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Inventory pending archival status.</p>
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Products coming soon.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
@@ -162,7 +162,7 @@ export default function Home() {
                   name={product.name}
                   price={`$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD`}
                   image={product.media?.[0]?.url || ''}
-                  category={product.brand || 'FSLNO Archive'}
+                  category={product.brand || 'FSLNO'}
                 />
               ))}
             </div>
