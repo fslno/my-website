@@ -313,13 +313,13 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-        <div>
+        <div className="w-full lg:w-auto">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Admin Overview</h1>
           <p className="text-[#5c5f62] mt-1 text-xs sm:text-sm font-medium uppercase tracking-tight">Forensic archival performance monitoring.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          <div className="flex items-center gap-2 bg-white border border-[#e1e3e5] rounded-md px-3 h-10 shadow-sm flex-1 sm:flex-none min-w-[160px]">
-            <CalendarIcon className="h-3.5 w-3.5 text-gray-400" />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          <div className="flex items-center gap-2 bg-white border border-[#e1e3e5] rounded-md px-3 h-10 shadow-sm min-w-[160px]">
+            <CalendarIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" />
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="border-none shadow-none focus:ring-0 h-8 flex-1 text-[10px] font-bold uppercase tracking-widest p-0">
                 <SelectValue placeholder="Time Range" />
@@ -343,7 +343,7 @@ export default function AdminDashboard() {
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "h-10 flex-1 sm:flex-none justify-start text-left font-bold uppercase text-[10px] tracking-widest border-[#e1e3e5] shadow-sm",
+                    "h-10 justify-start text-left font-bold uppercase text-[10px] tracking-widest border-[#e1e3e5] shadow-sm",
                     !date && "text-muted-foreground"
                   )}
                 >
@@ -351,13 +351,13 @@ export default function AdminDashboard() {
                   {date?.from ? (
                     date.to ? (
                       <span className="truncate">
-                        {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
+                        {format(date.from, "LLL dd")} - {format(date.to, "LLL dd")}
                       </span>
                     ) : (
-                      format(date.from, "LLL dd, y")
+                      format(date.from, "LLL dd")
                     )
                   ) : (
-                    <span>Pick a date range</span>
+                    <span>Pick range</span>
                   )}
                   <ChevronDown className="ml-2 h-3 w-3 opacity-50 shrink-0" />
                 </Button>
@@ -513,7 +513,7 @@ function StatsCard({ title, value, trend, icon }: { title: string, value: string
           <span className="text-[9px] font-bold text-blue-600 flex items-center gap-1 uppercase tracking-widest">
             <ArrowUpRight className="h-2.5 w-2.5" /> {trend}
           </span>
-          <span className="text-[9px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight">Verified</span>
+          <span className="text-[9px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight truncate">Verified</span>
         </div>
       </CardContent>
     </Card>
