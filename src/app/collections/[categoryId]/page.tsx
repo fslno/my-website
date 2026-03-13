@@ -11,13 +11,16 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 
-export default function CollectionPage(props: { 
+export default function CollectionPage({ 
+  params,
+  searchParams 
+}: { 
   params: Promise<{ categoryId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const params = use(props.params);
-  const searchParams = use(props.searchParams); // Authoritatively unwrap searchParams to prevent proxy access errors
-  const { categoryId } = params;
+  const { categoryId } = use(params);
+  // Authoritatively unwrap searchParams even if not used to comply with Next.js 15 proxy protocols
+  use(searchParams);
   
   const db = useFirestore();
 

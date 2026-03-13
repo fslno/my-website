@@ -13,13 +13,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 
-export default function OrderDetailPage(props: { 
+export default function OrderDetailPage({ 
+  params,
+  searchParams 
+}: { 
   params: Promise<{ orderId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const params = use(props.params);
-  const searchParams = use(props.searchParams); // Authoritatively unwrap searchParams to prevent proxy access errors
-  const { orderId } = params;
+  const { orderId } = use(params);
+  // Authoritatively unwrap searchParams even if not used to comply with Next.js 15 proxy protocols
+  use(searchParams);
   
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
