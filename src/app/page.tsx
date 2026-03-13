@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
@@ -14,6 +14,11 @@ import { cn } from '@/lib/utils';
 
 export default function Home() {
   const db = useFirestore();
+
+  useEffect(() => {
+    // Authoritatively reset scroll position to the top on mount to ensure the viewport starts at the Hero Banner
+    window.scrollTo(0, 0);
+  }, []);
 
   // Fetch top categories for the collection grid - strictly ordered by curated 'order' field
   const categoriesQuery = useMemoFirebase(() => {
@@ -43,9 +48,9 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <Header />
       
-      {/* Hero Selection based on Theme Config */}
+      {/* Hero Selection based on Theme Config - Padding adjusted to pt-36 to clear fixed header/banner */}
       {theme?.homepageLayout === 'classic' ? (
-        <section className="pt-24 pb-12">
+        <section className="pt-36 pb-12">
           <div className="w-full overflow-hidden bg-primary shadow-2xl group border-b">
             <div className="relative h-[70vh] w-full">
               {heroImageSrc ? (
@@ -106,7 +111,7 @@ export default function Home() {
                 <div key={cat.id} className="group flex flex-col gap-4">
                   <Link 
                     href={`/collections/${cat.id}`} 
-                    className="relative aspect-square overflow-hidden bg-gray-100 rounded-none shadow-sm border"
+                    className="relative aspect-square overflow-hidden bg-gray-100 rounded-sm border shadow-sm"
                     style={{ borderRadius: 'var(--radius)' }}
                   >
                     {cat.imageUrl ? (
