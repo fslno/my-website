@@ -19,7 +19,8 @@ import {
   Terminal,
   ChevronRight,
   Eye,
-  CheckCircle2
+  CheckCircle2,
+  Layers
 } from 'lucide-react';
 import { 
   Dialog, 

@@ -47,6 +47,7 @@ import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
+  const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { cart, cartCount, cartSubtotal, removeFromCart, thresholdProgress, THRESHOLD_VALUE } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
@@ -82,6 +83,7 @@ export function Header() {
   }, [allProducts, searchQuery]);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -124,11 +126,13 @@ export function Header() {
 
   const remainingForThreshold = Math.max(0, THRESHOLD_VALUE - cartSubtotal);
 
+  if (!mounted) return null;
+
   return (
     <>
       {theme?.bannerEnabled && (
         <div 
-          className="fixed top-0 left-0 right-0 z-[60] h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center banner-style"
+          className="fixed top-0 left-0 right-0 z-[60] h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center banner-style text-[8px] sm:text-[10px]"
           style={{ backgroundColor: theme.bannerBgColor || 'var(--primary)' }}
         >
           {theme.bannerText}
@@ -136,21 +140,21 @@ export function Header() {
       )}
       <header
         className={cn(
-          'fixed left-0 right-0 z-50 transition-all duration-300 h-20 flex items-center bg-white border-b shadow-sm',
+          'fixed left-0 right-0 z-50 transition-all duration-300 h-16 sm:h-20 flex items-center bg-white border-b shadow-sm',
           theme?.bannerEnabled ? 'top-10' : 'top-0'
         )}
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4 lg:gap-8">
+          <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-primary">
-                  <Menu className="h-6 w-6" />
+                <Button variant="ghost" size="icon" className="lg:hidden text-primary h-10 w-10">
+                  <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                  <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight text-primary flex items-center gap-3">
+                  <SheetTitle className="text-xl sm:text-2xl font-headline font-bold uppercase tracking-tight text-primary flex items-center gap-3">
                     {storeConfig?.logoUrl && (
                       <div className="relative w-6 h-6 rounded-sm overflow-hidden">
                         <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
@@ -169,7 +173,7 @@ export function Header() {
                           <Link 
                             key={cat.id} 
                             href={`/collections/${cat.id}`} 
-                            className="text-xl font-headline uppercase text-primary hover:opacity-60 transition-opacity"
+                            className="text-lg sm:text-xl font-headline uppercase text-primary hover:opacity-60 transition-opacity"
                           >
                             {cat.name}
                           </Link>
@@ -205,13 +209,13 @@ export function Header() {
               </SheetContent>
             </Sheet>
 
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
               {storeConfig?.logoUrl ? (
-                <div className="relative w-8 h-8 rounded-sm overflow-hidden">
+                <div className="relative w-6 h-6 sm:w-8 sm:h-8 rounded-sm overflow-hidden">
                   <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                 </div>
               ) : null}
-              <h1 className="text-3xl font-headline font-bold tracking-tighter text-primary hidden lg:block">
+              <h1 className="text-xl sm:text-3xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
                 {storeConfig?.businessName || "FSLNO"}
               </h1>
             </Link>
@@ -239,12 +243,12 @@ export function Header() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative flex items-center mr-2" ref={searchRef}>
-              <Search className="absolute left-3 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="relative flex items-center mr-1 sm:mr-2" ref={searchRef}>
+              <Search className="absolute left-2.5 sm:left-3 h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground pointer-events-none" />
               <Input 
                 placeholder="SEARCH" 
-                className="pl-8 h-9 w-9 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[9px] font-bold uppercase tracking-widest rounded-full sm:rounded-none focus-visible:ring-1 focus-visible:ring-primary transition-all duration-300 focus:w-40 sm:focus:w-40 md:focus:w-56 placeholder:opacity-0 sm:placeholder:opacity-100 focus:placeholder:opacity-100"
+                className="pl-7 sm:pl-8 h-8 sm:h-9 w-24 sm:w-40 md:w-56 bg-gray-50 border-gray-200 text-[8px] sm:text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-primary transition-all duration-300 placeholder:text-muted-foreground/50"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -317,12 +321,12 @@ export function Header() {
               )}
             </div>
 
-            <div className="flex items-center gap-1">
-              <div className="hidden lg:flex">
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <div className="hidden sm:flex">
                 {user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm">
+                      <Button variant="ghost" size="icon" className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm h-10 w-10">
                         <UserIcon className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -354,7 +358,7 @@ export function Header() {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm"
+                    className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm h-10 w-10"
                     onClick={() => setIsAuthOpen(true)}
                   >
                     <UserIcon className="h-5 w-5" />
@@ -364,10 +368,10 @@ export function Header() {
 
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out">
+                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out h-10 w-10">
                     <Heart className="h-5 w-5" />
                     {wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                      <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[8px] sm:text-[10px] w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
                         {wishlistCount}
                       </span>
                     )}
@@ -412,10 +416,10 @@ export function Header() {
               
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out">
+                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out h-10 w-10">
                     <ShoppingBag className="h-5 w-5" />
                     {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                      <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[8px] sm:text-[10px] w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
                         {cartCount}
                       </span>
                     )}
@@ -512,7 +516,7 @@ export function Header() {
                           Tax and shipping calculated at checkout.
                         </p>
                       </div>
-                      <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">
+                      <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">
                         <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
                       </Button>
                     </SheetFooter>
