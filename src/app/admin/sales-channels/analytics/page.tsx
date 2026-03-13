@@ -120,16 +120,16 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-end">
+    <div className="space-y-8 min-w-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">GA4 Measurement</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Manage custom funnel events and manual tracking orchestration.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">GA4 Measurement</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase tracking-tight font-medium">Manage custom funnel events and manual tracking orchestration.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button 
             variant="outline" 
-            className="h-10 gap-2 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]" 
+            className="flex-1 sm:flex-none h-10 gap-2 border-[#babfc3] font-bold uppercase tracking-widest text-[10px] bg-white" 
             onClick={handleResetStreams}
             disabled={isResetting}
           >
@@ -140,10 +140,10 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-[#e1e3e5] shadow-none">
+        <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Eye className="h-3 w-3" /> Real-time Users
+            <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
+              <Eye className="h-3.5 w-3.5" /> Real-time Users
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -154,80 +154,80 @@ export default function AnalyticsPage() {
               </span>
               42
             </div>
-            <p className="text-xs text-[#8c9196] mt-1">Currently active on FSLNO.com</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Currently active on FSLNO.com</p>
           </CardContent>
         </Card>
-        <Card className="border-[#e1e3e5] shadow-none">
+        <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Activity className="h-3 w-3" /> Engagement
+            <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
+              <Activity className="h-3.5 w-3.5" /> Engagement
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">3.8%</div>
-            <p className="text-xs text-[#8c9196] mt-1">Conversion velocity</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Conversion velocity</p>
           </CardContent>
         </Card>
-        <Card className="border-[#e1e3e5] shadow-none">
+        <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Target className="h-3 w-3" /> Catalog Impressions
+            <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
+              <Target className="h-3.5 w-3.5" /> Catalog Impressions
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">1,204</div>
-            <p className="text-xs text-[#8c9196] mt-1">Total selection views</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Total selection views</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 space-y-6">
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
+          <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+            <CardHeader className="border-b bg-gray-50/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-blue-500" />
-                  <CardTitle className="text-lg">Custom Funnel Tracking</CardTitle>
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Custom Funnel Tracking</CardTitle>
                 </div>
-                <Badge variant="outline" className="text-blue-600 border-blue-100 bg-blue-50 uppercase text-[9px] font-bold tracking-widest">Active</Badge>
+                <Badge variant="outline" className="text-blue-600 border-blue-100 bg-blue-50 uppercase text-[8px] sm:text-[9px] font-bold tracking-widest">Active</Badge>
               </div>
-              <CardDescription>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-muted-foreground mt-1">
                 Measure specific interaction points in the archival journey.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
               <div className="grid gap-4">
-                <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#f6f6f7] rounded-none border gap-4">
                   <div className="space-y-1">
-                    <span className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
+                    <span className="text-[11px] font-bold flex items-center gap-2 uppercase tracking-widest">
                       <MousePointer2 className="h-4 w-4" /> view_item_list
                     </span>
-                    <p className="text-xs text-[#5c5f62]">Tracks which FSLNO category gets the most impressions.</p>
+                    <p className="text-[10px] text-[#5c5f62] uppercase tracking-tight font-medium opacity-70">Tracks which FSLNO category gets the most impressions.</p>
                   </div>
                   <Switch 
                     checked={config.funnelTrackingEnabled} 
                     onCheckedChange={(checked) => handleUpdate({ funnelTrackingEnabled: checked })}
                   />
                 </div>
-                <div className="flex items-center justify-between p-4 bg-[#f6f6f7] rounded-md border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#f6f6f7] rounded-none border gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm font-bold uppercase tracking-tight">Checkout Drop-off Analysis</p>
-                    <p className="text-xs text-[#5c5f62]">Pinpoints exactly where users drop off between cart and begin_checkout.</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest">Checkout Drop-off Analysis</p>
+                    <p className="text-[10px] text-[#5c5f62] uppercase tracking-tight font-medium opacity-70">Pinpoints exactly where users drop off between cart and begin_checkout.</p>
                   </div>
                   <Dialog open={isFunnelOpen} onOpenChange={setIsFunnelOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-9 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">
+                      <Button variant="outline" size="sm" className="h-9 border-[#babfc3] font-bold uppercase tracking-widest text-[9px] bg-white w-full sm:w-auto">
                         View Funnel
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl bg-white border-none rounded-none shadow-2xl">
+                    <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-white border-none rounded-none shadow-2xl">
                       <DialogHeader className="pt-8 border-b pb-6">
                         <div className="flex items-center gap-3 text-primary mb-2">
                           <Layers className="h-5 w-5" />
-                          <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Checkout Funnel Visualizer</DialogTitle>
+                          <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Checkout Funnel Visualizer</DialogTitle>
                         </div>
-                        <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Real-time drop-off rates across the archive.</DialogDescription>
+                        <DialogDescription className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Real-time drop-off rates across the archive.</DialogDescription>
                       </DialogHeader>
                       <div className="py-8 space-y-10">
                         <div className="space-y-4">
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
                         </div>
                       </div>
                       <div className="flex justify-end pt-6 border-t">
-                        <Button onClick={() => setIsFunnelOpen(false)} className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px]">Close Analysis</Button>
+                        <Button onClick={() => setIsFunnelOpen(false)} className="w-full sm:w-auto bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px]">Close Analysis</Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -269,23 +269,23 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none">
-            <CardHeader>
+          <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+            <CardHeader className="border-b bg-gray-50/30 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <UserCheck className="h-5 w-5 text-purple-500" />
-                  <CardTitle className="text-lg">Cross-Device User ID Tracking</CardTitle>
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Cross-Device User ID Tracking</CardTitle>
                 </div>
                 <Switch 
                   checked={config.userIdTrackingEnabled} 
                   onCheckedChange={(checked) => handleUpdate({ userIdTrackingEnabled: checked })}
                 />
               </div>
-              <CardDescription>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-muted-foreground mt-1">
                 Stitch together high-fidelity user sessions across mobile and desktop.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="pt-6 p-4 sm:p-6 space-y-4">
               <div className="grid gap-2">
                 <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">GA4 Measurement ID</Label>
                 <div className="relative">
@@ -293,7 +293,7 @@ export default function AnalyticsPage() {
                   <Input 
                     value={config.ga4MeasurementId} 
                     onChange={(e) => handleUpdate({ ga4MeasurementId: e.target.value })}
-                    className="pl-10 h-11 font-mono text-sm bg-gray-50" 
+                    className="pl-10 h-12 font-mono text-[11px] sm:text-sm bg-white" 
                   />
                 </div>
               </div>
@@ -302,12 +302,12 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="xl:col-span-4 space-y-6">
-          <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none">
-            <CardHeader className="border-b border-white/10">
+          <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none overflow-hidden">
+            <CardHeader className="border-b border-white/10 p-4 sm:p-6">
               <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Live Event Stream</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-[400px]">
+              <ScrollArea className="h-[300px] sm:h-[400px]">
                 <div className="p-4 space-y-4">
                   {[
                     { event: 'purchase', time: 'Just now', user: 'UID_...F2', color: 'text-green-400' },
@@ -318,15 +318,15 @@ export default function AnalyticsPage() {
                     { event: 'view_item_list', time: '15m ago', user: 'UID_...Y7', color: 'text-gray-400' },
                     { event: 'purchase', time: '18m ago', user: 'UID_...Z2', color: 'text-green-400' },
                   ].map((log, i) => (
-                    <div key={i} className="flex items-start justify-between border-b border-white/5 pb-3 last:border-0">
-                      <div className="space-y-1">
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-white/5 pb-3 last:border-0 gap-2">
+                      <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse bg-current", log.color)} />
-                          <p className={cn("text-[10px] font-mono font-bold uppercase", log.color)}>{log.event}</p>
+                          <p className={cn("text-[10px] font-mono font-bold uppercase truncate", log.color)}>{log.event}</p>
                         </div>
-                        <p className="text-[9px] text-gray-500 font-mono">{log.user}</p>
+                        <p className="text-[9px] text-gray-500 font-mono truncate">{log.user}</p>
                       </div>
-                      <span className="text-[9px] text-gray-600 font-bold uppercase">{log.time}</span>
+                      <span className="text-[8px] sm:text-[9px] text-gray-600 font-bold uppercase tracking-tighter shrink-0">{log.time}</span>
                     </div>
                   ))}
                 </div>
@@ -335,12 +335,12 @@ export default function AnalyticsPage() {
           </Card>
 
           <Card className="border-[#e1e3e5] shadow-none rounded-none bg-gray-50/50">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-4 border-b bg-gray-100/30">
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
                 <Terminal className="h-3.5 w-3.5" /> Engine Controls
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="pt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-[10px] uppercase font-bold text-gray-600">Enhanced Measurement</Label>
                 <Switch 
