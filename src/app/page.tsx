@@ -5,29 +5,17 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
-import { ProductCard } from '@/components/storefront/ProductCard';
 import { Footer } from '@/components/storefront/Footer';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   const db = useFirestore();
 
-  // Fetch the latest 8 products
-  const productsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(
-      collection(db, 'products'),
-      orderBy('createdAt', 'desc'),
-      limit(8)
-    );
-  }, [db]);
-
-  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
-
-  // Fetch top 4 categories
+  // Fetch top 4 categories for the Archival Series
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'categories'), limit(4));
@@ -39,14 +27,7 @@ export default function Home() {
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
-  const isHeroLoading = productsLoading || categoriesLoading;
-
-  const formatCurrency = (val: number) => {
-    return val.toLocaleString(undefined, { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    });
-  };
+  const isHeroLoading = categoriesLoading;
 
   const heroImageSrc = theme?.heroImageUrl || categories?.[0]?.imageUrl || "";
 
@@ -78,7 +59,7 @@ export default function Home() {
                   {theme?.heroHeadline || "Modern Silhouettes"}
                 </span>
                 <Link href="/collections/all" className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95">
-                  {theme?.heroButtonText || "Shop All"} <ArrowRight className="ml-3 h-4 w-4" />
+                  {theme?.heroButtonText || "Shop All Archive"} <ArrowRight className="ml-3 h-4 w-4" />
                 </Link>
               </div>
             </div>
@@ -97,80 +78,59 @@ export default function Home() {
         />
       )}
 
-      {/* Shop by Category Section */}
-      <section className="py-20 border-b bg-white">
+      {/* Archival Series Manifest */}
+      <section className="py-24 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="mb-12 category-text-align">
-            <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Discover</span>
-            <h2 className="category-title-size font-headline mt-2 uppercase font-bold tracking-tight text-primary">Shop by Category</h2>
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 category-text-align">
+            <div className="space-y-3">
+              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Archive Manifest</span>
+              <h2 className="category-title-size font-headline uppercase font-bold tracking-tighter text-primary">Archival Series</h2>
+            </div>
+            <Link href="/collections/all" className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-60 transition-opacity flex items-center gap-2 pb-1 border-b border-black">
+              Explore Full Archive <ChevronRight className="h-3 w-3" />
+            </Link>
           </div>
           
           {!categories || categories.length === 0 ? (
-            <div className="py-10 text-center border border-dashed rounded bg-gray-50">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Categories coming soon.</p>
+            <div className="py-20 text-center border-2 border-dashed rounded-none bg-gray-50/50">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Archival Series pending dispatch.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {categories.map((cat: any) => (
-                <Link 
-                  key={cat.id} 
-                  href={`/collections/${cat.id}`} 
-                  className="group relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-sm"
-                >
-                  {cat.imageUrl ? (
-                    <Image 
-                      src={cat.imageUrl} 
-                      alt={cat.name} 
-                      fill 
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gray-200" />
-                  )}
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
-                  <div 
-                    className="absolute inset-0 flex flex-col p-6 text-white category-text-align"
-                    style={{ 
-                      justifyContent: 'var(--category-vertical-align)',
-                      alignItems: 'var(--category-flex-align)'
-                    }}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {categories.map((cat: any, idx: number) => (
+                <div key={cat.id} className="group flex flex-col gap-6">
+                  <Link 
+                    href={`/collections/${cat.id}`} 
+                    className="relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-none shadow-sm"
                   >
-                    <h3 className="font-headline font-bold uppercase tracking-widest category-title-size">{cat.name}</h3>
+                    {cat.imageUrl ? (
+                      <Image 
+                        src={cat.imageUrl} 
+                        alt={cat.name} 
+                        fill 
+                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-200" />
+                    )}
+                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  </Link>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-headline font-bold uppercase tracking-widest text-lg leading-none">{cat.name}</h3>
+                      <span className="text-[9px] font-mono font-bold text-gray-400 mt-1">NO. 0{idx + 1}</span>
+                    </div>
+                    <Separator className="bg-black/5" />
+                    <Link 
+                      href={`/collections/${cat.id}`} 
+                      className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      View Series <ArrowRight className="h-3 w-3" />
+                    </Link>
                   </div>
-                </Link>
+                </div>
               ))}
-            </div>
-          )}
-        </div>
-      </section>
-      
-      {/* Featured Products Section */}
-      <section id="featured-products" className="py-20">
-        <div className="max-w-[1440px] mx-auto px-4">
-          <div className="mb-12 featured-text-align">
-            <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Curated Selection</span>
-            <h2 className="featured-title-size font-headline mt-2 uppercase font-bold tracking-tight text-primary">Featured Products</h2>
-          </div>
-          
-          {!products || products.length === 0 ? (
-            <div className="text-center py-20 border border-dashed rounded-xl bg-gray-50/50">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Our store is currently being updated.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-              {products.map((product: any) => {
-                const category = categories?.find((c: any) => c.id === product.categoryId);
-                return (
-                  <ProductCard 
-                    key={product.id} 
-                    id={product.id}
-                    name={product.name}
-                    price={`$${formatCurrency(Number(product.price))} CAD`}
-                    image={product.media?.[0]?.url || ''}
-                    category={category?.name || product.brand || 'Featured Piece'}
-                  />
-                );
-              })}
             </div>
           )}
         </div>

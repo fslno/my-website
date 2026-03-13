@@ -58,7 +58,7 @@ export function BentoHero({
               {headline}
             </span>
             <Link 
-              href="#featured-products" 
+              href="/collections/all" 
               className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95"
             >
               {buttonText} <ArrowRight className="ml-3 h-4 w-4" />

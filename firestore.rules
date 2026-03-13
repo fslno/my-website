@@ -9,8 +9,11 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Strictly restricted to authorized admin email
-      return isSignedIn() && request.auth.token.email == 'fslno.dev@gmail.com';
+      // Authoritatively verify administrative identity via email manifest or specific UID
+      return isSignedIn() && (
+        request.auth.token.email == 'fslno.dev@gmail.com' || 
+        request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
+      );
     }
 
     function isOwner(userId) {
@@ -19,7 +22,7 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
-    // FORCE_REDEPLOY_V16_ULTIMATE_STABILITY
+    // FORCE_REDEPLOY_PROTOCOL_V17_ULTIMATE_STABILITY
 
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
@@ -40,18 +43,17 @@ service cloud.firestore {
     }
 
     match /categories/{categoryId} {
-      allow get, list: if true;
+      allow read: if true;
       allow write: if isAdmin();
     }
 
     match /sizeCharts/{sizeChartId} {
-      allow get, list: if true;
+      allow read: if true;
       allow write: if isAdmin();
     }
 
     match /reviews/{reviewId} {
-      allow get: if true;
-      allow list: if isAdmin();
+      allow read: if true;
       allow write: if isAdmin();
     }
 

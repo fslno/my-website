@@ -19,8 +19,8 @@ export function ThemeStyleInjector() {
 
     const root = document.documentElement;
     
-    // Contrast Helper: Returns white or black based on background hex
-    const getContrastColor = (hexcolor: string) => {
+    // Contrast Helper: Returns white or black based on background hex with safety buffer
+    const getContrastColor = (hexcolor: string | undefined) => {
       if (!hexcolor || hexcolor === 'transparent' || typeof hexcolor !== 'string' || hexcolor.length < 6) {
         return '#000000';
       }
@@ -100,9 +100,6 @@ export function ThemeStyleInjector() {
     const getFlexAlign = (align: string) => align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
     const getVerticalAlign = (align: string) => align === 'bottom' ? 'flex-end' : align === 'top' ? 'flex-start' : 'center';
 
-    // Automatic Mobile Scaling Protocol:
-    // We calculate a mobile baseline (min) based on 50-80% of the admin-defined size.
-    // clamp(min, preferred, max) ensures fluid scaling between 375px and 1440px viewports.
     styleTag.innerHTML = `
       :root {
         --font-headline: "${headlineFont}", "Playfair Display", serif;
@@ -165,15 +162,15 @@ export function ThemeStyleInjector() {
         align-items: var(--hero-flex-align) !important;
       }
       
-      /* AUTOMATIC MOBILE SCALING PROTOCOL */
+      /* AUTOMATIC FLUID SCALING PROTOCOL */
       .hero-headline-size {
-        font-size: clamp(calc(var(--hero-headline-size) * 0.5), 10vw, var(--hero-headline-size)) !important;
+        font-size: clamp(calc(var(--hero-headline-size) * 0.5), 8vw, var(--hero-headline-size)) !important;
       }
       .category-title-size {
-        font-size: clamp(calc(var(--category-title-size) * 0.6), 8vw, var(--category-title-size)) !important;
+        font-size: clamp(calc(var(--category-title-size) * 0.6), 6vw, var(--category-title-size)) !important;
       }
       .featured-title-size {
-        font-size: clamp(calc(var(--featured-title-size) * 0.6), 8vw, var(--featured-title-size)) !important;
+        font-size: clamp(calc(var(--featured-title-size) * 0.6), 6vw, var(--featured-title-size)) !important;
       }
       .product-title-size {
         font-size: clamp(calc(var(--product-title-size) * 0.8), 4vw, var(--product-title-size)) !important;
