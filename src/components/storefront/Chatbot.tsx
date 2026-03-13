@@ -3,9 +3,14 @@
 import React, { useState } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Phone, Mail, Instagram, Twitter, MessageSquare, X, Globe, Facebook } from 'lucide-react';
+import { Phone, Mail, Instagram, Twitter, MessageSquare, X, Globe, Facebook, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/**
+ * High-fidelity Floating Dispatch UI.
+ * Manifests a radial staggered animation when active.
+ * Each platform icon is Authoritatively differentiated by its brand-specific color.
+ */
 export function Chatbot() {
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
@@ -22,18 +27,49 @@ export function Chatbot() {
   const emailAddresses = config?.emailAddresses || (config?.email ? [{ label: 'Dispatch', value: config.email }] : []);
   const socialChannels = config?.socialChannels || [];
 
-  // Unified Manifest for staggered circles
+  // Unified Manifest for staggered circles with Authoritative brand colors
   const contactMethods: any[] = [];
-  phoneNumbers.forEach(p => contactMethods.push({ type: 'phone', label: p.label, value: p.value, icon: <Phone className="h-4 w-4" />, href: `tel:${p.value}` }));
-  emailAddresses.forEach(e => contactMethods.push({ type: 'email', label: e.label, value: e.value, icon: <Mail className="h-4 w-4" />, href: `mailto:${e.value}` }));
+  
+  phoneNumbers.forEach(p => contactMethods.push({ 
+    type: 'phone', 
+    label: p.label, 
+    value: p.value, 
+    icon: <Phone className="h-4 w-4" />, 
+    href: `tel:${p.value}`,
+    color: '#3B82F6' // Standard Blue for Voice
+  }));
+  
+  emailAddresses.forEach(e => contactMethods.push({ 
+    type: 'email', 
+    label: e.label, 
+    value: e.value, 
+    icon: <Mail className="h-4 w-4" />, 
+    href: `mailto:${e.value}`,
+    color: '#8B5CF6' // Sophisticated Purple for Dispatch
+  }));
   
   socialChannels.forEach(s => {
     let icon = <Globe className="h-4 w-4" />;
-    if (s.platform === 'Instagram') icon = <Instagram className="h-4 w-4" />;
-    if (s.platform === 'Twitter') icon = <Twitter className="h-4 w-4" />;
-    if (s.platform === 'TikTok') icon = <MessageSquare className="h-4 w-4" />;
-    if (s.platform === 'Messenger') icon = <Facebook className="h-4 w-4" />;
-    contactMethods.push({ type: 'social', label: s.platform, value: s.url, icon, href: s.url });
+    let color = '#000000';
+    
+    if (s.platform === 'Instagram') {
+      icon = <Instagram className="h-4 w-4" />;
+      color = '#E1306C'; // Instagram Brand Identity
+    } else if (s.platform === 'Twitter' || s.platform === 'X') {
+      icon = <Twitter className="h-4 w-4" />;
+      color = '#000000'; // X Brand Identity
+    } else if (s.platform === 'TikTok') {
+      icon = <MessageCircle className="h-4 w-4" />;
+      color = '#FF0050'; // TikTok Brand Identity
+    } else if (s.platform === 'Messenger') {
+      icon = <Facebook className="h-4 w-4" />;
+      color = '#0084FF'; // Meta Messenger Blue
+    } else if (s.platform === 'WhatsApp') {
+      icon = <MessageSquare className="h-4 w-4" />;
+      color = '#25D366'; // WhatsApp Green
+    }
+    
+    contactMethods.push({ type: 'social', label: s.platform, value: s.url, icon, href: s.url, color });
   });
 
   const ChatIcon = () => (
@@ -62,10 +98,11 @@ export function Chatbot() {
             target={method.type === 'social' ? "_blank" : undefined}
             rel="noopener noreferrer"
             className={cn(
-              "flex items-center justify-center rounded-full bg-white border border-black/10 shadow-lg text-primary transition-all duration-500 ease-out hover:scale-110 hover:bg-gray-50 group relative",
+              "flex items-center justify-center rounded-full border border-black/5 shadow-lg text-white transition-all duration-500 ease-out hover:scale-110 group relative",
               isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
             )}
             style={{ 
+              backgroundColor: method.color,
               width: `${(theme?.chatbotSize || 60) * 0.7}px`,
               height: `${(theme?.chatbotSize || 60) * 0.7}px`,
               transitionDelay: `${index * 50}ms`,
@@ -85,7 +122,7 @@ export function Chatbot() {
         ))}
       </div>
 
-      {/* Identical Chat Toggle Button */}
+      {/* Main Chat Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
