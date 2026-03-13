@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -484,6 +485,10 @@ export default function SocialCommercePage() {
                               >
                                 <option value="Instagram">Instagram</option>
                                 <option value="TikTok">TikTok</option>
+                                <option value="YouTube">YouTube</option>
+                                <option value="X (Twitter)">X (Twitter)</option>
+                                <option value="Facebook">Facebook</option>
+                                <option value="Pinterest">Pinterest</option>
                               </select>
                             </div>
                           </div>

@@ -272,7 +272,7 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
-        "platform": { "type": "string", "enum": ["Instagram", "TikTok"] },
+        "platform": { "type": "string", "enum": ["Instagram", "TikTok", "YouTube", "X (Twitter)", "Facebook", "Pinterest"] },
         "status": { "type": "string", "enum": ["Active", "Pending"] },
         "roi": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
