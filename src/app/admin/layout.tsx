@@ -201,7 +201,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <CreditCard />
                   <span>Payments</span>
                 </Link>
-              </SidebarMenuItem>
+              </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
