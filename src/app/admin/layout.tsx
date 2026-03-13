@@ -54,10 +54,6 @@ import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 
-/**
- * High-fidelity sidebar component that consumes the sidebar context
- * to handle auto-closing logic on navigation.
- */
 function AppSidebar({ storeConfig }: { storeConfig: any }) {
   const { setOpen, setOpenMobile, isMobile } = useSidebar();
   const auth = useAuth();
@@ -75,7 +71,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
       await signOut(auth);
       toast({
         title: "Signed out",
-        description: "Admin session terminated.",
+        description: "Admin session closed.",
       });
     } catch (error: any) {
       toast({
@@ -98,7 +94,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
             )}
           </div>
           <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden font-admin-headline">
-            {storeConfig?.businessName || "FSLNO"} Studio
+            {storeConfig?.businessName || "FSLNO"} Admin
           </span>
         </Link>
       </SidebarHeader>
@@ -106,15 +102,15 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Home (Alt+D)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Dashboard" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin">
                   <LayoutDashboard />
-                  <span>Home</span>
+                  <span>Dashboard</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Orders (Alt+O)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Orders" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/orders">
                   <ShoppingBag />
                   <span>Orders</span>
@@ -122,7 +118,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Products (Alt+P)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Products" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/products">
                   <BarChart3 />
                   <span>Products</span>
@@ -130,7 +126,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Categories (Alt+C)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Categories" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/categories">
                   <Tag />
                   <span>Categories</span>
@@ -138,7 +134,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Promotions (Alt+R)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Promotions" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/promotions">
                   <TicketPercent />
                   <span>Promotions</span>
@@ -146,15 +142,15 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Size Chart (Alt+Z)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Size Charts" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/size-chart">
                   <Ruler />
-                  <span>Size Chart</span>
+                  <span>Size Charts</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Customers (Alt+U)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Customers" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/customers">
                   <Users />
                   <span>Customers</span>
@@ -165,29 +161,29 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         </SidebarGroup>
 
         <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Management</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Setup</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Theme Engine (Alt+T)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Theme" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/theme">
                   <Palette />
-                  <span>Theme Engine</span>
+                  <span>Theme</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Footer Editor" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Footer" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/footer">
                   <MenuIcon />
-                  <span>Footer Editor</span>
+                  <span>Footer</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Notifications" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/notifications">
                   <MailWarning />
-                  <span>Notifications</span>
+                  <span>Emails</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -205,7 +201,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <CreditCard />
                   <span>Payments</span>
                 </Link>
-              </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
@@ -227,29 +223,29 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         </SidebarGroup>
 
         <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Sales Channels</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">External Tools</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Google Sync" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Google Shopping" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/google">
                   <RefreshCw />
-                  <span>Google Sync</span>
+                  <span>Google Shopping</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Social Commerce" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Social Media Sales" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/social">
                   <Share2 />
-                  <span>Social Commerce</span>
+                  <span>Social Media Sales</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Analytics (GA4)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Google Analytics" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/analytics">
                   <BarChart />
-                  <span>Analytics (GA4)</span>
+                  <span>Google Analytics</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -259,7 +255,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
       <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
          <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings (Alt+S)" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/settings">
                   <Settings />
                   <span>Settings</span>
@@ -335,7 +331,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setIsLoggingIn(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Authenticated", description: "Credentials verified. Enforcing studio role..." });
+      toast({ title: "Logged In", description: "Identity confirmed." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Login Failed", description: "Invalid email or password." });
     } finally {
@@ -347,7 +343,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!auth) return;
     try {
       await signOut(auth);
-      toast({ title: "Signed out", description: "Admin session terminated." });
+      toast({ title: "Signed out", description: "Admin session closed." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: "Failed to sign out." });
     }
@@ -379,41 +375,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <ShieldAlert className="h-12 w-12 text-red-600 mx-auto mb-4" />
               <h1 className="text-xl font-headline font-bold mb-2 uppercase tracking-tight">Access Denied</h1>
               <p className="text-gray-500 text-xs leading-relaxed uppercase tracking-widest font-bold">
-                Your account ({user.email}) does not have authorized studio privileges.
+                Your account ({user.email}) does not have admin permissions.
               </p>
             </div>
-            <Button onClick={handleLogout} variant="outline" className="w-full border-black font-bold uppercase text-[10px] tracking-widest">Sign Out & Return</Button>
+            <Button onClick={handleLogout} variant="outline" className="w-full border-black font-bold uppercase text-[10px] tracking-widest">Sign Out</Button>
           </div>
         ) : (
           <>
-            <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Command Center</h1>
+            <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Admin Login</h1>
             <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
               <div className="space-y-2 text-left">
-                <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Staff Email</Label>
+                <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input id="email" type="email" placeholder="admin@fslno.ca" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
               </div>
               <div className="space-y-2 text-left">
-                <Label htmlFor="password" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Passkey</Label>
+                <Label htmlFor="password" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input id="password" type="password" placeholder="••••••••" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
               </div>
               <Button type="submit" disabled={isLoggingIn} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 transition-all rounded-none">
-                {isLoggingIn ? "Authorizing..." : "Enter Dashboard"}
+                {isLoggingIn ? "Logging in..." : "Login"}
               </Button>
             </form>
           </>
         )}
-        <p className="mt-8 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Security Level V1.0</p>
+        <p className="mt-8 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Admin Panel v1.0</p>
       </div>
     );
   }
 
-  // Dynamic Backend Styling Protocol
   const adminThemeStyles = `
     :root {
       --admin-primary: ${theme?.adminPrimaryColor || '#000000'};
@@ -452,7 +447,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
                 <input 
                   type="text" 
-                  placeholder="Search studio..." 
+                  placeholder="Search..." 
                   className="w-full h-9 pl-10 pr-4 bg-[#f1f2f3] border-none rounded-md text-sm focus:ring-1 focus:ring-black outline-none font-admin-body" 
                 />
               </div>

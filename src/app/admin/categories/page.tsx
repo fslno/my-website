@@ -69,7 +69,6 @@ export default function CategoriesPage() {
     return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
   }, [user]);
 
-  // Stable references for queries - strictly guarded and sorted by order
   const categoriesQuery = useMemoFirebase(() => 
     db && isAdmin ? query(collection(db, 'categories'), orderBy('order', 'asc')) : null, 
     [db, isAdmin]
@@ -92,7 +91,6 @@ export default function CategoriesPage() {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
 
-  // Assigned Products Query - strictly guarded
   const assignedProductsQuery = useMemoFirebase(() => {
     if (!db || !editingId || !isAdmin) return null;
     return query(collection(db, 'products'), where('categoryId', '==', editingId));
@@ -131,7 +129,7 @@ export default function CategoriesPage() {
         .then(() => {
           setIsDialogOpen(false);
           resetForm();
-          toast({ title: "Category Updated", description: "All changes have been committed." });
+          toast({ title: "Updated", description: "Category has been saved." });
         })
         .catch((error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -156,7 +154,7 @@ export default function CategoriesPage() {
         .then(() => {
           setIsDialogOpen(false);
           resetForm();
-          toast({ title: "Category Created", description: `${name} has been added to your catalog.` });
+          toast({ title: "Success", description: `${name} has been added.` });
         })
         .catch((error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -186,19 +184,19 @@ export default function CategoriesPage() {
     batch.update(doc(db, 'categories', other.id), { order: current.order ?? index });
 
     await batch.commit().then(() => {
-      toast({ title: "Order Synchronized", description: "Category hierarchy updated." });
+      toast({ title: "Saved", description: "Category order updated." });
     });
   };
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!db) return;
-    if (!confirm("Authoritatively decommissioning this collection? This will not delete linked products but will remove their collection assignment.")) {
+    if (!confirm("Are you sure you want to delete this category? Linked products will not be deleted.")) {
       return;
     }
     deleteDoc(doc(db, 'categories', id))
       .then(() => {
-        toast({ title: "Category Deleted", description: "Archival collection removed." });
+        toast({ title: "Deleted", description: "Category has been removed." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -231,9 +229,9 @@ export default function CategoriesPage() {
   };
 
   const tabs = [
-    { id: 'general', label: '01. General & Visuals', icon: LayoutGrid },
-    { id: 'seo', label: '02. SEO Settings', icon: Globe },
-    { id: 'products', label: '03. Assigned Products', icon: ShoppingBag, hidden: !editingId },
+    { id: 'general', label: '01. Info & Image', icon: LayoutGrid },
+    { id: 'seo', label: '02. Google Preview', icon: Globe },
+    { id: 'products', label: '03. Category Products', icon: ShoppingBag, hidden: !editingId },
   ];
 
   const visibleTabs = tabs.filter(t => !t.hidden);
@@ -242,8 +240,8 @@ export default function CategoriesPage() {
     <div className="space-y-8 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Product Categories</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Organize your archive and manage search engine presence.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Categories</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Group your products and manage SEO.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
@@ -254,7 +252,7 @@ export default function CategoriesPage() {
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-4 sm:p-6 border-b shrink-0 flex flex-row items-center justify-between">
               <DialogTitle className="text-lg sm:text-xl font-headline font-bold uppercase tracking-tight">
-                {editingId ? `Edit Category: ${name}` : 'New Category Entry'}
+                {editingId ? `Edit: ${name}` : 'New Category'}
               </DialogTitle>
               <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
                 <X className="h-5 w-5" />
@@ -281,7 +279,7 @@ export default function CategoriesPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12">
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Name</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Name</Label>
                         <Input 
                           placeholder="e.g. Outerwear" 
                           value={name} 
@@ -292,17 +290,17 @@ export default function CategoriesPage() {
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Description</Label>
                         <Textarea 
-                          placeholder="Essential architectural layers..." 
+                          placeholder="Tell customers about this category..." 
                           value={description} 
                           onChange={(e) => setDescription(e.target.value)}
                           className="min-h-[120px] sm:min-h-[150px] bg-white text-sm"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Guide</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Linked Size Guide</Label>
                         <Select value={sizeChartId} onValueChange={setSizeChartId}>
                           <SelectTrigger className="h-12 bg-white">
-                            <SelectValue placeholder="Link a technical chart..." />
+                            <SelectValue placeholder="Select a size guide..." />
                           </SelectTrigger>
                           <SelectContent>
                             {sizeCharts?.map((chart: any) => (
@@ -316,7 +314,7 @@ export default function CategoriesPage() {
                     </div>
                     
                     <div className="space-y-4">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Editorial Cover</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Image</Label>
                       <input 
                         type="file" 
                         ref={fileInputRef} 
@@ -362,7 +360,7 @@ export default function CategoriesPage() {
                               <Upload className="h-5 sm:h-6 w-5 sm:w-6" />
                             </div>
                             <div className="text-center">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Click to upload visual</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Click to upload image</p>
                               <p className="text-[8px] text-gray-400 mt-1 uppercase">Recommended: 1200x800px</p>
                             </div>
                           </>
@@ -375,7 +373,7 @@ export default function CategoriesPage() {
                             <LinkIcon className="h-3 w-3" />
                           </div>
                           <Input 
-                            placeholder="Or paste remote URL..." 
+                            placeholder="Or paste image URL..." 
                             value={imageUrl} 
                             onChange={(e) => setImageUrl(e.target.value)}
                             className="h-9 text-[9px] sm:text-[10px] pl-8 bg-white"
@@ -390,7 +388,7 @@ export default function CategoriesPage() {
                   <div className="bg-blue-50/50 p-6 sm:p-8 rounded-xl border border-blue-100">
                     <div className="flex items-center gap-2 mb-6">
                       <Globe className="h-4 w-4 text-blue-500" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">Search Engine Simulation</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">Google Search Preview</span>
                     </div>
                     <div className="space-y-1 max-w-2xl">
                       <p className="text-blue-700 text-lg sm:text-xl hover:underline cursor-pointer font-medium line-clamp-1">
@@ -398,31 +396,31 @@ export default function CategoriesPage() {
                       </p>
                       <p className="text-green-800 text-xs sm:text-sm line-clamp-1 truncate">https://fslno.ca/collections/{(name || 'category').toLowerCase().replace(/\s+/g, '-')}</p>
                       <p className="text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                        {seoDescription || (description || 'Add a refined meta description to improve click-through rates from search results.')}
+                        {seoDescription || (description || 'Add a meta description to help customers find this category on Google.')}
                       </p>
                     </div>
                   </div>
                   
                   <div className="grid gap-6 sm:gap-8">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Custom Meta Title</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Meta Title</Label>
                       <Input 
-                        placeholder="e.g. Sculpted Outerwear & Luxury Coats | FSLNO" 
+                        placeholder="e.g. Shop Outerwear | FSLNO" 
                         value={seoTitle} 
                         onChange={(e) => setSeoTitle(e.target.value)} 
                         className="h-12 bg-white"
                       />
-                      <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold tracking-tight">Optimal: 50-60 characters • {seoTitle.length}/60</p>
+                      <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold tracking-tight">Limit: 60 characters • {seoTitle.length}/60</p>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Custom Meta Description</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Meta Description</Label>
                       <Textarea 
-                        placeholder="Discover the FSLNO archive of sculpted coats and refined outerwear..." 
+                        placeholder="Discover our latest collection..." 
                         value={seoDescription} 
                         onChange={(e) => setSeoDescription(e.target.value)}
                         className="min-h-[100px] sm:min-h-[120px] bg-white"
                       />
-                      <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold tracking-tight">Optimal: 150-160 characters • {seoDescription.length}/160</p>
+                      <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold tracking-tight">Limit: 160 characters • {seoDescription.length}/160</p>
                     </div>
                   </div>
                 </TabsContent>
@@ -430,8 +428,8 @@ export default function CategoriesPage() {
                 <TabsContent value="products" className="p-4 sm:p-8 m-0 max-w-6xl mx-auto space-y-6 sm:space-y-8">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-xs sm:text-sm font-bold uppercase tracking-widest">Assigned Inventory</h3>
-                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1 uppercase font-medium">Products currently linked to this collection across the storefront.</p>
+                      <h3 className="text-xs sm:text-sm font-bold uppercase tracking-widest">Assigned Products</h3>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1 uppercase font-medium">Products in this category.</p>
                     </div>
                     <div className="bg-black text-white px-4 py-2 rounded-sm flex items-center gap-3 w-full sm:w-auto justify-center">
                       <ShoppingBag className="h-3.5 w-3.5" />
@@ -446,7 +444,7 @@ export default function CategoriesPage() {
                   ) : !assignedProducts || assignedProducts.length === 0 ? (
                     <div className="text-center py-20 border-2 border-dashed rounded-xl bg-gray-50/50">
                       <ShoppingBag className="h-10 w-10 text-gray-200 mx-auto mb-4" />
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No products assigned yet.</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No products in this category.</p>
                     </div>
                   ) : (
                     <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
@@ -454,10 +452,10 @@ export default function CategoriesPage() {
                         <Table className="min-w-[600px]">
                           <TableHeader className="bg-gray-50/50">
                             <TableRow>
-                              <TableHead className="w-[80px] text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Preview</TableHead>
-                              <TableHead className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Product Name</TableHead>
+                              <TableHead className="w-[80px] text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Image</TableHead>
+                              <TableHead className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Name</TableHead>
                               <TableHead className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-right">Price</TableHead>
-                              <TableHead className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-center">Stock Status</TableHead>
+                              <TableHead className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-center">Stock</TableHead>
                               <TableHead className="w-[80px]"></TableHead>
                             </TableRow>
                           </TableHeader>
@@ -472,7 +470,7 @@ export default function CategoriesPage() {
                                 <TableCell>
                                   <div className="flex flex-col">
                                     <span className="font-bold text-xs sm:text-sm uppercase line-clamp-1">{product.name}</span>
-                                    <span className="text-[9px] sm:text-[10px] font-mono text-gray-400 uppercase">{product.sku || 'NO-SKU'}</span>
+                                    <span className="text-[9px] sm:text-[10px] font-mono text-gray-400 uppercase">{product.sku || 'No SKU'}</span>
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-right font-medium font-mono text-xs sm:text-sm">${Number(product.price).toFixed(2)}</TableCell>
@@ -527,7 +525,7 @@ export default function CategoriesPage() {
                     }}
                     className="flex-1 sm:flex-none gap-2 h-11 px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]"
                   >
-                    Next Step <ChevronRight className="h-3.5 w-3.5" />
+                    Next <ChevronRight className="h-3.5 w-3.5" />
                   </Button>
                 )}
               </div>
@@ -537,7 +535,7 @@ export default function CategoriesPage() {
                 className="w-full sm:w-auto h-11 px-10 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none shadow-xl"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                {editingId ? 'Update Collection' : 'Commit Category'}
+                {editingId ? 'Save Category' : 'Add Category'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -552,20 +550,19 @@ export default function CategoriesPage() {
         ) : !categories || categories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-gray-50/50">
             <Tag className="h-12 w-12 text-gray-300 mb-4" />
-            <p className="text-sm font-bold uppercase tracking-widest text-gray-400">No categories found. Start by adding your first drop.</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-gray-400">No categories found. Start by adding one.</p>
           </div>
         ) : (
           <>
-            {/* Desktop Table View */}
             <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow className="border-black/5">
-                    <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-gray-500">Editorial</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Category Identity</TableHead>
+                    <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-gray-500">Image</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Name</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">SEO Status</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Technical Chart</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Display Order</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Size Guide</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Order</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -613,7 +610,7 @@ export default function CategoriesPage() {
                               {chart.name}
                             </div>
                           ) : (
-                            <span className="text-[10px] text-gray-400 italic uppercase font-bold tracking-tight">No chart linked</span>
+                            <span className="text-[10px] text-gray-400 italic uppercase font-bold tracking-tight">No guide</span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -659,7 +656,6 @@ export default function CategoriesPage() {
               </Table>
             </div>
 
-            {/* Mobile Card View - Avoid Slide System */}
             <div className="grid grid-cols-1 gap-4 md:hidden">
               {categories.map((category: any, idx: number) => {
                 const chart = sizeCharts?.find((c: any) => c.id === category.sizeChartId);
@@ -717,9 +713,9 @@ export default function CategoriesPage() {
                           </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Technical</span>
+                          <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Guide</span>
                           <div className="text-[9px] font-bold text-primary flex items-center gap-1.5 uppercase tracking-tighter">
-                            <Ruler className="h-3 w-3 text-gray-400" /> {chart?.name || 'N/A'}
+                            <Ruler className="h-3 w-3 text-gray-400" /> {chart?.name || 'None'}
                           </div>
                         </div>
                       </div>

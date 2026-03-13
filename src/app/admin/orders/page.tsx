@@ -41,7 +41,6 @@ export default function OrdersPage() {
 
   const isAdmin = useMemo(() => {
     if (!user) return false;
-    // Strictly restricted to UID 'ulyu5w9XtYeVTmceUfOZLZwDQxF2'
     return user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
   }, [user]);
 
@@ -178,7 +177,7 @@ export default function OrdersPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Orders</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Manage archive transactions and monitor fulfillment progress.</p>
+          <p className="text-[#5c5f62] mt-1 text-sm">View and manage your store's orders.</p>
         </div>
         <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">Export CSV</Button>
       </div>
@@ -194,35 +193,35 @@ export default function OrdersPage() {
             <div className="text-2xl font-bold text-[#1a1c1e]">
               ${formatCurrency(stats.revenue)}
             </div>
-            <p className="text-xs text-[#8c9196] mt-1">Archival revenue stream</p>
+            <p className="text-xs text-[#8c9196] mt-1">Total revenue from all orders</p>
           </CardContent>
         </Card>
 
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
-              <Clock className="h-3.5 w-3.5" /> To Fulfill
+              <Clock className="h-3.5 w-3.5" /> Pending Orders
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
               {stats.pending}
             </div>
-            <p className="text-xs text-[#8c9196] mt-1">Pending logistical actions</p>
+            <p className="text-xs text-[#8c9196] mt-1">Orders waiting to be shipped</p>
           </CardContent>
         </Card>
 
         <Card className="border-[#e1e3e5] shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Orders
+              <CheckCircle2 className="h-3.5 w-3.5" /> Total Orders
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">
               {stats.total}
             </div>
-            <p className="text-xs text-[#8c9196] mt-1">Total transaction count</p>
+            <p className="text-xs text-[#8c9196] mt-1">Total number of orders</p>
           </CardContent>
         </Card>
       </div>
@@ -247,7 +246,7 @@ export default function OrdersPage() {
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="uppercase text-[10px] font-bold">All Records</SelectItem>
+              <SelectItem value="all" className="uppercase text-[10px] font-bold">All Orders</SelectItem>
               <SelectItem value="awaiting_processing" className="uppercase text-[10px] font-bold">Awaiting</SelectItem>
               <SelectItem value="processing" className="uppercase text-[10px] font-bold">Processing</SelectItem>
               <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Pick up</SelectItem>
@@ -261,11 +260,11 @@ export default function OrdersPage() {
         <Table>
           <TableHeader className="bg-[#f6f6f7]">
             <TableRow className="border-[#e1e3e5]">
-              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] py-4">Items Summary</TableHead>
-              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Archive ID</TableHead>
-              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Customer Identification</TableHead>
-              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Logistics Status</TableHead>
-              <TableHead className="text-right text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Transaction Total</TableHead>
+              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] py-4">Items</TableHead>
+              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Order ID</TableHead>
+              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Customer</TableHead>
+              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Status</TableHead>
+              <TableHead className="text-right text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Total</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -279,7 +278,7 @@ export default function OrdersPage() {
             ) : filteredOrders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-20 text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
-                  No archival transactions match your criteria.
+                  No orders found.
                 </TableCell>
               </TableRow>
             ) : filteredOrders.map((order: any) => {
@@ -327,7 +326,7 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="text-xs font-bold uppercase tracking-tight text-primary">
-                      {order.customer?.name || 'Guest Piece'}
+                      {order.customer?.name || 'Guest Customer'}
                     </div>
                     <div className="text-[9px] text-gray-400 flex gap-1.5 items-center font-mono mt-0.5">
                       <Phone className="h-2.5 w-2.5"/> {order.customer?.phone || 'NO-PHONE'}

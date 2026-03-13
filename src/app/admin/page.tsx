@@ -54,7 +54,6 @@ export default function AdminDashboard() {
   const { user } = useUser();
   const { toast } = useToast();
   
-  // Default State
   const [timeRange, setTimeRange] = useState('7d');
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 7),
@@ -65,7 +64,6 @@ export default function AdminDashboard() {
     return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
   }, [user]);
 
-  // Authoritative Persistence Protocol
   useEffect(() => {
     const savedRange = localStorage.getItem('fslno_admin_timerange');
     const savedDate = localStorage.getItem('fslno_admin_daterange');
@@ -80,7 +78,7 @@ export default function AdminDashboard() {
           to: parsed.to ? new Date(parsed.to) : undefined
         });
       } catch (e) {
-        console.error("Forensic date hydration failed", e);
+        console.error("Failed to load saved date range", e);
       }
     }
   }, []);
@@ -92,13 +90,11 @@ export default function AdminDashboard() {
     }
   }, [timeRange, date]);
 
-  // Fetch orders with a larger limit for forensic lifetime visibility - strictly guarded
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(500));
   }, [db, isAdmin]);
 
-  // Fetch users for member stats - strictly guarded
   const usersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return query(collection(db, 'users'), limit(500));
@@ -117,7 +113,6 @@ export default function AdminDashboard() {
         
         if (timeRange === 'lifetime') return true;
         
-        // Forensic Range Logic: From and To
         if (timeRange === 'custom' && date?.from) {
           const from = startOfDay(date.from);
           const to = date.to ? endOfDay(date.to) : endOfDay(date.from);
@@ -233,8 +228,8 @@ export default function AdminDashboard() {
   const handleExportCSV = () => {
     if (!filteredData.orders || filteredData.orders.length === 0) {
       toast({
-        title: "Zero Data Manifest",
-        description: "No archival transactions found in this temporal range to export.",
+        title: "No Data",
+        description: "No orders found in this date range to export.",
         variant: "destructive"
       });
       return;
@@ -270,14 +265,14 @@ export default function AdminDashboard() {
       ? `${format(date.from, 'yyyy-MM-dd')}_to_${date.to ? format(date.to, 'yyyy-MM-dd') : format(date.from, 'yyyy-MM-dd')}`
       : timeRange.toUpperCase();
 
-    link.setAttribute("download", `FSLNO_Audit_${dateRangeStr}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `Order_Report_${dateRangeStr}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
     toast({
-      title: "Export Successful",
-      description: "Forensic transaction manifest has been downloaded."
+      title: "Export Success",
+      description: "Your order report has been downloaded."
     });
   };
 
@@ -314,8 +309,8 @@ export default function AdminDashboard() {
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="w-full lg:w-auto">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Admin Overview</h1>
-          <p className="text-[#5c5f62] mt-1 text-xs sm:text-sm font-medium uppercase tracking-tight">Forensic archival performance monitoring.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Dashboard</h1>
+          <p className="text-[#5c5f62] mt-1 text-xs sm:text-sm font-medium uppercase tracking-tight">View your store's performance.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
           <div className="flex items-center gap-2 bg-white border border-[#e1e3e5] rounded-md px-3 h-10 shadow-sm min-w-[160px]">
@@ -325,13 +320,13 @@ export default function AdminDashboard() {
                 <SelectValue placeholder="Time Range" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1d" className="text-[10px] font-bold uppercase">Past 24 Hours</SelectItem>
-                <SelectItem value="7d" className="text-[10px] font-bold uppercase">Past 7 Days</SelectItem>
-                <SelectItem value="15d" className="text-[10px] font-bold uppercase">Semi-Month (15d)</SelectItem>
-                <SelectItem value="30d" className="text-[10px] font-bold uppercase">Past 30 Days</SelectItem>
-                <SelectItem value="90d" className="text-[10px] font-bold uppercase">Quarter (90d)</SelectItem>
-                <SelectItem value="365d" className="text-[10px] font-bold uppercase">Annually (365d)</SelectItem>
-                <SelectItem value="lifetime" className="text-[10px] font-bold uppercase">Lifetime</SelectItem>
+                <SelectItem value="1d" className="text-[10px] font-bold uppercase">Last 24 Hours</SelectItem>
+                <SelectItem value="7d" className="text-[10px] font-bold uppercase">Last 7 Days</SelectItem>
+                <SelectItem value="15d" className="text-[10px] font-bold uppercase">Last 15 Days</SelectItem>
+                <SelectItem value="30d" className="text-[10px] font-bold uppercase">Last 30 Days</SelectItem>
+                <SelectItem value="90d" className="text-[10px] font-bold uppercase">Last 90 Days</SelectItem>
+                <SelectItem value="365d" className="text-[10px] font-bold uppercase">Last Year</SelectItem>
+                <SelectItem value="lifetime" className="text-[10px] font-bold uppercase">All Time</SelectItem>
                 <SelectItem value="custom" className="text-[10px] font-bold uppercase">Custom Range</SelectItem>
               </SelectContent>
             </Select>
@@ -357,7 +352,7 @@ export default function AdminDashboard() {
                       format(date.from, "LLL dd")
                     )
                   ) : (
-                    <span>Pick range</span>
+                    <span>Pick dates</span>
                   )}
                   <ChevronDown className="ml-2 h-3 w-3 opacity-50 shrink-0" />
                 </Button>
@@ -391,39 +386,39 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatsCard 
-          title="Total Revenue" 
+          title="Total Sales" 
           value={formatCurrency(stats.revenue)} 
-          trend="Authoritative" 
+          trend="Confirmed" 
           icon={<DollarSign className="h-4 w-4 text-green-600" />} 
         />
         <StatsCard 
           title="Total Tax" 
           value={formatCurrency(stats.tax)} 
-          trend="Forensic" 
+          trend="Detailed" 
           icon={<Receipt className="h-4 w-4 text-blue-600" />} 
         />
         <StatsCard 
           title="Processing Fees" 
           value={formatCurrency(stats.fees)} 
-          trend="Estimated" 
+          trend="Estimate" 
           icon={<CreditCard className="h-4 w-4 text-red-600" />} 
         />
         <StatsCard 
           title="Total Orders" 
           value={stats.orders.toString()} 
-          trend="Verified" 
+          trend="Confirmed" 
           icon={<ShoppingCart className="h-4 w-4 text-blue-600" />} 
         />
         <StatsCard 
-          title="Archive Members" 
+          title="Total Customers" 
           value={stats.members.toString()} 
-          trend="Registered" 
+          trend="Signed Up" 
           icon={<UserPlus className="h-4 w-4 text-purple-600" />} 
         />
         <StatsCard 
           title="Active Sessions" 
           value="42" 
-          trend="Real-time" 
+          trend="Live" 
           icon={<TrendingUp className="h-4 w-4 text-orange-600" />} 
         />
       </div>
@@ -431,7 +426,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 border-[#e1e3e5] shadow-none overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between border-b border-[#e1e3e5] px-4 sm:px-6">
-            <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sales Velocity ({timeRange.toUpperCase()})</CardTitle>
+            <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sales Over Time ({timeRange.toUpperCase()})</CardTitle>
             <button className="p-1 hover:bg-[#f1f2f3] rounded transition-colors">
               <MoreHorizontal className="h-4 w-4 text-[#5c5f62]" />
             </button>
@@ -450,7 +445,7 @@ export default function AdminDashboard() {
                   <YAxis stroke="#8c9196" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: 'white', borderRadius: '4px', border: '1px solid #e1e3e5', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
-                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Sales']}
                   />
                   <Area type="monotone" dataKey="sales" stroke="#000" fillOpacity={1} fill="url(#colorSales)" strokeWidth={2} />
                 </AreaChart>
@@ -461,7 +456,7 @@ export default function AdminDashboard() {
 
         <Card className="border-[#e1e3e5] shadow-none overflow-hidden">
           <CardHeader className="border-b border-[#e1e3e5] flex flex-row items-center justify-between px-4 sm:px-6">
-            <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Recent Transactions</CardTitle>
+            <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Recent Orders</CardTitle>
             <Link href="/admin/orders" className="text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:underline">
               View All
             </Link>
@@ -487,7 +482,7 @@ export default function AdminDashboard() {
                 ))
               ) : (
                 <div className="py-12 text-center">
-                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em]">No transactions in this period.</p>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em]">No orders in this period.</p>
                 </div>
               )}
             </div>
@@ -513,7 +508,7 @@ function StatsCard({ title, value, trend, icon }: { title: string, value: string
           <span className="text-[9px] font-bold text-blue-600 flex items-center gap-1 uppercase tracking-widest">
             <ArrowUpRight className="h-2.5 w-2.5" /> {trend}
           </span>
-          <span className="text-[9px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight truncate">Verified</span>
+          <span className="text-[9px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight truncate">Confirmed</span>
         </div>
       </CardContent>
     </Card>

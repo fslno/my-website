@@ -119,7 +119,6 @@ export default function ProductsPage() {
   const [categoryId, setCategoryId] = useState('');
   const [preorderEnabled, setPreorderEnabled] = useState(false);
   
-  // Customization State - Authoritatively ON by default
   const [customizationEnabled, setCustomizationEnabled] = useState(true);
   const [customizationFee, setCustomizationFee] = useState('10');
 
@@ -226,8 +225,8 @@ export default function ProductsPage() {
   const handleBulkDelete = async () => {
     if (!db || selectedIds.length === 0) return;
     const confirmMessage = selectedIds.length === 1 
-      ? "Are you sure you want to permanently delete this archival entry?" 
-      : `Are you sure you want to permanently delete these ${selectedIds.length} archival entries?`;
+      ? "Are you sure you want to permanently delete this product?" 
+      : `Are you sure you want to permanently delete these ${selectedIds.length} products?`;
     
     if (!confirm(confirmMessage)) return;
 
@@ -240,7 +239,7 @@ export default function ProductsPage() {
     batch.commit()
       .then(() => {
         setSelectedIds([]);
-        toast({ title: "Archive Updated", description: "Selected entries have been Authoritatively removed." });
+        toast({ title: "Updated", description: "Selected products have been removed." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -279,7 +278,7 @@ export default function ProductsPage() {
         setIsBulkEditDialogOpen(false);
         setBulkCategoryId('');
         setBulkStatus('');
-        toast({ title: "Bulk Update Complete", description: `Updated ${selectedIds.length} entries successfully.` });
+        toast({ title: "Success", description: `Updated ${selectedIds.length} products successfully.` });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -311,7 +310,7 @@ export default function ProductsPage() {
 
     batch.commit().then(() => {
       setSelectedIds([]);
-      toast({ title: "Entries Duplicated", description: `${selectedIds.length} copies added to archive.` });
+      toast({ title: "Success", description: `${selectedIds.length} copies added to your products.` });
     });
   };
 
@@ -319,7 +318,7 @@ export default function ProductsPage() {
     if (!products || products.length === 0) return;
     const headers = ['Name', 'SKU', 'Brand', 'Price', 'Stock', 'Category'];
     const rows = products.map(p => {
-      const cat = categories?.find(c => c.id === p.categoryId)?.name || 'Unlinked';
+      const cat = categories?.find(c => c.id === p.categoryId)?.name || 'None';
       return [p.name, p.sku || '', p.brand || '', p.price, p.inventory || 0, cat].join(',');
     });
     const csvContent = [headers.join(','), ...rows].join('\n');
@@ -327,7 +326,7 @@ export default function ProductsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `FSLNO_Archive_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Product_Export_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -361,7 +360,7 @@ export default function ProductsPage() {
         }
       });
       batch.commit().then(() => {
-        toast({ title: "Import Complete", description: "New entries processed into archive." });
+        toast({ title: "Import Complete", description: "New products added to your list." });
       });
     };
     reader.readAsText(file);
@@ -469,7 +468,7 @@ export default function ProductsPage() {
     if (editingId) {
       updateDoc(doc(db, 'products', editingId), productData)
         .then(() => {
-          toast({ title: "Product Updated", description: `${name} has been synchronized.` });
+          toast({ title: "Product Updated", description: `${name} has been saved.` });
         })
         .catch((error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -484,7 +483,7 @@ export default function ProductsPage() {
       addDoc(collection(db, 'products'), newData)
         .then((docRef) => {
           setEditingId(docRef.id);
-          toast({ title: "Product Created", description: `${name} has been committed to the archive.` });
+          toast({ title: "Product Created", description: `${name} has been added to your products.` });
         })
         .catch((error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -550,8 +549,8 @@ export default function ProductsPage() {
     <div className="space-y-6 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Archive Inventory</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage and curate your high-fidelity product catalog.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Products</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Add, edit, and manage your products.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
@@ -562,7 +561,7 @@ export default function ProductsPage() {
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-4 sm:p-6 border-b shrink-0 flex flex-row items-center justify-between">
               <DialogTitle className="text-lg sm:text-xl font-headline font-bold uppercase tracking-tight truncate max-w-[60%]">
-                {editingId ? `Edit: ${name}` : 'New Archive Entry'}
+                {editingId ? `Edit: ${name}` : 'New Product'}
               </DialogTitle>
               
               <div className="flex items-center gap-2 sm:gap-4">
@@ -600,10 +599,10 @@ export default function ProductsPage() {
               <div className="px-4 sm:px-6 border-b bg-gray-50/50 shrink-0 overflow-x-auto scrollbar-hide">
                 <TabsList className="bg-transparent h-14 p-0 gap-4 sm:gap-8 min-w-max">
                   {[
-                    { id: 'general', label: '01. General', icon: LayoutGrid },
-                    { id: 'inventory', label: '02. Sizes', icon: Layers },
+                    { id: 'general', label: '01. Details', icon: LayoutGrid },
+                    { id: 'inventory', label: '02. Stock', icon: Layers },
                     { id: 'seo', label: '03. SEO', icon: Globe },
-                    { id: 'logistics', label: '04. Logistics', icon: Truck },
+                    { id: 'logistics', label: '04. Shipping', icon: Truck },
                   ].map((tab) => (
                     <TabsTrigger 
                       key={tab.id} 
@@ -626,7 +625,7 @@ export default function ProductsPage() {
                     ))}
                     <button onClick={() => fileInputRef.current?.click()} className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group">
                       <PlusCircle className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">Add Visual</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">Add Image</span>
                     </button>
                     <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,video/*" onChange={handleMediaUpload} />
                   </div>
@@ -634,19 +633,19 @@ export default function ProductsPage() {
                   <section className="space-y-6 sm:space-y-8 bg-gray-50/50 p-4 sm:p-8 rounded-xl border border-gray-100">
                     <div className="flex items-center gap-2 mb-2">
                       <Info className="h-4 w-4 text-gray-400" />
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Identity & Technical Manifest</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Details</h3>
                     </div>
                     <div className="grid gap-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Name</Label><Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Identity</Label><Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} className="h-12 bg-white" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Name</Label><Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand</Label><Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} className="h-12 bg-white" /></div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sale Price ($)</Label><Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} className="h-12 bg-white font-mono" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Compared Price ($)</Label><Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} className="h-12 bg-white font-mono opacity-60" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Target Collection</Label>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Price ($)</Label><Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} className="h-12 bg-white font-mono" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Regular Price ($)</Label><Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} className="h-12 bg-white font-mono opacity-60" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category</Label>
                           <Select value={categoryId} onValueChange={setCategoryId}>
-                            <SelectTrigger className="h-12 bg-white"><SelectValue placeholder="Select collection..." /></SelectTrigger>
+                            <SelectTrigger className="h-12 bg-white"><SelectValue placeholder="Select category..." /></SelectTrigger>
                             <SelectContent>{categories?.map((cat: any) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent>
                           </Select>
                         </div>
@@ -656,32 +655,32 @@ export default function ProductsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Fit Description</Label>
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Fit Info</Label>
                           <Input 
-                            placeholder="e.g. Fits true to size, sculpted silhouette" 
+                            placeholder="e.g. True to size" 
                             value={sizeFit} 
                             onChange={(e) => setSizeFit(e.target.value)} 
                             className="h-12 bg-white"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Archival Badge</Label>
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Label/Badge</Label>
                           <Select value={badge} onValueChange={setBadge}>
                             <SelectTrigger className="h-12 bg-white"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="none" className="text-[10px] font-bold uppercase">No Ribbon</SelectItem>
+                              <SelectItem value="none" className="text-[10px] font-bold uppercase">No Label</SelectItem>
                               <SelectItem value="NEW DROP" className="text-[10px] font-bold uppercase">New Drop</SelectItem>
-                              <SelectItem value="LIMITED" className="text-[10px] font-bold uppercase">Limited Selection</SelectItem>
-                              <SelectItem value="RESTOCK" className="text-[10px] font-bold uppercase">Archive Restock</SelectItem>
-                              <SelectItem value="ARCHIVE" className="text-[10px] font-bold uppercase">Archival Piece</SelectItem>
+                              <SelectItem value="LIMITED" className="text-[10px] font-bold uppercase">Limited</SelectItem>
+                              <SelectItem value="RESTOCK" className="text-[10px] font-bold uppercase">Restock</SelectItem>
+                              <SelectItem value="ARCHIVE" className="text-[10px] font-bold uppercase">Archive</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
 
                       <div className="space-y-4 pt-4 border-t">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Technical Storytelling (Description)</Label>
-                        <Textarea className="min-h-[150px] resize-none bg-white p-4 text-sm" placeholder="Craft a forensic story for this archive piece..." value={description} onChange={(e) => setDescription(e.target.value)} />
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Description</Label>
+                        <Textarea className="min-h-[150px] resize-none bg-white p-4 text-sm" placeholder="Describe this product..." value={description} onChange={(e) => setDescription(e.target.value)} />
                       </div>
                     </div>
                   </section>
@@ -691,9 +690,9 @@ export default function ProductsPage() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <Settings2 className="h-4 w-4 text-blue-600" />
-                          <h3 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-blue-900">Customization Protocol</h3>
+                          <h3 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-blue-900">Personalization</h3>
                         </div>
-                        <p className="text-[8px] sm:text-[9px] uppercase font-bold text-blue-700 tracking-tight">Allow forensic personalization at checkout.</p>
+                        <p className="text-[8px] sm:text-[9px] uppercase font-bold text-blue-700 tracking-tight">Allow custom name or number at checkout.</p>
                       </div>
                       <Switch 
                         checked={customizationEnabled} 
@@ -705,7 +704,7 @@ export default function ProductsPage() {
                     {customizationEnabled && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-blue-800">Customization Fee ($)</Label>
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-blue-800">Fee ($)</Label>
                           <Input 
                             type="number" 
                             value={customizationFee} 
@@ -715,7 +714,7 @@ export default function ProductsPage() {
                         </div>
                         <div className="flex items-center p-4 bg-white/50 border border-blue-100 rounded-lg">
                           <p className="text-[9px] sm:text-[10px] text-blue-800 leading-relaxed uppercase font-medium">
-                            Enabling this Authoritatively surfaces Name, Number, and Special Request fields on the storefront for a flat fee.
+                            Enabling this will add custom name and number fields to the product page for an extra fee.
                           </p>
                         </div>
                       </div>
@@ -724,7 +723,7 @@ export default function ProductsPage() {
                 </TabsContent>
                 <TabsContent value="inventory" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="bg-black text-white p-6 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-6 shadow-xl">
-                    <div className="text-center sm:text-left"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Archival Availability</p><p className="text-3xl font-bold font-headline">{totalInventory} PCS</p></div>
+                    <div className="text-center sm:text-left"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Total In Stock</p><p className="text-3xl font-bold font-headline">{totalInventory} PCS</p></div>
                     <div className="w-full sm:w-[300px] text-center sm:text-right"><Label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Master SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1 text-center sm:text-right h-11" /></div>
                   </div>
 
@@ -732,9 +731,9 @@ export default function ProductsPage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-orange-600" />
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-orange-900">Pre-order Status</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-orange-900">Pre-order</h3>
                       </div>
-                      <p className="text-[9px] uppercase font-bold text-orange-700 tracking-tight">Toggle global pre-order protocol Authoritatively.</p>
+                      <p className="text-[9px] uppercase font-bold text-orange-700 tracking-tight">Enable pre-orders for this product.</p>
                     </div>
                     <Switch 
                       checked={preorderEnabled} 
@@ -747,8 +746,8 @@ export default function ProductsPage() {
                     {variants.map((v, i) => (
                       <div key={i} className="flex flex-wrap items-center gap-4 p-4 border rounded-xl bg-white shadow-sm hover:border-black transition-colors group">
                         <div className="w-full sm:w-20"><Label className="text-[8px] uppercase font-bold text-gray-400">Size</Label><Input value={v.size} onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)} className="h-10 font-bold uppercase" /></div>
-                        <div className="flex-1 min-w-[150px]"><Label className="text-[8px] uppercase font-bold text-gray-400">Variant SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-10 font-mono text-[10px]" /></div>
-                        <div className="w-full sm:w-32"><Label className="text-[8px] uppercase font-bold text-gray-400">Archived Units</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-10 font-mono" /></div>
+                        <div className="flex-1 min-w-[150px]"><Label className="text-[8px] uppercase font-bold text-gray-400">SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-10 font-mono text-[10px]" /></div>
+                        <div className="w-full sm:w-32"><Label className="text-[8px] uppercase font-bold text-gray-400">In Stock</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-10 font-mono" /></div>
                         <div className="flex flex-col items-center gap-1.5 pt-2 px-2 ml-auto sm:ml-0">
                           <Label className="text-[7px] uppercase font-bold text-gray-400">Pre-order</Label>
                           <Switch 
@@ -763,9 +762,9 @@ export default function ProductsPage() {
                 </TabsContent>
                 <TabsContent value="seo" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="space-y-6">
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Custom Meta Title</Label><Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className="h-12 bg-white" /></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Meta Title</Label><Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className="h-12 bg-white" /></div>
                     <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Meta Description</Label><Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} className="min-h-[120px] bg-white resize-none" /></div>
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Archival Handle (URL)</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-[10px] text-gray-400 hidden sm:inline">fslno.ca/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0 h-12 flex-1" /></div></div>
+                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">URL Handle</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-[10px] text-gray-400 hidden sm:inline">fslno.ca/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0 h-12 flex-1" /></div></div>
                   </div>
                 </TabsContent>
                 <TabsContent value="logistics" className="p-4 sm:p-8 m-0 space-y-12 max-w-5xl mx-auto">
@@ -773,11 +772,11 @@ export default function ProductsPage() {
                     <div className="space-y-8">
                       <div className="flex items-center gap-2 mb-2">
                         <Scale className="h-4 w-4 text-gray-400" />
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Fulfillment Parameters</h3>
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Shipping Info</h3>
                       </div>
                       <div className="grid gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase font-bold text-gray-500">Mass (kg)</Label>
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Weight (kg)</Label>
                           <Input 
                             type="number" 
                             step="0.01"
@@ -788,15 +787,15 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase font-bold text-gray-500">Logistics Classification</Label>
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Shipping Type</Label>
                           <Select value={shippingClass} onValueChange={setShippingClass}>
                             <SelectTrigger className="h-12 bg-white">
-                              <SelectValue placeholder="Identify protocol..." />
+                              <SelectValue placeholder="Select type..." />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="standard" className="text-[10px] font-bold uppercase">Standard Dispatch</SelectItem>
-                              <SelectItem value="heavy" className="text-[10px] font-bold uppercase">Heavy Goods</SelectItem>
-                              <SelectItem value="fragile" className="text-[10px] font-bold uppercase">White Glove Service</SelectItem>
+                              <SelectItem value="standard" className="text-[10px] font-bold uppercase">Standard</SelectItem>
+                              <SelectItem value="heavy" className="text-[10px] font-bold uppercase">Heavy</SelectItem>
+                              <SelectItem value="fragile" className="text-[10px] font-bold uppercase">Fragile</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -806,7 +805,7 @@ export default function ProductsPage() {
                     <div className="space-y-8">
                       <div className="flex items-center gap-2 mb-2">
                         <Maximize2 className="h-4 w-4 text-gray-400" />
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Archival Volume</h3>
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Box Dimensions</h3>
                       </div>
                       <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2">
@@ -833,7 +832,7 @@ export default function ProductsPage() {
                   className="w-full sm:w-auto h-12 px-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-black/90 transition-all"
                 >
                   {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <Save className="h-4 w-4 mr-3" />}
-                  {editingId ? 'Commit Changes' : 'Commit to Archive'}
+                  {editingId ? 'Save Changes' : 'Add Product'}
                 </Button>
               </DialogFooter>
             </Tabs>
@@ -855,19 +854,19 @@ export default function ProductsPage() {
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
                   <DialogHeader className="pt-6">
-                    <DialogTitle className="text-sm font-bold uppercase tracking-widest">Bulk Archive Management</DialogTitle>
-                    <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Updating {selectedIds.length} selected entries across the archive.</DialogDescription>
+                    <DialogTitle className="text-sm font-bold uppercase tracking-widest">Bulk Edit</DialogTitle>
+                    <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Update {selectedIds.length} products at once.</DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-6 py-6">
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase font-bold text-gray-500">Relocate to Collection</Label>
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">Move to Category</Label>
                       <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
-                        <SelectTrigger className="h-11"><SelectValue placeholder="Select new collection..." /></SelectTrigger>
+                        <SelectTrigger className="h-11"><SelectValue placeholder="Select category..." /></SelectTrigger>
                         <SelectContent>{categories?.map((cat: any) => (<SelectItem key={cat.id} value={cat.id} className="text-[10px] uppercase font-bold">{cat.name}</SelectItem>))}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase font-bold text-gray-500">Update Status Protocol</Label>
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">Update Status</Label>
                       <Select value={bulkStatus} onValueChange={setBulkStatus}>
                         <SelectTrigger className="h-11"><SelectValue placeholder="Select status..." /></SelectTrigger>
                         <SelectContent>
@@ -881,7 +880,7 @@ export default function ProductsPage() {
                   <DialogFooter>
                     <Button onClick={handleBulkUpdate} disabled={isSaving} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[9px]">
                       {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                      Apply Changes to Archive
+                      Apply Changes
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -894,27 +893,27 @@ export default function ProductsPage() {
             </div>
             <div className="flex items-center gap-2">
               <input type="file" ref={csvImportRef} className="hidden" accept=".csv" onChange={handleImportCSV} />
-              <Button variant="ghost" size="sm" onClick={() => csvImportRef.current?.click()} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2"><Upload className="h-3.5 w-3.5" /> <span className="hidden xs:inline">CSV Import</span></Button>
-              <Button variant="ghost" size="sm" onClick={handleExportCSV} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2"><Download className="h-3.5 w-3.5" /> <span className="hidden xs:inline">CSV Export</span></Button>
+              <Button variant="ghost" size="sm" onClick={() => csvImportRef.current?.click()} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2"><Upload className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Import CSV</span></Button>
+              <Button variant="ghost" size="sm" onClick={handleExportCSV} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2"><Download className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Export CSV</span></Button>
             </div>
           </div>
           <Separator />
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="relative w-full md:flex-1 md:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
-              <Input placeholder="Search archive by name or SKU..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              <Input placeholder="Search products by name or SKU..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
             <div className="flex items-center gap-2 w-full md:w-auto">
               <Select value={sortBy} onValueChange={(v: string) => setSortBy(v)}>
                 <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3]">
                   <ArrowUpDown className="h-3 w-3 mr-2" /> 
-                  <span className="truncate">Sort Protocol</span>
+                  <span className="truncate">Sort By</span>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest" className="text-[10px] uppercase font-bold">New to Old</SelectItem>
-                  <SelectItem value="oldest" className="text-[10px] uppercase font-bold">Old to New</SelectItem>
-                  <SelectItem value="name-asc" className="text-[10px] uppercase font-bold">A - Z</SelectItem>
-                  <SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Z - A</SelectItem>
+                  <SelectItem value="newest" className="text-[10px] uppercase font-bold">Newest First</SelectItem>
+                  <SelectItem value="oldest" className="text-[10px] uppercase font-bold">Oldest First</SelectItem>
+                  <SelectItem value="name-asc" className="text-[10px] uppercase font-bold">Name: A - Z</SelectItem>
+                  <SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Name: Z - A</SelectItem>
                   <SelectItem value="price-high" className="text-[10px] uppercase font-bold">Price: High to Low</SelectItem>
                   <SelectItem value="price-low" className="text-[10px] uppercase font-bold">Price: Low to High</SelectItem>
                   <SelectItem value="stock-high" className="text-[10px] uppercase font-bold">Stock: High to Low</SelectItem>
@@ -924,10 +923,10 @@ export default function ProductsPage() {
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3]">
                   <Filter className="h-3 w-3 mr-2" /> 
-                  <span className="truncate">{categoryFilter === 'all' ? 'All Collections' : categories?.find(c => c.id === categoryFilter)?.name}</span>
+                  <span className="truncate">{categoryFilter === 'all' ? 'All Categories' : categories?.find(c => c.id === categoryFilter)?.name}</span>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all" className="text-[10px] uppercase font-bold">All Collections</SelectItem>
+                  <SelectItem value="all" className="text-[10px] uppercase font-bold">All Categories</SelectItem>
                   {categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}
                 </SelectContent>
               </Select>
@@ -935,7 +934,6 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Desktop Table View */}
         <div className="hidden md:block">
           <Table>
             <TableHeader className="bg-[#f6f6f7]">
@@ -946,10 +944,10 @@ export default function ProductsPage() {
                     onCheckedChange={handleSelectAll} 
                   />
                 </TableHead>
-                <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Preview</TableHead>
+                <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Image</TableHead>
                 <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Product</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Collection</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Total Stock</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Category</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Stock</TableHead>
                 <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Price</TableHead>
               </TableRow>
             </TableHeader>
@@ -957,7 +955,7 @@ export default function ProductsPage() {
               {productsLoading || categoriesLoading ? (
                 <TableRow><TableCell colSpan={6} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
               ) : filteredProducts.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 uppercase text-[10px] font-bold tracking-[0.2em]">No archival entries match your criteria.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 uppercase text-[10px] font-bold tracking-[0.2em]">No products found.</TableCell></TableRow>
               ) : (
                 filteredProducts.map((product: any) => {
                   const category = categories?.find((c: any) => c.id === product.categoryId);
@@ -985,7 +983,7 @@ export default function ProductsPage() {
                         </div>
                       </TableCell>
                       <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span></div></TableCell>
-                      <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'Unlinked'}</div></TableCell>
+                      <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'None'}</div></TableCell>
                       <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
                       <TableCell className="text-sm font-semibold">${formatCurrency(Number(product.price))} CAD</TableCell>
                     </TableRow>
@@ -996,7 +994,6 @@ export default function ProductsPage() {
           </Table>
         </div>
 
-        {/* Mobile Card View - Avoid Slide System */}
         <div className="md:hidden">
           {productsLoading || categoriesLoading ? (
             <div className="flex justify-center py-20">
@@ -1004,7 +1001,7 @@ export default function ProductsPage() {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="p-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-              No archival entries match your criteria.
+              No products found.
             </div>
           ) : (
             <div className="divide-y border-t">
@@ -1043,7 +1040,7 @@ export default function ProductsPage() {
                         <p className="text-[9px] font-mono text-gray-400 uppercase truncate">SKU: {product.sku || 'N/A'}</p>
                         <div className="flex flex-wrap gap-2 pt-1">
                           <Badge variant="outline" className="text-[8px] h-4 font-bold uppercase tracking-tighter border-none bg-gray-100 text-gray-600 px-1.5">
-                            <Tag className="h-2 w-2 mr-1" /> {category?.name || 'Unlinked'}
+                            <Tag className="h-2 w-2 mr-1" /> {category?.name || 'None'}
                           </Badge>
                           <Badge variant="outline" className="text-[8px] h-4 font-bold uppercase tracking-tighter border-none bg-black text-white px-1.5">
                             {product.inventory || 0} IN STOCK

@@ -67,13 +67,11 @@ export default function DomainPage() {
   const [isCertOpen, setIsCertOpen] = useState(false);
   const [isTokenDialogOpen, setIsTokenDialogOpen] = useState(false);
 
-  // Local Form State
   const [domain, setDomain] = useState('fslno.ca');
   const [metaTags, setMetaTags] = useState<MetaTag[]>([]);
   const [robotsTxt, setRobotsTxt] = useState('User-agent: *\nAllow: /');
   const [indexingEnabled, setIndexingEnabled] = useState(true);
   
-  // API Tokens State
   const [apiTokens, setApiTokens] = useState<ApiToken[]>([]);
   const [newTokenName, setNewTokenName] = useState('');
 
@@ -116,7 +114,6 @@ export default function DomainPage() {
     if (!configRef) return;
     setIsConnecting(true);
     
-    // Simulate DNS Handshake
     setTimeout(() => {
       updateDoc(configRef, { 
         primaryDomain: domain,
@@ -126,7 +123,7 @@ export default function DomainPage() {
       })
         .then(() => {
           setIsConnecting(false);
-          toast({ title: "Domain Connected", description: `${domain} is now Authoritatively verified.` });
+          toast({ title: "Success", description: `${domain} is now connected.` });
         })
         .catch(() => setIsConnecting(false));
     }, 2000);
@@ -148,7 +145,7 @@ export default function DomainPage() {
     updateDoc(configRef, updates)
       .then(() => {
         setIsSaving(false);
-        toast({ title: "Visibility Saved", description: "Search engine and integration parameters have been synchronized." });
+        toast({ title: "Saved", description: "Your domain and SEO settings have been updated." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -172,7 +169,6 @@ export default function DomainPage() {
     setMetaTags(metaTags.filter(tag => tag.id !== id));
   };
 
-  // API Token Handlers
   const handleGenerateToken = () => {
     if (!newTokenName || !configRef) return;
     
@@ -191,7 +187,7 @@ export default function DomainPage() {
       .then(() => {
         setNewTokenName('');
         setIsTokenDialogOpen(false);
-        toast({ title: "Token Generated", description: `${newTokenName} access key is now active.` });
+        toast({ title: "Success", description: `API token for ${newTokenName} created.` });
       });
   };
 
@@ -201,7 +197,7 @@ export default function DomainPage() {
     setApiTokens(updatedTokens);
     updateDoc(configRef, { apiTokens: updatedTokens, updatedAt: serverTimestamp() })
       .then(() => {
-        toast({ title: "Token Revoked", description: "Access key has been Authoritatively decommissioned." });
+        toast({ title: "Removed", description: "API token deleted." });
       });
   };
 
@@ -217,9 +213,9 @@ export default function DomainPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
         <Globe className="h-12 w-12 text-gray-300" />
-        <h2 className="text-xl font-bold text-gray-900">Visibility Core Not Initialized</h2>
-        <p className="text-gray-500 max-w-sm px-4">Establish the archive's primary domain and indexing handshake to go live.</p>
-        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest text-[10px]">Initialize Visibility</Button>
+        <h2 className="text-xl font-bold text-gray-900">Not Connected</h2>
+        <p className="text-gray-500 max-w-sm px-4">Setup your store domain and SEO to go live.</p>
+        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest text-[10px]">Initialize Domain</Button>
       </div>
     );
   }
@@ -228,8 +224,8 @@ export default function DomainPage() {
     <div className="space-y-8 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Domain & Site Visibility</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage your store's primary address and Authoritatively orchestrate search engine visibility.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Domain & Visibility</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage your site address and how you appear on Google.</p>
         </div>
         <Button 
           onClick={handleSaveAll} 
@@ -237,7 +233,7 @@ export default function DomainPage() {
           className="w-full sm:w-auto h-10 px-8 bg-black text-white font-bold uppercase tracking-widest text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all"
         >
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-          Commit Visibility Changes
+          Save Changes
         </Button>
       </div>
 
@@ -247,17 +243,17 @@ export default function DomainPage() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-blue-500" />
-                <CardTitle className="text-lg uppercase tracking-tight">Domain Name & Site Address</CardTitle>
+                <CardTitle className="text-lg uppercase tracking-tight">Store Domain</CardTitle>
               </div>
               <CardDescription className="text-xs font-medium uppercase tracking-tight">
-                The primary URL for your archive. Connect a custom domain to ensure your high-fidelity brand is secure.
+                Enter your website address (e.g., yourstore.ca).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 min-w-0">
                   <Input 
-                    placeholder="Enter your domain (e.g. fslno.ca)" 
+                    placeholder="e.g. fslno.ca" 
                     value={domain} 
                     onChange={(e) => setDomain(e.target.value)}
                     className="h-12 uppercase font-bold tracking-tight" 
@@ -269,7 +265,7 @@ export default function DomainPage() {
                   className="bg-black text-white h-12 font-bold px-8 uppercase tracking-widest text-[10px] w-full sm:w-auto"
                 >
                   {isConnecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  {config.status === 'connected' && domain === config.primaryDomain ? 'Re-Verify' : 'Connect'}
+                  {config.status === 'connected' && domain === config.primaryDomain ? 'Verify' : 'Connect'}
                 </Button>
               </div>
               
@@ -278,45 +274,32 @@ export default function DomainPage() {
                   <div className="flex items-center gap-3 text-green-800 text-sm">
                     <ShieldCheck className="h-5 w-5 shrink-0" />
                     <div className="space-y-0.5">
-                      <p className="font-bold uppercase text-[10px]">Security Protocol Active</p>
-                      <p className="text-[11px] opacity-80 uppercase tracking-tight leading-tight">Primary domain is connected and Authoritatively secured via HTTPS.</p>
+                      <p className="font-bold uppercase text-[10px]">Secure Connection</p>
+                      <p className="text-[11px] opacity-80 uppercase tracking-tight leading-tight">Your domain is connected and secured via SSL.</p>
                     </div>
                   </div>
                   <Dialog open={isCertOpen} onOpenChange={setIsCertOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="link" className="text-[10px] h-auto p-0 text-green-800 font-bold underline uppercase tracking-widest">View Certificate</Button>
+                      <Button variant="link" className="text-[10px] h-auto p-0 text-green-800 font-bold underline uppercase tracking-widest">View Info</Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
                       <DialogHeader className="pt-8 border-b pb-6">
                         <div className="flex items-center gap-3 text-primary mb-2">
                           <Lock className="h-5 w-5 text-green-600" />
-                          <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Certificate Manifest</DialogTitle>
+                          <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">SSL Info</DialogTitle>
                         </div>
-                        <DialogDescription className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Forensic SSL metadata for {domain}</DialogDescription>
                       </DialogHeader>
                       <div className="py-6 space-y-6 font-mono">
                         <section className="space-y-3">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Issuer Identity</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Provider</p>
                           <div className="p-4 bg-gray-50 border rounded-sm text-[11px] text-primary uppercase break-all">
-                            Let's Encrypt Authority X3
+                            Let's Encrypt
                           </div>
                         </section>
                         <section className="space-y-3">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Temporal Validity</p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-3 bg-gray-50 border rounded-sm space-y-1">
-                              <p className="text-[8px] text-gray-400 font-bold uppercase">Issued On</p>
-                              <p className="text-[10px] font-bold">OCT 01, 2025</p>
-                            </div>
-                            <div className="p-3 bg-gray-50 border rounded-sm space-y-1">
-                              <p className="text-[8px] text-gray-400 font-bold uppercase">Expires On</p>
-                              <p className="text-[10px] font-bold text-green-600">DEC 31, 2026</p>
-                            </div>
-                          </div>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</p>
+                          <p className="text-[10px] font-bold text-green-600">VALID AND ACTIVE</p>
                         </section>
-                      </div>
-                      <div className="flex justify-end pt-6 border-t">
-                        <Button onClick={() => setIsCertOpen(false)} className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto">Close Manifest</Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -330,10 +313,10 @@ export default function DomainPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-yellow-500" />
-                  <CardTitle className="text-lg uppercase tracking-tight">API Integration Tokens</CardTitle>
+                  <CardTitle className="text-lg uppercase tracking-tight">API Tokens</CardTitle>
                 </div>
                 <CardDescription className="text-xs font-medium uppercase tracking-tight mt-1">
-                  Generate high-fidelity secure tokens to Authoritatively integrate with third-party archival tools.
+                  Create secure keys to connect your store to other apps.
                 </CardDescription>
               </div>
               <Dialog open={isTokenDialogOpen} onOpenChange={setIsTokenDialogOpen}>
@@ -344,14 +327,13 @@ export default function DomainPage() {
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
                   <DialogHeader className="pt-6">
-                    <DialogTitle className="text-xl font-bold uppercase tracking-tight">Generate Access Token</DialogTitle>
-                    <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground mt-1">Create a new key for external API handshakes.</DialogDescription>
+                    <DialogTitle className="text-xl font-bold uppercase tracking-tight">New Token</DialogTitle>
                   </DialogHeader>
                   <div className="py-6 space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500">Integration Name</Label>
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label>
                       <Input 
-                        placeholder="e.g. Analytics Bridge" 
+                        placeholder="e.g. Analytics App" 
                         value={newTokenName}
                         onChange={(e) => setNewTokenName(e.target.value)}
                         className="h-12 uppercase font-bold"
@@ -360,7 +342,7 @@ export default function DomainPage() {
                   </div>
                   <DialogFooter>
                     <Button onClick={handleGenerateToken} disabled={!newTokenName} className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]">
-                      Generate Key
+                      Generate Token
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -375,7 +357,6 @@ export default function DomainPage() {
                         <Key className="h-3 w-3 text-gray-400 shrink-0" />
                         <p className="text-[10px] font-bold uppercase tracking-widest truncate">{token.name}</p>
                       </div>
-                      <p className="text-[9px] font-mono text-gray-400">CREATED: {new Date(token.createdAt).toLocaleDateString()}</p>
                       <div className="flex items-center gap-2 mt-2 w-full">
                         <code className="text-[10px] bg-white border px-2 py-1.5 rounded font-mono text-primary select-all truncate flex-1">
                           {token.token.substring(0, 12)}••••••••
@@ -386,7 +367,7 @@ export default function DomainPage() {
                           className="h-8 w-8 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-white border" 
                           onClick={() => {
                             navigator.clipboard.writeText(token.token);
-                            toast({ title: "Copied", description: "API Token saved to clipboard." });
+                            toast({ title: "Copied", description: "Token saved to clipboard." });
                           }}
                         >
                           <Copy className="h-3.5 w-3.5" />
@@ -405,7 +386,7 @@ export default function DomainPage() {
                 ))}
                 {apiTokens.length === 0 && (
                   <div className="py-12 text-center border-2 border-dashed rounded-sm bg-gray-50/50">
-                    <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest">No active API handshakes cataloged.</p>
+                    <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest">No API tokens created.</p>
                   </div>
                 )}
               </div>
@@ -417,10 +398,10 @@ export default function DomainPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-purple-500" />
-                  <CardTitle className="text-lg uppercase tracking-tight">Header Meta Tags & Verification</CardTitle>
+                  <CardTitle className="text-lg uppercase tracking-tight">SEO Verification Tags</CardTitle>
                 </div>
                 <CardDescription className="text-xs font-medium uppercase tracking-tight mt-1">
-                  Inject high-fidelity custom code for Google Search Console, Pinterest, and Meta verification.
+                  Add verification tags for Google, Pinterest, etc.
                 </CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={addMetaTag} className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white w-full sm:w-auto">
@@ -433,7 +414,6 @@ export default function DomainPage() {
                   <div key={tag.id} className="flex flex-col sm:flex-row gap-3 animate-in fade-in slide-in-from-top-2 duration-300 group bg-white border p-3 sm:p-0 sm:border-none">
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
                       <div className="space-y-1.5">
-                        <Label className="text-[8px] uppercase font-bold text-gray-400 sm:hidden">Tag Name</Label>
                         <Input 
                           placeholder="Tag Name (e.g. google-site-verification)" 
                           value={tag.name} 
@@ -442,9 +422,8 @@ export default function DomainPage() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-[8px] uppercase font-bold text-gray-400 sm:hidden">Content Hash</Label>
                         <Input 
-                          placeholder="Verification Content Hash" 
+                          placeholder="Tag Content" 
                           value={tag.content} 
                           onChange={(e) => updateMetaTag(tag.id, 'content', e.target.value)}
                           className="h-11 text-xs font-mono" 
@@ -463,7 +442,7 @@ export default function DomainPage() {
                 ))}
                 {metaTags.length === 0 && (
                   <div className="py-12 text-center border-2 border-dashed rounded-sm bg-gray-50/50">
-                    <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest">No verification snippets cataloged.</p>
+                    <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest">No verification tags added.</p>
                   </div>
                 )}
               </div>
@@ -474,10 +453,10 @@ export default function DomainPage() {
             <CardHeader className="bg-gray-50/30 border-b">
               <div className="flex items-center gap-2">
                 <FileCode className="h-5 w-5 text-orange-500" />
-                <CardTitle className="text-lg uppercase tracking-tight">Robots.txt Control</CardTitle>
+                <CardTitle className="text-lg uppercase tracking-tight">Robots.txt</CardTitle>
               </div>
               <CardDescription className="text-xs font-medium uppercase tracking-tight mt-1">
-                Authoritatively direct search engine crawlers across the archive paths.
+                Tell search engines which pages to crawl.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
@@ -487,9 +466,6 @@ export default function DomainPage() {
                 placeholder="User-agent: *\nAllow: /"
                 className="min-h-[150px] font-mono text-xs p-4 bg-gray-50 resize-none border-primary/10 rounded-none"
               />
-              <p className="mt-3 text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold tracking-tight leading-relaxed">
-                Warning: Improper configurations can decommission your entire archive from search results.
-              </p>
             </CardContent>
           </Card>
         </div>
@@ -499,12 +475,12 @@ export default function DomainPage() {
             <CardHeader className="bg-gray-50/30 border-b">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-emerald-500" />
-                <CardTitle className="text-sm font-bold uppercase tracking-widest">Archival Sitemap</CardTitle>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest">Sitemap</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
               <p className="text-[10px] sm:text-[11px] text-[#5c5f62] uppercase font-medium leading-relaxed tracking-tight">
-                Your sitemap.xml is Authoritatively generated to help Google index your new drops instantly.
+                Your sitemap is generated automatically to help Google find your pages.
               </p>
               <div className="flex items-center justify-between p-3 bg-[#f6f6f7] rounded-sm border gap-3 min-w-0">
                 <span className="text-[9px] sm:text-[10px] font-mono font-bold truncate flex-1">https://{domain}/sitemap.xml</span>
@@ -515,10 +491,10 @@ export default function DomainPage() {
                     className="h-8 gap-2 uppercase text-[9px] font-bold bg-white border"
                     onClick={() => {
                       navigator.clipboard.writeText(domain);
-                      toast({ title: "Copied", description: "Domain name saved to clipboard." });
+                      toast({ title: "Copied", description: "Domain copied to clipboard." });
                     }}
                   >
-                    <Copy className="h-3 w-3" /> Copy Domain
+                    <Copy className="h-3 w-3" /> Copy
                   </Button>
                   <Button variant="ghost" size="sm" className="h-8 gap-2 uppercase text-[9px] font-bold bg-white border" asChild>
                     <a href={`https://${domain}/sitemap.xml`} target="_blank">
@@ -534,7 +510,7 @@ export default function DomainPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div className="flex items-center gap-2">
                 <Search className="h-5 w-5 text-primary" />
-                <CardTitle className="text-sm font-bold uppercase tracking-widest">Search Indexing</CardTitle>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest">Google Indexing</CardTitle>
               </div>
               <Switch 
                 checked={indexingEnabled} 
@@ -543,17 +519,17 @@ export default function DomainPage() {
             </CardHeader>
             <CardContent>
               <p className="text-[10px] sm:text-[11px] text-[#5c5f62] uppercase font-medium leading-relaxed tracking-tight">
-                Visibility Toggle: When ON, Google and Bing can find your archive. Turn OFF for "Maintenance Mode" or private "Spot Closing" drops.
+                Allow Google and Bing to find and list your site. Turn this off for private drops.
               </p>
               {indexingEnabled ? (
                 <div className="mt-4 flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded-sm border border-green-100">
                   <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest">Visible to Global Crawlers</span>
+                  <span className="text-[9px] font-bold uppercase tracking-widest">Site Is Public</span>
                 </div>
               ) : (
                 <div className="mt-4 flex items-center gap-2 text-red-600 bg-red-50 p-2 rounded-sm border border-red-100">
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest">Private: Crawling Decommissioned</span>
+                  <span className="text-[9px] font-bold uppercase tracking-widest">Site Is Private</span>
                 </div>
               )}
             </CardContent>
@@ -562,7 +538,7 @@ export default function DomainPage() {
           <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none overflow-hidden">
             <CardHeader className="border-b border-white/10 p-4 sm:p-6">
               <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
-                <Terminal className="h-3.5 w-3.5" /> DNS Health Monitor
+                <Terminal className="h-3.5 w-3.5" /> DNS Status
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
@@ -580,24 +556,8 @@ export default function DomainPage() {
                 </div>
                 <Badge variant="outline" className="bg-green-500/10 text-green-400 border-none text-[8px] font-bold uppercase tracking-widest shrink-0">Matched</Badge>
               </div>
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase">SPF / TXT</p>
-                  <p className="text-[9px] text-gray-400 font-mono truncate">v=spf1 include:_spf.google.com</p>
-                </div>
-                <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-none text-[8px] font-bold uppercase tracking-widest shrink-0">Propagating</Badge>
-              </div>
             </CardContent>
           </Card>
-
-          <div className="p-6 bg-gray-50 border rounded-sm space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
-              <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> DNS Integrity Note
-            </h3>
-            <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight font-medium">
-              Visibility changes strictly apply to the live production manifest. Ensure DNS propagation is complete before enforcing "Canceled" indexing.
-            </p>
-          </div>
         </div>
       </div>
     </div>

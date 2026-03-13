@@ -86,7 +86,7 @@ export default function PromotionsPage() {
   // FLASH SALE STATE
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [flashValue, setFlashValue] = useState(15);
-  const [flashLabel, setFlashLabel] = useState('ARCHIVAL DISPATCH');
+  const [flashLabel, setFlashLabel] = useState('SALE');
 
   // THRESHOLD STATE
   const [thresholdEnabled, setThresholdEnabled] = useState(false);
@@ -97,7 +97,7 @@ export default function PromotionsPage() {
   const [bogoEnabled, setBogoEnabled] = useState(false);
   const [bogoMinQty, setBogoMinQty] = useState(2);
   const [bogoCategoryIds, setBogoCategoryIds] = useState<string[]>([]);
-  const [bogoItemName, setBogoItemName] = useState('Technical Archive Scarf');
+  const [bogoItemName, setBogoItemName] = useState('Free Gift');
   const [bogoMode, setBogoMode] = useState<'fixed' | 'choice'>('fixed');
 
   // LOYALTY STATE
@@ -125,7 +125,7 @@ export default function PromotionsPage() {
     if (config) {
       setFlashEnabled(config.flashEnabled ?? false);
       setFlashValue(config.flashValue ?? 15);
-      setFlashLabel(config.flashLabel ?? 'ARCHIVAL DISPATCH');
+      setFlashLabel(config.flashLabel ?? 'SALE');
 
       setThresholdEnabled(config.thresholdEnabled ?? false);
       setThresholdValue(config.thresholdValue ?? 1000);
@@ -138,7 +138,7 @@ export default function PromotionsPage() {
       const pluralIds = config.bogoCategoryIds;
       setBogoCategoryIds(Array.isArray(pluralIds) ? pluralIds : (legacyId ? [legacyId] : []));
       
-      setBogoItemName(config.bogoItemName ?? 'Technical Archive Scarf');
+      setBogoItemName(config.bogoItemName ?? 'Free Gift');
       setBogoMode(config.bogoMode ?? 'fixed');
 
       setLoyaltyEnabled(config.loyaltyEnabled ?? false);
@@ -184,7 +184,7 @@ export default function PromotionsPage() {
 
     setDoc(configRef, payload, { merge: true })
       .then(() => {
-        toast({ title: "Automation Synchronized", description: "Global growth protocols are now Authoritatively live." });
+        toast({ title: "Saved", description: "Discounts and rewards have been updated." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -214,7 +214,7 @@ export default function PromotionsPage() {
       .then(() => {
         setIsDialogOpen(false);
         resetForm();
-        toast({ title: "Coupon Authorized", description: `Archive code ${couponData.code} is now live.` });
+        toast({ title: "Coupon Created", description: `Discount code ${couponData.code} is now active.` });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -264,46 +264,46 @@ export default function PromotionsPage() {
   }
 
   const recoveryCampaigns = [
-    { id: 'cartRecovery', label: 'Abandoned Cart Recovery', description: 'Triggered 4h after last archival session.', enabled: cartRecoveryEnabled, setter: setCartRecoveryEnabled, conversion: '12.4%' },
-    { id: 'browseRecovery', label: 'Browse Abandonment', description: 'Target high-intent silhouettes recently viewed.', enabled: browseRecoveryEnabled, setter: setBrowseRecoveryEnabled, conversion: '4.8%' },
-    { id: 'winback', label: 'Win-back Dispatch', description: 'Sent 60 days after last drop participation.', enabled: winbackEnabled, setter: setWinbackEnabled, conversion: '--' },
-    { id: 'loyaltyAppreciation', label: 'Loyalty Appreciation', description: 'Personalized reward for repeat archive members.', enabled: loyaltyAppreciationPromoEnabled, setter: setLoyaltyAppreciationPromoEnabled, conversion: '22.1%' }
+    { id: 'cartRecovery', label: 'Abandoned Cart Email', description: 'Sent 4 hours after a customer leaves their cart.', enabled: cartRecoveryEnabled, setter: setCartRecoveryEnabled, conversion: '12.4%' },
+    { id: 'browseRecovery', label: 'Browse Abandoned Email', description: 'Sent to customers who viewed products but didn\'t add to cart.', enabled: browseRecoveryEnabled, setter: setBrowseRecoveryEnabled, conversion: '4.8%' },
+    { id: 'winback', label: 'Win-back Email', description: 'Sent 60 days after a customer\'s last purchase.', enabled: winbackEnabled, setter: setWinbackEnabled, conversion: '--' },
+    { id: 'loyaltyAppreciation', label: 'Loyalty Reward Email', description: 'Sent to repeat customers to say thank you.', enabled: loyaltyAppreciationPromoEnabled, setter: setLoyaltyAppreciationPromoEnabled, conversion: '22.1%' }
   ];
 
   const getCategoryDisplay = () => {
-    if (bogoCategoryIds.length === 0) return "SELECT COLLECTIONS";
+    if (bogoCategoryIds.length === 0) return "SELECT CATEGORIES";
     if (bogoCategoryIds.length === 1) {
-      return categories?.find(c => c.id === bogoCategoryIds[0])?.name || "1 COLLECTION";
+      return categories?.find(c => c.id === bogoCategoryIds[0])?.name || "1 CATEGORY";
     }
-    return `${bogoCategoryIds.length} COLLECTIONS SELECTED`;
+    return `${bogoCategoryIds.length} CATEGORIES SELECTED`;
   };
 
   return (
     <div className="space-y-8 pb-20 overflow-x-hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Growth & Rewards Orchestration</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Orchestrate automated discounts, loyalty handshakes, and technical promo logic.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Promotions</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage coupons, sales, and loyalty rewards.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <Button variant="outline" onClick={handleSaveConfig} disabled={isUpdatingConfig} className="flex-1 sm:flex-none h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black">
-            {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Protocols
+            {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Settings
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
               <Button className="flex-1 sm:flex-none bg-black text-white font-bold h-10 gap-2">
-                <Plus className="h-4 w-4" /> Create Archive Code
+                <Plus className="h-4 w-4" /> Create Coupon
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[100vw] w-screen h-screen sm:max-w-md sm:h-auto m-0 rounded-none bg-white border-none shadow-2xl flex flex-col p-0 sm:p-6 overflow-y-auto">
               <DialogHeader className="p-6 sm:p-0">
-                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Deduction Manifest</DialogTitle>
+                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Coupon Code</DialogTitle>
               </DialogHeader>
               <div className="flex-1 p-6 sm:p-0 grid gap-6 py-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Archive Code String</Label>
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Coupon Code</Label>
                   <Input 
-                    placeholder="e.g. DROP777" 
+                    placeholder="e.g. SAVE20" 
                     value={code} 
                     onChange={(e) => setCode(e.target.value)} 
                     className="h-12 uppercase font-bold text-sm tracking-widest"
@@ -311,7 +311,7 @@ export default function PromotionsPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Discount Protocol</Label>
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Discount Type</Label>
                     <Select value={type} onValueChange={(v: any) => setType(v)}>
                       <SelectTrigger className="h-12">
                         <SelectValue />
@@ -323,7 +323,7 @@ export default function PromotionsPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Value</Label>
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Discount Value</Label>
                     <Input 
                       type="number" 
                       placeholder={type === 'percent' ? '20' : '50'} 
@@ -334,10 +334,10 @@ export default function PromotionsPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Redemption Limit (Optional)</Label>
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Usage Limit (Optional)</Label>
                   <Input 
                     type="number" 
-                    placeholder="Unlimited" 
+                    placeholder="No limit" 
                     value={usageLimit} 
                     onChange={(e) => setUsageLimit(e.target.value)}
                     className="h-12"
@@ -351,7 +351,7 @@ export default function PromotionsPage() {
                   className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]"
                 >
                   {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Authorize Manifest
+                  Save Coupon
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -367,16 +367,16 @@ export default function PromotionsPage() {
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="space-y-1">
                   <CardTitle className={cn("text-xs uppercase tracking-widest flex items-center gap-2", flashEnabled ? 'text-orange-400' : 'text-gray-400')}>
-                    <Zap className="h-3.5 w-3.5" /> Flash Dispatch
+                    <Zap className="h-3.5 w-3.5" /> Flash Sale
                   </CardTitle>
-                  <CardDescription className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-500' : '')}>Sitewide percentage deduction.</CardDescription>
+                  <CardDescription className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-500' : '')}>Sitewide percentage discount.</CardDescription>
                 </div>
                 <Switch checked={flashEnabled} onCheckedChange={setFlashEnabled} className="data-[state=checked]:bg-orange-500" />
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-400' : 'text-gray-500')}>Deduction (%)</Label>
+                    <Label className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-400' : 'text-gray-500')}>Discount (%)</Label>
                     <Input 
                       type="number" 
                       value={flashValue} 
@@ -402,16 +402,16 @@ export default function PromotionsPage() {
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="space-y-1">
                   <CardTitle className={cn("text-xs uppercase tracking-widest flex items-center gap-2", thresholdEnabled ? 'text-blue-600' : 'text-gray-400')}>
-                    <Clock className="h-3.5 w-3.5" /> Spend Threshold
+                    <Clock className="h-3.5 w-3.5" /> Spend Goal
                   </CardTitle>
-                  <CardDescription className="text-[9px] uppercase font-bold">Reward high-value selections.</CardDescription>
+                  <CardDescription className="text-[9px] uppercase font-bold">Offer a discount when customers spend more.</CardDescription>
                 </div>
                 <Switch checked={thresholdEnabled} onCheckedChange={setThresholdEnabled} />
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase font-bold text-gray-500">Spend Goal ($)</Label>
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Spend Amount ($)</Label>
                     <Input 
                       type="number" 
                       value={thresholdValue} 
@@ -439,16 +439,16 @@ export default function PromotionsPage() {
             <CardHeader className="flex flex-row items-center justify-between border-b bg-white/50">
               <div className="space-y-1">
                 <CardTitle className={cn("text-xs uppercase tracking-widest flex items-center gap-2", bogoEnabled ? 'text-emerald-600' : 'text-gray-400')}>
-                  <Gift className="h-4 w-4" /> Archival BOGO Protocol
+                  <Gift className="h-4 w-4" /> Buy One Get One (BOGO)
                 </CardTitle>
-                <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Configure buy-one-get-one logic with customer choices.</CardDescription>
+                <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Setup BOGO rules for specific categories.</CardDescription>
               </div>
               <Switch checked={bogoEnabled} onCheckedChange={setBogoEnabled} className="data-[state=checked]:bg-emerald-600" />
             </CardHeader>
             <CardContent className="pt-6 space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-500">Trigger Quantity</Label>
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Min Quantity</Label>
                   <Input 
                     type="number" 
                     value={bogoMinQty} 
@@ -458,7 +458,7 @@ export default function PromotionsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-500">Target Categories</Label>
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Categories</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button 
@@ -496,7 +496,7 @@ export default function PromotionsPage() {
                             </div>
                           ))}
                           {(!categories || categories.length === 0) && (
-                            <p className="text-[10px] font-bold text-gray-400 uppercase text-center py-8">No collections cataloged.</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase text-center py-8">No categories found.</p>
                           )}
                         </div>
                       </ScrollArea>
@@ -504,13 +504,13 @@ export default function PromotionsPage() {
                   </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-500">BOGO Mode</Label>
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">BOGO Type</Label>
                   <Select value={bogoMode} onValueChange={(v: any) => setBogoMode(v)} disabled={!bogoEnabled}>
                     <SelectTrigger className="h-11 bg-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="fixed" className="text-[10px] font-bold uppercase">Fixed Gift</SelectItem>
+                      <SelectItem value="fixed" className="text-[10px] font-bold uppercase">Free Gift</SelectItem>
                       <SelectItem value="choice" className="text-[10px] font-bold uppercase">Customer Choice</SelectItem>
                     </SelectContent>
                   </Select>
@@ -518,7 +518,7 @@ export default function PromotionsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase font-bold text-gray-500">Reward Item Descriptor</Label>
+                <Label className="text-[9px] uppercase font-bold text-gray-500">Free Item Name</Label>
                 <div className="relative">
                   <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
                   <Input 
@@ -526,12 +526,12 @@ export default function PromotionsPage() {
                     onChange={(e) => setBogoItemName(e.target.value)}
                     className="h-12 bg-white pl-10 font-bold uppercase text-[10px] tracking-widest"
                     disabled={!bogoEnabled}
-                    placeholder="e.g. COMPLIMENTARY TECHNICAL SCARF"
+                    placeholder="e.g. Free Gift"
                   />
                 </div>
                 {bogoMode === 'choice' && (
                   <p className="text-[9px] text-emerald-700 font-bold uppercase tracking-tight mt-2 flex items-center gap-1.5">
-                    <MousePointer2 className="h-3 w-3" /> Customer will pick one free item from the target category at checkout.
+                    <MousePointer2 className="h-3 w-3" /> Customers will pick their free item from the selected category.
                   </p>
                 )}
               </div>
@@ -542,20 +542,19 @@ export default function PromotionsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <RefreshCw className="h-5 w-5 text-blue-500" />
-                <h3 className="text-sm font-bold uppercase tracking-widest">Recovery & Retention Campaigns</h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest">Email Campaigns</h3>
               </div>
-              <Badge variant="secondary" className="bg-primary text-primary-foreground text-[9px] font-bold px-3 py-1">MANUAL CONTROL</Badge>
+              <Badge variant="secondary" className="bg-primary text-primary-foreground text-[9px] font-bold px-3 py-1">AUTOMATED</Badge>
             </div>
             
-            {/* Desktop Table View */}
             <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow className="border-b border-black/5">
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign Logic</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Automated Dispatch</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Conversion</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Manual Toggle</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Description</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Sales Rate</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Active</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -599,7 +598,6 @@ export default function PromotionsPage() {
               </Table>
             </div>
 
-            {/* Mobile Card View - Avoid Slide System */}
             <div className="grid grid-cols-1 gap-4 md:hidden">
               {recoveryCampaigns.map((campaign) => (
                 <Card key={campaign.id} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
@@ -628,20 +626,19 @@ export default function PromotionsPage() {
           <section className="space-y-6">
             <div className="p-6 border-b bg-gray-50/50 flex items-center justify-between rounded-t-xl">
               <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
-                <TicketPercent className="h-4 w-4 text-purple-500" /> Authorized Deduction Manifest
+                <TicketPercent className="h-4 w-4 text-purple-500" /> Coupon Codes
               </h3>
               <Badge variant="secondary" className="bg-black text-white text-[9px] font-bold px-3 py-1">{coupons?.length || 0} TOTAL</Badge>
             </div>
             
-            {/* Desktop Table View */}
             <div className="hidden md:block bg-white border rounded-b-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/20">
                   <TableRow className="border-b border-black/5">
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Manifest ID</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Protocol</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Redemptions</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Auth Status</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Coupon Code</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Discount</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Used</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Active</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -649,7 +646,7 @@ export default function PromotionsPage() {
                   {couponsLoading ? (
                     <TableRow><TableCell colSpan={5} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
                   ) : !coupons || coupons.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-20 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">No deductive handshakes cataloged.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={5} className="text-center py-20 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">No coupon codes found.</TableCell></TableRow>
                   ) : (
                     coupons.map((coupon: any) => (
                       <TableRow key={coupon.id} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
@@ -663,13 +660,13 @@ export default function PromotionsPage() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px] font-bold uppercase bg-purple-50 text-purple-700 border-purple-100">
-                            {coupon.type === 'percent' ? `${coupon.value}% DEDUCTION` : `$${coupon.value} DEDUCTION`}
+                            {coupon.type === 'percent' ? `${coupon.value}% OFF` : `$${coupon.value} OFF`}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="text-xs font-bold text-primary">{coupon.usedCount || 0} REDEEMED</span>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">LIMIT: {coupon.usageLimit || '∞'}</span>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">LIMIT: {coupon.usageLimit || 'Unlimited'}</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -700,12 +697,11 @@ export default function PromotionsPage() {
               </Table>
             </div>
 
-            {/* Mobile Card View - Avoid Slide System */}
             <div className="grid grid-cols-1 gap-4 md:hidden">
               {couponsLoading ? (
                 <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-300" /></div>
               ) : !coupons || coupons.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed rounded-none bg-gray-50/50"><p className="text-[10px] font-bold uppercase text-gray-400">No codes cataloged.</p></div>
+                <div className="text-center py-12 border-2 border-dashed rounded-none bg-gray-50/50"><p className="text-[10px] font-bold uppercase text-gray-400">No coupons.</p></div>
               ) : (
                 coupons.map((coupon: any) => (
                   <Card key={coupon.id} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
@@ -729,7 +725,7 @@ export default function PromotionsPage() {
                     </div>
                     <div className="flex items-center justify-between border-t pt-3">
                       <div className="flex flex-col">
-                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Redemptions</span>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Used</span>
                         <span className="text-[10px] font-bold text-primary uppercase">{coupon.usedCount || 0} / {coupon.usageLimit || '∞'}</span>
                       </div>
                       <Button 
@@ -753,16 +749,16 @@ export default function PromotionsPage() {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", loyaltyEnabled ? 'text-purple-600' : 'text-gray-400')}>
-                  <Star className="h-3.5 w-3.5" /> Archive Loyalty
+                  <Star className="h-3.5 w-3.5" /> Loyalty Reward
                 </CardTitle>
                 <Switch checked={loyaltyEnabled} onCheckedChange={setLoyaltyEnabled} className="data-[state=checked]:bg-purple-600" />
               </div>
-              <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Auto-rewards for repeat participants.</CardDescription>
+              <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Auto-reward for repeat customers.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-500">Unlock on Order #</Label>
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Reward after Order #</Label>
                   <Input 
                     type="number" 
                     value={loyaltyMinOrders} 
@@ -772,7 +768,7 @@ export default function PromotionsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[9px] uppercase font-bold text-gray-500">Loyalty Discount (%)</Label>
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Discount (%)</Label>
                   <Input 
                     type="number" 
                     value={loyaltyDiscount} 
@@ -783,7 +779,7 @@ export default function PromotionsPage() {
                 </div>
               </div>
               <p className="text-[9px] text-zinc-500 uppercase leading-relaxed font-medium">
-                Verified members Authoritatively receive this deduction on their {loyaltyMinOrders === 2 ? 'second' : `${loyaltyMinOrders}th`} order manifest.
+                Signed-in customers will get this discount on their {loyaltyMinOrders === 2 ? 'second' : `${loyaltyMinOrders}th`} order.
               </p>
             </CardContent>
           </Card>
@@ -792,15 +788,15 @@ export default function PromotionsPage() {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", referralEnabled ? 'text-pink-600' : 'text-gray-400')}>
-                  <Share2 className="h-3.5 w-3.5" /> Referral Handshake
+                  <Share2 className="h-3.5 w-3.5" /> Referral Program
                 </CardTitle>
                 <Switch checked={referralEnabled} onCheckedChange={setReferralEnabled} className="data-[state=checked]:bg-pink-600" />
               </div>
-              <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Incentivize archival sharing.</CardDescription>
+              <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Reward customers for sharing your store.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase font-bold text-gray-500">Referee Credit ($)</Label>
+                <Label className="text-[9px] uppercase font-bold text-gray-500">New User Credit ($)</Label>
                 <Input 
                   type="number" 
                   value={referralValue} 
@@ -811,7 +807,7 @@ export default function PromotionsPage() {
               </div>
               <div className="p-4 bg-white/50 border border-dashed rounded-sm">
                 <p className="text-[9px] text-zinc-500 uppercase leading-relaxed font-bold">
-                  REFERRER BONUS: 500 STUDIO POINTS
+                  REFERRER BONUS: $10 CREDIT
                 </p>
               </div>
             </CardContent>
@@ -819,17 +815,17 @@ export default function PromotionsPage() {
 
           <div className="p-6 bg-black text-white space-y-4 shadow-xl">
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-zinc-400">
-              <Target className="h-3.5 w-3.5 text-blue-400" /> Promotion Integrity
+              <Target className="h-3.5 w-3.5 text-blue-400" /> System Info
             </h3>
             <p className="text-[10px] text-zinc-500 leading-relaxed uppercase font-medium">
-              Promotion protocol changes Authoritatively synchronize with the bag calculation engine in real-time.
+              Discounts are calculated in real-time at checkout.
             </p>
             <Separator className="bg-white/10" />
             <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
               <span>Status</span>
               <span className="text-green-400 flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                Real-time Sync Active
+                Live & Syncing
               </span>
             </div>
           </div>
@@ -839,8 +835,8 @@ export default function PromotionsPage() {
             onClick={handleSaveConfig} 
             disabled={isUpdatingConfig}
           >
-            {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-            Authorize All Protocols
+            {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Save All Settings
           </Button>
         </div>
       </div>
