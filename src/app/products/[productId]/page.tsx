@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useMemo, use } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   useFirestore, 
@@ -20,7 +19,9 @@ import {
   Ruler, 
   Check,
   ChevronLeft,
-  Loader2
+  Loader2,
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import {
   Sheet,

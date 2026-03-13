@@ -7,11 +7,10 @@ import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   const db = useFirestore();
@@ -68,7 +67,7 @@ export default function Home() {
                   {theme?.heroHeadline || "Modern Silhouettes"}
                 </span>
                 <Link href="/collections/all" className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95">
-                  {theme?.heroButtonText || "Shop All Archive"} <ArrowRight className="ml-3 h-4 w-4" />
+                  {theme?.heroButtonText || "Shop All Archive"}
                 </Link>
               </div>
             </div>
@@ -123,10 +122,10 @@ export default function Home() {
                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   </Link>
                   
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-start">
+                  <div className="space-y-3 text-center">
+                    <div className="flex flex-col items-center gap-1">
                       <h3 className="font-headline font-bold uppercase tracking-widest text-sm sm:text-lg leading-tight line-clamp-2">{cat.name}</h3>
-                      <span className="text-[8px] sm:text-[9px] font-mono font-bold text-gray-400 mt-1 shrink-0">NO. 0{idx + 1}</span>
+                      <span className="text-[8px] sm:text-[9px] font-mono font-bold text-gray-400 uppercase tracking-tighter">NO. 0{idx + 1}</span>
                     </div>
                   </div>
                 </div>
