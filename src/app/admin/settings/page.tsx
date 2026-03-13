@@ -49,7 +49,8 @@ import {
   Plus,
   Instagram,
   Twitter,
-  MessageSquare
+  MessageSquare,
+  Facebook
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -615,6 +616,8 @@ export default function SettingsPage() {
                     <SelectContent>
                       <SelectItem value="Instagram" className="text-[10px] uppercase font-bold">Instagram</SelectItem>
                       <SelectItem value="TikTok" className="text-[10px] uppercase font-bold">TikTok</SelectItem>
+                      <SelectItem value="Messenger" className="text-[10px] uppercase font-bold">Messenger</SelectItem>
+                      <SelectItem value="WhatsApp" className="text-[10px] uppercase font-bold">WhatsApp</SelectItem>
                       <SelectItem value="Twitter" className="text-[10px] uppercase font-bold">Twitter / X</SelectItem>
                       <SelectItem value="Other" className="text-[10px] uppercase font-bold">Other</SelectItem>
                     </SelectContent>
