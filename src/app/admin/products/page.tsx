@@ -34,7 +34,8 @@ import {
   Settings2,
   ChevronLeft,
   ChevronRight,
-  Save
+  Save,
+  Clock
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -66,6 +67,7 @@ interface Variant {
   size: string;
   stock: number;
   sku: string;
+  isPreorder?: boolean;
 }
 
 export default function ProductsPage() {
@@ -110,17 +112,18 @@ export default function ProductsPage() {
   const [badge, setBadge] = useState('none');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [preorderEnabled, setPreorderEnabled] = useState(false);
   
   // Customization State - Authoritatively ON by default
   const [customizationEnabled, setCustomizationEnabled] = useState(true);
   const [customizationFee, setCustomizationFee] = useState('10');
 
   const [variants, setVariants] = useState<Variant[]>([
-    { size: 'XS', stock: 0, sku: '' },
-    { size: 'S', stock: 0, sku: '' },
-    { size: 'M', stock: 0, sku: '' },
-    { size: 'L', stock: 0, sku: '' },
-    { size: 'XL', stock: 0, sku: '' }
+    { size: 'XS', stock: 0, sku: '', isPreorder: false },
+    { size: 'S', stock: 0, sku: '', isPreorder: false },
+    { size: 'M', stock: 0, sku: '', isPreorder: false },
+    { size: 'L', stock: 0, sku: '', isPreorder: false },
+    { size: 'XL', stock: 0, sku: '', isPreorder: false }
   ]);
   
   const [seoTitle, setSeoTitle] = useState('');
@@ -177,7 +180,6 @@ export default function ProductsPage() {
     return result;
   }, [products, searchQuery, categoryFilter, sortBy]);
 
-  // Sequential Navigation Logic
   const currentIndex = useMemo(() => {
     if (!editingId || !filteredProducts) return -1;
     return filteredProducts.findIndex(p => p.id === editingId);
@@ -190,7 +192,6 @@ export default function ProductsPage() {
     });
   };
 
-  // Selection Logic
   const isAllFilteredSelected = useMemo(() => {
     return filteredProducts.length > 0 && filteredProducts.every(p => selectedIds.includes(p.id));
   }, [filteredProducts, selectedIds]);
@@ -388,7 +389,7 @@ export default function ProductsPage() {
     return variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
   }, [variants]);
 
-  const handleUpdateVariant = (index: number, field: keyof Variant, value: string | number) => {
+  const handleUpdateVariant = (index: number, field: keyof Variant, value: string | number | boolean) => {
     const updated = [...variants];
     const item = { ...updated[index], [field]: value };
     if (field === 'size' && sku && (item.sku.startsWith(sku) || !item.sku)) {
@@ -396,6 +397,11 @@ export default function ProductsPage() {
     }
     updated[index] = item;
     setVariants(updated);
+  };
+
+  const handleToggleGlobalPreorder = (checked: boolean) => {
+    setPreorderEnabled(checked);
+    setVariants(prev => prev.map(v => ({ ...v, isPreorder: checked })));
   };
 
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -435,6 +441,7 @@ export default function ProductsPage() {
       customizationEnabled,
       customizationFee: customizationEnabled ? parseFloat(customizationFee) : 0,
       inventory: totalInventory,
+      preorderEnabled,
       variants,
       media,
       features: features.split(',').map(f => f.trim()),
@@ -487,9 +494,8 @@ export default function ProductsPage() {
 
   const resetForm = () => {
     setName(''); setPrice(''); setComparedPrice(''); setBrand(''); setSku(''); setSizeFit(''); setBadge('none'); setDescription(''); setCategoryId('');
-    // Authoritatively reset to true for next entry
-    setCustomizationEnabled(true); setCustomizationFee('10');
-    setVariants([{ size: 'XS', stock: 0, sku: '' }, { size: 'S', stock: 0, sku: '' }, { size: 'M', stock: 0, sku: '' }, { size: 'L', stock: 0, sku: '' }, { size: 'XL', stock: 0, sku: '' }]);
+    setCustomizationEnabled(true); setCustomizationFee('10'); setPreorderEnabled(false);
+    setVariants([{ size: 'XS', stock: 0, sku: '', isPreorder: false }, { size: 'S', stock: 0, sku: '', isPreorder: false }, { size: 'M', stock: 0, sku: '', isPreorder: false }, { size: 'L', stock: 0, sku: '', isPreorder: false }, { size: 'XL', stock: 0, sku: '', isPreorder: false }]);
     setMedia([]); setFeatures(''); setSeoTitle(''); setSeoDescription(''); setSeoHandle(''); setWeight(''); setLength(''); setWidth(''); setHeight(''); setActiveTab('general');
     setEditingId(null);
   };
@@ -506,6 +512,7 @@ export default function ProductsPage() {
     setCategoryId(product.categoryId || '');
     setCustomizationEnabled(product.customizationEnabled ?? true);
     setCustomizationFee(String(product.customizationFee ?? '10'));
+    setPreorderEnabled(product.preorderEnabled ?? false);
     setVariants(product.variants || []);
     setMedia(product.media || []);
     setFeatures(product.features?.join(', ') || '');
@@ -711,12 +718,36 @@ export default function ProductsPage() {
                     <div><p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total Available Units</p><p className="text-3xl font-bold font-headline">{totalInventory} PCS</p></div>
                     <div className="text-right"><Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Universal SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1 text-right h-11" /></div>
                   </div>
+
+                  <div className="p-6 bg-orange-50 border border-orange-100 rounded-xl flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-orange-600" />
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-orange-900">Archive Pre-order Protocol</h3>
+                      </div>
+                      <p className="text-[10px] uppercase font-bold text-orange-700 tracking-tight">Toggle pre-order status for all sizes Authoritatively.</p>
+                    </div>
+                    <Switch 
+                      checked={preorderEnabled} 
+                      onCheckedChange={handleToggleGlobalPreorder}
+                      className="data-[state=checked]:bg-orange-600"
+                    />
+                  </div>
+
                   <div className="grid gap-4">
                     {variants.map((v, i) => (
                       <div key={i} className="flex items-center gap-4 p-4 border rounded-xl bg-white shadow-sm hover:border-black transition-colors group">
                         <div className="w-20"><Label className="text-[9px] uppercase font-bold text-gray-400">Size</Label><Input value={v.size} onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)} className="h-10 font-bold uppercase" /></div>
                         <div className="flex-1"><Label className="text-[9px] uppercase font-bold text-gray-400">Variant SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-10 font-mono text-xs" /></div>
                         <div className="w-32"><Label className="text-[9px] uppercase font-bold text-gray-400">Units in Stock</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-10" /></div>
+                        <div className="flex flex-col items-center gap-1.5 pt-2 px-2">
+                          <Label className="text-[8px] uppercase font-bold text-gray-400">Pre-order</Label>
+                          <Switch 
+                            checked={v.isPreorder ?? false} 
+                            onCheckedChange={(checked) => handleUpdateVariant(i, 'isPreorder', checked)}
+                            className="scale-75"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
