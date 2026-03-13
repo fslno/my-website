@@ -7,7 +7,7 @@ import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { ArrowRight, ChevronRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -95,9 +95,6 @@ export default function Home() {
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Archive Manifest</span>
               <h2 className="category-title-size font-headline uppercase font-bold tracking-tighter text-primary">Archival Series</h2>
             </div>
-            <Link href="/collections/all" className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-60 transition-opacity flex items-center gap-2 pb-1 border-b border-black">
-              Explore Full Archive <ChevronRight className="h-3 w-3" />
-            </Link>
           </div>
           
           {!categories || categories.length === 0 ? (
@@ -147,9 +144,6 @@ export default function Home() {
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Selection</span>
               <h2 className="featured-title-size font-headline uppercase font-bold tracking-tighter text-primary">Featured Pieces</h2>
             </div>
-            <Link href="/collections/all" className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-60 transition-opacity flex items-center gap-2 pb-1 border-b border-black">
-              View Entire Catalog <ChevronRight className="h-3 w-3" />
-            </Link>
           </div>
           
           {productsLoading ? (
