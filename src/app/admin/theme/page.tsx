@@ -45,6 +45,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
 const sportsFonts = [
@@ -501,6 +502,51 @@ export default function ThemeEnginePage() {
                    </div>
                 </CardContent>
               </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                    <Type className="h-3.5 w-3.5" /> Catalog Typography Scales
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category Heading Size</Label>
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</Badge>
+                    </div>
+                    <input 
+                      type="range" min="12" max="120" value={categoryTitleSize} 
+                      onChange={(e) => setCategoryTitleSize(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Product Title Size</Label>
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge>
+                    </div>
+                    <input 
+                      type="range" min="10" max="40" value={productTitleSize} 
+                      onChange={(e) => setProductTitleSize(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Product Price Size</Label>
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge>
+                    </div>
+                    <input 
+                      type="range" min="10" max="40" value={productPriceSize} 
+                      onChange={(e) => setProductPriceSize(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="admin" className="mt-6 space-y-6">
@@ -553,7 +599,7 @@ export default function ThemeEnginePage() {
               {bannerEnabled && (<div className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white shrink-0 px-4 text-center" style={{ backgroundColor: bannerBgColor }}>{bannerText}</div>)}
               <div className="h-16 bg-white border-b flex items-center justify-between px-8 shrink-0"><span className="font-bold text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span><div className="flex items-center gap-3"><SearchIcon className="h-4 w-4 text-gray-300" /><ShoppingBag className="h-4 w-4 text-gray-300" /><div className="w-10 h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-300" /></div></div></div>
               <div className="flex-1 overflow-y-auto p-8 space-y-12 font-body">
-                <div className="aspect-video bg-gray-50 flex flex-col p-12 border shadow-sm relative" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', justifyContent: heroVerticalAlign === 'bottom' ? 'flex-end' : heroVerticalAlign === 'top' ? 'flex-start' : 'center', textAlign: heroTextAlign as any }}>
+                <div className="aspect-video bg-gray-50 flex flex-col p-12 border shadow-sm relative" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', textAlign: heroTextAlign as any }}>
                   {heroImageUrl ? <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" /> : <div className="absolute inset-0 bg-gray-100" />}
                   <div className="relative z-10 w-full"><span className="text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-4 block">{heroSubheadline}</span><h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2><div className="mt-8 flex justify-center" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}><div className="hero-button-preview px-8 h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg">{heroButtonText}</div></div></div>
                 </div>
