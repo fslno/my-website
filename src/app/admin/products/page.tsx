@@ -59,6 +59,7 @@ import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc, delete
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -1063,4 +1064,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
