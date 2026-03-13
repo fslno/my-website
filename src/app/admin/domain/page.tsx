@@ -120,6 +120,7 @@ export default function DomainPage() {
     setTimeout(() => {
       updateDoc(configRef, { 
         primaryDomain: domain,
+        sitemapUrl: `https://${domain}/sitemap.xml`,
         status: 'connected',
         updatedAt: serverTimestamp()
       })
@@ -135,6 +136,8 @@ export default function DomainPage() {
     if (!configRef) return;
     setIsSaving(true);
     const updates = {
+      primaryDomain: domain,
+      sitemapUrl: `https://${domain}/sitemap.xml`,
       metaTags,
       robotsTxt,
       searchIndexingEnabled: indexingEnabled,
@@ -262,7 +265,7 @@ export default function DomainPage() {
                 </div>
                 <Button 
                   onClick={handleConnectDomain}
-                  disabled={isConnecting || domain === config.primaryDomain}
+                  disabled={isConnecting || (domain === config.primaryDomain && config.status === 'connected')}
                   className="bg-black text-white h-12 font-bold px-8 uppercase tracking-widest text-[10px] w-full sm:w-auto"
                 >
                   {isConnecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
@@ -516,8 +519,8 @@ export default function DomainPage() {
                         navigator.clipboard.writeText(url.hostname);
                         toast({ title: "Copied", description: "Domain name saved to clipboard." });
                       } catch (e) {
-                        navigator.clipboard.writeText(config.sitemapUrl);
-                        toast({ title: "Copied", description: "URL saved to clipboard." });
+                        navigator.clipboard.writeText(domain);
+                        toast({ title: "Copied", description: "Domain name saved to clipboard." });
                       }
                     }}
                   >
