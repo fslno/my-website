@@ -57,7 +57,14 @@ import {
   Zap,
   AlignLeft,
   AlignRight,
-  Maximize2
+  Maximize2,
+  Mail,
+  Plus,
+  Globe,
+  Instagram,
+  Twitter,
+  MessageCircle,
+  Facebook
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -68,6 +75,16 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+
+interface ContactItem {
+  label: string;
+  value: string;
+}
+
+interface SocialItem {
+  platform: string;
+  url: string;
+}
 
 export default function SettingsPage() {
   const db = useFirestore();
@@ -93,6 +110,12 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
 
+  // Contact State
+  const [phoneNumbers, setPhoneNumbers] = useState<ContactItem[]>([]);
+  const [emailAddresses, setEmailAddresses] = useState<ContactItem[]>([]);
+  const [socialChannels, setSocialChannels] = useState<SocialItem[]>([]);
+  const [whatsAppNumber, setWhatsAppNumber] = useState('');
+
   // Staff Dialog State
   const [isStaffDialogOpen, setIsStaffDialogOpen] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
@@ -117,6 +140,10 @@ export default function SettingsPage() {
       setGoogleMapsUrl(storeConfig.googleMapsUrl || '');
       setPhone(storeConfig.phone || '');
       setLogoUrl(storeConfig.logoUrl || '');
+      setPhoneNumbers(storeConfig.phoneNumbers || []);
+      setEmailAddresses(storeConfig.emailAddresses || []);
+      setSocialChannels(storeConfig.socialChannels || []);
+      setWhatsAppNumber(storeConfig.whatsAppNumber || '');
     }
     if (themeData) {
       setChatbotEnabled(themeData.chatbotEnabled ?? true);
@@ -144,7 +171,11 @@ export default function SettingsPage() {
       address, 
       googleMapsUrl,
       phone, 
-      logoUrl, 
+      logoUrl,
+      phoneNumbers,
+      emailAddresses,
+      socialChannels,
+      whatsAppNumber,
       updatedAt: new Date().toISOString() 
     };
     setDoc(storeConfigRef, updates, { merge: true })
@@ -164,6 +195,8 @@ export default function SettingsPage() {
       chatbotEffect,
       updatedAt: new Date().toISOString() 
     };
+    // We also want to save the contact info since it's now managed in this tab too
+    handleSaveStore();
     setDoc(themeRef, updates, { merge: true })
       .then(() => toast({ title: "Chat Settings Saved", description: "Support & Chat interface updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
@@ -228,6 +261,31 @@ export default function SettingsPage() {
     setEditingStaffId(null);
   };
 
+  // Contact Array Helpers
+  const addPhoneNumber = () => setPhoneNumbers([...phoneNumbers, { label: 'Voice', value: '' }]);
+  const updatePhoneNumber = (idx: number, field: keyof ContactItem, val: string) => {
+    const updated = [...phoneNumbers];
+    updated[idx][field] = val;
+    setPhoneNumbers(updated);
+  };
+  const removePhoneNumber = (idx: number) => setPhoneNumbers(phoneNumbers.filter((_, i) => i !== idx));
+
+  const addEmailAddress = () => setEmailAddresses([...emailAddresses, { label: 'Dispatch', value: '' }]);
+  const updateEmailAddress = (idx: number, field: keyof ContactItem, val: string) => {
+    const updated = [...emailAddresses];
+    updated[idx][field] = val;
+    setEmailAddresses(updated);
+  };
+  const removeEmailAddress = (idx: number) => setEmailAddresses(emailAddresses.filter((_, i) => i !== idx));
+
+  const addSocialChannel = () => setSocialChannels([...socialChannels, { platform: 'Instagram', url: '' }]);
+  const updateSocialChannel = (idx: number, field: keyof SocialItem, val: string) => {
+    const updated = [...socialChannels];
+    (updated[idx] as any)[field] = val;
+    setSocialChannels(updated);
+  };
+  const removeSocialChannel = (idx: number) => setSocialChannels(socialChannels.filter((_, i) => i !== idx));
+
   if (storeLoading || themeLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -237,7 +295,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="space-y-8 max-w-6xl pb-20">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Global Settings</h1>
         <p className="text-[#5c5f62] mt-1 text-sm">Configure your store's general information and operational identity.</p>
@@ -456,7 +514,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="support" className="space-y-6">
+        <TabsContent value="support" className="space-y-12">
           <Card className="border-[#e1e3e5] shadow-none">
             <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
               <div>
@@ -535,25 +593,160 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
-
-              <Separator />
-
-              <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-sm flex items-start gap-4">
-                <Sparkles className="h-5 w-5 text-blue-600 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-blue-800">High-Fidelity Preview</p>
-                  <p className="text-[11px] text-blue-700 leading-relaxed uppercase">
-                    Changes to the support interface are Authoritatively synchronized with the global theme manifest. Ensure the chosen color maintains high-fidelity contrast with your storefront background.
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSaveChatbot} disabled={isSaving} className="bg-black text-white h-12 px-10 font-bold uppercase tracking-[0.2em] text-[10px]">
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-              Synchronize Dispatch UI
-            </Button>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="border-[#e1e3e5] shadow-none">
+              <CardHeader className="border-b bg-gray-50/30 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                    <Phone className="h-3.5 w-3.5" /> Phone & WhatsApp Manifest
+                  </CardTitle>
+                </div>
+                <Button variant="ghost" size="sm" onClick={addPhoneNumber} className="h-8 text-[9px] font-bold uppercase tracking-widest">
+                  <Plus className="h-3 w-3 mr-1" /> Add Line
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase tracking-widest font-bold text-green-600 flex items-center gap-2">
+                    <MessageCircle className="h-3.5 w-3.5" /> Primary WhatsApp Number
+                  </Label>
+                  <Input 
+                    placeholder="e.g. 15550000000" 
+                    value={whatsAppNumber} 
+                    onChange={(e) => setWhatsAppNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="h-11 font-mono text-sm"
+                  />
+                  <p className="text-[8px] text-gray-400 uppercase font-bold">Digits only. manifest: country_code + number.</p>
+                </div>
+                
+                <Separator />
+
+                <div className="space-y-4">
+                  {phoneNumbers.map((p, idx) => (
+                    <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <Input 
+                        placeholder="Label (e.g. Sales)" 
+                        value={p.label} 
+                        onChange={(e) => updatePhoneNumber(idx, 'label', e.target.value)} 
+                        className="w-1/3 h-10 text-[10px] font-bold uppercase"
+                      />
+                      <Input 
+                        placeholder="+1..." 
+                        value={p.value} 
+                        onChange={(e) => updatePhoneNumber(idx, 'value', e.target.value)} 
+                        className="flex-1 h-10 text-xs font-mono"
+                      />
+                      <Button variant="ghost" size="icon" onClick={() => removePhoneNumber(idx)} className="h-10 w-10 text-red-500">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {phoneNumbers.length === 0 && <p className="text-center py-4 text-[9px] text-gray-400 font-bold uppercase">No voice lines cataloged.</p>}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-[#e1e3e5] shadow-none">
+              <CardHeader className="border-b bg-gray-50/30 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                    <Mail className="h-3.5 w-3.5" /> Dispatch Email Manifest
+                  </CardTitle>
+                </div>
+                <Button variant="ghost" size="sm" onClick={addEmailAddress} className="h-8 text-[9px] font-bold uppercase tracking-widest">
+                  <Plus className="h-3 w-3 mr-1" /> Add Dispatch
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                {emailAddresses.map((e, idx) => (
+                  <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <Input 
+                      placeholder="Label (e.g. Help)" 
+                      value={e.label} 
+                      onChange={(e) => updateEmailAddress(idx, 'label', e.target.value)} 
+                      className="w-1/3 h-10 text-[10px] font-bold uppercase"
+                    />
+                    <Input 
+                      placeholder="email@address.com" 
+                      value={e.value} 
+                      onChange={(e) => updateEmailAddress(idx, 'value', e.target.value)} 
+                      className="flex-1 h-10 text-xs font-mono"
+                    />
+                    <Button variant="ghost" size="icon" onClick={() => removeEmailAddress(idx)} className="h-10 w-10 text-red-500">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                {emailAddresses.length === 0 && <p className="text-center py-4 text-[9px] text-gray-400 font-bold uppercase">No dispatch channels cataloged.</p>}
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="border-[#e1e3e5] shadow-none">
+            <CardHeader className="border-b bg-gray-50/30 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                  <Globe className="h-3.5 w-3.5" /> Social Discovery Channels
+                </CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" onClick={addSocialChannel} className="h-8 text-[9px] font-bold uppercase tracking-widest">
+                <Plus className="h-3 w-3 mr-1" /> Add Discovery
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-4">
+              {socialChannels.map((s, idx) => (
+                <div key={idx} className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <Select value={s.platform} onValueChange={(v) => updateSocialChannel(idx, 'platform', v)}>
+                    <SelectTrigger className="w-[180px] h-11 text-[10px] font-bold uppercase tracking-widest">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Instagram" className="text-[10px] font-bold uppercase">Instagram</SelectItem>
+                      <SelectItem value="TikTok" className="text-[10px] font-bold uppercase">TikTok</SelectItem>
+                      <SelectItem value="Twitter" className="text-[10px] font-bold uppercase">X (Twitter)</SelectItem>
+                      <SelectItem value="Messenger" className="text-[10px] font-bold uppercase">Messenger</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex-1 relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input 
+                      placeholder="https://platform.com/username" 
+                      value={s.url} 
+                      onChange={(e) => updateSocialChannel(idx, 'url', e.target.value)} 
+                      className="pl-10 h-11 text-xs font-mono"
+                    />
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => removeSocialChannel(idx)} className="h-11 w-11 text-red-500">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {socialChannels.length === 0 && <p className="text-center py-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest italic">No discovery channels cataloged.</p>}
+            </CardContent>
+          </Card>
+
+          <div className="bg-black text-white p-8 rounded-xl space-y-6 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-blue-400" />
+              <div>
+                <h3 className="text-sm font-headline font-bold uppercase tracking-tight">High-Fidelity Interaction Protocol</h3>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Changes are synchronized Authoritatively with the live Studio.</p>
+              </div>
+            </div>
+            <Separator className="bg-white/10" />
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 text-green-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[9px] font-bold uppercase tracking-widest">Real-time Handshake Active</span>
+              </div>
+              <Button onClick={handleSaveChatbot} disabled={isSaving} className="bg-white text-black h-12 px-10 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-[#D3D3D3]">
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Finalize Dispatch Protocol
+              </Button>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
