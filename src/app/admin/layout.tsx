@@ -422,7 +422,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
       --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
     }
-    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); min-height: 100vh; overflow-x: hidden; }
     .admin-header-height { height: var(--admin-header-h); }
     .admin-sidebar-bg { background-color: white; }
     .font-admin-headline { font-family: var(--admin-font-headline); }
@@ -444,8 +444,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen w-full admin-viewport">
         <AppSidebar storeConfig={storeConfig} />
 
-        <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
-          <header className="admin-header-height bg-white border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-20 w-full shrink-0">
+        <main className="flex-1 flex flex-col min-w-0 relative">
+          <header className="admin-header-height bg-white border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30 w-full shrink-0">
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 max-w-xl">
               <SidebarTrigger className="h-9 w-9 shrink-0" />
               <div className="relative w-full hidden sm:block">
@@ -469,7 +469,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-8 w-full font-admin-body">
+          <div className="flex-1 p-4 sm:p-8 w-full font-admin-body bg-inherit">
             <div className="max-w-7xl mx-auto w-full">
               {children}
             </div>
