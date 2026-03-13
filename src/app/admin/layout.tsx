@@ -102,7 +102,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="py-4 admin-sidebar-bg">
+      <SidebarContent className="py-4 admin-sidebar-bg overflow-x-hidden">
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -422,7 +422,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
       --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
     }
-    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); min-height: 100vh; overflow-x: hidden; }
+    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); min-height: 100vh; width: 100%; display: flex; flex-direction: row; overflow-x: hidden; }
     .admin-header-height { height: var(--admin-header-h); }
     .admin-sidebar-bg { background-color: white; }
     .font-admin-headline { font-family: var(--admin-font-headline); }

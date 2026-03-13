@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, use } from 'react';
@@ -45,16 +44,14 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage({ 
-  params,
-  searchParams 
-}: { 
+export default function ProductDetailPage(props: { 
   params: Promise<{ productId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { productId } = use(params);
-  // Authoritatively unwrap searchParams even if not used to comply with Next.js 15 proxy protocols
-  use(searchParams);
+  const resolvedParams = use(props.params);
+  const productId = resolvedParams.productId;
+  // Authoritatively unwrap searchParams to comply with Next.js 15 proxy protocols
+  use(props.searchParams);
   
   const db = useFirestore();
   const router = useRouter();
