@@ -82,10 +82,14 @@ const DEFAULT_THEME = {
   categoryTextAlign: 'center',
   categoryVerticalAlign: 'center',
   categoryTitleSize: '40',
+  categoryTitleColor: '#000000',
   featuredTextAlign: 'left',
   featuredTitleSize: '40',
+  featuredTitleColor: '#000000',
   productTitleSize: '14',
+  productTitleColor: '#000000',
   productPriceSize: '14',
+  productPriceColor: '#000000',
   productTextAlign: 'left',
   stickyHeader: true,
   adminPrimaryColor: '#000000',
@@ -126,13 +130,20 @@ export default function ThemeEnginePage() {
   const [heroTextAlign, setHeroTextAlign] = useState(DEFAULT_THEME.heroTextAlign);
   const [heroVerticalAlign, setHeroVerticalAlign] = useState(DEFAULT_THEME.heroVerticalAlign);
   const [heroHeadlineSize, setHeroHeadlineSize] = useState(DEFAULT_THEME.heroHeadlineSize);
+  
   const [categoryTextAlign, setCategoryTextAlign] = useState(DEFAULT_THEME.categoryTextAlign);
   const [categoryVerticalAlign, setCategoryVerticalAlign] = useState(DEFAULT_THEME.categoryVerticalAlign);
   const [categoryTitleSize, setCategoryTitleSize] = useState(DEFAULT_THEME.categoryTitleSize);
+  const [categoryTitleColor, setCategoryTitleColor] = useState(DEFAULT_THEME.categoryTitleColor);
+  
   const [featuredTextAlign, setFeaturedTextAlign] = useState(DEFAULT_THEME.featuredTextAlign);
   const [featuredTitleSize, setFeaturedTitleSize] = useState(DEFAULT_THEME.featuredTitleSize);
+  const [featuredTitleColor, setFeaturedTitleColor] = useState(DEFAULT_THEME.featuredTitleColor);
+  
   const [productTitleSize, setProductTitleSize] = useState(DEFAULT_THEME.productTitleSize);
+  const [productTitleColor, setProductTitleColor] = useState(DEFAULT_THEME.productTitleColor);
   const [productPriceSize, setProductPriceSize] = useState(DEFAULT_THEME.productPriceSize);
+  const [productPriceColor, setProductPriceColor] = useState(DEFAULT_THEME.productPriceColor);
   const [productTextAlign, setProductTextAlign] = useState(DEFAULT_THEME.productTextAlign);
   const [stickyHeader, setStickyHeader] = useState(DEFAULT_THEME.stickyHeader);
 
@@ -168,10 +179,14 @@ export default function ThemeEnginePage() {
       setCategoryTextAlign(themeData.categoryTextAlign || DEFAULT_THEME.categoryTextAlign);
       setCategoryVerticalAlign(themeData.categoryVerticalAlign || DEFAULT_THEME.categoryVerticalAlign);
       setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
+      setCategoryTitleColor(themeData.categoryTitleColor || DEFAULT_THEME.categoryTitleColor);
       setFeaturedTextAlign(themeData.featuredTextAlign || DEFAULT_THEME.featuredTextAlign);
       setFeaturedTitleSize(themeData.featuredTitleSize?.toString() || DEFAULT_THEME.featuredTitleSize);
+      setFeaturedTitleColor(themeData.featuredTitleColor || DEFAULT_THEME.featuredTitleColor);
       setProductTitleSize(themeData.productTitleSize?.toString() || DEFAULT_THEME.productTitleSize);
+      setProductTitleColor(themeData.productTitleColor || DEFAULT_THEME.productTitleColor);
       setProductPriceSize(themeData.productPriceSize?.toString() || DEFAULT_THEME.productPriceSize);
+      setProductPriceColor(themeData.productPriceColor || DEFAULT_THEME.productPriceColor);
       setProductTextAlign(themeData.productTextAlign || DEFAULT_THEME.productTextAlign);
       setStickyHeader(themeData.stickyHeader ?? DEFAULT_THEME.stickyHeader);
       setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
@@ -219,10 +234,14 @@ export default function ThemeEnginePage() {
       categoryTextAlign,
       categoryVerticalAlign,
       categoryTitleSize: Number(categoryTitleSize),
+      categoryTitleColor,
       featuredTextAlign,
       featuredTitleSize: Number(featuredTitleSize),
+      featuredTitleColor,
       productTitleSize: Number(productTitleSize),
+      productTitleColor,
       productPriceSize: Number(productPriceSize),
+      productPriceColor,
       productTextAlign,
       stickyHeader,
       adminPrimaryColor,
@@ -272,11 +291,15 @@ export default function ThemeEnginePage() {
           --preview-cat-align: ${categoryTextAlign};
           --preview-cat-vertical: ${categoryVerticalAlign === 'bottom' ? 'flex-end' : categoryVerticalAlign === 'top' ? 'flex-start' : 'center'};
           --preview-cat-size: ${categoryTitleSize}px;
+          --preview-cat-color: ${categoryTitleColor};
           --preview-feat-align: ${featuredTextAlign};
           --preview-feat-size: ${featuredTitleSize}px;
+          --preview-feat-color: ${featuredTitleColor};
           --preview-prod-align: ${productTextAlign};
           --preview-prod-size: ${productTitleSize}px;
+          --preview-prod-color: ${productTitleColor};
           --preview-price-size: ${productPriceSize}px;
+          --preview-price-color: ${productPriceColor};
           --preview-hero-button-bg: ${heroButtonBgColor};
           --preview-hero-button-text: ${heroButtonTextColor};
         }
@@ -297,19 +320,23 @@ export default function ThemeEnginePage() {
         #theme-preview-root .preview-cat-title {
           text-align: var(--preview-cat-align) !important;
           font-size: var(--preview-cat-size) !important;
+          color: var(--preview-cat-color) !important;
         }
         #theme-preview-root .preview-feat-title {
           text-align: var(--preview-feat-align) !important;
           font-size: var(--preview-feat-size) !important;
+          color: var(--preview-feat-color) !important;
         }
         #theme-preview-root .preview-prod-card {
           text-align: var(--preview-prod-align) !important;
         }
         #theme-preview-root .preview-prod-title {
           font-size: var(--preview-prod-size) !important;
+          color: var(--preview-prod-color) !important;
         }
         #theme-preview-root .preview-price {
           font-size: var(--preview-price-size) !important;
+          color: var(--preview-price-color) !important;
         }
         #theme-preview-root .hero-button-preview {
           background-color: var(--preview-hero-button-bg) !important;
@@ -320,7 +347,7 @@ export default function ThemeEnginePage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Theme Engine</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Live-edit your storefront's global identity.</p>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Live-edit your storefront's global identity.</p>
         </div>
         <Button className="w-full sm:w-auto h-10 gap-2 bg-black text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 shadow-lg" onClick={handleSave} disabled={isSaving}>
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -528,8 +555,11 @@ export default function ThemeEnginePage() {
             </TabsContent>
 
             <TabsContent value="layout" className="mt-6 space-y-6 animate-in fade-in duration-300">
-               <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Homepage Layout Mode</CardTitle></CardHeader>
+              {/* Homepage Architecture */}
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Homepage Architecture</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-4">
                    <div className="grid grid-cols-2 gap-4">
                       <button onClick={() => setHomepageLayout('bento')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'bento' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Bento Grid</span></button>
@@ -538,26 +568,129 @@ export default function ThemeEnginePage() {
                 </CardContent>
               </Card>
 
+              {/* Category Selection Protocol */}
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Selection Protocol</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Heading Scale</Label>
+                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</Badge>
+                      </div>
+                      <input type="range" min="12" max="120" value={categoryTitleSize} onChange={(e) => setCategoryTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Alignment</Label>
+                      <div className="flex border p-1 rounded-sm bg-gray-50">
+                        <Button variant={categoryTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
+                        <Button variant={categoryTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
+                        <Button variant={categoryTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 max-w-sm">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Heading Color</Label>
+                    <div className="flex gap-2">
+                      <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} />
+                      </div>
+                      <Input value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Featured Selection Protocol */}
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Featured Selection Protocol</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Title Scale</Label>
+                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{featuredTitleSize}PX</Badge>
+                      </div>
+                      <input type="range" min="12" max="120" value={featuredTitleSize} onChange={(e) => setFeaturedTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Alignment</Label>
+                      <div className="flex border p-1 rounded-sm bg-gray-50">
+                        <Button variant={featuredTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setFeaturedTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
+                        <Button variant={featuredTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setFeaturedTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
+                        <Button variant={featuredTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setFeaturedTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 max-w-sm">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Title Color</Label>
+                    <div className="flex gap-2">
+                      <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={featuredTitleColor} onChange={(e) => setFeaturedTitleColor(e.target.value)} />
+                      </div>
+                      <Input value={featuredTitleColor} onChange={(e) => setFeaturedTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Product Card Protocol */}
               <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                    <Type className="h-3.5 w-3.5" /> Catalog Typography Scales
+                    <ShoppingBag className="h-3.5 w-3.5" /> Product Card Protocol
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-8">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category Heading</Label>
-                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</Badge>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Title Scale</Label>
+                          <Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge>
+                        </div>
+                        <input type="range" min="10" max="40" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Title Color</Label>
+                        <div className="flex gap-2">
+                          <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                            <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} />
+                          </div>
+                          <Input value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                        </div>
+                      </div>
                     </div>
-                    <input type="range" min="12" max="120" value={categoryTitleSize} onChange={(e) => setCategoryTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                    <div className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Price Scale</Label>
+                          <Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge>
+                        </div>
+                        <input type="range" min="10" max="40" value={productPriceSize} onChange={(e) => setProductPriceSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Price Color</Label>
+                        <div className="flex gap-2">
+                          <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                            <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} />
+                          </div>
+                          <Input value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Product Title</Label>
-                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge>
+                  <div className="pt-4 border-t max-w-sm">
+                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Content Alignment</Label>
+                    <div className="flex border p-1 rounded-sm bg-gray-50 mt-2">
+                      <Button variant={productTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setProductTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
+                      <Button variant={productTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setProductTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
+                      <Button variant={productTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setProductTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
                     </div>
-                    <input type="range" min="10" max="40" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
                   </div>
                 </CardContent>
               </Card>
@@ -614,7 +747,7 @@ export default function ThemeEnginePage() {
                   {heroImageUrl ? <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" /> : <div className="absolute inset-0 bg-gray-100" />}
                   <div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">{heroSubheadline}</span><h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2><div className="mt-6 sm:mt-8 flex" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}><div className="hero-button-preview px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">{heroButtonText}</div></div></div>
                 </div>
-                <div className="space-y-8"><h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight" style={{ color: primaryColor }}>Catalog Selection</h3><div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none" style={{ color: primaryColor }}>Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div></div>
+                <div className="space-y-8"><h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">Catalog Selection</h3><div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none">Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div></div>
               </div>
             </div>
           </div>

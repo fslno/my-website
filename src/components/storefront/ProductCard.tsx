@@ -34,12 +34,12 @@ export function ProductCard({ id, name, price, image, category }: ProductCardPro
         <p className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-bold leading-none">
           {category}
         </p>
-        <p className="product-price-size font-bold text-primary leading-none">
+        <p className="product-price-size product-price-color font-bold leading-none">
           {price}
         </p>
         <Link 
           href={`/products/${id}`} 
-          className="product-title-size font-medium line-clamp-1 text-primary group-hover:underline leading-none tracking-tight"
+          className="product-title-size product-title-color font-medium line-clamp-1 group-hover:underline leading-none tracking-tight"
         >
           {name}
         </Link>

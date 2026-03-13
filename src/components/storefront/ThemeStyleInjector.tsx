@@ -58,13 +58,6 @@ export function ThemeStyleInjector() {
       root.style.setProperty('--radius', `${theme.borderRadius}px`);
     }
 
-    if (theme.chatbotColor) {
-      root.style.setProperty('--chatbot-color', theme.chatbotColor);
-    }
-    if (theme.chatbotSize) {
-      root.style.setProperty('--chatbot-size', `${theme.chatbotSize}px`);
-    }
-
     const styleId = 'fslno-theme-overrides';
     let styleTag = document.getElementById(styleId) as HTMLStyleElement;
     
@@ -86,13 +79,17 @@ export function ThemeStyleInjector() {
     const categoryTextAlign = theme.categoryTextAlign || 'center';
     const categoryVerticalAlign = theme.categoryVerticalAlign || 'center';
     const categoryTitleSize = theme.categoryTitleSize || 40;
+    const categoryTitleColor = theme.categoryTitleColor || theme.primaryColor || '#000000';
 
     const featuredTextAlign = theme.featuredTextAlign || 'left';
     const featuredTitleSize = theme.featuredTitleSize || 40;
+    const featuredTitleColor = theme.featuredTitleColor || theme.primaryColor || '#000000';
 
     const productTextAlign = theme.productTextAlign || 'left';
     const productTitleSize = theme.productTitleSize || 14;
+    const productTitleColor = theme.productTitleColor || theme.primaryColor || '#000000';
     const productPriceSize = theme.productPriceSize || 14;
+    const productPriceColor = theme.productPriceColor || theme.primaryColor || '#000000';
 
     const heroButtonBg = theme.heroButtonBgColor || theme.accentColor || '#FFFFFF';
     const heroButtonText = theme.heroButtonTextColor || getContrastColor(heroButtonBg);
@@ -109,20 +106,27 @@ export function ThemeStyleInjector() {
         --hero-text-align: ${heroTextAlign};
         --hero-vertical-align: ${getVerticalAlign(heroVerticalAlign)};
         --hero-flex-align: ${getFlexAlign(heroTextAlign)};
+        
         --category-text-align: ${categoryTextAlign};
         --category-vertical-align: ${getVerticalAlign(categoryVerticalAlign)};
         --category-flex-align: ${getFlexAlign(categoryTextAlign)};
         --category-title-size: ${categoryTitleSize}px;
+        --category-title-color: ${categoryTitleColor};
+        
         --featured-text-align: ${featuredTextAlign};
         --featured-title-size: ${featuredTitleSize}px;
+        --featured-title-color: ${featuredTitleColor};
+        
         --product-text-align: ${productTextAlign};
         --product-flex-align: ${getFlexAlign(productTextAlign)};
         --product-title-size: ${productTitleSize}px;
+        --product-title-color: ${productTitleColor};
         --product-price-size: ${productPriceSize}px;
+        --product-price-color: ${productPriceColor};
+        
         --hero-headline-size: ${heroHeadlineSize}px;
         --hero-button-bg: ${heroButtonBg};
         --hero-button-text: ${heroButtonText};
-        --chatbot-position: ${theme.chatbotPosition === 'left' ? 'left: 2rem;' : 'right: 2rem;'};
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
@@ -181,13 +185,30 @@ export function ThemeStyleInjector() {
 
       .category-text-align {
         text-align: var(--category-text-align) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: var(--category-flex-align) !important;
       }
       .featured-text-align {
         text-align: var(--featured-text-align) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: var(--featured-flex-align) !important;
       }
       .product-text-align {
         text-align: var(--product-text-align) !important;
       }
+      .product-flex-align {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: var(--product-flex-align) !important;
+      }
+      
+      .category-title-color { color: var(--category-title-color) !important; }
+      .featured-title-color { color: var(--featured-title-color) !important; }
+      .product-title-color { color: var(--product-title-color) !important; }
+      .product-price-color { color: var(--product-price-color) !important; }
+      
       .hero-button {
         background-color: var(--hero-button-bg) !important;
         color: var(--hero-button-text) !important;

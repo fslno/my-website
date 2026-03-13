@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -90,10 +89,10 @@ export default function Home() {
       {/* Categories Selection - Reflects the curated sort order */}
       <section className="pt-24 pb-12 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex flex-col items-center text-center mb-16 gap-6">
+          <div className="flex flex-col mb-16 gap-6 category-text-align">
             <div className="space-y-3">
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">BROWSE</span>
-              <h2 className="category-title-size font-headline uppercase font-bold tracking-tighter text-primary">OUR CATEGORIES</h2>
+              <h2 className="category-title-size category-title-color font-headline uppercase font-bold tracking-tighter">OUR CATEGORIES</h2>
             </div>
           </div>
           
@@ -138,10 +137,10 @@ export default function Home() {
       {/* Featured Products Selection */}
       <section className="pt-12 pb-24 bg-background">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex flex-col items-center text-center mb-16 gap-6">
+          <div className="flex flex-col mb-16 gap-6 featured-text-align">
             <div className="space-y-3">
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">TOP RATED</span>
-              <h2 className="featured-title-size font-headline uppercase font-bold tracking-tighter text-primary">FEATURED PRODUCTS</h2>
+              <h2 className="featured-title-size featured-title-color font-headline uppercase font-bold tracking-tighter">FEATURED PRODUCTS</h2>
             </div>
           </div>
           
