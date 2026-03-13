@@ -33,6 +33,7 @@ export interface CartItem {
   productId?: string;
   isPromo?: boolean;
   createdAt?: any;
+  customizationEnabled?: boolean;
 }
 
 export interface Coupon {
@@ -46,6 +47,7 @@ interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
   removeFromCart: (variantId: string) => void;
+  updateCartItem: (variantId: string, updates: Partial<CartItem>) => void;
   clearCart: () => void;
   cartCount: number;
   cartSubtotal: number;
@@ -214,7 +216,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (existingIndex > -1) {
           const updated = [...prev];
           updated[existingIndex] = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + 1 };
-          // Move to top when updated if desired, but sticking to creation for now
           return updated;
         }
         // Prepend new item for "New to Old" guest experience
@@ -229,6 +230,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       deleteDoc(itemRef);
     } else {
       setLocalCart(prev => prev.filter(item => item.variantId !== variantId));
+    }
+  };
+
+  const updateCartItem = (variantId: string, updates: Partial<CartItem>) => {
+    if (user && db) {
+      const itemRef = doc(db, 'users', user.uid, 'cart', variantId);
+      updateDoc(itemRef, { ...updates, updatedAt: serverTimestamp() }).catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: itemRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        }));
+      });
+    } else {
+      setLocalCart(prev => prev.map(item => item.variantId === variantId ? { ...item, ...updates } : item));
     }
   };
 
@@ -250,7 +266,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <CartContext.Provider value={{ 
-      cart, addToCart, removeFromCart, clearCart, 
+      cart, addToCart, removeFromCart, updateCartItem, clearCart, 
       cartCount, cartSubtotal, discountTotal, totalBeforeTax, 
       isSyncing, appliedCoupon, applyCoupon: setAppliedCoupon,
       thresholdProgress, THRESHOLD_VALUE: effectiveThreshold

@@ -23,7 +23,8 @@ import {
   Banknote,
   Apple,
   Smartphone,
-  ShieldCheck
+  ShieldCheck,
+  Edit2
 } from 'lucide-react';
 import { useCart, type Coupon } from '@/context/CartContext';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -83,7 +84,7 @@ export default function CheckoutPage() {
   const { user } = useUser();
   const { toast } = useToast();
   const { 
-    cart, cartSubtotal, cartCount, clearCart, 
+    cart, cartSubtotal, cartCount, clearCart, updateCartItem,
     discountTotal, totalBeforeTax, appliedCoupon, applyCoupon 
   } = useCart();
   
@@ -104,6 +105,10 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<any>(null);
+
+  // Edit State for Items
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
+  const [editFields, setEditFields] = useState({ name: '', number: '', note: '' });
 
   const [formData, setFormData] = useState({
     email: '',
@@ -233,6 +238,28 @@ export default function CheckoutPage() {
     } finally {
       setIsValidatingCoupon(false);
     }
+  };
+
+  const handleStartEdit = (item: any) => {
+    setEditingVariantId(item.variantId);
+    setEditFields({
+      name: item.customName || '',
+      number: item.customNumber || '',
+      note: item.specialNote || ''
+    });
+  };
+
+  const handleSaveEdit = (variantId: string) => {
+    updateCartItem(variantId, {
+      customName: editFields.name,
+      customNumber: editFields.number,
+      specialNote: editFields.note
+    });
+    setEditingVariantId(null);
+    toast({
+      title: "Updated",
+      description: "Customization details synchronized.",
+    });
   };
 
   const handleSubmit = async () => {
@@ -601,19 +628,76 @@ export default function CheckoutPage() {
                         <span>Qty: {item.quantity}</span>
                       </div>
                       
-                      {(item.customName || item.customNumber || item.specialNote) && (
-                        <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100">
-                          {(item.customName || item.customNumber) && (
-                            <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
-                              <Sparkles className="h-2.5 w-2.5" />
-                              {item.customName} {item.customNumber && `#${item.customNumber}`}
-                            </p>
-                          )}
-                          {item.specialNote && (
-                            <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
-                              <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
-                              {item.specialNote}
-                            </p>
+                      {editingVariantId === item.variantId ? (
+                        <div className="flex flex-col gap-2 mt-2 p-3 bg-gray-50 border border-dashed rounded-none animate-in fade-in duration-300">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <Label className="text-[8px] font-bold uppercase text-gray-400">Name</Label>
+                              <Input 
+                                value={editFields.name} 
+                                onChange={(e) => setEditFields({...editFields, name: e.target.value.toUpperCase()})}
+                                className="h-7 text-[9px] font-bold rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[8px] font-bold uppercase text-gray-400">No.</Label>
+                              <Input 
+                                value={editFields.number} 
+                                maxLength={2}
+                                onChange={(e) => setEditFields({...editFields, number: e.target.value})}
+                                className="h-7 text-[9px] font-bold text-center rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[8px] font-bold uppercase text-gray-400">Special Note</Label>
+                            <Input 
+                              value={editFields.note} 
+                              onChange={(e) => setEditFields({...editFields, note: e.target.value.toUpperCase()})}
+                              className="h-7 text-[9px] font-bold rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                            />
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            <Button 
+                              size="sm" 
+                              className="h-7 flex-1 text-[8px] font-bold uppercase tracking-widest rounded-none bg-black text-white hover:bg-black/80"
+                              onClick={() => handleSaveEdit(item.variantId)}
+                            >
+                              Save
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="h-7 px-3 text-[8px] font-bold uppercase tracking-widest rounded-none border-gray-200"
+                              onClick={() => setEditingVariantId(null)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100 group/custom relative">
+                          <div className="flex flex-col gap-1 pr-10">
+                            {(item.customName || item.customNumber) && (
+                              <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                                <Sparkles className="h-2.5 w-2.5" />
+                                {item.customName} {item.customNumber && `#${item.customNumber}`}
+                              </p>
+                            )}
+                            {item.specialNote && (
+                              <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
+                                <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
+                                {item.specialNote}
+                              </p>
+                            )}
+                          </div>
+                          {(item.customName || item.customNumber || item.specialNote) && (
+                            <button 
+                              onClick={() => handleStartEdit(item)}
+                              className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-0 group-hover/custom:opacity-100 transition-opacity"
+                            >
+                              Edit
+                            </button>
                           )}
                         </div>
                       )}

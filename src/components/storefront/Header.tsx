@@ -20,7 +20,8 @@ import {
   Settings,
   User as UserIcon,
   LogOut,
-  Package
+  Package,
+  Edit2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser, useAuth 
 import { doc, collection } from 'firebase/firestore';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +51,7 @@ import { useToast } from '@/hooks/use-toast';
 export function Header() {
   const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { cart, cartCount, cartSubtotal, removeFromCart, thresholdProgress, THRESHOLD_VALUE } = useCart();
+  const { cart, cartCount, cartSubtotal, removeFromCart, updateCartItem, thresholdProgress, THRESHOLD_VALUE } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
   const { user } = useUser();
   const auth = useAuth();
@@ -72,6 +74,10 @@ export function Header() {
   const [isSearching, setIsSearching] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // Edit State for Cart Items
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
+  const [editFields, setEditFields] = useState({ name: '', number: '', note: '' });
 
   const filteredProducts = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
@@ -115,6 +121,28 @@ export function Header() {
         description: "Failed to sign out.",
       });
     }
+  };
+
+  const handleStartEdit = (item: any) => {
+    setEditingVariantId(item.variantId);
+    setEditFields({
+      name: item.customName || '',
+      number: item.customNumber || '',
+      note: item.specialNote || ''
+    });
+  };
+
+  const handleSaveEdit = (variantId: string) => {
+    updateCartItem(variantId, {
+      customName: editFields.name,
+      customNumber: editFields.number,
+      specialNote: editFields.note
+    });
+    setEditingVariantId(null);
+    toast({
+      title: "Updated",
+      description: "Customization details synchronized.",
+    });
   };
 
   const formatCurrency = (val: number) => {
@@ -469,19 +497,76 @@ export function Header() {
                                 </div>
                                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Size: {item.size}</p>
                                 
-                                {(item.customName || item.customNumber || item.specialNote) && (
-                                  <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100">
-                                    {(item.customName || item.customNumber) && (
-                                      <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
-                                        <Sparkles className="h-2.5 w-2.5" />
-                                        {item.customName} {item.customNumber && `#${item.customNumber}`}
-                                      </p>
-                                    )}
-                                    {item.specialNote && (
-                                      <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
-                                        <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
-                                        {item.specialNote}
-                                      </p>
+                                {editingVariantId === item.variantId ? (
+                                  <div className="flex flex-col gap-2 mt-2 p-3 bg-gray-50 border border-dashed rounded-none animate-in fade-in duration-300">
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div className="space-y-1">
+                                        <Label className="text-[8px] font-bold uppercase text-gray-400">Name</Label>
+                                        <Input 
+                                          value={editFields.name} 
+                                          onChange={(e) => setEditFields({...editFields, name: e.target.value.toUpperCase()})}
+                                          className="h-7 text-[9px] font-bold rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-[8px] font-bold uppercase text-gray-400">No.</Label>
+                                        <Input 
+                                          value={editFields.number} 
+                                          maxLength={2}
+                                          onChange={(e) => setEditFields({...editFields, number: e.target.value})}
+                                          className="h-7 text-[9px] font-bold text-center rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-[8px] font-bold uppercase text-gray-400">Special Note</Label>
+                                      <Input 
+                                        value={editFields.note} 
+                                        onChange={(e) => setEditFields({...editFields, note: e.target.value.toUpperCase()})}
+                                        className="h-7 text-[9px] font-bold rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                                      />
+                                    </div>
+                                    <div className="flex gap-2 pt-1">
+                                      <Button 
+                                        size="sm" 
+                                        className="h-7 flex-1 text-[8px] font-bold uppercase tracking-widest rounded-none bg-black text-white hover:bg-black/80"
+                                        onClick={() => handleSaveEdit(item.variantId)}
+                                      >
+                                        Save
+                                      </Button>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        className="h-7 px-3 text-[8px] font-bold uppercase tracking-widest rounded-none border-gray-200"
+                                        onClick={() => setEditingVariantId(null)}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100 group/custom relative">
+                                    <div className="flex flex-col gap-1 pr-10">
+                                      {(item.customName || item.customNumber) && (
+                                        <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                                          <Sparkles className="h-2.5 w-2.5" />
+                                          {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                        </p>
+                                      )}
+                                      {item.specialNote && (
+                                        <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
+                                          <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
+                                          {item.specialNote}
+                                        </p>
+                                      )}
+                                    </div>
+                                    {(item.customName || item.customNumber || item.specialNote) && (
+                                      <button 
+                                        onClick={() => handleStartEdit(item)}
+                                        className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-0 group-hover/custom:opacity-100 transition-opacity"
+                                      >
+                                        Edit
+                                      </button>
                                     )}
                                   </div>
                                 )}
