@@ -154,16 +154,19 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
-              {featuredProducts.map((product: any) => (
-                <ProductCard 
-                  key={product.id} 
-                  id={product.id}
-                  name={product.name}
-                  price={`$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD`}
-                  image={product.media?.[0]?.url || ''}
-                  category={product.brand || 'FSLNO Studio'}
-                />
-              ))}
+              {featuredProducts.map((product: any) => {
+                const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
+                return (
+                  <ProductCard 
+                    key={product.id} 
+                    id={product.id}
+                    name={product.name}
+                    price={`$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD`}
+                    image={product.media?.[0]?.url || ''}
+                    category={productCategory}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

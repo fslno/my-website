@@ -28,6 +28,13 @@ export default function CollectionPage(props: {
   );
   const { data: category, isLoading: categoryLoading } = useDoc(categoryRef);
 
+  // If 'all', fetch all categories to map IDs to names for the cards
+  const categoriesQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, 'categories');
+  }, [db]);
+  const { data: allCategories } = useCollection(categoriesQuery);
+
   // Fetch Products in this Category
   const productsQuery = useMemoFirebase(() => {
     if (!db || !categoryId) return null;
@@ -95,16 +102,19 @@ export default function CollectionPage(props: {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
-              {products.map((product: any) => (
-                <ProductCard 
-                  key={product.id} 
-                  id={product.id}
-                  name={product.name}
-                  price={`$${formatCurrency(Number(product.price))} CAD`}
-                  image={product.media?.[0]?.url || ''}
-                  category={category?.name || product.brand || 'FSLNO Studio'}
-                />
-              ))}
+              {products.map((product: any) => {
+                const productCategory = category?.name || allCategories?.find(c => c.id === product.categoryId)?.name || 'Archive';
+                return (
+                  <ProductCard 
+                    key={product.id} 
+                    id={product.id}
+                    name={product.name}
+                    price={`$${formatCurrency(Number(product.price))} CAD`}
+                    image={product.media?.[0]?.url || ''}
+                    category={productCategory}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
