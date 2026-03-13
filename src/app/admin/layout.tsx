@@ -422,7 +422,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
       --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
     }
-    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); }
+    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
     .admin-header-height { height: var(--admin-header-h); }
     .admin-sidebar-bg { background-color: white; }
     .font-admin-headline { font-family: var(--admin-font-headline); }
@@ -444,11 +444,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen w-full admin-viewport">
         <AppSidebar storeConfig={storeConfig} />
 
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="admin-header-height bg-white border-b border-[#e1e3e5] flex items-center justify-between px-8 sticky top-0 z-10">
-            <div className="flex items-center gap-4 flex-1 max-w-xl">
-              <SidebarTrigger />
-              <div className="relative w-full">
+        <main className="flex-1 flex flex-col min-w-0 relative">
+          <header className="admin-header-height bg-white border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-20 w-full shrink-0">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 max-w-xl">
+              <SidebarTrigger className="h-9 w-9" />
+              <div className="relative w-full hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
                 <input 
                   type="text" 
@@ -457,8 +457,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 />
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors">
+            <div className="flex items-center gap-3 shrink-0">
+              <button className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors hidden xs:block">
                 <Bell className="h-5 w-5 text-[#5c5f62]" />
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
@@ -469,8 +469,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full font-admin-body">
-            {children}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-8 w-full font-admin-body">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
           </div>
         </main>
       </div>

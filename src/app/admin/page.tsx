@@ -311,17 +311,17 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Admin Overview</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm font-medium uppercase tracking-tight">Forensic archival performance monitoring.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Admin Overview</h1>
+          <p className="text-[#5c5f62] mt-1 text-xs sm:text-sm font-medium uppercase tracking-tight">Forensic archival performance monitoring.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-white border border-[#e1e3e5] rounded-md px-3 h-10 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          <div className="flex items-center gap-2 bg-white border border-[#e1e3e5] rounded-md px-3 h-10 shadow-sm flex-1 sm:flex-none min-w-[160px]">
             <CalendarIcon className="h-3.5 w-3.5 text-gray-400" />
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="border-none shadow-none focus:ring-0 h-8 w-[140px] text-[10px] font-bold uppercase tracking-widest p-0">
+              <SelectTrigger className="border-none shadow-none focus:ring-0 h-8 flex-1 text-[10px] font-bold uppercase tracking-widest p-0">
                 <SelectValue placeholder="Time Range" />
               </SelectTrigger>
               <SelectContent>
@@ -343,24 +343,23 @@ export default function AdminDashboard() {
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "h-10 justify-start text-left font-bold uppercase text-[10px] tracking-widest border-[#e1e3e5] shadow-sm",
+                    "h-10 flex-1 sm:flex-none justify-start text-left font-bold uppercase text-[10px] tracking-widest border-[#e1e3e5] shadow-sm",
                     !date && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-3.5 w-3.5" />
                   {date?.from ? (
                     date.to ? (
-                      <>
-                        {format(date.from, "LLL dd, y")} -{" "}
-                        {format(date.to, "LLL dd, y")}
-                      </>
+                      <span className="truncate">
+                        {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
+                      </span>
                     ) : (
                       format(date.from, "LLL dd, y")
                     )
                   ) : (
                     <span>Pick a date range</span>
                   )}
-                  <ChevronDown className="ml-2 h-3 w-3 opacity-50" />
+                  <ChevronDown className="ml-2 h-3 w-3 opacity-50 shrink-0" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -376,23 +375,21 @@ export default function AdminDashboard() {
             </Popover>
           )}
 
-          <Separator orientation="vertical" className="h-8 hidden md:block" />
-          
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <button 
               onClick={handleExportCSV}
-              className="px-4 h-10 bg-white border border-[#babfc3] rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#f6f6f7] transition-colors shadow-sm flex items-center gap-2"
+              className="flex-1 sm:flex-none px-4 h-10 bg-white border border-[#babfc3] rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-[#f6f6f7] transition-colors shadow-sm flex items-center justify-center gap-2"
             >
-              <Download className="h-3.5 w-3.5" /> Export CSV
+              <Download className="h-3.5 w-3.5" /> Export
             </button>
-            <Link href="/admin/products" className="px-4 h-10 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-black/90 transition-colors flex items-center shadow-md">
-              Manage Products
+            <Link href="/admin/products" className="flex-1 sm:flex-none px-4 h-10 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-black/90 transition-colors flex items-center justify-center shadow-md">
+              Products
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatsCard 
           title="Total Revenue" 
           value={formatCurrency(stats.revenue)} 
@@ -432,15 +429,15 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 border-[#e1e3e5] shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-[#e1e3e5]">
+        <Card className="lg:col-span-2 border-[#e1e3e5] shadow-none overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-[#e1e3e5] px-4 sm:px-6">
             <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Sales Velocity ({timeRange.toUpperCase()})</CardTitle>
             <button className="p-1 hover:bg-[#f1f2f3] rounded transition-colors">
               <MoreHorizontal className="h-4 w-4 text-[#5c5f62]" />
             </button>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="h-[300px] w-full">
+          <CardContent className="pt-6 px-2 sm:px-6">
+            <div className="h-[250px] sm:h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
                   <defs>
@@ -462,8 +459,8 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-[#e1e3e5] shadow-none">
-          <CardHeader className="border-b border-[#e1e3e5] flex flex-row items-center justify-between">
+        <Card className="border-[#e1e3e5] shadow-none overflow-hidden">
+          <CardHeader className="border-b border-[#e1e3e5] flex flex-row items-center justify-between px-4 sm:px-6">
             <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Recent Transactions</CardTitle>
             <Link href="/admin/orders" className="text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:underline">
               View All
@@ -476,7 +473,7 @@ export default function AdminDashboard() {
                   <Link 
                     key={order.id} 
                     href={`/admin/orders/${order.id}`}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-[#f6f6f6] transition-colors border-b last:border-0 border-[#e1e3e5]"
+                    className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-[#f6f6f6] transition-colors border-b last:border-0 border-[#e1e3e5]"
                   >
                     <div className="flex flex-col overflow-hidden mr-4">
                       <span className="text-[10px] font-mono font-bold truncate">#{order.id.substring(0, 6).toUpperCase()}</span>
@@ -511,12 +508,12 @@ function StatsCard({ title, value, trend, icon }: { title: string, value: string
         <div className="group-hover:scale-110 transition-transform">{icon}</div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-[#1a1c1e] tracking-tight">{value}</div>
+        <div className="text-xl sm:text-2xl font-bold text-[#1a1c1e] tracking-tight">{value}</div>
         <div className="flex items-center mt-1">
           <span className="text-[9px] font-bold text-blue-600 flex items-center gap-1 uppercase tracking-widest">
             <ArrowUpRight className="h-2.5 w-2.5" /> {trend}
           </span>
-          <span className="text-[9px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight">Verification Active</span>
+          <span className="text-[9px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight">Verified</span>
         </div>
       </CardContent>
     </Card>
