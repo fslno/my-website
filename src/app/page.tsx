@@ -78,7 +78,7 @@ export default function Home() {
                 <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none block">
                   {theme?.heroHeadline || "Modern Silhouettes"}
                 </span>
-                <Link href="#featured-products" className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95">
+                <Link href="/collections/all" className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95">
                   {theme?.heroButtonText || "Shop All"} <ArrowRight className="ml-3 h-4 w-4" />
                 </Link>
               </div>
@@ -137,9 +137,6 @@ export default function Home() {
                     }}
                   >
                     <h3 className="font-headline font-bold uppercase tracking-widest category-title-size">{cat.name}</h3>
-                    <span className="mt-4 text-[10px] uppercase font-bold tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 duration-300 flex items-center gap-2 border-b border-white pb-1">
-                      Explore <ChevronRight className="h-3 w-3" />
-                    </span>
                   </div>
                 </Link>
               ))}
