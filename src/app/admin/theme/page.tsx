@@ -551,6 +551,18 @@ export default function ThemeEnginePage() {
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
                     />
                   </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Featured Pieces Heading Size</Label>
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{featuredTitleSize}PX</Badge>
+                    </div>
+                    <input 
+                      type="range" min="12" max="120" value={featuredTitleSize} 
+                      onChange={(e) => setFeaturedTitleSize(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                  </div>
                   
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">

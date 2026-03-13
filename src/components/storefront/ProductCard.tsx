@@ -30,7 +30,7 @@ export function ProductCard({ id, name, price, image, category }: ProductCardPro
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
       </Link>
       
-      <div className="flex flex-col items-center text-center gap-2 py-1">
+      <div className="flex flex-col gap-2 py-1 product-flex-align">
         <p className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-bold leading-none">
           {category}
         </p>

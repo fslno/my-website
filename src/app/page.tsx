@@ -47,7 +47,7 @@ export default function Home() {
       {/* Hero Selection based on Theme Config */}
       {theme?.homepageLayout === 'classic' ? (
         <section className="pt-24 pb-12">
-          <div className="w-full overflow-hidden bg-primary shadow-2xl group">
+          <div className="w-full overflow-hidden bg-primary shadow-2xl group border-b">
             <div className="relative h-[70vh] w-full">
               {heroImageSrc ? (
                 <Image
@@ -110,7 +110,7 @@ export default function Home() {
                 <div key={cat.id} className="group flex flex-col gap-6">
                   <Link 
                     href={`/collections/${cat.id}`} 
-                    className="relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-none shadow-sm"
+                    className="relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-none shadow-sm border"
                   >
                     {cat.imageUrl ? (
                       <Image 
@@ -148,10 +148,10 @@ export default function Home() {
       {/* Featured Selection Manifest */}
       <section className="py-24 bg-background">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 featured-text-align">
             <div className="space-y-3">
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Selection</span>
-              <h2 className="text-4xl md:text-6xl font-headline uppercase font-bold tracking-tighter text-primary">Featured Pieces</h2>
+              <h2 className="featured-title-size font-headline uppercase font-bold tracking-tighter text-primary">Featured Pieces</h2>
             </div>
             <Link href="/collections/all" className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-60 transition-opacity flex items-center gap-2 pb-1 border-b border-black">
               View Entire Catalog <ChevronRight className="h-3 w-3" />
