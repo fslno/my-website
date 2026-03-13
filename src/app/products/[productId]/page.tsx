@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, use } from 'react';
@@ -44,12 +45,13 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage({ 
-  params 
-}: { 
-  params: Promise<{ productId: string }>
+export default function ProductDetailPage(props: { 
+  params: Promise<{ productId: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { productId } = use(params);
+  const params = use(props.params);
+  const searchParams = use(props.searchParams); // Authoritatively unwrap searchParams to prevent proxy access errors
+  const { productId } = params;
   
   const db = useFirestore();
   const router = useRouter();

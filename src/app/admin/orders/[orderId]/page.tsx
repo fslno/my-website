@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, use } from 'react';
@@ -80,12 +81,13 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-export default function OrderDetailPage({ 
-  params 
-}: { 
-  params: Promise<{ orderId: string }> 
+export default function OrderDetailPage(props: { 
+  params: Promise<{ orderId: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { orderId } = use(params);
+  const params = use(props.params);
+  const searchParams = use(props.searchParams); // Authoritatively unwrap searchParams to prevent proxy access errors
+  const { orderId } = params;
   
   const db = useFirestore();
   const { toast } = useToast();
@@ -267,15 +269,6 @@ export default function OrderDetailPage({
   return (
     <div className="space-y-8">
       <div id="printable-invoice" className="hidden print:block w-[210mm] mx-auto bg-white text-black p-12 font-sans min-h-[297mm]">
-        <style type="text/css" dangerouslySetInnerHTML={{ __html: `
-          @media print {
-            body { background: white !important; padding: 0 !important; margin: 0 !important; }
-            header, nav, aside, button, .print-hidden, footer, #theme-preview-root { display: none !important; }
-            #printable-invoice { display: block !important; visibility: visible !important; position: absolute; left: 0; top: 0; }
-            @page { size: A4; margin: 0; }
-          }
-        ` }} />
-        
         <div className="flex justify-between items-start border-b-2 border-black pb-8 mb-12">
           <div className="space-y-4">
             <div className="flex items-center gap-3">

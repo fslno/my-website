@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { use } from 'react';
@@ -12,12 +13,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 
-export default function OrderDetailPage({ 
-  params 
-}: { 
-  params: Promise<{ orderId: string }> 
+export default function OrderDetailPage(props: { 
+  params: Promise<{ orderId: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { orderId } = use(params);
+  const params = use(props.params);
+  const searchParams = use(props.searchParams); // Authoritatively unwrap searchParams to prevent proxy access errors
+  const { orderId } = params;
   
   const { user, isUserLoading } = useUser();
   const db = useFirestore();

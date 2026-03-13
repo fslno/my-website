@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { use } from 'react';
@@ -10,12 +11,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 
-export default function CollectionPage({ 
-  params 
-}: { 
-  params: Promise<{ categoryId: string }>
+export default function CollectionPage(props: { 
+  params: Promise<{ categoryId: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { categoryId } = use(params);
+  const params = use(props.params);
+  const searchParams = use(props.searchParams); // Authoritatively unwrap searchParams to prevent proxy access errors
+  const { categoryId } = params;
   
   const db = useFirestore();
 
