@@ -44,7 +44,7 @@ import { cn } from '@/lib/utils';
 export default function GoogleSyncPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'google-sync') : null, [db]);
-  const { data: config, loading } = useDoc(configRef);
+  const { data: config, isLoading: loading } = useDoc(configRef);
   const { toast } = useToast();
   
   const [isSyncing, setIsSyncing] = useState(false);

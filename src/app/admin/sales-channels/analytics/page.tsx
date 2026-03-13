@@ -42,7 +42,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export default function AnalyticsPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'analytics') : null, [db]);
-  const { data: config, loading } = useDoc(configRef);
+  const { data: config, isLoading: loading } = useDoc(configRef);
   const { toast } = useToast();
 
   const [isResetting, setIsResetting] = useState(false);

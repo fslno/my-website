@@ -44,7 +44,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export default function PaymentsPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
-  const { data: config, loading } = useDoc(configRef);
+  const { data: config, isLoading: loading } = useDoc(configRef);
   const { toast } = useToast();
 
   const [isSaving, setIsSaving] = useState(false);
@@ -447,7 +447,7 @@ export default function PaymentsPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">API Key</Label>
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">API Key</Label>
                         <Input 
                           type="password"
                           value={config.adyenApiKey || ''} 
@@ -627,10 +627,10 @@ export default function PaymentsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none bg-zinc-900 text-white rounded-none">
+          <Card className="border-[#e1e3e5] shadow-none bg-zinc-900 text-white rounded-none overflow-hidden">
             <CardHeader className="border-b border-white/10 p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <Terminal className="h-3.5 w-3.5 text-blue-400" /> Transaction Protocol
                 </CardTitle>
                 <Activity className="h-3 w-3 text-blue-400 animate-pulse" />

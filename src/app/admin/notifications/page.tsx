@@ -151,7 +151,7 @@ export default function NotificationsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'notifications') : null, [db]);
-  const { data: config, loading } = useDoc(configRef);
+  const { data: config, isLoading: loading } = useDoc(configRef);
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);

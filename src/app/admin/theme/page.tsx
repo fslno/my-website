@@ -107,7 +107,7 @@ export default function ThemeEnginePage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
-  const { data: themeData, loading } = useDoc(themeRef);
+  const { data: themeData, isLoading: loading } = useDoc(themeRef);
 
   // Form State
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_THEME.primaryColor);
@@ -650,7 +650,7 @@ export default function ThemeEnginePage() {
                     <div className="space-y-6">
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Title Scale</Label>
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Title Scale</Label>
                           <Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge>
                         </div>
                         <input type="range" min="10" max="40" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
@@ -668,7 +668,7 @@ export default function ThemeEnginePage() {
                     <div className="space-y-6">
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Price Scale</Label>
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Price Scale</Label>
                           <Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge>
                         </div>
                         <input type="range" min="10" max="40" value={productPriceSize} onChange={(e) => setProductPriceSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />

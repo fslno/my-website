@@ -96,9 +96,9 @@ export default function SettingsPage() {
   const staffQuery = useMemoFirebase(() => db ? collection(db, 'staff') : null, [db]);
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
 
-  const { data: storeConfig, loading: storeLoading } = useDoc(storeConfigRef);
+  const { data: storeConfig, isLoading: storeLoading } = useDoc(storeConfigRef);
   const { data: staffMembers, isLoading: staffLoading } = useCollection(staffQuery);
-  const { data: themeData, loading: themeLoading } = useDoc(themeRef);
+  const { data: themeData, isLoading: themeLoading } = useDoc(themeRef);
 
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('store');

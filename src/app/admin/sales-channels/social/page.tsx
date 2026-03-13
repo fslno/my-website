@@ -45,7 +45,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 export default function SocialCommercePage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'social-commerce') : null, [db]);
-  const { data: config, loading } = useDoc(configRef);
+  const { data: config, isLoading: loading } = useDoc(configRef);
   
   const partnersQuery = useMemoFirebase(() => db ? collection(db, 'partners') : null, [db]);
   const { data: partners, isLoading: partnersLoading } = useCollection(partnersQuery);
@@ -53,7 +53,7 @@ export default function SocialCommercePage() {
   const { toast } = useToast();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isPartnersDialogOpen, setIsPartnersDialogOpen] = useState(false);
+  const [isPartnersDialogOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
@@ -298,7 +298,6 @@ export default function SocialCommercePage() {
                   variant="outline" 
                   size="sm" 
                   className="h-8 border-[#babfc3] font-bold uppercase tracking-widest text-[9px]"
-                  onClick={() => setIsPartnersDialogOpen(true)}
                 >
                   Orchestrate
                 </Button>
@@ -434,7 +433,6 @@ export default function SocialCommercePage() {
                 <Button 
                   variant="outline" 
                   className="h-10 border-black font-bold uppercase tracking-widest text-[9px] w-full hover:bg-black hover:text-white transition-all"
-                  onClick={() => setIsPartnersDialogOpen(true)}
                 >
                   View Archive Partners
                 </Button>
@@ -443,7 +441,7 @@ export default function SocialCommercePage() {
           </Card>
         </div>
 
-        {config.customIntegrations?.map((integration: any) => (
+        {config?.customIntegrations?.map((integration: any) => (
           <Card key={integration.id} className="border-[#e1e3e5] shadow-none border-dashed border-2 rounded-none bg-gray-50/20">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -477,126 +475,6 @@ export default function SocialCommercePage() {
           Synchronize All Channels
         </Button>
       </div>
-
-      {/* Partners Dialog - Fixed for Mobile */}
-      <Dialog open={isPartnersDialogOpen} onOpenChange={setIsPartnersDialogOpen}>
-        <DialogContent className="max-w-[100vw] w-screen h-screen m-0 sm:max-w-3xl sm:h-auto sm:rounded-none bg-white border-none p-0 overflow-hidden flex flex-col shadow-2xl">
-          <DialogHeader className="p-6 sm:p-8 border-b bg-gray-50/50 shrink-0 flex flex-row items-center justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-3 text-primary">
-                <Users className="h-5 w-5" />
-                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Archive Partners</DialogTitle>
-              </div>
-              <DialogDescription className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Manage authorized social commerce creators.</DialogDescription>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setIsPartnersDialogOpen(false)} className="rounded-full h-10 w-10 sm:hidden">
-              <X className="h-5 w-5" />
-            </Button>
-          </DialogHeader>
-          
-          <div className="flex-1 overflow-y-auto">
-            {isInviting ? (
-              <div className="p-6 sm:p-8 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                <h3 className="text-sm font-bold uppercase tracking-widest border-b pb-2">Invite New Creator</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500">Handle Identity</Label>
-                    <Input 
-                      placeholder="@username" 
-                      value={newPartner.name}
-                      onChange={(e) => setNewPartner({...newPartner, name: e.target.value})}
-                      className="h-12 bg-gray-50/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500">Target Platform</Label>
-                    <select 
-                      className="w-full h-12 border rounded-none px-3 text-[10px] font-bold uppercase bg-white focus:ring-1 focus:ring-black outline-none"
-                      value={newPartner.platform}
-                      onChange={(e) => setNewPartner({...newPartner, platform: e.target.value})}
-                    >
-                      <option value="Instagram">Instagram</option>
-                      <option value="TikTok">TikTok</option>
-                      <option value="YouTube">YouTube</option>
-                      <option value="X (Twitter)">X (Twitter)</option>
-                      <option value="Facebook">Facebook</option>
-                      <option value="Pinterest">Pinterest</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1 h-12 uppercase font-bold text-[10px] rounded-none" onClick={() => setIsInviting(false)}>Cancel</Button>
-                  <Button className="flex-1 h-12 bg-black text-white uppercase font-bold text-[10px] rounded-none" onClick={handleInvitePartner} disabled={isSaving}>
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Authorize Invitation'}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-0 sm:p-8">
-                <Table>
-                  <TableHeader className="bg-gray-50/20">
-                    <TableRow className="border-b border-black/5">
-                      <TableHead className="text-[9px] font-bold uppercase tracking-widest py-4 px-6">Creator</TableHead>
-                      <TableHead className="text-[9px] font-bold uppercase tracking-widest hidden xs:table-cell">Platform</TableHead>
-                      <TableHead className="text-[9px] font-bold uppercase tracking-widest text-center">Status</TableHead>
-                      <TableHead className="text-right text-[9px] font-bold uppercase tracking-widest px-6">ROI</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {partnersLoading ? (
-                      <TableRow><TableCell colSpan={5} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
-                    ) : !partners || partners.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center py-12 text-[10px] font-bold uppercase text-gray-400 tracking-widest">No partners cataloged.</TableCell></TableRow>
-                    ) : (
-                      partners.map((partner) => (
-                        <TableRow key={partner.id} className="hover:bg-gray-50/30 border-b border-black/5 last:border-0 transition-all group">
-                          <TableCell className="font-bold text-xs py-5 px-6 text-primary uppercase">
-                            <div className="flex flex-col">
-                              <span>{partner.name}</span>
-                              <span className="xs:hidden text-[8px] text-gray-400 font-medium mt-0.5">{partner.platform}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-[10px] text-gray-500 uppercase font-medium hidden xs:table-cell">{partner.platform}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline" className={cn("text-[8px] font-bold uppercase tracking-widest border-none mx-auto", partner.status === 'Active' ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700")}>
-                              {partner.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs font-bold text-primary px-6">{partner.roi}</TableCell>
-                          <TableCell>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => removePartner(partner.id)}
-                              className="h-8 w-8 text-gray-300 hover:text-red-500 opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter className="p-6 sm:p-8 bg-gray-50/50 border-t flex flex-row items-center justify-between shrink-0">
-            {!isInviting ? (
-              <>
-                <Button variant="ghost" onClick={() => setIsPartnersDialogOpen(false)} className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Close Manifest</Button>
-                <Button className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px] gap-2 rounded-none shadow-lg" onClick={() => setIsInviting(true)}>
-                  <PlusCircle className="h-4 w-4" /> Invite Creator
-                </Button>
-              </>
-            ) : (
-              <p className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest mx-auto">Identity registration pending confirmation.</p>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

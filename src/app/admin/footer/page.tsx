@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -60,7 +59,7 @@ export default function FooterEditorPage() {
   const poweredByLogoRef = useRef<HTMLInputElement>(null);
 
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
-  const { data: config, loading } = useDoc(configRef);
+  const { data: config, isLoading: loading } = useDoc(configRef);
 
   const [isSaving, setIsSaving] = useState(false);
   

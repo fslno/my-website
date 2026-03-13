@@ -59,7 +59,7 @@ interface ApiToken {
 export default function DomainPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'domain') : null, [db]);
-  const { data: config, loading } = useDoc(configRef);
+  const { data: config, isLoading: loading } = useDoc(configRef);
   const { toast } = useToast();
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -270,7 +270,7 @@ export default function DomainPage() {
               </div>
               
               {config.status === 'connected' && (
-                <div className="p-4 bg-green-50 border border-green-100 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="p-4 bg-green-50 border border-green-100 rounded-sm flex flex-col items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3 text-green-800 text-sm">
                     <ShieldCheck className="h-5 w-5 shrink-0" />
                     <div className="space-y-0.5">

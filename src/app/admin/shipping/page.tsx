@@ -56,7 +56,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export default function ShippingPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
-  const { data: config, loading } = useDoc(configRef);
+  const { data: config, isLoading: loading } = useDoc(configRef);
   const { toast } = useToast();
 
   const [isAddCarrierOpen, setIsAddCarrierOpen] = useState(false);
@@ -290,6 +290,17 @@ export default function ShippingPage() {
     );
   }
 
+  if (!config) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
+        <Truck className="h-12 w-12 text-gray-300" />
+        <h2 className="text-xl font-bold text-gray-900">Shipping & Pickup Not Initialized</h2>
+        <p className="text-gray-500 max-w-sm">Configure your global carriers, green shipping, and pickup locations to start fulfilling archival orders.</p>
+        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-10 font-bold uppercase tracking-widest text-[10px]">Initialize Shipping Core</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 min-w-0 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
@@ -435,7 +446,7 @@ export default function ShippingPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y">
-                {config.carriers?.map((carrier: any, idx: number) => {
+                {config?.carriers?.map((carrier: any, idx: number) => {
                   const name = typeof carrier === 'string' ? carrier : carrier.name;
                   const active = typeof carrier === 'string' ? true : carrier.active;
                   
@@ -475,7 +486,7 @@ export default function ShippingPage() {
                     </div>
                   );
                 })}
-                {(!config.carriers || config.carriers.length === 0) && (
+                {(!config?.carriers || config.carriers.length === 0) && (
                   <div className="py-12 text-center bg-gray-50/50 border-dashed border-2 m-4 sm:m-6">
                     <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest">No carriers added yet.</p>
                   </div>
