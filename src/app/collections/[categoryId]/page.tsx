@@ -68,7 +68,7 @@ export default function CollectionPage(props: {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="space-y-3">
                 <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Studio Selection</span>
-                <h1 className="text-4xl md:text-6xl font-headline font-bold uppercase tracking-tight">
+                <h1 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">
                   {categoryId === 'all' ? 'All Studio Drops' : (category?.name || 'Collection')}
                 </h1>
                 {(category?.description || categoryId === 'all') && (
@@ -78,9 +78,6 @@ export default function CollectionPage(props: {
                       : category?.description}
                   </p>
                 )}
-              </div>
-              <div className="bg-black text-white px-8 py-4 text-[10px] font-bold uppercase tracking-[0.2em] rounded-none shrink-0 shadow-lg">
-                {products?.length || 0} Pieces Cataloged
               </div>
             </div>
           </div>
