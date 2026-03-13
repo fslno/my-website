@@ -199,19 +199,19 @@ export default function SizeChartPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Guides</h1>
           <p className="text-[#5c5f62] mt-1 text-sm">Create reusable measurement guides for your products.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button className="bg-black text-white font-bold h-10 gap-2">
+            <Button className="bg-black text-white font-bold h-10 gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" /> Create Guide
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
-            <DialogHeader className="pt-12 px-6 border-b shrink-0 flex flex-row items-center justify-between">
+            <DialogHeader className="pt-8 sm:pt-12 px-4 sm:px-6 border-b shrink-0 flex flex-row items-center justify-between">
               <DialogTitle className="text-xl font-headline font-bold">
                 {editingId ? `Edit Guide: ${name}` : 'New Size Guide'}
               </DialogTitle>
@@ -221,8 +221,8 @@ export default function SizeChartPage() {
             </DialogHeader>
             
             <div className="flex-1 overflow-y-auto">
-              <div className="max-w-6xl mx-auto w-full p-8 space-y-12">
-                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50/50 p-8 rounded-xl border border-gray-100">
+              <div className="max-w-6xl mx-auto w-full p-4 sm:p-8 space-y-8 sm:space-y-12">
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50/50 p-6 sm:p-8 rounded-xl border border-gray-100">
                   <div className="space-y-6">
                     <div className="flex items-center gap-2 mb-2">
                       <Settings2 className="h-4 w-4 text-gray-400" />
@@ -264,7 +264,7 @@ export default function SizeChartPage() {
                       </Select>
                     </div>
                   </div>
-                  <div className="flex flex-col justify-center border-l pl-8 border-gray-100">
+                  <div className="flex flex-col justify-center border-t md:border-t-0 md:border-l pt-8 md:pt-0 md:pl-8 border-gray-100">
                     <div className="flex items-center gap-4 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
                       <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center text-white">
                         <Ruler className="h-6 w-6" />
@@ -278,23 +278,23 @@ export default function SizeChartPage() {
                 </section>
 
                 <section className="space-y-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                       <TableIcon className="h-4 w-4 text-gray-400" />
                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Matrix</h3>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={addColumn} className="h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
+                      <Button variant="outline" size="sm" onClick={addColumn} className="flex-1 sm:flex-none h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
                         <PlusCircle className="h-4 w-4" /> Add Column
                       </Button>
-                      <Button variant="outline" size="sm" onClick={addRow} className="h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
+                      <Button variant="outline" size="sm" onClick={addRow} className="flex-1 sm:flex-none h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
                         <PlusCircle className="h-4 w-4" /> Add Row
                       </Button>
                     </div>
                   </div>
                   
-                  <div className="border rounded-xl overflow-hidden bg-white shadow-sm">
-                    <Table>
+                  <div className="border rounded-xl overflow-x-auto bg-white shadow-sm scrollbar-hide">
+                    <Table className="min-w-[600px] md:min-w-full">
                       <TableHeader className="bg-gray-50/50">
                         <TableRow className="hover:bg-transparent">
                           <TableHead className="w-[180px] text-[10px] font-bold uppercase tracking-widest text-gray-400 p-6">
@@ -391,53 +391,89 @@ export default function SizeChartPage() {
             <p className="text-sm font-medium text-gray-500">No size guides found. Start by creating a template.</p>
           </div>
         ) : (
-          <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-            <Table>
-              <TableHeader className="bg-gray-50/50">
-                <TableRow>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 p-6">Template Name</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Unit</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Category Tag</TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Structure</TableHead>
-                  <TableHead className="w-[100px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {charts?.map((chart: any) => (
-                  <TableRow 
-                    key={chart.id} 
-                    className="hover:bg-gray-50/50 group border-b last:border-0 cursor-pointer"
-                    onClick={() => openEdit(chart)}
-                  >
-                    <TableCell className="p-6">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm">{chart.name}</span>
-                        <span className="text-[10px] text-gray-400 mt-0.5">Updated {chart.updatedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest">{chart.unit}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">{chart.category || 'N/A'}</span>
-                    </TableCell>
-                    <TableCell className="text-sm font-medium text-gray-500">
-                      {chart.rows?.length || 0} Sizes × {chart.columns?.length || 0} Metrics
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={(e) => handleDelete(chart.id, e)}>
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9">
-                          <MoreHorizontal className="h-4 w-4 text-gray-400" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          <div className="space-y-4">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
+              <Table>
+                <TableHeader className="bg-gray-50/50">
+                  <TableRow>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 p-6">Template Name</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Unit</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Category Tag</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Structure</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {charts?.map((chart: any) => (
+                    <TableRow 
+                      key={chart.id} 
+                      className="hover:bg-gray-50/50 group border-b last:border-0 cursor-pointer"
+                      onClick={() => openEdit(chart)}
+                    >
+                      <TableCell className="p-6">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">{chart.name}</span>
+                          <span className="text-[10px] text-gray-400 mt-0.5">Updated {chart.updatedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest">{chart.unit}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">{chart.category || 'N/A'}</span>
+                      </TableCell>
+                      <TableCell className="text-sm font-medium text-gray-500">
+                        {chart.rows?.length || 0} Sizes × {chart.columns?.length || 0} Metrics
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={(e) => handleDelete(chart.id, e)}>
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-9 w-9">
+                            <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View - Strictly Avoids the Slide System */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+              {charts?.map((chart: any) => (
+                <div 
+                  key={chart.id} 
+                  onClick={() => openEdit(chart)}
+                  className="bg-white border rounded-lg p-4 flex flex-col gap-4 shadow-sm active:bg-gray-50 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm uppercase tracking-tight">{chart.name}</span>
+                      <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-1">Updated {chart.updatedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest shrink-0">{chart.unit}</span>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                    <div className="flex items-center gap-1.5"><Tag className="h-3 w-3" /> {chart.category || 'NO TAG'}</div>
+                    <div className="flex items-center gap-1.5"><TableIcon className="h-3 w-3" /> {chart.rows?.length || 0}S × {chart.columns?.length || 0}M</div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 border-t pt-3">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={(e) => handleDelete(chart.id, e)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
+                      <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

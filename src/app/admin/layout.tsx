@@ -444,10 +444,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen w-full admin-viewport">
         <AppSidebar storeConfig={storeConfig} />
 
-        <main className="flex-1 flex flex-col min-w-0 relative">
+        <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
           <header className="admin-header-height bg-white border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-20 w-full shrink-0">
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 max-w-xl">
-              <SidebarTrigger className="h-9 w-9" />
+              <SidebarTrigger className="h-9 w-9 shrink-0" />
               <div className="relative w-full hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
                 <input 
