@@ -332,7 +332,7 @@ export default function ThemeEnginePage() {
         {/* Configuration Column */}
         <div className="xl:col-span-4 xl:overflow-y-auto pr-0 xl:pr-4 space-y-6 scrollbar-hide h-full">
           <Tabs defaultValue="styles" className="w-full">
-            <TabsList className="w-full bg-white border border-[#e1e3e5] h-14 p-1 flex overflow-x-auto scrollbar-hide justify-start xl:justify-between rounded-none">
+            <TabsList className="w-full bg-white border border-[#e1e3e5] h-auto xl:h-14 p-1 flex flex-wrap xl:flex-nowrap justify-start xl:justify-between rounded-none overflow-hidden">
               {[
                 { id: 'styles', label: 'Styles', icon: Palette },
                 { id: 'catalog', label: 'Nav', icon: Layers },
@@ -340,7 +340,11 @@ export default function ThemeEnginePage() {
                 { id: 'layout', label: 'Layout', icon: Layout },
                 { id: 'admin', label: 'Admin', icon: Settings2 },
               ].map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id} className="flex-1 min-w-[80px] gap-1.5 font-bold uppercase tracking-widest text-[9px] px-2 h-full rounded-none">
+                <TabsTrigger 
+                  key={tab.id} 
+                  value={tab.id} 
+                  className="flex-grow basis-[30%] xl:basis-auto min-w-[80px] gap-1.5 font-bold uppercase tracking-widest text-[9px] px-2 h-12 xl:h-full rounded-none"
+                >
                   <tab.icon className="h-3.5 w-3.5" /> {tab.label}
                 </TabsTrigger>
               ))}
@@ -494,7 +498,7 @@ export default function ThemeEnginePage() {
                   <div className="grid grid-cols-1 gap-6 pt-4 border-t">
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Headline Size</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Headline Size</Label>
                         <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</Badge>
                       </div>
                       <input 
