@@ -204,7 +204,7 @@ export default function PaymentsPage() {
                         <div className="relative">
                           <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input 
-                            value={config.stripeDescription} 
+                            value={config.stripeDescription || ''} 
                             onChange={(e) => handleUpdate({ stripeDescription: e.target.value })}
                             className="pl-10 text-xs font-bold uppercase" 
                           />
@@ -215,7 +215,7 @@ export default function PaymentsPage() {
                         <div className="relative">
                           <Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input 
-                            value={config.stripeFee} 
+                            value={config.stripeFee || ''} 
                             onChange={(e) => handleUpdate({ stripeFee: e.target.value })}
                             className="pl-10 text-xs font-mono" 
                           />
@@ -262,7 +262,7 @@ export default function PaymentsPage() {
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
-                          value={config.stripePublishableKey} 
+                          value={config.stripePublishableKey || ''} 
                           onChange={(e) => handleUpdate({ stripePublishableKey: e.target.value })}
                           className="pl-10 font-mono text-xs h-11" 
                         />
@@ -274,7 +274,7 @@ export default function PaymentsPage() {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
                           type="password"
-                          value={config.stripeSecretKey} 
+                          value={config.stripeSecretKey || ''} 
                           onChange={(e) => handleUpdate({ stripeSecretKey: e.target.value })}
                           className="pl-10 font-mono text-xs h-11" 
                         />
@@ -305,7 +305,7 @@ export default function PaymentsPage() {
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
                         <Input 
-                          value={config.paypalDescription} 
+                          value={config.paypalDescription || ''} 
                           onChange={(e) => handleUpdate({ paypalDescription: e.target.value })}
                           className="text-xs font-bold uppercase" 
                         />
@@ -313,7 +313,7 @@ export default function PaymentsPage() {
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
                         <Input 
-                          value={config.paypalFee} 
+                          value={config.paypalFee || ''} 
                           onChange={(e) => handleUpdate({ paypalFee: e.target.value })}
                           className="text-xs font-mono" 
                         />
@@ -350,7 +350,7 @@ export default function PaymentsPage() {
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
                         <Input 
-                          value={config.klarnaDescription} 
+                          value={config.klarnaDescription || ''} 
                           onChange={(e) => handleUpdate({ klarnaDescription: e.target.value })}
                           className="text-xs font-bold uppercase" 
                         />
@@ -358,7 +358,7 @@ export default function PaymentsPage() {
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
                         <Input 
-                          value={config.klarnaFee} 
+                          value={config.klarnaFee || ''} 
                           onChange={(e) => handleUpdate({ klarnaFee: e.target.value })}
                           className="text-xs font-mono" 
                         />
@@ -395,7 +395,7 @@ export default function PaymentsPage() {
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
                         <Input 
-                          value={config.afterpayDescription} 
+                          value={config.afterpayDescription || ''} 
                           onChange={(e) => handleUpdate({ afterpayDescription: e.target.value })}
                           className="text-xs font-bold uppercase" 
                         />
@@ -403,7 +403,7 @@ export default function PaymentsPage() {
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
                         <Input 
-                          value={config.afterpayFee} 
+                          value={config.afterpayFee || ''} 
                           onChange={(e) => handleUpdate({ afterpayFee: e.target.value })}
                           className="text-xs font-mono" 
                         />
@@ -440,7 +440,7 @@ export default function PaymentsPage() {
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Account</Label>
                         <Input 
-                          value={config.adyenMerchantAccount} 
+                          value={config.adyenMerchantAccount || ''} 
                           onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
                           placeholder="FSLNO_STUDIO_ECOM"
                           className="text-xs font-bold uppercase" 
@@ -450,7 +450,7 @@ export default function PaymentsPage() {
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">API Key</Label>
                         <Input 
                           type="password"
-                          value={config.adyenApiKey} 
+                          value={config.adyenApiKey || ''} 
                           onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
                           placeholder="AQE..."
                           className="text-xs font-mono" 

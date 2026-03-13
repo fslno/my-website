@@ -714,7 +714,7 @@ export default function CheckoutPage() {
                   placeholder="ADD ANY SPECIAL INSTRUCTIONS FOR YOUR ORDER..." 
                   className="bg-gray-50 border-gray-200 text-[10px] font-bold uppercase rounded-none resize-none min-h-[80px]"
                   value={orderNote}
-                  onChange={(e) => setOrderNote(e.target.toUpperCase())}
+                  onChange={(e) => setOrderNote(e.target.value.toUpperCase())}
                 />
               </div>
 
