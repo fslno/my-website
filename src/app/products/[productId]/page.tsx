@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, use, useEffect } from 'react';
@@ -47,8 +46,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
   type CarouselApi
 } from "@/components/ui/carousel";
 import Image from 'next/image';
@@ -313,12 +310,6 @@ export default function ProductDetailPage({
                     </CarouselItem>
                   )}
                 </CarouselContent>
-                {media.length > 1 && (
-                  <>
-                    <CarouselPrevious className="left-4 bg-white/80 hover:bg-white text-primary border-none shadow-lg" />
-                    <CarouselNext className="right-4 bg-white/80 hover:bg-white text-primary border-none shadow-lg" />
-                  </>
-                )}
               </Carousel>
               
               {media.length > 1 && (
