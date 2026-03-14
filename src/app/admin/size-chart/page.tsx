@@ -128,7 +128,7 @@ export default function SizeChartPage() {
               {loading ? (
                 <TableRow><TableCell colSpan={4} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
               ) : charts?.map((chart: any) => (
-                <TableRow key={chart.id} className="hover:bg-gray-50/50 border-b last:border-0 cursor-pointer group" onClick={() => openEdit(chart)}>
+                <TableRow key={chart.id} className="hover:bg-gray-50/30 border-b last:border-0 cursor-pointer group" onClick={() => openEdit(chart)}>
                   <TableCell className="p-6"><span className="font-bold text-sm uppercase">{chart.name}</span></TableCell>
                   <TableCell><span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded-none">{chart.unit}</span></TableCell>
                   <TableCell><span className="text-[10px] font-bold uppercase text-gray-400">{chart.category || 'N/A'}</span></TableCell>
