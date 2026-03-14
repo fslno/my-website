@@ -26,7 +26,11 @@ import {
   Clock,
   CreditCard,
   CheckCircle2,
-  Navigation
+  Navigation,
+  Facebook,
+  Youtube,
+  Linkedin,
+  Globe
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -68,6 +72,10 @@ export default function FooterEditorPage() {
   const [instagramUrl, setInstagramUrl] = useState('');
   const [tiktokUrl, setTiktokUrl] = useState('');
   const [twitterUrl, setTwitterUrl] = useState('');
+  const [facebookUrl, setFacebookUrl] = useState('');
+  const [pinterestUrl, setPinterestUrl] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
   const [supportLinks, setSupportLinks] = useState<LinkItem[]>([]);
   const [legalLinks, setLegalLinks] = useState<LinkItem[]>([]);
   const [copyrightText, setCopyrightText] = useState('');
@@ -97,6 +105,10 @@ export default function FooterEditorPage() {
       setInstagramUrl(config.instagramUrl || '');
       setTiktokUrl(config.tiktokUrl || '');
       setTwitterUrl(config.twitterUrl || '');
+      setFacebookUrl(config.facebookUrl || '');
+      setPinterestUrl(config.pinterestUrl || '');
+      setYoutubeUrl(config.youtubeUrl || '');
+      setLinkedinUrl(config.linkedinUrl || '');
       setSupportLinks(config.footerSupportLinks || []);
       setLegalLinks(config.footerLegalLinks || []);
       setCopyrightText(config.copyrightText || `© ${new Date().getFullYear()} ${config.businessName || 'FSLNO'}. ALL RIGHTS RESERVED.`);
@@ -123,6 +135,10 @@ export default function FooterEditorPage() {
       instagramUrl,
       tiktokUrl,
       twitterUrl,
+      facebookUrl,
+      pinterestUrl,
+      youtubeUrl,
+      linkedinUrl,
       footerSupportLinks: supportLinks,
       footerLegalLinks: legalLinks,
       copyrightText,
@@ -462,6 +478,34 @@ export default function FooterEditorPage() {
                   <Input value={twitterUrl} onChange={(e) => setTwitterUrl(e.target.value)} placeholder="https://twitter.com/..." className="pl-10 h-11 text-xs" />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Facebook</Label>
+                <div className="relative">
+                  <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} placeholder="https://facebook.com/..." className="pl-10 h-11 text-xs" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">YouTube</Label>
+                <div className="relative">
+                  <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/..." className="pl-10 h-11 text-xs" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Pinterest</Label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input value={pinterestUrl} onChange={(e) => setPinterestUrl(e.target.value)} placeholder="https://pinterest.com/..." className="pl-10 h-11 text-xs" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">LinkedIn</Label>
+                <div className="relative">
+                  <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." className="pl-10 h-11 text-xs" />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -499,7 +543,7 @@ export default function FooterEditorPage() {
           </Card>
 
           <div className="bg-black text-white p-6 rounded-xl space-y-4 shadow-xl">
-            <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-zinc-400">
               <ExternalLink className="h-4 w-4 text-blue-400" /> Administrative Logic
             </h3>
             <p className="text-[10px] text-gray-400 leading-relaxed">

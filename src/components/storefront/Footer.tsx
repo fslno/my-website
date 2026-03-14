@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -84,7 +83,7 @@ export function Footer() {
                 )}
               </div>
             </div>
-            <div className="flex gap-8">
+            <div className="flex flex-wrap gap-x-8 gap-y-4">
               {config?.instagramUrl && (
                 <a href={config.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">Instagram</a>
               )}
@@ -93,6 +92,18 @@ export function Footer() {
               )}
               {config?.twitterUrl && (
                 <a href={config.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">Twitter</a>
+              )}
+              {config?.facebookUrl && (
+                <a href={config.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">Facebook</a>
+              )}
+              {config?.pinterestUrl && (
+                <a href={config.pinterestUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">Pinterest</a>
+              )}
+              {config?.youtubeUrl && (
+                <a href={config.youtubeUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">YouTube</a>
+              )}
+              {config?.linkedinUrl && (
+                <a href={config.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">LinkedIn</a>
               )}
             </div>
           </div>
