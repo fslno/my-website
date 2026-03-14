@@ -17,21 +17,16 @@ import {
   Trash2, 
   Loader2, 
   Tag, 
-  MoreHorizontal,
-  Ruler,
   Image as ImageIcon,
-  Search,
-  Globe,
   Upload,
-  Link as LinkIcon,
   X,
   LayoutGrid,
   ShoppingBag,
-  ChevronRight,
-  ChevronLeft,
   Save,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  RefreshCw,
+  Globe
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -73,10 +68,8 @@ export default function CategoriesPage() {
     db && isAdmin ? query(collection(db, 'categories'), orderBy('order', 'asc')) : null, 
     [db, isAdmin]
   );
-  const chartsQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'sizeCharts') : null, [db, isAdmin]);
 
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
-  const { data: sizeCharts } = useCollection(chartsQuery);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -104,6 +97,47 @@ export default function CategoriesPage() {
       reader.onloadend = () => setImageUrl(reader.result as string);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRestoreDefaults = async () => {
+    if (!db || !categories) return;
+    setIsSaving(true);
+    
+    const defaults = [
+      { name: 'Adults', description: 'Primary studio selection for adults.', order: 0 },
+      { name: 'Kids', description: 'Archival pieces for the younger generation.', order: 1 },
+      { name: 'Accessories', description: 'Technical studio equipment and accessories.', order: 2 }
+    ];
+
+    const batch = writeBatch(db);
+    let addedCount = 0;
+
+    defaults.forEach(def => {
+      const exists = categories.some(c => c.name.toLowerCase() === def.name.toLowerCase());
+      if (!exists) {
+        const newRef = doc(collection(db, 'categories'));
+        batch.set(newRef, {
+          ...def,
+          imageUrl: '',
+          seoTitle: def.name,
+          seoDescription: def.description,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        addedCount++;
+      }
+    });
+
+    if (addedCount === 0) {
+      toast({ title: "Up to Date", description: "All default categories already exist." });
+      setIsSaving(false);
+      return;
+    }
+
+    await batch.commit()
+      .then(() => toast({ title: "Restored", description: `${addedCount} categories manifested.` }))
+      .catch(() => toast({ variant: "destructive", title: "Error", description: "Restore protocol failed." }))
+      .finally(() => setIsSaving(false));
   };
 
   const handleSave = async () => {
@@ -200,150 +234,160 @@ export default function CategoriesPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Categories</h1>
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Group products and manage SEO.</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto bg-black text-white font-bold h-10 gap-2">
-              <Plus className="h-4 w-4" /> Add Category
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
-            <DialogHeader className="p-4 sm:p-6 border-b shrink-0 flex flex-row items-center justify-between">
-              <DialogTitle className="text-lg sm:text-xl font-headline font-bold uppercase tracking-tight">
-                {editingId ? `Edit: ${name}` : 'New Category'}
-              </DialogTitle>
-              <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
-                <X className="h-5 w-5" />
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            onClick={handleRestoreDefaults} 
+            disabled={isSaving}
+            className="h-10 border-black font-bold uppercase tracking-widest text-[10px] bg-white gap-2 flex-1 sm:flex-none"
+          >
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Restore Defaults
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="flex-1 sm:flex-none bg-black text-white font-bold h-10 gap-2 uppercase tracking-widest text-[10px]">
+                <Plus className="h-4 w-4" /> Add Category
               </Button>
-            </DialogHeader>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-              <div className="px-4 sm:px-6 border-b bg-gray-50/50 shrink-0">
-                <TabsList className="bg-transparent h-auto p-1 flex flex-wrap gap-2 sm:gap-8 justify-start">
-                  {[
-                    { id: 'general', label: '01. Info', icon: LayoutGrid }, 
-                    { id: 'seo', label: '02. SEO', icon: Globe },
-                    { id: 'products', label: '03. Products', icon: ShoppingBag }
-                  ].map((tab) => (
-                    <TabsTrigger key={tab.id} value={tab.id} className="flex-grow sm:flex-grow-0 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-12 gap-2 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">
-                      <tab.icon className="h-3.5 w-3.5" /> {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <TabsContent value="general" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            </DialogTrigger>
+            <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
+              <DialogHeader className="p-4 sm:p-6 border-b shrink-0 flex flex-row items-center justify-between">
+                <DialogTitle className="text-lg sm:text-xl font-headline font-bold uppercase tracking-tight">
+                  {editingId ? `Edit: ${name}` : 'New Category'}
+                </DialogTitle>
+                <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
+                  <X className="h-5 w-5" />
+                </Button>
+              </DialogHeader>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+                <div className="px-4 sm:px-6 border-b bg-gray-50/50 shrink-0">
+                  <TabsList className="bg-transparent h-auto p-1 flex flex-wrap gap-2 sm:gap-8 justify-start">
+                    {[
+                      { id: 'general', label: '01. Info', icon: LayoutGrid }, 
+                      { id: 'seo', label: '02. SEO', icon: Globe },
+                      { id: 'products', label: '03. Products', icon: ShoppingBag }
+                    ].map((tab) => (
+                      <TabsTrigger key={tab.id} value={tab.id} className="flex-grow sm:flex-grow-0 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-12 gap-2 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">
+                        <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  <TabsContent value="general" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label>
+                          <Input placeholder="e.g. Outerwear" value={name} onChange={(e) => setName(e.target.value)} className="h-12" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label>
+                          <Textarea placeholder="..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[120px]" />
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Visual</Label>
+                        <div 
+                          onClick={() => !imageUrl && fileInputRef.current?.click()} 
+                          className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-4 bg-gray-50 min-h-[250px] cursor-pointer hover:border-black transition-all relative"
+                        >
+                          {imageUrl ? (
+                            <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden border">
+                              <Image src={imageUrl} alt="Preview" fill className="object-cover" />
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setImageUrl(''); }} 
+                                className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full hover:bg-black transition-colors"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <Upload className="h-6 w-6 text-gray-400" />
+                              <p className="text-[10px] font-bold uppercase text-gray-500">Upload</p>
+                            </>
+                          )}
+                        </div>
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                      </div>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="seo" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label>
-                        <Input placeholder="e.g. Outerwear" value={name} onChange={(e) => setName(e.target.value)} className="h-12" />
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">SEO Title</Label>
+                        <Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={name} className="h-12" />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label>
-                        <Textarea placeholder="..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[120px]" />
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">SEO Description</Label>
+                        <Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder={description} className="min-h-[120px]" />
                       </div>
                     </div>
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500">Visual</Label>
-                      <div 
-                        onClick={() => !imageUrl && fileInputRef.current?.click()} 
-                        className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-4 bg-gray-50 min-h-[250px] cursor-pointer hover:border-black transition-all relative"
-                      >
-                        {imageUrl ? (
-                          <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden border">
-                            <Image src={imageUrl} alt="Preview" fill className="object-cover" />
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); setImageUrl(''); }} 
-                              className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full hover:bg-black transition-colors"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <Upload className="h-6 w-6 text-gray-400" />
-                            <p className="text-[10px] font-bold uppercase text-gray-500">Upload</p>
-                          </>
-                        )}
+                  </TabsContent>
+                  <TabsContent value="products" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Assigned Inventory</h3>
+                        <Badge variant="outline" className="bg-black text-white text-[9px] font-bold px-2 py-0.5 border-none">
+                          {assignedProducts?.length || 0} ITEMS
+                        </Badge>
                       </div>
-                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="seo" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500">SEO Title</Label>
-                      <Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={name} className="h-12" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500">SEO Description</Label>
-                      <Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder={description} className="min-h-[120px]" />
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="products" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Assigned Inventory</h3>
-                      <Badge variant="outline" className="bg-black text-white text-[9px] font-bold px-2 py-0.5 border-none">
-                        {assignedProducts?.length || 0} ITEMS
-                      </Badge>
-                    </div>
-                    <div className="border rounded-none overflow-hidden bg-white shadow-sm">
-                      <Table>
-                        <TableHeader className="bg-gray-50/50">
-                          <TableRow className="border-black/5">
-                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">Product</TableHead>
-                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">SKU</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">Price</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {productsLoading ? (
-                            <TableRow>
-                              <TableCell colSpan={3} className="text-center py-10">
-                                <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-300" />
-                              </TableCell>
+                      <div className="border rounded-none overflow-hidden bg-white shadow-sm">
+                        <Table>
+                          <TableHeader className="bg-gray-50/50">
+                            <TableRow className="border-black/5">
+                              <TableHead className="text-[10px] font-bold uppercase tracking-widest">Product</TableHead>
+                              <TableHead className="text-[10px] font-bold uppercase tracking-widest">SKU</TableHead>
+                              <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">Price</TableHead>
                             </TableRow>
-                          ) : !assignedProducts || assignedProducts.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={3} className="text-center py-10 text-[9px] font-bold text-gray-400 uppercase">
-                                No products assigned to this category.
-                              </TableCell>
-                            </TableRow>
-                          ) : assignedProducts.map((p: any) => (
-                            <TableRow key={p.id} className="border-black/5">
-                              <TableCell className="text-xs font-bold uppercase">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-gray-100 relative border overflow-hidden shrink-0 rounded-sm">
-                                    {p.media?.[0]?.url ? (
-                                      <Image src={p.media[0].url} alt="" fill className="object-cover" />
-                                    ) : (
-                                      <ShoppingBag className="h-4 w-4 text-gray-300 mx-auto mt-3" />
-                                    )}
+                          </TableHeader>
+                          <TableBody>
+                            {productsLoading ? (
+                              <TableRow>
+                                <TableCell colSpan={3} className="text-center py-10">
+                                  <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-300" />
+                                </TableCell>
+                              </TableRow>
+                            ) : !assignedProducts || assignedProducts.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={3} className="text-center py-10 text-[9px] font-bold text-gray-400 uppercase">
+                                  No products assigned.
+                                </TableCell>
+                              </TableRow>
+                            ) : assignedProducts.map((p: any) => (
+                              <TableRow key={p.id} className="border-black/5">
+                                <TableCell className="text-xs font-bold uppercase">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gray-100 relative border overflow-hidden shrink-0 rounded-sm">
+                                      {p.media?.[0]?.url ? (
+                                        <Image src={p.media[0].url} alt="" fill className="object-cover" />
+                                      ) : (
+                                        <ShoppingBag className="h-4 w-4 text-gray-300 mx-auto mt-3" />
+                                      )}
+                                    </div>
+                                    <span className="truncate max-w-[200px]">{p.name}</span>
                                   </div>
-                                  <span className="truncate max-w-[200px]">{p.name}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-[10px] font-mono text-gray-400 uppercase">{p.sku || 'N/A'}</TableCell>
-                              <TableCell className="text-right text-xs font-bold">C${p.price?.toFixed(2)}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                                </TableCell>
+                                <TableCell className="text-[10px] font-mono text-gray-400 uppercase">{p.sku || 'N/A'}</TableCell>
+                                <TableCell className="text-right text-xs font-bold">C${p.price?.toFixed(2)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
-                  </div>
-                </TabsContent>
-              </div>
-            </Tabs>
-            <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50/50 shrink-0">
-              <Button onClick={handleSave} disabled={isSaving || !name} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                {editingId ? 'Save Changes' : 'Add Category'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                  </TabsContent>
+                </div>
+              </Tabs>
+              <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50/50 shrink-0">
+                <Button onClick={handleSave} disabled={isSaving || !name} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                  {editingId ? 'Save Changes' : 'Add Category'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="bg-white border rounded-none overflow-hidden shadow-sm">
