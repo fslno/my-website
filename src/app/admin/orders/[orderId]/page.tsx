@@ -277,11 +277,11 @@ export default function OrderDetailPage(props: {
             {getPaymentStatusBadge(order.paymentStatus || 'pending')}
           </div>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={handlePrintInvoice} className="h-10 font-bold uppercase tracking-widest text-[10px] border-black">
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={handlePrintInvoice} className="h-10 font-bold uppercase tracking-widest text-[10px] border-black flex-1 sm:flex-none">
             <Printer className="h-3 w-3 mr-2" /> Print Invoice
           </Button>
-          <Button variant="outline" onClick={handleResendEmail} disabled={isSendingEmail} className="h-10 font-bold uppercase tracking-widest text-[10px] border-black">
+          <Button variant="outline" onClick={handleResendEmail} disabled={isSendingEmail} className="h-10 font-bold uppercase tracking-widest text-[10px] border-black flex-1 sm:flex-none">
             {isSendingEmail ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Send className="h-3 w-3 mr-2" />}
             Resend Email
           </Button>
@@ -289,7 +289,7 @@ export default function OrderDetailPage(props: {
       </div>
 
       <div className="flex flex-col xl:flex-row gap-8 print:hidden">
-        <div className="flex-1 space-y-8">
+        <div className="flex-1 min-w-0 space-y-8">
           <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
             <CardHeader className="bg-blue-50/30 border-b py-4">
               <div className="flex items-center justify-between">
@@ -312,19 +312,19 @@ export default function OrderDetailPage(props: {
               <div className="space-y-2">
                 <Label className="text-[9px] uppercase font-bold text-gray-400">Tracking Number</Label>
                 <div className="flex gap-2">
-                  <div className="relative flex-1">
+                  <div className="relative flex-1 min-w-0">
                     <Input 
                       placeholder="ENTER LOGISTICS ID" 
                       value={trackingNumber}
                       onChange={(e) => setTrackingNumber(e.target.value)}
-                      className="h-11 bg-white border-blue-200 text-black text-xs font-mono uppercase pl-9"
+                      className="h-11 bg-white border-blue-200 text-black text-xs font-mono uppercase pl-9 truncate"
                     />
                     <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-300" />
                   </div>
                   <Button 
                     size="icon" 
                     variant="outline" 
-                    className="h-11 w-11 border-blue-200 bg-white hover:bg-blue-50 text-blue-600"
+                    className="h-11 w-11 border-blue-200 bg-white hover:bg-blue-50 text-blue-600 shrink-0"
                     onClick={() => setIsScannerOpen(true)}
                   >
                     <ScanBarcode className="h-5 w-5" />
@@ -347,7 +347,7 @@ export default function OrderDetailPage(props: {
               <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Order Management</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-8">
-              <div className="grid grid-cols-2 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Payment Status</Label>
                   <Select value={order.paymentStatus || 'pending'} onValueChange={handleConfirmPayment} disabled={isUpdatingPayment}>
@@ -360,7 +360,7 @@ export default function OrderDetailPage(props: {
                       <SelectItem value="awaiting" className="text-[10px] font-bold uppercase">Awaiting</SelectItem>
                       <SelectItem value="refunded" className="text-[10px] font-bold uppercase">Refunded</SelectItem>
                       <SelectItem value="partially_refunded" className="text-[10px] font-bold uppercase">Partially Refunded</SelectItem>
-                      <SelectItem value="canceled" className="text-[10px) font-bold uppercase">Cancelled</SelectItem>
+                      <SelectItem value="canceled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -393,36 +393,60 @@ export default function OrderDetailPage(props: {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-white">
-                  <TableRow className="border-b">
-                    <TableHead className="text-[9px] uppercase font-bold">Product</TableHead>
-                    <TableHead className="text-[9px] uppercase font-bold text-center">Qty</TableHead>
-                    <TableHead className="text-[9px] uppercase font-bold text-right">Price</TableHead>
-                    <TableHead className="text-[9px] uppercase font-bold text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(order.items || []).map((item: any, i: number) => (
-                    <TableRow key={i} className="border-b last:border-0">
-                      <TableCell>
-                        <div className="flex gap-3">
-                          <div className="w-12 h-16 bg-gray-100 rounded border shrink-0 overflow-hidden relative">
-                            {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
-                          </div>
-                          <div className="flex flex-col justify-center">
-                            <span className="text-xs font-bold uppercase line-clamp-1">{item.name}</span>
-                            <span className="text-[8px] h-4 uppercase font-bold">Size: {item.size}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
-                      <TableCell className="text-right text-xs">{`C$${formatCurrency(Number(item.price) || 0)}`}</TableCell>
-                      <TableCell className="text-right text-xs font-bold">{`C$${formatCurrency((Number(item.price) || 0) * item.quantity)}`}</TableCell>
+              {/* Desktop Table View */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader className="bg-white">
+                    <TableRow className="border-b">
+                      <TableHead className="text-[9px] uppercase font-bold">Product</TableHead>
+                      <TableHead className="text-[9px] uppercase font-bold text-center">Qty</TableHead>
+                      <TableHead className="text-[9px] uppercase font-bold text-right">Price</TableHead>
+                      <TableHead className="text-[9px] uppercase font-bold text-right">Total</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {(order.items || []).map((item: any, i: number) => (
+                      <TableRow key={i} className="border-b last:border-0">
+                        <TableCell>
+                          <div className="flex gap-3">
+                            <div className="w-12 h-16 bg-gray-100 rounded border shrink-0 overflow-hidden relative">
+                              {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                            </div>
+                            <div className="flex flex-col justify-center">
+                              <span className="text-xs font-bold uppercase line-clamp-1">{item.name}</span>
+                              <span className="text-[8px] h-4 uppercase font-bold">Size: {item.size}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
+                        <TableCell className="text-right text-xs">{`C$${formatCurrency(Number(item.price) || 0)}`}</TableCell>
+                        <TableCell className="text-right text-xs font-bold">{`C$${formatCurrency((Number(item.price) || 0) * item.quantity)}`}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile List View (Eliminates horizontal scrolling) */}
+              <div className="sm:hidden divide-y">
+                {(order.items || []).map((item: any, i: number) => (
+                  <div key={i} className="p-4 space-y-3">
+                    <div className="flex gap-4">
+                      <div className="w-16 h-20 bg-gray-100 rounded border shrink-0 overflow-hidden relative">
+                        {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center min-w-0">
+                        <span className="text-sm font-bold uppercase truncate">{item.name}</span>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[10px] uppercase font-bold text-gray-400">Size: {item.size} • Qty: {item.quantity}</span>
+                          <span className="text-sm font-bold">{`C$${formatCurrency((Number(item.price) || 0) * item.quantity)}`}</span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{`C$${formatCurrency(Number(item.price) || 0)} / item`}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -529,11 +553,11 @@ export default function OrderDetailPage(props: {
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded bg-black flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 rounded bg-black flex items-center justify-center text-white font-bold text-lg shrink-0">
                   {(order.customer?.name || order.email || 'G')[0].toUpperCase()}
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-bold text-sm uppercase truncate max-w-[180px]">{order.customer?.name || 'Guest Client'}</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-sm uppercase truncate">{order.customer?.name || 'Guest Client'}</span>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tighter flex items-center gap-1">
                       <Sparkles className="h-2.5 w-2.5" /> Purchase Count: {orderCount}
@@ -545,9 +569,9 @@ export default function OrderDetailPage(props: {
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Mail className="h-4 w-4 text-gray-400 mt-0.5" />
-                  <div className="space-y-1">
+                  <div className="space-y-1 min-w-0">
                     <p className="text-[9px] uppercase font-bold text-gray-400">Email Address</p>
-                    <p className="text-xs font-bold uppercase break-all">{order.email}</p>
+                    <p className="text-xs font-bold uppercase truncate">{order.email}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -588,7 +612,7 @@ export default function OrderDetailPage(props: {
                         <History className="h-5 w-5" />
                         <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Customer History</SheetTitle>
                       </div>
-                      <SheetDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                      <SheetDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground truncate">
                         Manifest for: {order.email}
                       </SheetDescription>
                     </SheetHeader>
