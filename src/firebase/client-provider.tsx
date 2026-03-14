@@ -41,7 +41,10 @@ function ConfigGate({ children }: { children: ReactNode }) {
               priority 
             />
           </div>
-          <Loader2 className="h-5 w-5 animate-spin text-black/20" />
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin text-black/20" />
+            <span className="text-[8px] uppercase tracking-[0.3em] font-bold text-black/10">Synchronizing Studio</span>
+          </div>
         </div>
       </div>
     );

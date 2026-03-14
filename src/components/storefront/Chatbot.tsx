@@ -20,15 +20,15 @@ export function Chatbot() {
 
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
-  const { data: theme } = useDoc(themeRef);
+  const { data: theme, isLoading: themeLoading } = useDoc(themeRef);
 
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
-  const { data: config } = useDoc(storeConfigRef);
+  const { data: config, isLoading: configLoading } = useDoc(storeConfigRef);
 
   const [isOpen, setIsOpen] = useState(false);
 
   // Authoritative Guard: Strictly do not render until mounted AND theme is explicitly enabled
-  if (!mounted) return null;
+  if (!mounted || themeLoading || configLoading) return null;
   if (!theme || theme.chatbotEnabled !== true) return null;
 
   const phoneNumbers = config?.phoneNumbers || (config?.phone ? [{ label: 'Voice', value: config.phone }] : []);
