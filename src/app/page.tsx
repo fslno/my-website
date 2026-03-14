@@ -79,7 +79,7 @@ export default function Home() {
       {theme?.homepageLayout === 'classic' ? (
         <section className="pt-36 pb-12">
           <div className="w-full overflow-hidden bg-primary shadow-2xl group border-b">
-            <div className="relative h-[70vh] w-full">
+            <div className="relative h-[52.5vh] w-full">
               {heroImageSrc ? (
                 <Image
                   src={heroImageSrc}
