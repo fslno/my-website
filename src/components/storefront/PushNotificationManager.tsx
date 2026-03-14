@@ -8,6 +8,7 @@ import { Bell, BellOff, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { cn } from '@/lib/utils';
 
 export function PushNotificationManager() {
   const app = useFirebaseApp();
@@ -36,7 +37,7 @@ export function PushNotificationManager() {
   }, []);
 
   const subscribeToAdminTopic = async (token: string) => {
-    if (!user || user.email !== 'fslno.dev@gmail.com') return;
+    if (!user || (user.email !== 'fslno.dev@gmail.com' && user.uid !== 'ulyu5w9XtYeVTmceUfOZLZwDQxF2')) return;
     
     setIsSyncing(true);
     const functions = getFunctions(app);
@@ -69,16 +70,33 @@ export function PushNotificationManager() {
       if (status === 'granted') {
         const messaging = await getMessagingInstance(app);
         if (messaging) {
-          const token = await getToken(messaging, {
-            vapidKey: 'BHz_YOUR_VAPID_KEY_HERE' // Replace with your FCM Web Push Key from Console
+          // Authoritative Handshake: Attempt token retrieval with environment variable protection
+          const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '';
+          
+          const token = await getToken(messaging, { vapidKey }).catch(err => {
+            // Handle invalid VAPID key specifically to avoid app crash
+            if (err.message.includes('applicationServerKey') || err.code === 'messaging/invalid-vapid-key') {
+              console.warn("[ALARM] Invalid VAPID Key detected. Handshake suspended.");
+              return null;
+            }
+            throw err;
           });
           
-          if (user?.email === 'fslno.dev@gmail.com') {
-            await subscribeToAdminTopic(token);
+          if (token) {
+            const isAdmin = user?.email === 'fslno.dev@gmail.com' || user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+            if (isAdmin) {
+              await subscribeToAdminTopic(token);
+            } else {
+              toast({
+                title: "Notifications Active",
+                description: "You will now receive Studio updates."
+              });
+            }
           } else {
             toast({
-              title: "Notifications Active",
-              description: "You will now receive Studio updates."
+              variant: "destructive",
+              title: "Configuration Needed",
+              description: "Web Push protocol requires a valid VAPID Key from your Firebase Console."
             });
           }
         }
@@ -90,7 +108,7 @@ export function PushNotificationManager() {
 
   if (!showPrompt || permission !== 'default') return null;
 
-  const isAdmin = user?.email === 'fslno.dev@gmail.com';
+  const isAdmin = user?.email === 'fslno.dev@gmail.com' || user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
   return (
     <div className="fixed bottom-6 right-6 z-[100] max-w-xs w-full bg-black text-white p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-500 rounded-none border border-white/10">

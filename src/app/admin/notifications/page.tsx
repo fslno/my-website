@@ -188,11 +188,19 @@ export default function NotificationsPage() {
     
     try {
       const messaging = await getMessagingInstance(app);
-      if (!messaging) throw new Error("Messaging not supported.");
+      if (!messaging) throw new Error("Messaging not supported in this environment.");
 
-      const token = await getToken(messaging, {
-        vapidKey: 'BHz_YOUR_VAPID_KEY_HERE'
+      // Authoritative Handshake: Attempt to retrieve token with VAPID protection
+      const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '';
+      
+      const token = await getToken(messaging, { vapidKey }).catch(err => {
+        if (err.message.includes('applicationServerKey') || err.code === 'messaging/invalid-vapid-key') {
+          throw new Error("Invalid VAPID Key. Please configure NEXT_PUBLIC_FIREBASE_VAPID_KEY in your environment with the key from Firebase Console > Cloud Messaging.");
+        }
+        throw err;
       });
+
+      if (!token) throw new Error("Could not manifest an identity token for this device.");
 
       const functions = getFunctions(app);
       const subscribeFunc = httpsCallable(functions, 'subscribeAdminToOrders');
@@ -202,12 +210,12 @@ export default function NotificationsPage() {
         title: "Device Bound",
         description: "This device is Authoritatively subscribed to High-Priority Alarms."
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("[ALARM] Device registration failure:", error);
       toast({
         variant: "destructive",
-        title: "Handshake Failure",
-        description: "Failed to bind device to the alarm protocol."
+        title: "Protocol Failure",
+        description: error.message || "Failed to bind device to the alarm protocol."
       });
     } finally {
       setIsRegisteringDevice(false);
@@ -273,7 +281,7 @@ export default function NotificationsPage() {
     ? (isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey])) 
     : null;
 
-  const isAdminUser = user?.email === 'fslno.dev@gmail.com';
+  const isAdminUser = user?.email === 'fslno.dev@gmail.com' || user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
   return (
     <div className="space-y-8 sm:space-y-12 min-w-0">
@@ -412,7 +420,7 @@ export default function NotificationsPage() {
           </Card>
 
           <Button 
-            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all" 
+            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
             onClick={handleSaveGlobal} 
             disabled={isSaving}
           >
