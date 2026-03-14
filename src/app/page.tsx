@@ -7,6 +7,7 @@ import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
+import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -207,6 +208,8 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      <TestimonialSection />
 
       <Footer />
     </main>

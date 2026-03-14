@@ -23,6 +23,11 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /reviews/{reviewId} {
       // Public can see reviews (filtration handled client-side for zero-error listing)
       allow read: if true;

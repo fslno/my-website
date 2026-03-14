@@ -33,7 +33,8 @@ import {
   Volume2,
   VolumeX,
   Monitor,
-  Star
+  Star,
+  MessageSquareQuote
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -156,6 +157,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Testimonials" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/testimonials">
+                  <Star />
+                  <span>Testimonials</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Size Chart" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/size-chart">
                   <Ruler />
@@ -231,8 +240,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <Globe />
                   <span>Domain</span>
                 </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+              </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 

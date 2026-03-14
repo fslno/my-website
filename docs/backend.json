@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Product": {
@@ -278,6 +277,20 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "platform", "status"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "type": "object",
+      "description": "Curated customer testimonial for the storefront.",
+      "properties": {
+        "customerName": { "type": "string" },
+        "customerImageUrl": { "type": "string" },
+        "rating": { "type": "number" },
+        "quote": { "type": "string" },
+        "isFeatured": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerName", "rating", "quote", "isFeatured"]
     }
   },
   "auth": {
@@ -357,6 +370,15 @@
           "entityName": "Partner",
           "schema": {
             "$ref": "#/backend/entities/Partner"
+          }
+        }
+      },
+      {
+        "path": "/testimonials/{testimonialId}",
+        "definition": {
+          "entityName": "Testimonial",
+          "schema": {
+            "$ref": "#/backend/entities/Testimonial"
           }
         }
       }
