@@ -38,7 +38,8 @@ import {
   Activity,
   PlayCircle,
   ShieldAlert,
-  Smartphone
+  Smartphone,
+  AlertCircle
 } from 'lucide-react';
 import { 
   Card, 
@@ -59,7 +60,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useFirebaseApp, useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
 import { getMessagingInstance } from '@/firebase';
 import { getToken } from 'firebase/messaging';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -214,7 +215,6 @@ export default function NotificationsPage() {
           });
         }
       } catch (funcError: any) {
-        // Detailed error reporting for protocol synchronization
         console.error("[ALARM] Protocol Error:", funcError);
         toast({
           variant: "destructive",
@@ -231,6 +231,54 @@ export default function NotificationsPage() {
       });
     } finally {
       setIsRegisteringDevice(false);
+    }
+  };
+
+  const handleSendTestNotification = async () => {
+    if (!app) return;
+    const functions = getFunctions(app);
+    const sendTest = httpsCallable(functions, 'sendTestNotification');
+    
+    try {
+      const result: any = await sendTest();
+      if (result.data?.success) {
+        toast({
+          title: "Diagnostic Sent",
+          description: "High-priority test alarm dispatched to admin topic."
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Dispatch Failure",
+        description: error.message || "Failed to trigger diagnostic alarm."
+      });
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!db || !user?.email) return;
+    const testOrder = {
+      to: user.email,
+      message: {
+        subject: "[TEST] FSLNO Studio Confirmation",
+        html: `<p>This is a diagnostic email from the FSLNO Notifications Command.</p>`
+      },
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      await addDoc(collection(db, 'mail'), testOrder);
+      toast({
+        title: "Email Queued",
+        description: `Test dispatch sent to ${user.email}.`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Queue Error",
+        description: "Failed to ingest test email into the mail manifest."
+      });
     }
   };
 
@@ -313,9 +361,37 @@ export default function NotificationsPage() {
               Bind Device to Alarms
             </Button>
           )}
-          <Button variant="outline" className="flex-1 sm:flex-none h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black" onClick={() => setIsSendingTest(true)}>
-            <Send className="h-4 w-4" /> Send Test
-          </Button>
+          <Dialog open={isSendingTest} onOpenChange={setIsSendingTest}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex-1 sm:flex-none h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black">
+                <Send className="h-4 w-4" /> Send Test
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+              <DialogHeader className="pt-6">
+                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Diagnostic Test Protocol</DialogTitle>
+                <DialogDescription className="text-xs uppercase font-bold text-muted-foreground mt-1">Select a diagnostic channel to verify system integrity.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-8">
+                <Button 
+                  onClick={handleSendTestNotification}
+                  className="h-14 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest text-[10px] gap-3"
+                >
+                  <ShieldAlert className="h-4 w-4" /> Trigger Test Alarm (FCM)
+                </Button>
+                <Button 
+                  onClick={handleSendTestEmail}
+                  variant="outline"
+                  className="h-14 border-black font-bold uppercase tracking-widest text-[10px] gap-3"
+                >
+                  <Mail className="h-4 w-4" /> Send Test Email (Template)
+                </Button>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setIsSendingTest(false)} className="w-full text-[10px] font-bold uppercase tracking-widest">Close Diagnostics</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -383,8 +459,8 @@ export default function NotificationsPage() {
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6">Touchpoint</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest">Status</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Touchpoint</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Status</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -392,11 +468,11 @@ export default function NotificationsPage() {
                   {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
                     const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
                     return (
-                      <TableRow key={key} className="hover:bg-gray-50/30 transition-colors">
+                      <TableRow key={key} className="hover:bg-gray-50/30 transition-colors border-black/5">
                         <TableCell className="p-6">
                           <div className="space-y-1">
                             <span className="font-bold text-sm tracking-tight uppercase">{data.label}</span>
-                            <p className="text-[10px] text-gray-500 font-medium">{data.description}</p>
+                            <p className="text-[10px] text-gray-500 font-medium uppercase">{data.description}</p>
                           </div>
                         </TableCell>
                         <TableCell>
