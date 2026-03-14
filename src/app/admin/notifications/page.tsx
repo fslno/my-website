@@ -495,26 +495,33 @@ export default function NotificationsPage() {
                       <TableRow key={key} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
                         <TableCell className="p-6">
                           <div className="flex items-center gap-3">
-                            <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", campaign.enabled ? 'border-green-100' : 'border-gray-100')}>
-                              <Mail className={cn("h-5 w-5", campaign.enabled ? 'text-green-600' : 'text-gray-400')} />
+                            <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", data.enabled ? 'border-green-100' : 'border-gray-100')}>
+                              <Mail className={cn("h-5 w-5", data.enabled ? 'text-green-600' : 'text-gray-400')} />
                             </div>
                             <span className="font-bold text-sm tracking-tight text-primary uppercase">{data.label}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-xs text-gray-500">{data.description}</span>
+                          <span className="text-[10px] font-medium text-gray-500 uppercase leading-relaxed">{data.description}</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center">
+                            <span className="text-xs font-bold text-primary">--</span>
+                            <Activity className="h-3 w-3 text-gray-300 mt-1" />
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex justify-center">
                             <Switch 
                               checked={data.enabled} 
                               onCheckedChange={(checked) => handleToggle(key, checked, true)}
+                              className="data-[state=checked]:bg-black"
                             />
                           </div>
                         </TableCell>
-                        <TableCell className="pr-6">
-                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px] hover:underline" onClick={() => handleEdit(key, true)}>
-                            Refine
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleEdit(key, true)}>
+                            <ChevronRight className="h-4 w-4 text-gray-400" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -535,6 +542,7 @@ export default function NotificationsPage() {
                       <Switch 
                         checked={data.enabled} 
                         onCheckedChange={(checked) => handleToggle(key, checked, true)}
+                        className="data-[state=checked]:bg-black"
                       />
                     </div>
                     <p className="text-[10px] text-gray-500 uppercase leading-relaxed font-medium">{data.description}</p>
