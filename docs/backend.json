@@ -1,304 +1,53 @@
-
 {
   "entities": {
-    "Product": {
+    "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Product",
+      "title": "User",
       "type": "object",
-      "description": "Represents a single product available for sale in the e-commerce store.",
+      "description": "Represents a user account in the FSLNO e-commerce ecosystem, linked to an external authentication provider (e.g., Google Sign-In). This entity stores user profile information and role, but no sensitive authentication credentials.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Product entity."
+          "description": "Unique identifier for the User entity, typically provided by the external authentication system (e.g., Firebase User ID)."
         },
-        "name": {
+        "email": {
           "type": "string",
-          "description": "The name of the product."
+          "description": "The user's email address, often provided by the authentication system.",
+          "format": "email"
         },
-        "description": {
+        "displayName": {
           "type": "string",
-          "description": "A detailed description of the product, potentially AI-generated."
+          "description": "The user's display name or full name, as provided by the authentication system or set by the user."
         },
-        "slug": {
+        "photoUrl": {
           "type": "string",
-          "description": "A URL-friendly identifier for the product, derived from its name."
+          "description": "URL to the user's profile picture, if available from the authentication system.",
+          "format": "uri"
         },
-        "categoryId": {
+        "role": {
           "type": "string",
-          "description": "Reference to the Category this product belongs to."
-        },
-        "brand": {
-          "type": "string",
-          "description": "The brand name of the product."
-        },
-        "isPublished": {
-          "type": "boolean",
-          "description": "Indicates whether the product is visible and available for purchase."
+          "description": "The role of the user within the application, defining their permissions and access levels. (e.g., 'customer' for shoppers, 'admin' for administrators).",
+          "items": {
+            "type": "string"
+          }
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the product was created.",
+          "description": "Timestamp indicating when the user account was created in the system.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the product was last updated.",
+          "description": "Timestamp indicating the last time the user's profile information was updated.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
-        "name",
-        "description",
-        "slug",
-        "categoryId",
-        "isPublished",
-        "createdAt",
-        "updatedAt"
+        "email",
+        "role",
+        "createdAt"
       ]
-    },
-    "Category": {
-      "title": "Category",
-      "type": "object",
-      "description": "Represents a product collection in the studio.",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "imageUrl": { "type": "string" },
-        "sizeChartId": { "type": "string" },
-        "seoTitle": { "type": "string" },
-        "seoDescription": { "type": "string" },
-        "order": { "type": "number", "description": "Display position on storefront." },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["name"]
-    },
-    "CartItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "CartItem",
-      "type": "object",
-      "description": "Represents an individual item within a customer's shopping cart.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the CartItem entity (often variantId)."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product added to the cart."
-        },
-        "variantId": {
-          "type": "string",
-          "description": "Specific variant identifier."
-        },
-        "quantity": {
-          "type": "number",
-          "description": "The quantity of this product in the cart."
-        },
-        "price": {
-          "type": "number",
-          "description": "Price at the time of adding to cart."
-        },
-        "size": {
-          "type": "string"
-        },
-        "customName": {
-          "type": "string"
-        },
-        "customNumber": {
-          "type": "string"
-        },
-        "specialNote": {
-          "type": "string"
-        },
-        "isPromo": {
-          "type": "boolean",
-          "description": "Flag for automatically added BOGO items."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "productId",
-        "quantity",
-        "price",
-        "size"
-      ]
-    },
-    "Coupon": {
-      "title": "Coupon",
-      "type": "object",
-      "properties": {
-        "code": { "type": "string" },
-        "type": { "type": "string", "enum": ["percent", "fixed"] },
-        "value": { "type": "number" },
-        "active": { "type": "boolean" },
-        "usageLimit": { "type": "number" },
-        "usedCount": { "type": "number" }
-      },
-      "required": ["code", "type", "value", "active"]
-    },
-    "WishlistItem": {
-      "title": "WishlistItem",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "price": { "type": "number" },
-        "image": { "type": "string" },
-        "brand": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "name", "price", "image"]
-    },
-    "Order": {
-      "title": "Order",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "email": { "type": "string" },
-        "customer": { "type": "object" },
-        "items": { "type": "array" },
-        "subtotal": { "type": "number" },
-        "discountTotal": { "type": "number" },
-        "couponCode": { "type": "string" },
-        "tax": { "type": "number" },
-        "shipping": { "type": "number" },
-        "total": { "type": "number" },
-        "deliveryMethod": { "type": "string" },
-        "courier": { "type": "string" },
-        "status": { "type": "string" },
-        "referral": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "email", "total", "status", "createdAt"]
-    },
-    "StoreConfig": {
-      "title": "StoreConfig",
-      "type": "object",
-      "properties": {
-        "businessName": { "type": "string" },
-        "address": { "type": "string" },
-        "googleMapsUrl": { "type": "string" },
-        "phone": { "type": "string" },
-        "logoUrl": { "type": "string" },
-        "footerDescription": { "type": "string" },
-        "instagramUrl": { "type": "string" },
-        "tiktokUrl": { "type": "string" },
-        "twitterUrl": { "type": "string" },
-        "whatsAppNumber": { "type": "string" },
-        "phoneNumbers": { 
-          "type": "array", 
-          "items": { 
-            "type": "object", 
-            "properties": { 
-              "label": { "type": "string" }, 
-              "value": { "type": "string" } 
-            } 
-          } 
-        },
-        "emailAddresses": { 
-          "type": "array", 
-          "items": { 
-            "type": "object", 
-            "properties": { 
-              "label": { "type": "string" }, 
-              "value": { "type": "string" } 
-            } 
-          } 
-        },
-        "socialChannels": { 
-          "type": "array", 
-          "items": { 
-            "type": "object", 
-            "properties": { 
-              "platform": { "type": "string" }, 
-              "url": { "type": "string" } 
-            } 
-          } 
-        },
-        "footerSupportLinks": { "type": "array" },
-        "footerLegalLinks": { "type": "array" },
-        "copyrightText": { "type": "string" },
-        "systemVersion": { "type": "string" },
-        "poweredByEnabled": { "type": "boolean" },
-        "poweredByLabel": { "type": "string" },
-        "poweredByStudioName": { "type": "string" },
-        "poweredByLogoUrl": { "type": "string" },
-        "newsletterEnabled": { "type": "boolean" },
-        "newsletterHeadline": { "type": "string" },
-        "newsletterSubtext": { "type": "string" },
-        "openingHours": { "type": "string" },
-        "paymentIconsVisible": { "type": "array", "items": { "type": "string" } },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "ShippingConfig": {
-      "title": "ShippingConfig",
-      "type": "object",
-      "properties": {
-        "carriers": { "type": "array" },
-        "goGreenPlus": { "type": "boolean" },
-        "localPickup": { "type": "boolean" },
-        "pickupAddress": { "type": "string" },
-        "pickupHours": { "type": "string" },
-        "pickupInstructions": { "type": "string" },
-        "pickupLocationUrl": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "StaffProfile": {
-      "title": "StaffProfile",
-      "type": "object",
-      "properties": {
-        "fullName": { "type": "string" },
-        "email": { "type": "string" },
-        "phone": { "type": "string" },
-        "timezone": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Inactive"] },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "Partner": {
-      "title": "Partner",
-      "type": "object",
-      "description": "Represents a social commerce archival partner/creator.",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "platform": { "type": "string", "enum": ["Instagram", "TikTok", "YouTube", "X (Twitter)", "Facebook", "Pinterest"] },
-        "status": { "type": "string", "enum": ["Active", "Pending"] },
-        "roi": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["name", "platform", "status"]
-    },
-    "Testimonial": {
-      "title": "Testimonial",
-      "type": "object",
-      "description": "Curated customer testimonial for the storefront.",
-      "properties": {
-        "customerName": { "type": "string" },
-        "customerImageUrl": { "type": "string" },
-        "rating": { "type": "number" },
-        "quote": { "type": "string" },
-        "isFeatured": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["customerName", "rating", "quote", "isFeatured"]
-    },
-    "ReviewConfig": {
-      "title": "ReviewConfig",
-      "type": "object",
-      "properties": {
-        "enabled": { "type": "boolean" }
-      }
     }
   },
   "auth": {
@@ -310,12 +59,62 @@
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}/cart/{itemId}",
+        "path": "/users/{userId}",
         "definition": {
-          "entityName": "CartItem",
+          "entityName": "User",
           "schema": {
-            "$ref": "#/backend/entities/CartItem"
-          }
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores individual user profiles. Access is primarily restricted to the owner (`request.auth.uid` must match `userId`). This path ensures Authorization Independence for user-specific data. It's also writable by administrators for role management (though roles are primarily managed via '/roles_admin').",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, matching 'request.auth.uid'."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "AdminRole",
+          "schema": {
+            "$ref": "#/backend/entities/AdminRole"
+          },
+          "description": "Dedicated collection for explicit administrative role assignment. The existence of a document at this path for a given 'userId' signifies global admin privileges. This supports DBAC (Database Access Control) using 'existence over content' for Authorization Independence and simplifies QAPs for admin checks.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user granted administrative access."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/cms_control/settings",
+        "definition": {
+          "entityName": "CmsSettings",
+          "schema": {
+            "$ref": "#/backend/entities/CmsSettings"
+          },
+          "description": "A singleton document containing global CMS settings, theme styles (global_styles), banner configurations (banner_patrol), and layout managers (layout_manager). It is publicly readable for instant storefront updates ('Real-time Content & Style Editor') and writable only by administrators, ensuring Authorization Independence for read/write operations.",
+          "params": []
+        }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores individual product details for the storefront. This collection is publicly readable for all users, supporting Query-Accurate Permissions (QAPs) for efficient product catalog display. Writable only by administrators for content management. Structural segregation ensures homogeneous security posture.",
+          "params": [
+            {
+              "name": "productId",
+              "description": "The unique identifier for a specific product."
+            }
+          ]
         }
       },
       {
@@ -324,81 +123,17 @@
           "entityName": "Category",
           "schema": {
             "$ref": "#/backend/entities/Category"
-          }
-        }
-      },
-      {
-        "path": "/coupons/{code}",
-        "definition": {
-          "entityName": "Coupon",
-          "schema": {
-            "$ref": "#/backend/entities/Coupon"
-          }
-        }
-      },
-      {
-        "path": "/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          }
-        }
-      },
-      {
-        "path": "/config/store",
-        "definition": {
-          "entityName": "StoreConfig",
-          "schema": {
-            "$ref": "#/backend/entities/StoreConfig"
-          }
-        }
-      },
-      {
-        "path": "/config/shipping",
-        "definition": {
-          "entityName": "ShippingConfig",
-          "schema": {
-            "$ref": "#/backend/entities/ShippingConfig"
-          }
-        }
-      },
-      {
-        "path": "/config/reviews",
-        "definition": {
-          "entityName": "ReviewConfig",
-          "schema": {
-            "$ref": "#/backend/entities/ReviewConfig"
-          }
-        }
-      },
-      {
-        "path": "/staff/{staffId}",
-        "definition": {
-          "entityName": "StaffProfile",
-          "schema": {
-            "$ref": "#/backend/entities/StaffProfile"
-          }
-        }
-      },
-      {
-        "path": "/partners/{partnerId}",
-        "definition": {
-          "entityName": "Partner",
-          "schema": {
-            "$ref": "#/backend/entities/Partner"
-          }
-        }
-      },
-      {
-        "path": "/testimonials/{testimonialId}",
-        "definition": {
-          "entityName": "Testimonial",
-          "schema": {
-            "$ref": "#/backend/entities/Testimonial"
-          }
+          },
+          "description": "Stores product category information, including dynamic size chart data. This collection is publicly readable, enabling efficient data retrieval for 'Advanced Product Interaction' (QAPs). Writable only by administrators for content management. Structural segregation maintains a consistent security posture.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for a specific product category."
+            }
+          ]
         }
       }
-    ]
+    ],
+    "reasoning": "The Firestore structure prioritizes Authorization Independence and Query-Accurate Permissions (QAPs) by applying structural segregation and strategic denormalization. User-specific data is isolated under `/users/{userId}`, ensuring path-based ownership and eliminating the need for hierarchical security checks. Global administrative roles are managed via the `/roles_admin/{userId}` collection, leveraging 'existence over content' for robust and atomic authorization checks (e.g., `exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))`). This completely avoids `get()` calls for authorization dependencies, making security rules simple and debuggable.\n\nPublicly accessible data, such as products (`/products/{productId}`) and categories (`/categories/{categoryId}`), are housed in top-level collections. This structural segregation ensures that `list` operations (QAPs) are naturally secure, as all documents within these collections share the same public read security posture. Modifications to these public collections, as well as to global CMS settings (`/cms_control/settings`), are strictly limited to authenticated administrators, whose roles are verified through the independent `/roles_admin` collection. The singleton `/cms_control/settings` document is designed for efficient, real-time updates and public read access, with admin-only write permissions, aligning with the 'Real-time Content & Style Editor' feature. This design strategy minimizes security rule complexity by moving authorization logic from conditional `get()` operations into the inherent structure and access patterns of the database."
   }
 }

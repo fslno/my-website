@@ -1,98 +1,122 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- GLOBAL HELPER FUNCTIONS ---
+    /**
+     * FSLNO E-COMMERCE SECURITY RULES
+     * 
+     * Core Philosophy:
+     * This ruleset implements a robust, multi-tier security model for an e-commerce platform. 
+     * It leverages "Authorization Independence" by separating user-private data from public 
+     * catalog data and administrative configurations.
+     * 
+     * Data Structure:
+     * - /users/{userId}: Private user profiles, owned by the user but manageable by admins.
+     * - /roles_admin/{userId}: A high-security collection where the presence of a UID 
+     *   grants global administrative privileges across the entire database.
+     * - /products & /categories: Publicly readable product catalogs.
+     * - /cms_control/settings: Global storefront configuration, publicly readable for 
+     *   real-time updates but restricted to admin writes.
+     * 
+     * Key Security Decisions:
+     * - DBAC (Database Access Control): Admin permissions are verified by checking for the 
+     *   existence of a document in the /roles_admin collection. This "existence over content" 
+     *   pattern is highly performant and secure.
+     * - Path-Based Ownership: User data access is strictly tied to the {userId} in the path 
+     *   matching the authenticated user's UID.
+     * - Public Read Access: Product and CMS data are globally readable to support SEO and 
+     *   unauthenticated browsing, while writes are locked down to verified administrators.
+     */
 
+    // --- Helper Functions ---
+
+    /** @description Checks if the user is authenticated with any provider. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      // Authoritatively verify administrative identity via specific UID or email
-      return isSignedIn() && (
-        request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
-        request.auth.token.email == 'fslno.dev@gmail.com'
-      );
-    }
-
+    /** @description Checks if the authenticated user's UID matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- COLLECTION RULES ---
-
-    match /testimonials/{testimonialId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    /** @description Checks if the user has global admin privileges via the roles_admin collection. */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    match /reviews/{reviewId} {
-      // Public can see reviews (filtration handled client-side for zero-error listing)
-      allow read: if true;
-      // Auth users can create their own reviews
-      allow create: if isSignedIn();
-      // Only Admin can moderate or delete
-      allow update, delete: if isAdmin();
+    /** @description Verifies ownership on an existing document. */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
     }
 
-    match /orders/{orderId} {
-      allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
-      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid && request.query.limit <= 100);
-      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow update, delete: if isAdmin();
+    /** @description Verifies admin status for operations on existing documents. */
+    function isExistingAdmin() {
+      return resource != null && isAdmin();
     }
 
-    match /coupons/{code} {
-      allow get: if true;
-      allow list: if isAdmin();
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for user profiles. Users can manage their own profile; admins can manage all.
+     * @path /users/{userId}
+     * @allow (create) if auth.uid matches {userId} and data.id matches {userId}.
+     * @deny (update) if a non-admin tries to change another user's profile or change the ID field.
+     * @principle Path-based ownership with relational integrity and admin override.
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if (isExistingOwner(userId) || isExistingAdmin()) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId) || isExistingAdmin();
+    }
+
+    /**
+     * @description high-security collection for administrative role assignment.
+     * @path /roles_admin/{userId}
+     * @allow (read/write) Only by existing administrators.
+     * @deny (all) Access for standard users or unauthenticated requests.
+     * @principle Existence-based authorization (DBAC) for global roles.
+     */
+    match /roles_admin/{userId} {
+      allow get, list: if isAdmin();
       allow create, update, delete: if isAdmin();
     }
 
+    /**
+     * @description Global CMS settings for theme and layout.
+     * @path /cms_control/settings
+     * @allow (get) Publicly readable for real-time storefront styling.
+     * @deny (write) Any non-admin attempts to modify global settings.
+     * @principle Publicly readable configuration with strictly controlled admin writes.
+     */
+    match /cms_control/settings {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Product catalog data.
+     * @path /products/{productId}
+     * @allow (get/list) Public access for shoppers.
+     * @deny (write) Any modification by non-administrators.
+     * @principle Structural segregation of public resources.
+     */
     match /products/{productId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
 
+    /**
+     * @description Product categories and metadata.
+     * @path /categories/{categoryId}
+     * @allow (get/list) Public access for storefront navigation.
+     * @deny (write) Any modification by non-administrators.
+     * @principle Consistent security posture for homogeneous public collections.
+     */
     match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /sizeCharts/{sizeChartId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /users/{userId} {
-      allow list: if isAdmin();
-      allow get: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
-
-      match /cart/{itemId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-
-      match /wishlist/{productId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-    }
-
-    match /partners/{partnerId} {
-      allow read, write: if isAdmin();
-    }
-
-    match /staff/{staffId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /config/{configId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
   }
 }
