@@ -17,7 +17,8 @@ import {
   Loader2, 
   Ruler, 
   X,
-  Save
+  Save,
+  Tag
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -55,6 +56,9 @@ export default function SizeChartPage() {
   
   const chartsQuery = useMemoFirebase(() => db ? collection(db, 'sizeCharts') : null, [db]);
   const { data: charts, isLoading: loading } = useCollection(chartsQuery);
+
+  const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
+  const { data: categories } = useCollection(categoriesQuery);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -183,24 +187,36 @@ export default function SizeChartPage() {
               </Button>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50 p-6 rounded-none border">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500">Guide Name</Label>
-                    <Input value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500">Unit</Label>
-                    <Select value={unit} onValueChange={(v: any) => setUnit(v)}>
-                      <SelectTrigger className="h-12 bg-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cm" className="text-[10px] font-bold uppercase">Centimeters (cm)</SelectItem>
-                        <SelectItem value="inch" className="text-[10px] font-bold uppercase">Inches (in)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <section className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-gray-50 p-6 rounded-none border">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Guide Name</Label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Unit</Label>
+                  <Select value={unit} onValueChange={(v: any) => setUnit(v)}>
+                    <SelectTrigger className="h-12 bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cm" className="text-[10px] font-bold uppercase">Centimeters (cm)</SelectItem>
+                      <SelectItem value="inch" className="text-[10px] font-bold uppercase">Inches (in)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Assigned Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="h-12 bg-white">
+                      <SelectValue placeholder="Select category..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none" className="text-[10px] font-bold uppercase">Unassigned</SelectItem>
+                      {categories?.map((cat: any) => (
+                        <SelectItem key={cat.id} value={cat.id} className="text-[10px] font-bold uppercase">{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </section>
 
@@ -373,20 +389,27 @@ export default function SizeChartPage() {
                 <TableRow><TableCell colSpan={4} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
               ) : !charts || charts.length === 0 ? (
                 <TableRow><TableCell colSpan={4} className="text-center py-20 text-[10px] font-bold uppercase text-gray-400">No guides created.</TableCell></TableRow>
-              ) : charts?.map((chart: any) => (
-                <TableRow key={chart.id} className="hover:bg-gray-50/30 border-b last:border-0 cursor-pointer group" onClick={() => openEdit(chart)}>
-                  <TableCell className="p-6"><span className="font-bold text-sm uppercase tracking-tight">{chart.name}</span></TableCell>
-                  <TableCell><Badge variant="outline" className="text-[10px] font-bold uppercase bg-black text-white border-none px-2 py-0.5 rounded-none">{chart.unit}</Badge></TableCell>
-                  <TableCell><span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">{chart.category || 'N/A'}</span></TableCell>
-                  <TableCell className="pr-6">
-                    <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" onClick={e => handleDelete(chart.id, e)}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              ) : charts?.map((chart: any) => {
+                const categoryName = categories?.find(c => c.id === chart.category)?.name || chart.category || 'N/A';
+                return (
+                  <TableRow key={chart.id} className="hover:bg-gray-50/30 border-b last:border-0 cursor-pointer group" onClick={() => openEdit(chart)}>
+                    <TableCell className="p-6"><span className="font-bold text-sm uppercase tracking-tight">{chart.name}</span></TableCell>
+                    <TableCell><Badge variant="outline" className="text-[10px] font-bold uppercase bg-black text-white border-none px-2 py-0.5 rounded-none">{chart.unit}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-gray-400 tracking-widest">
+                        <Tag className="h-3 w-3" /> {categoryName}
+                      </div>
+                    </TableCell>
+                    <TableCell className="pr-6">
+                      <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" onClick={e => handleDelete(chart.id, e)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -395,20 +418,25 @@ export default function SizeChartPage() {
             <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-300" /></div>
           ) : !charts || charts.length === 0 ? (
             <div className="py-20 text-center text-gray-400 uppercase text-[10px] font-bold tracking-widest">Empty manifest.</div>
-          ) : charts?.map((chart: any) => (
-            <div key={chart.id} onClick={() => openEdit(chart)} className="p-4 bg-white flex justify-between items-center hover:bg-gray-50 transition-colors">
-              <div className="space-y-1">
-                <p className="font-bold text-xs uppercase tracking-tight">{chart.name}</p>
-                <div className="flex gap-2">
-                  <Badge variant="outline" className="text-[7px] font-bold uppercase border-none bg-black text-white px-1.5">{chart.unit}</Badge>
-                  <span className="text-[8px] font-bold text-gray-400 uppercase">{chart.category || 'NO TAG'}</span>
+          ) : charts?.map((chart: any) => {
+            const categoryName = categories?.find(c => c.id === chart.category)?.name || chart.category || 'NO TAG';
+            return (
+              <div key={chart.id} onClick={() => openEdit(chart)} className="p-4 bg-white flex justify-between items-center hover:bg-gray-50 transition-colors">
+                <div className="space-y-1">
+                  <p className="font-bold text-xs uppercase tracking-tight">{chart.name}</p>
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="text-[7px] font-bold uppercase border-none bg-black text-white px-1.5">{chart.unit}</Badge>
+                    <span className="text-[8px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                      <Tag className="h-2 w-2" /> {categoryName}
+                    </span>
+                  </div>
                 </div>
+                <Button variant="ghost" size="icon" onClick={e => handleDelete(chart.id, e)} className="text-red-500">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={e => handleDelete(chart.id, e)} className="text-red-500">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
