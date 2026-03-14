@@ -30,7 +30,8 @@ import {
   Menu as MenuIcon,
   Loader2,
   Volume2,
-  VolumeX
+  VolumeX,
+  Monitor
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -109,6 +110,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 <Link href="/admin">
                   <LayoutDashboard />
                   <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/storefront">
+                  <Monitor />
+                  <span>Storefront</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -457,7 +466,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
       --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
     }
-    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); min-height: 100vh; width: 100%; display: flex; flex-direction: row; overflow-x: hidden; }
+    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); height: 100dvh; width: 100%; display: flex; flex-direction: row; overflow: hidden; }
     .admin-header-height { height: var(--admin-header-h); }
     .admin-sidebar-bg { background-color: white; }
     .font-admin-headline { font-family: var(--admin-font-headline); }
@@ -514,7 +523,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {newOrderDetected && <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border border-white" />}
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
-                <Image src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} alt="Admin" fill className="object-cover" />
+                {user.photoURL && <Image src={user.photoURL} alt="Admin" fill className="object-cover" />}
               </div>
             </div>
           </header>
