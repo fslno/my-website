@@ -201,7 +201,20 @@ export default function CategoriesPage() {
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!db || !confirm("Delete category?")) return;
-    deleteDoc(doc(db, 'categories', id)).then(() => { toast({ title: "Deleted", description: "Category removed." }); });
+    
+    const categoryRef = doc(db, 'categories', id);
+    
+    deleteDoc(categoryRef)
+      .then(() => { 
+        toast({ title: "Deleted", description: "Category removed." }); 
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: `categories/${id}`,
+          operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
   const resetForm = () => { 
