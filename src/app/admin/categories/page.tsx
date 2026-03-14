@@ -90,6 +90,13 @@ export default function CategoriesPage() {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
 
+  // Fetch products assigned to this category
+  const assignedProductsQuery = useMemoFirebase(() => 
+    db && editingId ? query(collection(db, 'products'), where('categoryId', '==', editingId)) : null, 
+    [db, editingId]
+  );
+  const { data: assignedProducts, isLoading: productsLoading } = useCollection(assignedProductsQuery);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -131,7 +138,7 @@ export default function CategoriesPage() {
       addDoc(collection(db, 'categories'), newData)
         .then((docRef) => { 
           setEditingId(docRef.id);
-          toast({ title: "Created", description: `${name} created.` }); 
+          toast({ title: "Created", description: "Category created." }); 
         })
         .catch((error) => { 
           errorEmitter.emit('permission-error', new FirestorePermissionError({ 
@@ -211,7 +218,11 @@ export default function CategoriesPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
               <div className="px-4 sm:px-6 border-b bg-gray-50/50 shrink-0">
                 <TabsList className="bg-transparent h-auto p-1 flex flex-wrap gap-2 sm:gap-8 justify-start">
-                  {[{ id: 'general', label: '01. Info', icon: LayoutGrid }, { id: 'seo', label: '02. Preview', icon: Globe }].map((tab) => (
+                  {[
+                    { id: 'general', label: '01. Info', icon: LayoutGrid }, 
+                    { id: 'seo', label: '02. SEO', icon: Globe },
+                    { id: 'products', label: '03. Products', icon: ShoppingBag }
+                  ].map((tab) => (
                     <TabsTrigger key={tab.id} value={tab.id} className="flex-grow sm:flex-grow-0 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-12 gap-2 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">
                       <tab.icon className="h-3.5 w-3.5" /> {tab.label}
                     </TabsTrigger>
@@ -267,6 +278,48 @@ export default function CategoriesPage() {
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-gray-500">SEO Description</Label>
                       <Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder={description} className="min-h-[120px]" />
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="products" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Assigned Inventory</h3>
+                      <Badge variant="outline" className="bg-black text-white text-[9px] font-bold px-2 py-0.5 border-none">
+                        {assignedProducts?.length || 0} ITEMS
+                      </Badge>
+                    </div>
+                    <div className="border rounded-none overflow-hidden bg-white shadow-sm">
+                      <Table>
+                        <TableHeader className="bg-gray-50/50">
+                          <TableRow className="border-black/5">
+                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">Product</TableHead>
+                            <TableHead className="text-[10px] font-bold uppercase tracking-widest">SKU</TableHead>
+                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">Price</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {productsLoading ? (
+                            <TableRow>
+                              <TableCell colSpan={3} className="text-center py-10">
+                                <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-300" />
+                              </TableCell>
+                            </TableRow>
+                          ) : !assignedProducts || assignedProducts.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={3} className="text-center py-10 text-[9px] font-bold text-gray-400 uppercase">
+                                No products assigned to this category.
+                              </TableCell>
+                            </TableRow>
+                          ) : assignedProducts.map((p: any) => (
+                            <TableRow key={p.id} className="border-black/5">
+                              <TableCell className="text-xs font-bold uppercase">{p.name}</TableCell>
+                              <TableCell className="text-[10px] font-mono text-gray-400 uppercase">{p.sku || 'N/A'}</TableCell>
+                              <TableCell className="text-right text-xs font-bold">C${p.price?.toFixed(2)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 </TabsContent>
