@@ -138,6 +138,7 @@ export default function CollectionPage(props: {
                     name={product.name}
                     price={`C$${formatCurrency(Number(product.price))}`}
                     image={product.media?.[0]?.url || ''}
+                    hoverImage={product.media?.[1]?.url}
                     category={productCategory}
                     rating={avgRating}
                     reviewCount={reviewCount}

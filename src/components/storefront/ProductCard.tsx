@@ -11,23 +11,37 @@ interface ProductCardProps {
   name: string;
   price: string; // Already formatted string from parent
   image: string;
+  hoverImage?: string;
   category: string;
   rating?: number;
   reviewCount?: number;
   isSoldOut?: boolean;
 }
 
-export function ProductCard({ id, name, price, image, category, rating, reviewCount, isSoldOut }: ProductCardProps) {
+export function ProductCard({ id, name, price, image, hoverImage, category, rating, reviewCount, isSoldOut }: ProductCardProps) {
   return (
     <div className="group flex flex-col gap-3 product-text-align">
       <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
         {image ? (
-          <Image
-            src={image}
-            alt={name}
-            fill
-            className="object-cover"
-          />
+          <>
+            <Image
+              src={image}
+              alt={name}
+              fill
+              className={cn(
+                "object-cover transition-opacity duration-500",
+                hoverImage ? "group-hover:opacity-0" : ""
+              )}
+            />
+            {hoverImage && (
+              <Image
+                src={hoverImage}
+                alt={`${name} alternative view`}
+                fill
+                className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              />
+            )}
+          </>
         ) : (
           <div className="absolute inset-0 bg-gray-200" />
         )}

@@ -201,6 +201,7 @@ export default function Home() {
                     name={product.name}
                     price={`C$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     image={product.media?.[0]?.url || ''}
+                    hoverImage={product.media?.[1]?.url}
                     category={productCategory}
                     rating={avgRating}
                     reviewCount={reviewCount}
