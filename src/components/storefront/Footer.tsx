@@ -5,7 +5,20 @@ import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import Image from 'next/image';
-import { Mail, ArrowRight, Loader2, CheckCircle2, ExternalLink } from 'lucide-react';
+import { 
+  Mail, 
+  ArrowRight, 
+  Loader2, 
+  CheckCircle2, 
+  ExternalLink, 
+  Instagram, 
+  Twitter, 
+  Facebook, 
+  Youtube, 
+  Linkedin, 
+  Music, 
+  Globe 
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -83,27 +96,41 @@ export function Footer() {
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap gap-x-8 gap-y-4">
+            <div className="flex flex-wrap gap-6">
               {config?.instagramUrl && (
-                <a href={config.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">Instagram</a>
+                <a href={config.instagramUrl} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity" aria-label="Instagram">
+                  <Instagram className="h-5 w-5" />
+                </a>
               )}
               {config?.tiktokUrl && (
-                <a href={config.tiktokUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">TikTok</a>
+                <a href={config.tiktokUrl} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity" aria-label="TikTok">
+                  <Music className="h-5 w-5" />
+                </a>
               )}
               {config?.twitterUrl && (
-                <a href={config.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">Twitter</a>
+                <a href={config.twitterUrl} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity" aria-label="Twitter">
+                  <Twitter className="h-5 w-5" />
+                </a>
               )}
               {config?.facebookUrl && (
-                <a href={config.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">Facebook</a>
+                <a href={config.facebookUrl} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity" aria-label="Facebook">
+                  <Facebook className="h-5 w-5" />
+                </a>
               )}
               {config?.pinterestUrl && (
-                <a href={config.pinterestUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">Pinterest</a>
+                <a href={config.pinterestUrl} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity" aria-label="Pinterest">
+                  <Globe className="h-5 w-5" />
+                </a>
               )}
               {config?.youtubeUrl && (
-                <a href={config.youtubeUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">YouTube</a>
+                <a href={config.youtubeUrl} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity" aria-label="YouTube">
+                  <Youtube className="h-5 w-5" />
+                </a>
               )}
               {config?.linkedinUrl && (
-                <a href={config.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-bold border-b border-primary-foreground/30 hover:border-primary-foreground transition-all pb-1">LinkedIn</a>
+                <a href={config.linkedinUrl} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 transition-opacity" aria-label="LinkedIn">
+                  <Linkedin className="h-5 w-5" />
+                </a>
               )}
             </div>
           </div>
