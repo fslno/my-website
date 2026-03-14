@@ -21,7 +21,8 @@ import {
   Smartphone,
   Eye,
   Settings2,
-  Layout
+  Layout,
+  CheckCircle2
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
@@ -261,7 +262,7 @@ export default function StorefrontAdminPage() {
                         </div>
                       </div>
                       <Button variant="ghost" size="sm" asChild className="text-[9px] font-bold uppercase tracking-widest hover:underline h-8">
-                        <a href="/admin/categories">Edit Metadata <ArrowRight className="ml-2 h-3 w-3" /></a>
+                        <Link href="/admin/categories">Edit Metadata <ArrowRight className="ml-2 h-3 w-3" /></Link>
                       </Button>
                     </div>
                   ))}
