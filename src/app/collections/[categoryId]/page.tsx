@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use } from 'react';
+import React, { use, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
@@ -43,6 +43,23 @@ export default function CollectionPage(props: {
   }, [db, categoryId]);
 
   const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+
+  // Fetch reviews for rating aggregation
+  const reviewsQuery = useMemoFirebase(() => db ? collection(db, 'reviews') : null, [db]);
+  const { data: allReviews } = useCollection(reviewsQuery);
+
+  const productRatings = useMemo(() => {
+    const map: Record<string, { sum: number, count: number }> = {};
+    if (!allReviews) return map;
+    
+    allReviews.forEach(r => {
+      if (!r.published) return;
+      if (!map[r.productId]) map[r.productId] = { sum: 0, count: 0 };
+      map[r.productId].sum += (r.rating || 0);
+      map[r.productId].count += 1;
+    });
+    return map;
+  }, [allReviews]);
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString(undefined, { 
@@ -104,6 +121,10 @@ export default function CollectionPage(props: {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
               {products.map((product: any) => {
                 const productCategory = category?.name || allCategories?.find(c => c.id === product.categoryId)?.name || 'Archive';
+                const ratingInfo = productRatings[product.id];
+                const avgRating = ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
+                const reviewCount = ratingInfo ? ratingInfo.count : 0;
+
                 return (
                   <ProductCard 
                     key={product.id} 
@@ -112,6 +133,8 @@ export default function CollectionPage(props: {
                     price={`$${formatCurrency(Number(product.price))} CAD`}
                     image={product.media?.[0]?.url || ''}
                     category={productCategory}
+                    rating={avgRating}
+                    reviewCount={reviewCount}
                   />
                 );
               })}

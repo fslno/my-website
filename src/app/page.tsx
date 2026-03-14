@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
@@ -35,6 +35,27 @@ export default function Home() {
   }, [db]);
 
   const { data: featuredProducts, isLoading: productsLoading } = useCollection(featuredQuery);
+
+  // Fetch all reviews for global rating aggregation (Zero-Error simple query)
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'reviews'));
+  }, [db]);
+
+  const { data: allReviews } = useCollection(reviewsQuery);
+
+  const productRatings = useMemo(() => {
+    const map: Record<string, { sum: number, count: number }> = {};
+    if (!allReviews) return map;
+    
+    allReviews.forEach(r => {
+      if (!r.published) return;
+      if (!map[r.productId]) map[r.productId] = { sum: 0, count: 0 };
+      map[r.productId].sum += (r.rating || 0);
+      map[r.productId].count += 1;
+    });
+    return map;
+  }, [allReviews]);
 
   // Fetch theme for layout decisions
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
@@ -165,6 +186,10 @@ export default function Home() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
               {featuredProducts.map((product: any) => {
                 const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
+                const ratingInfo = productRatings[product.id];
+                const avgRating = ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
+                const reviewCount = ratingInfo ? ratingInfo.count : 0;
+
                 return (
                   <ProductCard 
                     key={product.id} 
@@ -173,6 +198,8 @@ export default function Home() {
                     price={`$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD`}
                     image={product.media?.[0]?.url || ''}
                     category={productCategory}
+                    rating={avgRating}
+                    reviewCount={reviewCount}
                   />
                 );
               })}

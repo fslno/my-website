@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, use, useEffect } from 'react';
@@ -7,8 +6,9 @@ import {
   useFirestore, 
   useDoc, 
   useMemoFirebase,
+  useCollection
 } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, collection, query, orderBy } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
@@ -24,7 +24,8 @@ import {
   ChevronLeft,
   Loader2,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Star
 } from 'lucide-react';
 import {
   Sheet,
@@ -90,6 +91,22 @@ export default function ProductDetailPage(props: {
     [db, category?.sizeChartId]
   );
   const { data: sizeChart } = useDoc(sizeChartRef);
+
+  // Fetch Reviews for Rating Aggregation
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
+  }, [db]);
+
+  const { data: allReviews } = useCollection(reviewsQuery);
+
+  const ratingStats = useMemo(() => {
+    if (!allReviews || !productId) return { avg: 0, count: 0 };
+    const pReviews = allReviews.filter(r => r.productId === productId && r.published === true);
+    if (pReviews.length === 0) return { avg: 0, count: 0 };
+    const sum = pReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    return { avg: sum / pReviews.length, count: pReviews.length };
+  }, [allReviews, productId]);
 
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
@@ -340,7 +357,25 @@ export default function ProductDetailPage(props: {
           <div className="space-y-6">
             <div className="space-y-1">
               <h1 className="text-2xl font-headline font-bold tracking-tight text-primary">{product.name}</h1>
-              <div className="flex items-center gap-4">
+              
+              {ratingStats.count > 0 && (
+                <div className="flex items-center gap-2 mt-1 mb-2 animate-in fade-in duration-500">
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star 
+                        key={s} 
+                        className={cn(
+                          "h-3 w-3", 
+                          s <= Math.round(ratingStats.avg) ? "fill-primary text-primary" : "text-gray-200"
+                        )} 
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">({ratingStats.count} Reviews)</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-4 pt-2">
                 <p className="text-lg font-bold text-primary">${formatCurrency(totalPrice)} CAD</p>
               </div>
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
