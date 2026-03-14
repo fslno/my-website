@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useRef } from 'react';
@@ -28,7 +27,8 @@ import {
   Plus,
   Upload,
   Search,
-  X
+  X,
+  Save
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -420,7 +420,7 @@ export default function AdminReviewsPage() {
                 <div className="flex gap-4">
                   {review.imageUrl && (
                     <div className="w-16 h-20 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm">
-                      <Image src={review.imageUrl} alt="Review" fill className="object-cover" />
+                      <Image src={review.imageUrl} alt="Reviewer photo" fill className="object-cover" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
