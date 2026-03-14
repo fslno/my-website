@@ -278,9 +278,8 @@ export default function AdminDashboard() {
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('en-US', { 
-      style: 'currency', 
-      currency: 'USD',
-      minimumFractionDigits: 2 
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
   };
 
@@ -387,19 +386,19 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatsCard 
           title="Total Sales" 
-          value={formatCurrency(stats.revenue)} 
+          value={`C$${formatCurrency(stats.revenue)}`} 
           trend="Confirmed" 
           icon={<DollarSign className="h-4 w-4 text-green-600" />} 
         />
         <StatsCard 
           title="Total Tax" 
-          value={formatCurrency(stats.tax)} 
+          value={`C$${formatCurrency(stats.tax)}`} 
           trend="Detailed" 
           icon={<Receipt className="h-4 w-4 text-blue-600" />} 
         />
         <StatsCard 
           title="Processing Fees" 
-          value={formatCurrency(stats.fees)} 
+          value={`C$${formatCurrency(stats.fees)}`} 
           trend="Estimate" 
           icon={<CreditCard className="h-4 w-4 text-red-600" />} 
         />
@@ -475,7 +474,7 @@ export default function AdminDashboard() {
                       <span className="text-[10px] font-bold uppercase text-[#5c5f62] truncate">{order.customer?.name || order.email}</span>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="text-[11px] font-bold">{formatCurrency(order.total)}</span>
+                      <span className="text-[11px] font-bold">C$${formatCurrency(order.total)}</span>
                       {getStatusBadge(order.status || 'Pending')}
                     </div>
                   </Link>

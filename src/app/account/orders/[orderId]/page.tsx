@@ -229,12 +229,12 @@ export default function OrderDetailPage({
                 <CardContent className="p-6 space-y-3">
                   <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
                     <span>Subtotal</span>
-                    <span className="text-primary">C$${formatCurrency(order.subtotal)}</span>
+                    <span className="text-primary">C${formatCurrency(order.subtotal)}</span>
                   </div>
                   {order.discountTotal > 0 && (
                     <div className="flex justify-between text-[10px] font-bold text-red-600 uppercase">
                       <span>Discounts</span>
-                      <span>-C$${formatCurrency(order.discountTotal)}</span>
+                      <span>-C${formatCurrency(order.discountTotal)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
@@ -243,12 +243,12 @@ export default function OrderDetailPage({
                   </div>
                   <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
                     <span>Tax</span>
-                    <span className="text-primary">C$${formatCurrency(order.tax)}</span>
+                    <span className="text-primary">C${formatCurrency(order.tax)}</span>
                   </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between items-end pt-2">
                     <span className="text-[12px] font-bold uppercase tracking-widest">Grand Total</span>
-                    <span className="text-xl font-bold font-headline">C$${formatCurrency(order.total)}</span>
+                    <span className="text-xl font-bold font-headline">C${formatCurrency(order.total)}</span>
                   </div>
                 </CardContent>
               </Card>

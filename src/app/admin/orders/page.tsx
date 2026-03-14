@@ -191,7 +191,7 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">
-              C$${formatCurrency(stats.revenue)}
+              C${formatCurrency(stats.revenue)}
             </div>
             <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Gross Archive Revenue</p>
           </CardContent>
@@ -337,7 +337,7 @@ export default function OrdersPage() {
                       <div className="flex flex-col items-end gap-1.5">
                         {getPaymentStatusBadge(order.paymentStatus || 'pending')}
                         <div className="font-bold text-sm text-primary tracking-tight">
-                          C$${formatCurrency(Number(order.total)||0)}
+                          C${formatCurrency(Number(order.total)||0)}
                         </div>
                       </div>
                     </TableCell>
@@ -386,7 +386,7 @@ export default function OrdersPage() {
                   </div>
                 </div>
                 <div className="text-right space-y-1">
-                  <div className="text-sm font-bold text-primary">C$${formatCurrency(Number(order.total) || 0)}</div>
+                  <div className="text-sm font-bold text-primary">C${formatCurrency(Number(order.total) || 0)}</div>
                   {getPaymentStatusBadge(order.paymentStatus || 'pending')}
                 </div>
               </div>
