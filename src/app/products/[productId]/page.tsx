@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, use, useEffect } from 'react';
@@ -77,6 +78,10 @@ export default function ProductDetailPage(props: {
   );
   
   const { data: product, isLoading: loading } = useDoc(productRef);
+
+  // Global Review Config
+  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
+  const { data: reviewConfig } = useDoc(reviewConfigRef);
 
   // Fetch Category to get Size Guide ID
   const categoryRef = useMemoFirebase(() => 
@@ -266,6 +271,7 @@ export default function ProductDetailPage(props: {
   }
 
   const media = product.media || [];
+  const reviewsEnabled = reviewConfig?.enabled !== false;
 
   return (
     <main className="min-h-screen bg-white">
@@ -358,7 +364,7 @@ export default function ProductDetailPage(props: {
             <div className="space-y-1">
               <h1 className="text-2xl font-headline font-bold tracking-tight text-primary">{product.name}</h1>
               
-              {ratingStats.count > 0 && (
+              {(reviewsEnabled && ratingStats.count > 0) && (
                 <div className="flex items-center gap-2 mt-1 mb-2 animate-in fade-in duration-500">
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((s) => (

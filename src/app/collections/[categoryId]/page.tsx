@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { use, useMemo } from 'react';
@@ -20,6 +21,10 @@ export default function CollectionPage(props: {
   use(props.searchParams);
   
   const db = useFirestore();
+
+  // Global Review Config
+  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
+  const { data: reviewConfig } = useDoc(reviewConfigRef);
 
   // Fetch Category Details - skip if 'all'
   const categoryRef = useMemoFirebase(() => 
@@ -69,6 +74,7 @@ export default function CollectionPage(props: {
   };
 
   const isLoading = (categoryId !== 'all' && categoryLoading) || productsLoading;
+  const reviewsEnabled = reviewConfig?.enabled !== false;
 
   if (isLoading) {
     return (
@@ -122,8 +128,8 @@ export default function CollectionPage(props: {
               {products.map((product: any) => {
                 const productCategory = category?.name || allCategories?.find(c => c.id === product.categoryId)?.name || 'Archive';
                 const ratingInfo = productRatings[product.id];
-                const avgRating = ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
-                const reviewCount = ratingInfo ? ratingInfo.count : 0;
+                const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
+                const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
 
                 return (
                   <ProductCard 

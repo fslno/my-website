@@ -2,8 +2,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { 
   Table, 
   TableBody, 
@@ -21,11 +21,16 @@ import {
   EyeOff, 
   Loader2, 
   MessageSquare,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Settings2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 
 export default function AdminReviewsPage() {
   const db = useFirestore();
@@ -36,13 +41,27 @@ export default function AdminReviewsPage() {
     return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
   }, [user]);
 
+  const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
+  const { data: config, isLoading: configLoading } = useDoc(configRef);
+
   // Zero-Error Listing Protocol: Use a simple query to ensure high-fidelity data ingestion.
   const reviewsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
   }, [db, isAdmin]);
 
-  const { data: reviews, isLoading } = useCollection(reviewsQuery);
+  const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
+
+  const handleToggleGlobal = async (enabled: boolean) => {
+    if (!configRef) return;
+    setDoc(configRef, { enabled, updatedAt: serverTimestamp() }, { merge: true })
+      .then(() => {
+        toast({
+          title: enabled ? "System Enabled" : "System Disabled",
+          description: `Product review manifest has been Authoritatively updated.`,
+        });
+      });
+  };
 
   const handleTogglePublish = async (review: any) => {
     if (!db) return;
@@ -69,7 +88,7 @@ export default function AdminReviewsPage() {
     });
   };
 
-  if (isLoading) {
+  if (reviewsLoading || configLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -79,10 +98,39 @@ export default function AdminReviewsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Review Moderation</h1>
-        <p className="text-[#5c5f62] mt-1 text-sm uppercase font-medium tracking-tight">Manage archival feedback and curated testimonials.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Review Moderation</h1>
+          <p className="text-[#5c5f62] mt-1 text-sm uppercase font-medium tracking-tight">Manage archival feedback and curated testimonials.</p>
+        </div>
       </div>
+
+      {/* Global Configuration Card */}
+      <Card className={cn("border-[#e1e3e5] shadow-none rounded-none transition-all duration-500", config?.enabled ? 'bg-white' : 'bg-gray-50/50')}>
+        <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30 p-4 sm:p-6">
+          <div className="space-y-1">
+            <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+              <Settings2 className="h-3.5 w-3.5" /> Global Review System
+            </CardTitle>
+            <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Enable or decommission the entire storefront review manifest.</CardDescription>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className={cn("w-1.5 h-1.5 rounded-full", config?.enabled ? "bg-green-500 animate-pulse" : "bg-gray-300")} />
+              <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">{config?.enabled ? "Active" : "Offline"}</span>
+            </div>
+            <Switch checked={config?.enabled ?? true} onCheckedChange={handleToggleGlobal} />
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 px-4 sm:px-6">
+          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-none">
+            <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+            <p className="text-[10px] text-blue-800 uppercase font-medium leading-relaxed">
+              When disabled, the review form and all rating stars are strictly hidden from the storefront viewport to maintain editorial control.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="bg-white border rounded-none overflow-hidden shadow-sm">
         <Table>

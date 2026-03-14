@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -291,6 +292,13 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["customerName", "rating", "quote", "isFeatured"]
+    },
+    "ReviewConfig": {
+      "title": "ReviewConfig",
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
     }
   },
   "auth": {
@@ -352,6 +360,15 @@
           "entityName": "ShippingConfig",
           "schema": {
             "$ref": "#/backend/entities/ShippingConfig"
+          }
+        }
+      },
+      {
+        "path": "/config/reviews",
+        "definition": {
+          "entityName": "ReviewConfig",
+          "schema": {
+            "$ref": "#/backend/entities/ReviewConfig"
           }
         }
       },

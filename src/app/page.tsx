@@ -1,7 +1,8 @@
+
 'use client';
 
 import React, { useEffect, useMemo } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
@@ -37,6 +38,10 @@ export default function Home() {
 
   const { data: featuredProducts, isLoading: productsLoading } = useCollection(featuredQuery);
 
+  // Global Review Config
+  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
+  const { data: reviewConfig } = useDoc(reviewConfigRef);
+
   // Fetch all reviews for global rating aggregation (Zero-Error simple query)
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -63,6 +68,7 @@ export default function Home() {
   const { data: theme } = useDoc(themeRef);
 
   const isHeroLoading = categoriesLoading;
+  const reviewsEnabled = reviewConfig?.enabled !== false;
 
   const heroImageSrc = theme?.heroImageUrl || categories?.[0]?.imageUrl || "";
 
@@ -188,8 +194,8 @@ export default function Home() {
               {featuredProducts.map((product: any) => {
                 const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
                 const ratingInfo = productRatings[product.id];
-                const avgRating = ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
-                const reviewCount = ratingInfo ? ratingInfo.count : 0;
+                const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
+                const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
 
                 return (
                   <ProductCard 

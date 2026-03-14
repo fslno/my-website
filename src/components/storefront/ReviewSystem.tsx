@@ -1,7 +1,8 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, addDoc, query, orderBy, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useStorage } from '@/firebase/provider';
@@ -30,6 +31,10 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isAdmin = user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+
+  // Global Review Config
+  const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
+  const { data: config } = useDoc(configRef);
 
   // Zero-Error Listing Protocol: Use a simple query to avoid permission and index exceptions.
   const reviewsQuery = useMemoFirebase(() => {
@@ -108,6 +113,9 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
       toast({ title: "Deleted", description: "Review removed from the archive." });
     });
   };
+
+  // Authoritative Guard: strictly do not render if reviews are globally disabled
+  if (config && config.enabled === false) return null;
 
   return (
     <div className="space-y-16 py-12 border-t w-full">
