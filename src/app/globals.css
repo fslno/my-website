@@ -68,6 +68,32 @@
   100% { transform: translateY(0); }
 }
 
+/* HIGH-FIDELITY SLOW MOTION PROTOCOLS */
+@keyframes slow-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.1), 0 0 0 rgba(0,0,0,0); }
+  50% { box-shadow: 0 0 30px rgba(0,0,0,0.2), 0 0 10px rgba(0,0,0,0.1); }
+}
+
+@keyframes slow-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes slow-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slow-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(10px); }
+}
+
+@keyframes slow-expand {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
 @media (max-width: 1024px) {
   .bento-grid {
     grid-template-columns: repeat(2, 1fr);

@@ -616,7 +616,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Animation</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Animation Effect</Label>
                     <Select value={chatbotEffect} onValueChange={setChatbotEffect}>
                       <SelectTrigger className="h-11">
                         <SelectValue />
@@ -625,6 +625,11 @@ export default function SettingsPage() {
                         <SelectItem value="pulsate" className="text-[10px] font-bold uppercase">Pulsate</SelectItem>
                         <SelectItem value="breathe" className="text-[10px] font-bold uppercase">Breathe</SelectItem>
                         <SelectItem value="bounce" className="text-[10px] font-bold uppercase">Bounce</SelectItem>
+                        <SelectItem value="glow" className="text-[10px] font-bold uppercase">Glow (Slow Mo)</SelectItem>
+                        <SelectItem value="float" className="text-[10px] font-bold uppercase">Float (Slow Mo)</SelectItem>
+                        <SelectItem value="orbit" className="text-[10px] font-bold uppercase">Orbit (Slow Mo)</SelectItem>
+                        <SelectItem value="drift" className="text-[10px] font-bold uppercase">Drift (Slow Mo)</SelectItem>
+                        <SelectItem value="expand" className="text-[10px] font-bold uppercase">Expand (Slow Mo)</SelectItem>
                         <SelectItem value="none" className="text-[10px] font-bold uppercase">None</SelectItem>
                       </SelectContent>
                     </Select>

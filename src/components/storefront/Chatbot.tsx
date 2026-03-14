@@ -107,6 +107,11 @@ export function Chatbot() {
       case 'pulsate': return 'animate-[pulsate_2s_infinite]';
       case 'bounce': return 'animate-bounce';
       case 'breathe': return 'animate-pulse';
+      case 'glow': return 'animate-[slow-glow_4s_infinite]';
+      case 'float': return 'animate-[slow-float_6s_infinite]';
+      case 'orbit': return 'animate-[slow-orbit_12s_linear_infinite]';
+      case 'drift': return 'animate-[slow-drift_8s_infinite]';
+      case 'expand': return 'animate-[slow-expand_5s_infinite]';
       default: return '';
     }
   };
