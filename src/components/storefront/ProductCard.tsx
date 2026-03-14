@@ -34,7 +34,7 @@ export function ProductCard({ id, name, price, image, category, rating, reviewCo
         
         {isSoldOut && (
           <div className="absolute top-0 right-0 z-10 p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
-            <span className="bg-black text-white text-[8px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl">
+            <span className="bg-red-600 text-white text-[8px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl">
               Sold Out
             </span>
           </div>
@@ -54,12 +54,6 @@ export function ProductCard({ id, name, price, image, category, rating, reviewCo
         >
           {name}
         </Link>
-        
-        {isSoldOut && (
-          <p className="text-[9px] font-bold text-red-600 uppercase tracking-widest mt-0.5">
-            Sold Out
-          </p>
-        )}
         
         {reviewCount && reviewCount > 0 ? (
           <div className="flex items-center gap-1.5 mt-0.5">
