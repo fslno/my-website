@@ -54,7 +54,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { doc, collection, query, where, onSnapshot, limit } from 'firebase/firestore';
+import { doc, collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
 function AppSidebar({ storeConfig }: { storeConfig: any }) {
