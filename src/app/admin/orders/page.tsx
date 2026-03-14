@@ -281,16 +281,16 @@ export default function OrdersPage() {
           </Select>
         </div>
 
-        {/* Desktop Table View */}
+        {/* Desktop Table View - Now showing all forensic details */}
         <div className="hidden lg:block">
           <Table>
             <TableHeader className="bg-[#f6f6f7]">
               <TableRow className="border-[#e1e3e5]">
-                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] py-4">Items</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Order ID</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Customer</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Status</TableHead>
-                <TableHead className="text-right text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Total</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] py-4 w-[35%]">Archival Selection (Manifest)</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Transaction ID</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Participant</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Fulfillment</TableHead>
+                <TableHead className="text-right text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Financials</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -316,56 +316,90 @@ export default function OrdersPage() {
                     className="cursor-pointer hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group"
                     onClick={() => router.push(`/admin/orders/${order.id}`)}
                   >
-                    <TableCell>
-                      <div className="flex gap-2 items-center">
-                        {(order.items || []).slice(0,3).map((item:any,i:number)=>(
-                          <div key={i} className="w-10 h-12 relative bg-gray-100 rounded-sm overflow-hidden border shadow-sm">
-                            {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
-                          </div>
-                        ))}
-                        {totalUnits > 3 && (
-                          <div className="w-8 h-8 rounded-full bg-gray-50 border flex items-center justify-center text-[9px] font-bold text-gray-400">
-                            +{totalUnits - 3}
+                    <TableCell className="align-top py-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-black text-white text-[8px] font-bold px-1.5 h-4 border-none">{totalUnits} PIECES</Badge>
+                          {order.note && <Badge className="bg-amber-50 text-amber-700 border-none text-[8px] font-bold uppercase"><MessageSquare className="h-2 w-2 mr-1" /> NOTE</Badge>}
+                        </div>
+                        <div className="space-y-3">
+                          {order.items?.map((item: any, i: number) => (
+                            <div key={i} className="flex gap-3">
+                              <div className="w-10 h-14 bg-gray-100 rounded-none border overflow-hidden shrink-0 relative">
+                                {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-[10px] font-bold uppercase truncate">{item.name}</p>
+                                <p className="text-[9px] text-gray-400 uppercase font-bold">SIZE: {item.size} • QTY: {item.quantity}</p>
+                                {(item.customName || item.customNumber || item.specialNote) && (
+                                  <div className="mt-1 pl-2 border-l-2 border-blue-100 space-y-0.5">
+                                    {(item.customName || item.customNumber) && (
+                                      <p className="text-[8px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                                        <Sparkles className="h-2 w-2" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                      </p>
+                                    )}
+                                    {item.specialNote && (
+                                      <p className="text-[8px] text-gray-400 italic">"{item.specialNote}"</p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {order.note && (
+                          <div className="p-2 bg-amber-50/50 border border-amber-100 rounded-none text-[9px] font-medium italic text-amber-900 leading-tight uppercase">
+                            "{order.note}"
                           </div>
                         )}
-                        <div className="ml-2">
-                          <div className="text-[9px] font-bold uppercase text-gray-400">
-                            {totalUnits} Units
-                          </div>
-                          <div className="text-[10px] font-bold uppercase line-clamp-1 max-w-[120px]">
-                            {order.items?.[0]?.name}
-                          </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="align-top py-6">
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-mono font-bold text-primary uppercase">
+                          #{order.id.substring(0, 8).toUpperCase()}
+                        </div>
+                        <div className="text-[9px] text-gray-400 uppercase font-bold flex items-center gap-1.5">
+                          <Clock className="h-2.5 w-2.5" /> {formatDate(order.createdAt)}
+                        </div>
+                        <div className="text-[9px] text-gray-400 uppercase font-bold flex items-center gap-1.5 pt-1">
+                          {order.deliveryMethod === 'shipping' ? <Truck className="h-2.5 w-2.5" /> : <MapPin className="h-2.5 w-2.5" />}
+                          {order.deliveryMethod?.toUpperCase()} {order.courier ? `• ${order.courier.toUpperCase()}` : ''}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="text-[10px] font-mono font-bold text-primary">
-                        #{order.id.substring(0,6).toUpperCase()}
-                      </div>
-                      <div className="text-[9px] text-gray-400 uppercase font-bold mt-0.5">
-                        {formatDate(order.createdAt)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-xs font-bold uppercase tracking-tight text-primary">
-                        {order.customer?.name || 'Guest Customer'}
-                      </div>
-                      <div className="text-[9px] text-gray-400 flex gap-1.5 items-center font-mono mt-0.5">
-                        <Phone className="h-2.5 w-2.5"/> {order.customer?.phone || 'NO-PHONE'}
+                    <TableCell className="align-top py-6">
+                      <div className="space-y-1">
+                        <div className="text-xs font-bold uppercase tracking-tight text-primary">
+                          {order.customer?.name || 'Guest Customer'}
+                        </div>
+                        <div className="text-[9px] text-gray-400 flex gap-1.5 items-center lowercase font-medium">
+                          <Mail className="h-2.5 w-2.5"/> {order.email}
+                        </div>
+                        <div className="text-[9px] text-gray-400 flex gap-1.5 items-center font-mono mt-0.5">
+                          <Phone className="h-2.5 w-2.5"/> {order.customer?.phone || 'NO-PHONE'}
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {getStatusBadge(order.status)}
+                    <TableCell className="align-top py-6">
+                      <div className="space-y-2">
+                        {getStatusBadge(order.status)}
+                        {order.trackingNumber && (
+                          <div className="text-[8px] font-mono font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-none border border-blue-100 w-fit">
+                            ID: {order.trackingNumber}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-col items-end gap-1.5">
-                        {getPaymentStatusBadge(order.paymentStatus || 'pending')}
-                        <div className="font-bold text-sm text-primary tracking-tight">
+                    <TableCell className="text-right align-top py-6">
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="font-bold text-base text-primary tracking-tighter">
                           {`C$${formatCurrency(Number(order.total)||0)}`}
                         </div>
+                        {getPaymentStatusBadge(order.paymentStatus || 'pending')}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="align-top py-6">
                       <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-primary transition-colors"/>
                     </TableCell>
                   </TableRow>
@@ -439,7 +473,7 @@ export default function OrdersPage() {
                 ))}
               </div>
 
-              {/* Forensic Details Manifest (Mobile Card Expansion) */}
+              {/* Forensic Details Manifest */}
               <div className="flex flex-col gap-2 border-t pt-3">
                 <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
                   <Mail className="h-3 w-3" /> {order.email}
@@ -455,7 +489,7 @@ export default function OrdersPage() {
 
               {/* Special Request Prompt */}
               {order.note && (
-                <div className="p-3 bg-amber-50 border border-amber-100 mt-2 rounded-sm">
+                <div className="p-3 bg-amber-50 border border-amber-100 mt-2 rounded-none">
                   <p className="text-[8px] font-bold uppercase text-amber-800 mb-1 flex items-center gap-1.5">
                     <MessageSquare className="h-2.5 w-2.5" /> Special Request
                   </p>
