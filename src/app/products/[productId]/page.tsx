@@ -2,7 +2,9 @@
 
 import React, { useState, useMemo, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
+  useUser, 
   useFirestore, 
   useDoc, 
   useMemoFirebase,
