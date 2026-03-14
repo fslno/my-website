@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -28,7 +28,9 @@ import {
   MailWarning,
   ShieldAlert,
   Menu as MenuIcon,
-  Loader2
+  Loader2,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -45,14 +47,15 @@ import {
   SidebarTrigger,
   useSidebar 
 } from '@/components/ui/sidebar';
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { doc } from 'firebase/firestore';
+import { doc, collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
 
 function AppSidebar({ storeConfig }: { storeConfig: any }) {
   const { isMobile, setOpenMobile } = useSidebar();
@@ -201,8 +204,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <CreditCard />
                   <span>Payments</span>
                 </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+              </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/domain">
@@ -274,9 +276,54 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const db = useFirestore();
 
   const [hasMounted, setHasMounted] = useState(false);
+  const [newOrderDetected, setNewOrderDetected] = useState(false);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const sessionStartTime = useRef(new Date());
+
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'notifications') : null, [db]);
+  const { data: notificationConfig } = useDoc(configRef);
+
+  useEffect(() => {
+    if (!db || !user || !hasMounted) return;
+
+    // Listen for new orders strictly created after the session start
+    const q = query(
+      collection(db, 'orders'),
+      where('createdAt', '>', sessionStartTime.current),
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          setNewOrderDetected(true);
+          
+          if (notificationConfig?.orderAlarmEnabled && !isAudioMuted) {
+            audioRef.current?.play().catch(e => {
+              console.warn("Autoplay prevented. Audio alert suppressed until interaction.", e);
+            });
+          }
+
+          toast({
+            title: "New Order Manifested",
+            description: "A high-fidelity transaction has just been registered.",
+            duration: 10000,
+          });
+
+          // Reset pulse after a delay
+          setTimeout(() => setNewOrderDetected(false), 5000);
+        }
+      });
+    });
+
+    return () => unsubscribe();
+  }, [db, user, hasMounted, notificationConfig, isAudioMuted, toast]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -423,6 +470,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     .admin-sidebar-bg [data-sidebar="menu-button"][data-active="true"] svg {
       color: white !important;
     }
+    @keyframes order-pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8)); }
+      100% { transform: scale(1); }
+    }
+    .animate-order-pulse {
+      animation: order-pulse 1s infinite;
+      color: #3b82f6 !important;
+    }
   `;
 
   return (
@@ -445,8 +501,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <button className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors hidden xs:block">
-                <Bell className="h-5 w-5 text-[#5c5f62]" />
+              <button 
+                onClick={() => setIsAudioMuted(!isAudioMuted)}
+                className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors"
+                title={isAudioMuted ? "Unmute Order Alarm" : "Mute Order Alarm"}
+              >
+                {isAudioMuted ? <VolumeX className="h-5 w-5 text-red-400" /> : <Volume2 className="h-5 w-5 text-[#5c5f62]" />}
+              </button>
+              <button className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors relative">
+                <Bell className={cn("h-5 w-5 text-[#5c5f62]", newOrderDetected && "animate-order-pulse")} />
+                {newOrderDetected && <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border border-white" />}
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
                 <Image src={user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`} alt="Admin" fill className="object-cover" />
@@ -460,6 +524,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </main>
       </div>
+
+      {/* Hidden Audio Engine for Order Alerts */}
+      <audio 
+        ref={audioRef} 
+        src={notificationConfig?.orderAlarmUrl || 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'} 
+        preload="auto"
+      />
     </SidebarProvider>
   );
 }

@@ -32,7 +32,11 @@ import {
   Info,
   Terminal,
   ChevronRight,
-  X
+  X,
+  Volume2,
+  Music,
+  Activity,
+  PlayCircle
 } from 'lucide-react';
 import { 
   Card, 
@@ -149,6 +153,8 @@ export default function NotificationsPage() {
   const db = useFirestore();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ringtoneInputRef = useRef<HTMLInputElement>(null);
+  const testAudioRef = useRef<HTMLAudioElement>(null);
 
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'notifications') : null, [db]);
   const { data: config, isLoading: loading } = useDoc(configRef);
@@ -168,12 +174,20 @@ export default function NotificationsPage() {
   const [footerContent, setFooterContent] = useState('');
   const [attachInvoice, setAttachInvoice] = useState(true);
 
+  // Sonic Alarm state
+  const [orderAlarmEnabled, setOrderAlarmEnabled] = useState(true);
+  const [orderAlarmUrl, setOrderAlarmUrl] = useState('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
   useEffect(() => {
     if (config?.global) {
       setLogoUrl(config.global.logoUrl || '');
       setAccentColor(config.global.accentColor || '#000000');
       setFooterContent(config.global.footer || '');
       setAttachInvoice(config.global.attachInvoice ?? true);
+    }
+    if (config) {
+      setOrderAlarmEnabled(config.orderAlarmEnabled ?? true);
+      setOrderAlarmUrl(config.orderAlarmUrl || 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     }
   }, [config]);
 
@@ -233,15 +247,22 @@ export default function NotificationsPage() {
       updatedAt: new Date().toISOString()
     };
 
-    setDoc(configRef, { global: globalData }, { merge: true })
+    const payload = { 
+      global: globalData,
+      orderAlarmEnabled,
+      orderAlarmUrl,
+      updatedAt: new Date().toISOString() 
+    };
+
+    setDoc(configRef, payload, { merge: true })
       .then(() => {
-        toast({ title: "Branding Finalized", description: "Global notification settings are now live." });
+        toast({ title: "Branding Finalized", description: "Global notification and sonic settings are now live." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: configRef.path,
           operation: 'update',
-          requestResourceData: { global: globalData }
+          requestResourceData: payload
         }));
       })
       .finally(() => setIsSaving(false));
@@ -266,6 +287,24 @@ export default function NotificationsPage() {
       reader.onloadend = () => setLogoUrl(reader.result as string);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRingtoneUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setOrderAlarmUrl(reader.result as string);
+        toast({ title: "Sonic Ready", description: "New ringtone has been ingested. Press Play to verify." });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const playTestAlarm = () => {
+    testAudioRef.current?.play().catch(e => {
+      toast({ variant: "destructive", title: "Acoustic Shield", description: "Interaction required before playback can manifest." });
+    });
   };
 
   if (loading) {
@@ -294,6 +333,71 @@ export default function NotificationsPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 space-y-12">
+          {/* Sonic Alerts Section */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-2">
+              <Volume2 className="h-5 w-5 text-blue-500" />
+              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">Sonic Alerts & Ringtones</h2>
+            </div>
+            
+            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between border-b bg-blue-50/10 p-4 sm:p-6">
+                <div>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2">
+                    <Music className="h-3.5 w-3.5" /> Order Notification Alarm
+                  </CardTitle>
+                  <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Real-time acoustic alert for new studio drops.</CardDescription>
+                </div>
+                <Switch checked={orderAlarmEnabled} onCheckedChange={setOrderAlarmEnabled} />
+              </CardHeader>
+              <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Ringtone Selection</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input 
+                          placeholder="PASTE SONIC URL" 
+                          value={orderAlarmUrl} 
+                          onChange={(e) => setOrderAlarmUrl(e.target.value)}
+                          className="h-12 text-[10px] font-mono pr-10 uppercase"
+                        />
+                        <Music className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-300" />
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-12 w-12 border-black rounded-none"
+                        onClick={playTestAlarm}
+                      >
+                        <PlayCircle className="h-5 w-5" />
+                      </Button>
+                    </div>
+                    <audio ref={testAudioRef} src={orderAlarmUrl} preload="none" />
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Custom Upload</Label>
+                    <input type="file" ref={ringtoneInputRef} className="hidden" accept="audio/*" onChange={handleRingtoneUpload} />
+                    <div 
+                      onClick={() => ringtoneInputRef.current?.click()}
+                      className="border-2 border-dashed rounded-none p-4 h-12 flex items-center justify-center gap-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group"
+                    >
+                      <Upload className="h-4 w-4 text-zinc-400 group-hover:text-black transition-colors" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 group-hover:text-black">Ingest Sound File</span>
+                    </div>
+                    <p className="text-[8px] text-zinc-400 uppercase font-bold tracking-tighter">Supports all formats: MP3, WAV, OGG, M4A, AAC.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 bg-zinc-900 rounded-none border border-zinc-800">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">Acoustic Handshake: Ready for real-time dispatch.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
           {/* Fulfillment Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-2">
@@ -388,9 +492,14 @@ export default function NotificationsPage() {
                   {Object.keys(DEFAULT_MARKETING).map((key) => {
                     const data = config?.[key] || DEFAULT_MARKETING[key];
                     return (
-                      <TableRow key={key} className="hover:bg-gray-50/30 transition-colors">
-                        <TableCell className="pl-6 py-4">
-                          <span className="font-bold text-sm tracking-tight">{data.label}</span>
+                      <TableRow key={key} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
+                        <TableCell className="p-6">
+                          <div className="flex items-center gap-3">
+                            <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", campaign.enabled ? 'border-green-100' : 'border-gray-100')}>
+                              <Mail className={cn("h-5 w-5", campaign.enabled ? 'text-green-600' : 'text-gray-400')} />
+                            </div>
+                            <span className="font-bold text-sm tracking-tight text-primary uppercase">{data.label}</span>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <span className="text-xs text-gray-500">{data.description}</span>
