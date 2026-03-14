@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -173,33 +174,33 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-end">
+    <div className="space-y-8 min-w-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Orders</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">View and manage your store's orders.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Orders</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">View and manage your store's orders.</p>
         </div>
-        <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px]">Export CSV</Button>
+        <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto">Export CSV</Button>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
-        <Card className="border-[#e1e3e5] shadow-none">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
+            <CardTitle className="text-[10px] flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
               <ShoppingBag className="h-3.5 w-3.5" /> Total Sales
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">
-              ${formatCurrency(stats.revenue)}
+              C$${formatCurrency(stats.revenue)}
             </div>
-            <p className="text-xs text-[#8c9196] mt-1">Total revenue from all orders</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Gross Archive Revenue</p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#e1e3e5] shadow-none">
+        <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
+            <CardTitle className="text-[10px] flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
               <Clock className="h-3.5 w-3.5" /> Pending Orders
             </CardTitle>
           </CardHeader>
@@ -207,13 +208,13 @@ export default function OrdersPage() {
             <div className="text-2xl font-bold text-blue-600">
               {stats.pending}
             </div>
-            <p className="text-xs text-[#8c9196] mt-1">Orders waiting to be shipped</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Awaiting studio dispatch</p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#e1e3e5] shadow-none">
+        <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
+            <CardTitle className="text-[10px] flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
               <CheckCircle2 className="h-3.5 w-3.5" /> Total Orders
             </CardTitle>
           </CardHeader>
@@ -221,28 +222,28 @@ export default function OrdersPage() {
             <div className="text-2xl font-bold text-[#1a1c1e]">
               {stats.total}
             </div>
-            <p className="text-xs text-[#8c9196] mt-1">Total number of orders</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Total transaction volume</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="bg-white border border-[#e1e3e5] rounded-lg overflow-hidden shadow-sm">
-        <div className="p-4 border-b bg-gray-50/50 flex flex-col md:flex-row gap-4">
+      <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
+        <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]"/>
             <Input
-              placeholder="Search orders by ID, customer or phone..."
-              className="pl-10 h-10 border-[#e1e3e5] bg-white text-[10px] font-bold uppercase tracking-widest"
+              placeholder="Quick search orders..."
+              className="pl-10 h-10 border-[#e1e3e5] bg-white text-[10px] font-bold uppercase tracking-widest rounded-none"
               value={searchQuery}
               onChange={(e)=>setSearchQuery(e.target.value)}
             />
           </div>
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[200px] h-10 border-[#e1e3e5] bg-white text-[10px] font-bold uppercase tracking-widest">
+            <SelectTrigger className="w-full lg:w-[200px] h-10 border-[#e1e3e5] bg-white text-[10px] font-bold uppercase tracking-widest rounded-none">
               <div className="flex items-center gap-2">
                 <Filter className="h-3.5 w-3.5 text-[#8c9196]"/>
-                <span>{statusFilter === 'all' ? 'Filter Status' : statusFilter.replace('_', ' ')}</span>
+                <span>{statusFilter === 'all' ? 'All Status' : statusFilter.replace('_', ' ')}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
@@ -257,100 +258,142 @@ export default function OrdersPage() {
           </Select>
         </div>
 
-        <Table>
-          <TableHeader className="bg-[#f6f6f7]">
-            <TableRow className="border-[#e1e3e5]">
-              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] py-4">Items</TableHead>
-              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Order ID</TableHead>
-              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Customer</TableHead>
-              <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Status</TableHead>
-              <TableHead className="text-right text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Total</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-20">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300"/>
-                </TableCell>
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
+          <Table>
+            <TableHeader className="bg-[#f6f6f7]">
+              <TableRow className="border-[#e1e3e5]">
+                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] py-4">Items</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Order ID</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Customer</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Status</TableHead>
+                <TableHead className="text-right text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Total</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
-            ) : filteredOrders.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-20 text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
-                  No orders found.
-                </TableCell>
-              </TableRow>
-            ) : filteredOrders.map((order: any) => {
-              const totalUnits =
-                order.items?.reduce(
-                  (acc: number, item: any) => acc + (item.quantity || 0),
-                  0
-                ) || 0;
-
-              return (
-                <TableRow
-                  key={order.id}
-                  className="cursor-pointer hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group"
-                  onClick={() => router.push(`/admin/orders/${order.id}`)}
-                >
-                  <TableCell>
-                    <div className="flex gap-2 items-center">
-                      {(order.items || []).slice(0,3).map((item:any,i:number)=>(
-                        <div key={i} className="w-10 h-12 relative bg-gray-100 rounded-sm overflow-hidden border shadow-sm">
-                          {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
-                        </div>
-                      ))}
-                      {totalUnits > 3 && (
-                        <div className="w-8 h-8 rounded-full bg-gray-50 border flex items-center justify-center text-[9px] font-bold text-gray-400">
-                          +{totalUnits - 3}
-                        </div>
-                      )}
-                      <div className="ml-2">
-                        <div className="text-[9px] font-bold uppercase text-gray-400">
-                          {totalUnits} Units
-                        </div>
-                        <div className="text-[10px] font-bold uppercase line-clamp-1 max-w-[120px]">
-                          {order.items?.[0]?.name}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-[10px] font-mono font-bold text-primary">
-                      #{order.id.substring(0,6).toUpperCase()}
-                    </div>
-                    <div className="text-[9px] text-gray-400 uppercase font-bold mt-0.5">
-                      {formatDate(order.createdAt)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-xs font-bold uppercase tracking-tight text-primary">
-                      {order.customer?.name || 'Guest Customer'}
-                    </div>
-                    <div className="text-[9px] text-gray-400 flex gap-1.5 items-center font-mono mt-0.5">
-                      <Phone className="h-2.5 w-2.5"/> {order.customer?.phone || 'NO-PHONE'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(order.status)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex flex-col items-end gap-1.5">
-                      {getPaymentStatusBadge(order.paymentStatus || 'pending')}
-                      <div className="font-bold text-sm text-primary tracking-tight">
-                        ${formatCurrency(Number(order.total)||0)}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-primary transition-colors"/>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-20">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300"/>
                   </TableCell>
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+              ) : filteredOrders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-20 text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+                    No orders found.
+                  </TableCell>
+                </TableRow>
+              ) : filteredOrders.map((order: any) => {
+                const totalUnits = order.items?.reduce((acc: number, item: any) => acc + (item.quantity || 0), 0) || 0;
+
+                return (
+                  <TableRow
+                    key={order.id}
+                    className="cursor-pointer hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group"
+                    onClick={() => router.push(`/admin/orders/${order.id}`)}
+                  >
+                    <TableCell>
+                      <div className="flex gap-2 items-center">
+                        {(order.items || []).slice(0,3).map((item:any,i:number)=>(
+                          <div key={i} className="w-10 h-12 relative bg-gray-100 rounded-sm overflow-hidden border shadow-sm">
+                            {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                          </div>
+                        ))}
+                        {totalUnits > 3 && (
+                          <div className="w-8 h-8 rounded-full bg-gray-50 border flex items-center justify-center text-[9px] font-bold text-gray-400">
+                            +{totalUnits - 3}
+                          </div>
+                        )}
+                        <div className="ml-2">
+                          <div className="text-[9px] font-bold uppercase text-gray-400">
+                            {totalUnits} Units
+                          </div>
+                          <div className="text-[10px] font-bold uppercase line-clamp-1 max-w-[120px]">
+                            {order.items?.[0]?.name}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-[10px] font-mono font-bold text-primary">
+                        #{order.id.substring(0,6).toUpperCase()}
+                      </div>
+                      <div className="text-[9px] text-gray-400 uppercase font-bold mt-0.5">
+                        {formatDate(order.createdAt)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-xs font-bold uppercase tracking-tight text-primary">
+                        {order.customer?.name || 'Guest Customer'}
+                      </div>
+                      <div className="text-[9px] text-gray-400 flex gap-1.5 items-center font-mono mt-0.5">
+                        <Phone className="h-2.5 w-2.5"/> {order.customer?.phone || 'NO-PHONE'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(order.status)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex flex-col items-end gap-1.5">
+                        {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+                        <div className="font-bold text-sm text-primary tracking-tight">
+                          C$${formatCurrency(Number(order.total)||0)}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-primary transition-colors"/>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="lg:hidden divide-y">
+          {loading ? (
+            <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-300"/></div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="py-20 text-center text-gray-400 uppercase text-[10px] font-bold tracking-widest">No orders manifesting.</div>
+          ) : filteredOrders.map((order: any) => (
+            <div 
+              key={order.id} 
+              className="p-4 space-y-4 hover:bg-gray-50 transition-colors cursor-pointer"
+              onClick={() => router.push(`/admin/orders/${order.id}`)}
+            >
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <div className="text-[10px] font-mono font-bold text-primary uppercase">#{order.id.substring(0,8)}</div>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase">{formatDate(order.createdAt)}</p>
+                </div>
+                {getStatusBadge(order.status)}
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-3">
+                    {(order.items || []).slice(0,3).map((item:any, i:number) => (
+                      <div key={i} className="w-10 h-14 bg-gray-100 border-2 border-white rounded-sm overflow-hidden shadow-sm relative">
+                        {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-bold uppercase truncate max-w-[120px]">{order.customer?.name || 'Guest Piece'}</p>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase">{(order.items || []).length} ARCHIVE ITEMS</p>
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  <div className="text-sm font-bold text-primary">C$${formatCurrency(Number(order.total) || 0)}</div>
+                  {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

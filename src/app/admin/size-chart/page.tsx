@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -61,7 +62,6 @@ export default function SizeChartPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
-  // Dynamic Form State
   const [name, setName] = useState('');
   const [unit, setUnit] = useState<'cm' | 'inch'>('cm');
   const [category, setCategory] = useState('');
@@ -74,408 +74,80 @@ export default function SizeChartPage() {
     { label: 'XL', values: ['', '', ''] }
   ]);
 
-  const addColumn = () => {
-    setColumns([...columns, '']);
-    setRows(rows.map(row => ({ ...row, values: [...row.values, ''] })));
-  };
-
-  const removeColumn = (index: number) => {
-    if (columns.length <= 1) return;
-    setColumns(columns.filter((_, i) => i !== index));
-    setRows(rows.map(row => ({
-      ...row,
-      values: row.values.filter((_, i) => i !== index)
-    })));
-  };
-
-  const addRow = () => {
-    setRows([...rows, { label: '', values: new Array(columns.length).fill('') }]);
-  };
-
-  const removeRow = (index: number) => {
-    if (rows.length <= 1) return;
-    setRows(rows.filter((_, i) => i !== index));
-  };
-
-  const updateColumnLabel = (index: number, label: string) => {
-    const updated = [...columns];
-    updated[index] = label;
-    setColumns(updated);
-  };
-
-  const updateRowLabel = (index: number, label: string) => {
-    const updated = [...rows];
-    updated[index].label = label;
-    setRows(updated);
-  };
-
-  const updateValue = (rowIndex: number, colIndex: number, value: string) => {
-    const updated = [...rows];
-    updated[rowIndex].values[colIndex] = value;
-    setRows(updated);
-  };
+  const addColumn = () => { setColumns([...columns, '']); setRows(rows.map(row => ({ ...row, values: [...row.values, ''] }))); };
+  const removeColumn = (index: number) => { if (columns.length <= 1) return; setColumns(columns.filter((_, i) => i !== index)); setRows(rows.map(row => ({ ...row, values: row.values.filter((_, i) => i !== index) }))); };
+  const addRow = () => { setRows([...rows, { label: '', values: new Array(columns.length).fill('') }]); };
+  const removeRow = (index: number) => { if (rows.length <= 1) return; setRows(rows.filter((_, i) => i !== index)); };
+  const updateColumnLabel = (index: number, label: string) => { const updated = [...columns]; updated[index] = label; setColumns(updated); };
+  const updateRowLabel = (index: number, label: string) => { const updated = [...rows]; updated[index].label = label; setRows(updated); };
+  const updateValue = (rowIndex: number, colIndex: number, value: string) => { const updated = [...rows]; updated[rowIndex].values[colIndex] = value; setRows(updated); };
 
   const handleSave = () => {
     if (!db || !name) return;
     setIsSaving(true);
-    
-    const chartData = { 
-      name, 
-      unit, 
-      category,
-      columns,
-      rows,
-      updatedAt: serverTimestamp()
-    };
-
+    const chartData = { name, unit, category, columns, rows, updatedAt: serverTimestamp() };
     if (editingId) {
       updateDoc(doc(db, 'sizeCharts', editingId), chartData)
-        .then(() => {
-          setIsDialogOpen(false);
-          resetForm();
-          toast({ title: "Chart Updated", description: `${name} template has been synchronized.` });
-        })
-        .catch((error) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: `sizeCharts/${editingId}`,
-            operation: 'update',
-            requestResourceData: chartData
-          }));
-        })
+        .then(() => { setIsDialogOpen(false); resetForm(); toast({ title: "Updated", description: `${name} template synchronized.` }); })
+        .catch((error) => { errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `sizeCharts/${editingId}`, operation: 'update', requestResourceData: chartData })); })
         .finally(() => setIsSaving(false));
     } else {
       addDoc(collection(db, 'sizeCharts'), { ...chartData, createdAt: serverTimestamp() })
-        .then(() => {
-          setIsDialogOpen(false);
-          resetForm();
-          toast({ title: "Chart Created", description: `${name} has been added to the library.` });
-        })
-        .catch((error) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: 'sizeCharts',
-            operation: 'create',
-            requestResourceData: chartData
-          }));
-        })
+        .then(() => { setIsDialogOpen(false); resetForm(); toast({ title: "Created", description: `${name} added to library.` }); })
+        .catch((error) => { errorEmitter.emit('permission-error', new FirestorePermissionError({ path: 'sizeCharts', operation: 'create', requestResourceData: chartData })); })
         .finally(() => setIsSaving(false));
     }
   };
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!db) return;
-    deleteDoc(doc(db, 'sizeCharts', id)).catch((error) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: `sizeCharts/${id}`,
-        operation: 'delete'
-      }));
-    });
-  };
-
-  const resetForm = () => {
-    setName('');
-    setUnit('cm');
-    setCategory('');
-    setColumns(['Chest', 'Length', 'Shoulder']);
-    setRows([
-      { label: 'XS', values: ['', '', ''] },
-      { label: 'S', values: ['', '', ''] },
-      { label: 'M', values: ['', '', ''] },
-      { label: 'L', values: ['', '', ''] },
-      { label: 'XL', values: ['', '', ''] }
-    ]);
-    setEditingId(null);
-  };
-
-  const openEdit = (chart: any) => {
-    setName(chart.name || '');
-    setUnit(chart.unit || 'cm');
-    setCategory(chart.category || '');
-    setColumns(chart.columns || ['Chest', 'Length', 'Shoulder']);
-    setRows(chart.rows || []);
-    setEditingId(chart.id);
-    setIsDialogOpen(true);
-  };
+  const handleDelete = (id: string, e: React.MouseEvent) => { e.stopPropagation(); if (!db || !confirm("Authoritatively delete?")) return; deleteDoc(doc(db, 'sizeCharts', id)); };
+  const resetForm = () => { setName(''); setUnit('cm'); setCategory(''); setColumns(['Chest', 'Length', 'Shoulder']); setRows([{ label: 'XS', values: ['', '', ''] }, { label: 'S', values: ['', '', ''] }, { label: 'M', values: ['', '', ''] }, { label: 'L', values: ['', '', ''] }, { label: 'XL', values: ['', '', ''] }]); setEditingId(null); };
+  const openEdit = (chart: any) => { setName(chart.name || ''); setUnit(chart.unit || 'cm'); setCategory(chart.category || ''); setColumns(chart.columns || []); setRows(chart.rows || []); setEditingId(chart.id); setIsDialogOpen(true); };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 min-w-0 overflow-x-hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Guides</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Create reusable measurement guides for your products.</p>
-        </div>
+        <div><h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Guides</h1><p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Reusable measurement templates.</p></div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="bg-black text-white font-bold h-10 gap-2 w-full sm:w-auto">
-              <Plus className="h-4 w-4" /> Create Guide
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger asChild><Button className="bg-black text-white font-bold h-10 gap-2 w-full sm:w-auto"><Plus className="h-4 w-4" /> Create Guide</Button></DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
-            <DialogHeader className="pt-8 sm:pt-12 px-4 sm:px-6 border-b shrink-0 flex flex-row items-center justify-between">
-              <DialogTitle className="text-xl font-headline font-bold">
-                {editingId ? `Edit Guide: ${name}` : 'New Size Guide'}
-              </DialogTitle>
-              <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full">
-                <X className="h-5 w-5" />
-              </Button>
-            </DialogHeader>
-            
-            <div className="flex-1 overflow-y-auto">
-              <div className="max-w-6xl mx-auto w-full p-4 sm:p-8 space-y-8 sm:space-y-12">
-                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50/50 p-6 sm:p-8 rounded-xl border border-gray-100">
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Settings2 className="h-4 w-4 text-gray-400" />
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Settings</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Guide Name</Label>
-                        <Input 
-                          placeholder="e.g. Mens T-Shirt Guide" 
-                          value={name} 
-                          onChange={(e) => setName(e.target.value)} 
-                          className="h-12 bg-white text-sm font-medium"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category</Label>
-                        <div className="relative">
-                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            placeholder="e.g. Tops" 
-                            value={category} 
-                            onChange={(e) => setCategory(e.target.value)} 
-                            className="h-12 bg-white text-sm pl-10"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Unit of Measure</Label>
-                      <Select value={unit} onValueChange={(v: any) => setUnit(v)}>
-                        <SelectTrigger className="h-12 bg-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cm">Centimeters (cm)</SelectItem>
-                          <SelectItem value="inch">Inches (in)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="flex flex-col justify-center border-t md:border-t-0 md:border-l pt-8 md:pt-0 md:pl-8 border-gray-100">
-                    <div className="flex items-center gap-4 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
-                      <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center text-white">
-                        <Ruler className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">Reusable Template</p>
-                        <p className="text-xs text-gray-500">This guide can be linked to any category in your store.</p>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <TableIcon className="h-4 w-4 text-gray-400" />
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Matrix</h3>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={addColumn} className="flex-1 sm:flex-none h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
-                        <PlusCircle className="h-4 w-4" /> Add Column
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={addRow} className="flex-1 sm:flex-none h-9 px-4 gap-2 uppercase tracking-widest font-bold text-[10px]">
-                        <PlusCircle className="h-4 w-4" /> Add Row
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="border rounded-xl overflow-x-auto bg-white shadow-sm scrollbar-hide">
-                    <Table className="min-w-[600px] md:min-w-full">
-                      <TableHeader className="bg-gray-50/50">
-                        <TableRow className="hover:bg-transparent">
-                          <TableHead className="w-[180px] text-[10px] font-bold uppercase tracking-widest text-gray-400 p-6">
-                            Size \ Metric
-                          </TableHead>
-                          {columns.map((col, colIdx) => (
-                            <TableHead key={colIdx} className="p-0 border-l min-w-[140px]">
-                              <div className="flex items-center p-4 group">
-                                <Input 
-                                  value={col} 
-                                  onChange={(e) => updateColumnLabel(colIdx, e.target.value)}
-                                  placeholder="Metric"
-                                  className="h-10 text-[10px] font-bold uppercase tracking-[0.1em] text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
-                                />
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  onClick={() => removeColumn(colIdx)} 
-                                  className="h-8 w-8 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableHead>
-                          ))}
-                          <TableHead className="w-[80px]"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {rows.map((row, rowIdx) => (
-                          <TableRow key={rowIdx} className="hover:bg-gray-50/30 group/row border-b last:border-0">
-                            <TableCell className="p-0 border-r bg-gray-50/20">
-                              <div className="flex items-center p-4">
-                                <Input 
-                                  value={row.label} 
-                                  onChange={(e) => updateRowLabel(rowIdx, e.target.value)}
-                                  placeholder="Size"
-                                  className="h-10 text-xs font-bold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
-                                />
-                              </div>
-                            </TableCell>
-                            {row.values.map((val, colIdx) => (
-                              <TableCell key={colIdx} className="p-0 border-r">
-                                <Input 
-                                  value={val} 
-                                  onChange={(e) => updateValue(rowIdx, colIdx, e.target.value)}
-                                  className="h-12 text-sm text-center border-none bg-transparent focus-visible:ring-1 focus-visible:ring-black"
-                                  placeholder="--"
-                                />
-                              </TableCell>
-                            ))}
-                            <TableCell className="text-right p-4">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => removeRow(rowIdx)} 
-                                className="h-10 w-10 opacity-0 group-hover/row:opacity-100 text-gray-300 hover:text-red-500 transition-opacity"
-                                disabled={rows.length <= 1}
-                              >
-                                <Trash2 className="h-5 w-5" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </section>
-              </div>
+            <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between"><DialogTitle className="text-lg font-headline font-bold uppercase tracking-tight">{editingId ? `Edit: ${name}` : 'New Size Guide'}</DialogTitle><Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)}><X className="h-5 w-5" /></Button></DialogHeader>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
+              <section className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50 p-6 rounded-none border"><div className="space-y-6"><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Guide Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" /></div><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Unit</Label><Select value={unit} onValueChange={(v: any) => setUnit(v)}><SelectTrigger className="h-12 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cm" className="text-[10px] font-bold uppercase">Centimeters (cm)</SelectItem><SelectItem value="inch" className="text-[10px] font-bold uppercase">Inches (in)</SelectItem></SelectContent></Select></div></div></section>
+              <section className="space-y-6"><div className="flex justify-between items-center"><h3 className="text-[10px] uppercase font-bold text-gray-500">Measurement Matrix</h3><div className="flex gap-2"><Button variant="outline" size="sm" onClick={addColumn} className="h-8 text-[9px] uppercase font-bold border-black">Add Col</Button><Button variant="outline" size="sm" onClick={addRow} className="h-8 text-[9px] uppercase font-bold border-black">Add Row</Button></div></div><div className="border rounded-none overflow-x-auto bg-white shadow-sm scrollbar-hide"><Table className="min-w-[600px]"><TableHeader className="bg-gray-50/50"><TableRow>{columns.map((col, i) => (<TableHead key={i} className="p-0 border-l min-w-[120px]"><div className="flex items-center p-2 group"><Input value={col} onChange={(e) => updateColumnLabel(i, e.target.value)} className="h-8 text-[9px] font-bold text-center border-none bg-transparent" /></div></TableHead>))}</TableRow></TableHeader><TableBody>{rows.map((row, rowIdx) => (<TableRow key={rowIdx} className="hover:bg-gray-50/30 border-b">{row.values.map((val, colIdx) => (<TableCell key={colIdx} className="p-0 border-r"><Input value={val} onChange={(e) => updateValue(rowIdx, colIdx, e.target.value)} className="h-10 text-center border-none bg-transparent text-xs" /></TableCell>))}</TableRow>))}</TableBody></Table></div></section>
             </div>
-
-            <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0">
-              <Button 
-                onClick={handleSave} 
-                disabled={isSaving || !name}
-                className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-black/90 transition-all shadow-xl"
-              >
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : null}
-                {isSaving ? 'Synchronizing...' : 'Save Size Guide'}
-              </Button>
-            </DialogFooter>
+            <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0"><Button onClick={handleSave} disabled={isSaving || !name} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl">{isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <Save className="h-4 w-4 mr-3" />}Save Size Guide</Button></DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          </div>
-        ) : charts?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-gray-50/50">
-            <Ruler className="h-12 w-12 text-gray-300 mb-4" />
-            <p className="text-sm font-medium text-gray-500">No size guides found. Start by creating a template.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Desktop Table View */}
-            <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
-              <Table>
-                <TableHeader className="bg-gray-50/50">
-                  <TableRow>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 p-6">Template Name</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Unit</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Category Tag</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Structure</TableHead>
-                    <TableHead className="w-[100px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {charts?.map((chart: any) => (
-                    <TableRow 
-                      key={chart.id} 
-                      className="hover:bg-gray-50/50 group border-b last:border-0 cursor-pointer"
-                      onClick={() => openEdit(chart)}
-                    >
-                      <TableCell className="p-6">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-sm">{chart.name}</span>
-                          <span className="text-[10px] text-gray-400 mt-0.5">Updated {chart.updatedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest">{chart.unit}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">{chart.category || 'N/A'}</span>
-                      </TableCell>
-                      <TableCell className="text-sm font-medium text-gray-500">
-                        {chart.rows?.length || 0} Sizes × {chart.columns?.length || 0} Metrics
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={(e) => handleDelete(chart.id, e)}>
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-9 w-9">
-                            <MoreHorizontal className="h-4 w-4 text-gray-400" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Mobile Card View - Strictly Avoids the Slide System */}
-            <div className="grid grid-cols-1 gap-4 md:hidden">
-              {charts?.map((chart: any) => (
-                <div 
-                  key={chart.id} 
-                  onClick={() => openEdit(chart)}
-                  className="bg-white border rounded-lg p-4 flex flex-col gap-4 shadow-sm active:bg-gray-50 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm uppercase tracking-tight">{chart.name}</span>
-                      <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-1">Updated {chart.updatedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
-                    </div>
-                    <span className="text-[9px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded tracking-widest shrink-0">{chart.unit}</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                    <div className="flex items-center gap-1.5"><Tag className="h-3 w-3" /> {chart.category || 'NO TAG'}</div>
-                    <div className="flex items-center gap-1.5"><TableIcon className="h-3 w-3" /> {chart.rows?.length || 0}S × {chart.columns?.length || 0}M</div>
-                  </div>
-
-                  <div className="flex justify-end gap-2 border-t pt-3">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={(e) => handleDelete(chart.id, e)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
-                      <MoreHorizontal className="h-4 w-4 text-gray-400" />
-                    </Button>
-                  </div>
-                </div>
+      <div className="bg-white border rounded-none overflow-hidden shadow-sm">
+        <div className="hidden lg:block">
+          <Table>
+            <TableHeader className="bg-gray-50/50"><TableRow><TableHead className="text-[10px] font-bold uppercase tracking-widest p-6">Template Name</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-widest">Unit</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-widest">Category</TableHead><TableHead className="w-[100px]"></TableHead></TableRow></TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow><TableCell colSpan={4} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+              ) : charts?.map((chart: any) => (
+                <TableRow key={chart.id} className="hover:bg-gray-50/50 border-b last:border-0 cursor-pointer group" onClick={() => openEdit(chart)}>
+                  <TableCell className="p-6"><span className="font-bold text-sm uppercase">{chart.name}</span></TableCell>
+                  <TableCell><span className="text-[10px] font-bold uppercase bg-black text-white px-2 py-0.5 rounded-none">{chart.unit}</span></TableCell>
+                  <TableCell><span className="text-[10px] font-bold uppercase text-gray-400">{chart.category || 'N/A'}</span></TableCell>
+                  <TableCell className="pr-6"><div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity"><Button variant="ghost" size="icon" onClick={e => { e.stopPropagation(); handleDelete(chart.id, e); }}><Trash2 className="h-4 w-4 text-red-500" /></Button></div></TableCell>
+                </TableRow>
               ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="lg:hidden divide-y">
+          {loading ? (
+            <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-300" /></div>
+          ) : charts?.map((chart: any) => (
+            <div key={chart.id} onClick={() => openEdit(chart)} className="p-4 bg-white flex justify-between items-center hover:bg-gray-50 transition-colors">
+              <div className="space-y-1"><p className="font-bold text-xs uppercase tracking-tight">{chart.name}</p><div className="flex gap-2"><Badge variant="outline" className="text-[7px] font-bold uppercase border-none bg-black text-white px-1.5">{chart.unit}</Badge><span className="text-[8px] font-bold text-gray-400 uppercase">{chart.category || 'NO TAG'}</span></div></div>
+              <Button variant="ghost" size="icon" onClick={e => { e.stopPropagation(); handleDelete(chart.id, e); }} className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     </div>
   );

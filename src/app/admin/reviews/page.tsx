@@ -44,7 +44,6 @@ export default function AdminReviewsPage() {
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
   const { data: config, isLoading: configLoading } = useDoc(configRef);
 
-  // Zero-Error Listing Protocol: Use a simple query to ensure high-fidelity data ingestion.
   const reviewsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
@@ -105,7 +104,6 @@ export default function AdminReviewsPage() {
         </div>
       </div>
 
-      {/* Global Configuration Card */}
       <Card className={cn("border-[#e1e3e5] shadow-none rounded-none transition-all duration-500", config?.enabled ? 'bg-white' : 'bg-gray-50/50')}>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b bg-gray-50/30 p-4 sm:p-6 gap-4">
           <div className="space-y-1">
@@ -134,7 +132,7 @@ export default function AdminReviewsPage() {
 
       <div className="bg-white border rounded-none overflow-hidden shadow-sm">
         {/* Desktop Table View */}
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <Table>
             <TableHeader className="bg-gray-50/50">
               <TableRow>
@@ -219,7 +217,7 @@ export default function AdminReviewsPage() {
         </div>
 
         {/* Mobile Card View - Strictly Avoids Horizontal Sliding */}
-        <div className="md:hidden divide-y">
+        <div className="lg:hidden divide-y">
           {(!reviews || reviews.length === 0) ? (
             <div className="text-center py-20 text-gray-400 font-bold uppercase text-[10px] tracking-widest">
               No reviews cataloged.

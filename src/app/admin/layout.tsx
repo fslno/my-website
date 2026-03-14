@@ -178,123 +178,122 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <Users />
                   <span>Customers</span>
                 </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Settings</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/storefront">
-                  <Monitor />
-                  <span>Storefront</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/theme">
-                  <Palette />
-                  <span>Theme Engine</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Footer" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/footer">
-                  <MenuIcon />
-                  <span>Footer Editor</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/notifications">
-                  <MailWarning />
-                  <span>Notifications</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Shipping" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/shipping">
-                  <Truck />
-                  <span>Shipping & Pickup</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Payments" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/payments">
-                  <CreditCard />
-                  <span>Payments</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/domain">
-                  <Globe />
-                  <span>Domain</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+          <SidebarGroup className="mt-4">
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Settings</SidebarGroupLabel>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/storefront">
+                    <Monitor />
+                    <span>Storefront</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/theme">
+                    <Palette />
+                    <span>Theme Engine</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Footer" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/footer">
+                    <MenuIcon />
+                    <span>Footer Editor</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/notifications">
+                    <MailWarning />
+                    <span>Notifications</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Shipping" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/shipping">
+                    <Truck />
+                    <span>Shipping & Pickup</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Payments" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/payments">
+                    <CreditCard />
+                    <span>Payments</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/domain">
+                    <Globe />
+                    <span>Domain</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Channels</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Google" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/google">
-                  <RefreshCw />
-                  <span>Google Sync</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Social" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/social">
-                  <Share2 />
-                  <span>Social Commerce</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/analytics">
-                  <BarChart />
-                  <span>Analytics</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
-         <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/settings">
-                  <Settings />
-                  <span>Settings</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body">
-                <LogOut />
-                <span>Sign Out</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-         </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
-  );
+          <SidebarGroup className="mt-4">
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Channels</SidebarGroupLabel>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Google" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/sales-channels/google">
+                    <RefreshCw />
+                    <span>Google Sync</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Social" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/sales-channels/social">
+                    <Share2 />
+                    <span>Social Commerce</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/sales-channels/analytics">
+                    <BarChart />
+                    <span>Analytics</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
+           <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/settings">
+                    <Settings />
+                    <span>Settings</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body">
+                  <LogOut />
+                  <span>Sign Out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+           </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+    );
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -320,7 +319,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!db || !user || !hasMounted) return;
 
-    // Listen for new orders strictly created after the session start
     const q = query(
       collection(db, 'orders'),
       where('createdAt', '>', sessionStartTime.current),
@@ -345,7 +343,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             duration: 10000,
           });
 
-          // Reset pulse after a delay
           setTimeout(() => setNewOrderDetected(false), 5000);
         }
       });
@@ -407,16 +404,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  const handleLogout = async () => {
-    if (!auth) return;
-    try {
-      await signOut(auth);
-      toast({ title: "Signed out", description: "Admin session closed." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to sign out." });
-    }
-  };
-
   const isAdmin = user && user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
   if (!hasMounted || loading) {
@@ -446,7 +433,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 Your account ({user.email}) does not have admin permissions.
               </p>
             </div>
-            <Button onClick={handleLogout} variant="outline" className="w-full border-black font-bold uppercase text-[10px] tracking-widest">Sign Out</Button>
+            <Button onClick={() => signOut(auth!)} variant="outline" className="w-full border-black font-bold uppercase text-[10px] tracking-widest">Sign Out</Button>
           </div>
         ) : (
           <>
@@ -546,15 +533,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-4 sm:p-8 w-full font-admin-body bg-inherit scrollbar-hide">
-            <div className="max-w-7xl mx-auto w-full">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 w-full font-admin-body bg-inherit scrollbar-hide">
+            <div className="max-w-7xl mx-auto w-full min-w-0">
               {children}
             </div>
           </div>
         </main>
       </div>
 
-      {/* Hidden Audio Engine for Order Alerts */}
       <audio 
         ref={audioRef} 
         src={notificationConfig?.orderAlarmUrl || 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'} 
