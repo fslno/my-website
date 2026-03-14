@@ -24,7 +24,8 @@ import {
   Apple,
   Smartphone,
   ShieldCheck,
-  Edit2
+  Edit2,
+  Trophy
 } from 'lucide-react';
 import { useCart, type Coupon } from '@/context/CartContext';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -48,7 +49,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle 
-} from "@/components/ui/dialog";
+} from "@/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -89,10 +90,10 @@ export default function CheckoutPage() {
   } = useCart();
   
   const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
-  const { data: paymentConfig, loading: paymentsLoading } = useDoc(paymentConfigRef);
+  const { data: paymentConfig, isLoading: paymentsLoading } = useDoc(paymentConfigRef);
 
   const shippingConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
-  const { data: shippingConfig, loading: shippingLoading } = useDoc(shippingConfigRef);
+  const { data: shippingConfig, isLoading: shippingLoading } = useDoc(shippingConfigRef);
 
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('shipping');
   const [selectedPayment, setSelectedPayment] = useState<string>('');
@@ -132,6 +133,12 @@ export default function CheckoutPage() {
 
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showErrorBanner, setShowErrors] = useState(false);
+
+  const isFreeShippingEligible = useMemo(() => {
+    if (!shippingConfig?.freeShippingEnabled) return false;
+    const threshold = Number(shippingConfig.freeShippingThreshold) || 500;
+    return cartSubtotal >= threshold;
+  }, [shippingConfig, cartSubtotal]);
 
   const isTaxReady = useMemo(() => {
     if (deliveryMethod === 'shipping') {
@@ -482,9 +489,16 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-4 pt-6 border-t">
-                  <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", errors.courier ? "text-destructive" : "text-primary")}>
-                    <Truck className="h-3 w-3" /> Select Shipping Method {errors.courier && "- REQUIRED"}
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", errors.courier ? "text-destructive" : "text-primary")}>
+                      <Truck className="h-3 w-3" /> Select Shipping Method {errors.courier && "- REQUIRED"}
+                    </h3>
+                    {isFreeShippingEligible && (
+                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[8px] font-bold tracking-widest gap-1.5 flex items-center">
+                        <Trophy className="h-2.5 w-2.5" /> Free Shipping Active
+                      </Badge>
+                    )}
+                  </div>
                   
                   {shippingLoading ? (
                     <div className="flex justify-center py-4">
@@ -492,20 +506,30 @@ export default function CheckoutPage() {
                     </div>
                   ) : (
                     <RadioGroup value={formData.courier} onValueChange={(val) => { 
-                      const isExpress = ['FEDEX', 'DHL', 'UPS'].some(e => val.toUpperCase().includes(e));
-                      setShippingRate(isExpress ? 25 : 0); 
+                      if (isFreeShippingEligible) {
+                        setShippingRate(0);
+                      } else {
+                        const isExpress = ['FEDEX', 'DHL', 'UPS'].some(e => val.toUpperCase().includes(e));
+                        const standardRate = Number(shippingConfig?.standardRate) || 0;
+                        const expressRate = Number(shippingConfig?.expressRate) || 25;
+                        setShippingRate(isExpress ? expressRate : standardRate);
+                      }
                       handleInputChange('courier', val); 
                     }} className="grid grid-cols-1 gap-2">
                       {enabledCarriers.map((carrier: any) => {
                         const name = typeof carrier === 'string' ? carrier : carrier.name;
                         const isExpress = ['FEDEX', 'DHL', 'UPS'].some(e => name.toUpperCase().includes(e));
+                        const cost = isFreeShippingEligible ? 0 : (isExpress ? (Number(shippingConfig?.expressRate) || 25) : (Number(shippingConfig?.standardRate) || 0));
+                        
                         return (
                           <div key={name} className={cn("flex items-center justify-between p-4 border rounded-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-secondary", formData.courier === name ? "bg-white border-primary ring-1 ring-primary" : "bg-gray-50/50")}>
                             <div className="flex items-center space-x-3">
                               <RadioGroupItem value={name} id={name} className="border-primary text-primary" />
                               <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-widest cursor-pointer text-primary">{name} {isExpress ? 'Express' : 'Standard'}</Label>
                             </div>
-                            <span className="text-[11px] font-bold text-primary">{isExpress ? '$25.00' : 'FREE'}</span>
+                            <span className={cn("text-[11px] font-bold", isFreeShippingEligible ? "text-emerald-600" : "text-primary")}>
+                              {cost === 0 ? 'FREE' : `$${formatCurrency(cost)}`}
+                            </span>
                           </div>
                         );
                       })}
@@ -761,7 +785,7 @@ export default function CheckoutPage() {
                 )}
                 <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
                   <span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
-                  <span className="text-primary">
+                  <span className={cn("text-primary", isFreeShippingEligible && "text-emerald-600")}>
                     {isShippingReady ? (shippingRate > 0 ? `$${formatCurrency(shippingRate)}` : (deliveryMethod === 'pickup' ? 'Pick up FREE' : 'FREE')) : '--'}
                   </span>
                 </div>

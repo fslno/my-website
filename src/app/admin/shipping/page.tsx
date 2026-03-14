@@ -43,7 +43,9 @@ import {
   Save,
   Layers,
   Scale,
-  RefreshCw
+  RefreshCw,
+  DollarSign,
+  Trophy
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch } from 'firebase/firestore';
@@ -52,6 +54,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 export default function ShippingPage() {
   const db = useFirestore();
@@ -74,6 +77,12 @@ export default function ShippingPage() {
   const [defaultWidth, setDefaultWidth] = useState('');
   const [defaultHeight, setDefaultHeight] = useState('');
 
+  // Free Shipping State
+  const [freeShippingEnabled, setFreeShippingEnabled] = useState(false);
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState('');
+  const [standardRate, setStandardRate] = useState('');
+  const [expressRate, setExpressRate] = useState('');
+
   useEffect(() => {
     if (config) {
       setPickupAddress(config.pickupAddress || '');
@@ -84,6 +93,11 @@ export default function ShippingPage() {
       setDefaultLength(String(config.defaultLength || ''));
       setDefaultWidth(String(config.defaultWidth || ''));
       setDefaultHeight(String(config.defaultHeight || ''));
+      
+      setFreeShippingEnabled(config.freeShippingEnabled ?? true);
+      setFreeShippingThreshold(String(config.freeShippingThreshold ?? '500'));
+      setStandardRate(String(config.standardRate ?? '0'));
+      setExpressRate(String(config.expressRate ?? '25'));
     }
   }, [config]);
 
@@ -114,6 +128,10 @@ export default function ShippingPage() {
       defaultLength: 30,
       defaultWidth: 20,
       defaultHeight: 10,
+      freeShippingEnabled: true,
+      freeShippingThreshold: 500,
+      standardRate: 0,
+      expressRate: 25,
       updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -134,6 +152,31 @@ export default function ShippingPage() {
         requestResourceData: updates
       }));
     });
+  };
+
+  const handleSaveRates = () => {
+    if (!configRef) return;
+    setIsSaving(true);
+    const updates = {
+      freeShippingEnabled,
+      freeShippingThreshold: parseFloat(freeShippingThreshold) || 0,
+      standardRate: parseFloat(standardRate) || 0,
+      expressRate: parseFloat(expressRate) || 0,
+      updatedAt: serverTimestamp()
+    };
+    updateDoc(configRef, updates)
+      .then(() => {
+        setIsSaving(false);
+        toast({ title: "Rates Saved", description: "Global shipping costs and thresholds updated." });
+      })
+      .catch((error) => {
+        setIsSaving(false);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: configRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        }));
+      });
   };
 
   const handleSavePickupDetails = () => {
@@ -301,6 +344,8 @@ export default function ShippingPage() {
     );
   }
 
+  const enabledCarriers = config.carriers?.filter((c: any) => typeof c === 'string' ? true : c.active) || [];
+
   return (
     <div className="space-y-8 min-w-0 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
@@ -387,6 +432,78 @@ export default function ShippingPage() {
                     onChange={(e) => setDefaultHeight(e.target.value)}
                     className="h-11 sm:h-12 font-mono bg-white"
                   />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#e1e3e5] shadow-none rounded-none border-emerald-100 bg-emerald-50/5">
+            <CardHeader className="border-b bg-emerald-50/30 px-4 sm:px-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-emerald-600" />
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Shipping Rate Protocols</CardTitle>
+                </div>
+                <Button 
+                  onClick={handleSaveRates} 
+                  disabled={isSaving}
+                  className="h-9 px-6 bg-emerald-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-emerald-700 transition-colors w-full sm:w-auto"
+                >
+                  {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save Protocols
+                </Button>
+              </div>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-emerald-800/60 mt-1">Configure global pricing and purchase-triggered free shipping.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 px-4 sm:px-6 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-[10px] uppercase font-bold text-primary">Free Shipping Trigger</Label>
+                      <p className="text-[8px] text-muted-foreground uppercase font-bold">Waive fees based on purchase limit</p>
+                    </div>
+                    <Switch 
+                      checked={freeShippingEnabled} 
+                      onCheckedChange={setFreeShippingEnabled}
+                      className="data-[state=checked]:bg-emerald-600"
+                    />
+                  </div>
+                  {freeShippingEnabled && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                      <Label className="text-[9px] uppercase font-bold text-emerald-700 flex items-center gap-2">
+                        <Trophy className="h-3 w-3" /> Min Purchase for Free Shipping ($)
+                      </Label>
+                      <Input 
+                        type="number"
+                        placeholder="500" 
+                        value={freeShippingThreshold} 
+                        onChange={(e) => setFreeShippingThreshold(e.target.value)}
+                        className="h-11 sm:h-12 font-mono bg-white border-emerald-200"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Standard Rate ($)</Label>
+                    <Input 
+                      type="number"
+                      placeholder="0" 
+                      value={standardRate} 
+                      onChange={(e) => setStandardRate(e.target.value)}
+                      className="h-11 sm:h-12 font-mono bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Express Rate ($)</Label>
+                    <Input 
+                      type="number"
+                      placeholder="25" 
+                      value={expressRate} 
+                      onChange={(e) => setExpressRate(e.target.value)}
+                      className="h-11 sm:h-12 font-mono bg-white"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -729,7 +846,7 @@ export default function ShippingPage() {
           </div>
 
           <Button 
-            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
+            className="w-full bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
             onClick={handleSaveAll}
             disabled={isSaving}
           >
