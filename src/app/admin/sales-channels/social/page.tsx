@@ -35,6 +35,13 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from '@/components/ui/dialog';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp, collection, addDoc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -53,7 +60,7 @@ export default function SocialCommercePage() {
   const { toast } = useToast();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isPartnersDialogOpen] = useState(false);
+  const [isPartnersDialogOpen, setIsPartnersDialogOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
@@ -421,6 +428,7 @@ export default function SocialCommercePage() {
                   <Users className="h-5 w-5 text-primary" />
                   <CardTitle className="text-sm font-bold uppercase tracking-widest">Partner Network</CardTitle>
                 </div>
+                <Badge variant="secondary" className="bg-black text-white text-[8px] font-bold px-2 py-0.5">{partners?.length || 0} ACTIVE</Badge>
               </div>
             </CardHeader>
             <CardContent className="pt-6">
@@ -430,12 +438,115 @@ export default function SocialCommercePage() {
                   <Badge variant="outline" className="text-[7px] font-bold uppercase tracking-widest h-4 px-1.5">ROI Active</Badge>
                 </div>
                 <p className="text-[10px] text-[#5c5f62] uppercase leading-relaxed font-medium">Manage permissions and white-listed ad access for studio partners.</p>
-                <Button 
-                  variant="outline" 
-                  className="h-10 border-black font-bold uppercase tracking-widest text-[9px] w-full hover:bg-black hover:text-white transition-all"
-                >
-                  View Archive Partners
-                </Button>
+                
+                <Dialog open={isPartnersDialogOpen} onOpenChange={setIsPartnersDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="h-10 border-black font-bold uppercase tracking-widest text-[9px] w-full hover:bg-black hover:text-white transition-all"
+                    >
+                      View Archive Partners
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] sm:max-w-3xl bg-white border-none rounded-none shadow-2xl p-0 flex flex-col max-h-[90vh]">
+                    <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
+                      <div className="space-y-1">
+                        <DialogTitle className="text-xl font-bold uppercase tracking-tight text-primary">Archive Partners</DialogTitle>
+                        <DialogDescription className="text-xs uppercase font-bold text-muted-foreground">White-listed creators and influencers.</DialogDescription>
+                      </div>
+                      <Dialog open={isInviting} onOpenChange={setIsInviting}>
+                        <DialogTrigger asChild>
+                          <Button className="bg-black text-white h-9 px-4 font-bold uppercase tracking-widest text-[9px] gap-2 shadow-lg">
+                            <PlusCircle className="h-3.5 w-3.5" /> Invite Partner
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+                          <DialogHeader className="pb-4 border-b">
+                            <DialogTitle className="text-lg font-bold uppercase tracking-tight">New Partner Protocol</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid gap-6 py-6">
+                            <div className="space-y-2">
+                              <Label className="text-[10px] uppercase font-bold text-gray-500">Partner Handle / Name</Label>
+                              <Input 
+                                placeholder="@handle or Name" 
+                                value={newPartner.name}
+                                onChange={(e) => setNewPartner({...newPartner, name: e.target.value.toUpperCase()})}
+                                className="h-12 font-bold uppercase"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] uppercase font-bold text-gray-500">Platform</Label>
+                              <Select value={newPartner.platform} onValueChange={(v) => setNewPartner({...newPartner, platform: v})}>
+                                <SelectTrigger className="h-12 font-bold uppercase text-[10px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Instagram" className="font-bold uppercase text-[10px]">Instagram</SelectItem>
+                                  <SelectItem value="TikTok" className="font-bold uppercase text-[10px]">TikTok</SelectItem>
+                                  <SelectItem value="Twitter" className="font-bold uppercase text-[10px]">Twitter / X</SelectItem>
+                                  <SelectItem value="YouTube" className="font-bold uppercase text-[10px]">YouTube</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button onClick={handleInvitePartner} disabled={isSaving || !newPartner.name} className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]">
+                              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                              Register Partner
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-y-auto p-0 scrollbar-hide">
+                      <Table>
+                        <TableHeader className="bg-gray-50/50 sticky top-0 z-10 shadow-sm">
+                          <TableRow className="border-black/5">
+                            <TableHead className="text-[9px] font-bold uppercase tracking-widest p-4 pl-6">Partner</TableHead>
+                            <TableHead className="text-[9px] font-bold uppercase tracking-widest p-4">Platform</TableHead>
+                            <TableHead className="text-[9px] font-bold uppercase tracking-widest p-4 text-center">ROI</TableHead>
+                            <TableHead className="text-[9px] font-bold uppercase tracking-widest p-4 text-center">Status</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {partnersLoading ? (
+                            <TableRow><TableCell colSpan={5} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+                          ) : !partners || partners.length === 0 ? (
+                            <TableRow><TableCell colSpan={5} className="text-center py-12 text-[10px] font-bold uppercase text-gray-400 tracking-widest italic">No partners cataloged.</TableCell></TableRow>
+                          ) : (
+                            partners.map((partner) => (
+                              <TableRow key={partner.id} className="hover:bg-gray-50/30 transition-all border-black/5 last:border-0 group">
+                                <TableCell className="pl-6 py-4">
+                                  <span className="font-bold text-xs uppercase tracking-tight">{partner.name}</span>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="text-[8px] font-bold uppercase border-none bg-gray-100 text-gray-600 px-2 h-5">{partner.platform}</Badge>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className="text-[10px] font-mono font-bold text-primary">{partner.roi || '--'}</span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Badge variant="outline" className="text-[8px] font-bold uppercase border-none bg-green-50 text-green-700 px-2 h-5">{partner.status || 'Active'}</Badge>
+                                </TableCell>
+                                <TableCell className="pr-6">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => removePartner(partner.id)}
+                                    className="h-8 w-8 text-gray-300 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
