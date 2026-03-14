@@ -48,7 +48,7 @@ service cloud.firestore {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if (isExistingOwner(userId) || isExistingAdmin()) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId) || isExistingAdmin();
+      allow delete: if (isExistingOwner(userId) || isExistingAdmin());
       
       match /cart/{itemId} {
         allow read, write: if isOwner(userId) || isAdmin();
@@ -136,6 +136,22 @@ service cloud.firestore {
      */
     match /partners/{partnerId} {
       allow read, write: if isAdmin();
+    }
+
+    /**
+     * @description Promotional discount tokens.
+     */
+    match /coupons/{couponId} {
+      allow get: if isSignedIn();
+      allow list, write: if isAdmin();
+    }
+
+    /**
+     * @description Automated email dispatch queue.
+     */
+    match /mail/{mailId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
     }
   }
 }
