@@ -103,10 +103,9 @@ export default function CategoriesPage() {
     if (!db || !categories) return;
     setIsSaving(true);
     
+    // Authoritatively restricted to only restore "Kid's" per directive
     const defaults = [
-      { name: 'Adults', description: 'Primary studio selection for adults.', order: 0 },
-      { name: 'Kids', description: 'Archival pieces for the younger generation.', order: 1 },
-      { name: 'Accessories', description: 'Technical studio equipment and accessories.', order: 2 }
+      { name: "Kid's", description: 'Archival pieces for the younger generation.', order: 0 }
     ];
 
     const batch = writeBatch(db);
@@ -129,13 +128,13 @@ export default function CategoriesPage() {
     });
 
     if (addedCount === 0) {
-      toast({ title: "Up to Date", description: "All default categories already exist." });
+      toast({ title: "Up to Date", description: "Default category already exists." });
       setIsSaving(false);
       return;
     }
 
     await batch.commit()
-      .then(() => toast({ title: "Restored", description: `${addedCount} categories manifested.` }))
+      .then(() => toast({ title: "Restored", description: `${addedCount} category manifested.` }))
       .catch(() => toast({ variant: "destructive", title: "Error", description: "Restore protocol failed." }))
       .finally(() => setIsSaving(false));
   };
