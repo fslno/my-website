@@ -71,8 +71,17 @@ export function ProductCard({ id, name, price, image, hoverImage, category, rati
         
         {reviewCount && reviewCount > 0 ? (
           <div className="flex items-center gap-1.5 mt-0.5">
-            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-            <span className="text-[10px] font-bold text-primary">{(rating || 0).toFixed(1)}</span>
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star 
+                  key={s} 
+                  className={cn(
+                    "h-2.5 w-2.5", 
+                    s <= Math.round(rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                  )} 
+                />
+              ))}
+            </div>
             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
           </div>
         ) : null}
