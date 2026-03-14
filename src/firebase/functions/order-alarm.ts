@@ -9,6 +9,11 @@
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 
+// Authoritatively initialize the Admin SDK for messaging triggers
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 /**
  * Dispatches a high-priority alarm when a new order is manifested.
  */

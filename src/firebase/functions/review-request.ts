@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Firebase Cloud Function for automated post-purchase review requests.
  * 
@@ -8,7 +7,13 @@
  */
 
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import * as admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
+
+// Authoritatively initialize the Admin SDK for background tasks
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 /**
  * Orchestrates the review request dispatch protocol.

@@ -194,7 +194,7 @@ export default function NotificationsPage() {
       const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '';
       
       const token = await getToken(messaging, { vapidKey }).catch(err => {
-        if (err.message.includes('applicationServerKey') || err.code === 'messaging/invalid-vapid-key') {
+        if (err.message?.includes('applicationServerKey') || err.code === 'messaging/invalid-vapid-key') {
           throw new Error("Invalid VAPID Key. Please configure NEXT_PUBLIC_FIREBASE_VAPID_KEY in your environment with the key from Firebase Console > Cloud Messaging.");
         }
         throw err;
@@ -204,12 +204,20 @@ export default function NotificationsPage() {
 
       const functions = getFunctions(app);
       const subscribeFunc = httpsCallable(functions, 'subscribeAdminToOrders');
-      await subscribeFunc({ token });
-
-      toast({
-        title: "Device Bound",
-        description: "This device is Authoritatively subscribed to High-Priority Alarms."
-      });
+      
+      try {
+        await subscribeFunc({ token });
+        toast({
+          title: "Device Bound",
+          description: "This device is Authoritatively subscribed to High-Priority Alarms."
+        });
+      } catch (funcError: any) {
+        // Authoritatively handle specific internal errors from Cloud Functions
+        if (funcError.code === 'functions/internal') {
+          throw new Error("Cloud Function internal protocol failure. Ensure the Admin SDK is initialized on the server.");
+        }
+        throw funcError;
+      }
     } catch (error: any) {
       console.error("[ALARM] Device registration failure:", error);
       toast({

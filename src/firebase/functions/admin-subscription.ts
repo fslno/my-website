@@ -5,6 +5,11 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
+// Authoritatively initialize the Admin SDK for backend operations
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 /**
  * Subscribes the current device token to the admin_orders topic.
  * Strictly limited to the master admin identity.
@@ -26,6 +31,6 @@ export const subscribeAdminToOrders = onCall(async (request) => {
     return { success: true, message: "Protocol synchronized." };
   } catch (error) {
     console.error("[ALARM] Subscription failure:", error);
-    throw new HttpsError('internal', 'Handshake failed.');
+    throw new HttpsError('internal', 'Handshake failed during topic subscription.');
   }
 });
