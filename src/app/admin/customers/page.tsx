@@ -30,7 +30,12 @@ import {
   Tag,
   Phone,
   Hash,
-  ChevronDown
+  ChevronDown,
+  Fingerprint,
+  Layers,
+  History,
+  Activity,
+  Package
 } from 'lucide-react';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -53,15 +58,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { type DateRange } from "react-day-picker";
 
 export default function CustomersPage() {
@@ -75,6 +83,8 @@ export default function CustomersPage() {
   }, [currentUser]);
 
   const [isAuditOpen, setIsAuditOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  
   const [advName, setAdvName] = useState('');
   const [advOrderNum, setAdvOrderNum] = useState('');
   const [advPhone, setAdvPhone] = useState('');
@@ -183,19 +193,19 @@ export default function CustomersPage() {
     <div className="space-y-8 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Archive Member Manifest</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase tracking-tight font-medium">Manage unified profiles and monitor engagement.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Archive Members</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase tracking-tight font-medium">Manage profiles and monitor engagement.</p>
         </div>
         <Badge variant="outline" className="bg-black text-white px-4 py-1.5 rounded-none font-bold uppercase tracking-widest text-[10px]">
-          {unifiedCustomers.length} Total Participants
+          {unifiedCustomers.length} TOTAL
         </Badge>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard title="Registered" value={unifiedCustomers.filter(c => c.tier === 'Registered').length.toString()} label="Profile Created" icon={<UserCheck className="h-3.5 w-3.5 text-blue-600" />} />
-        <StatsCard title="Guest Purchasers" value={unifiedCustomers.filter(c => c.tier === 'Guest').length.toString()} label="No Formal Profile" icon={<ShoppingBag className="h-3.5 w-3.5 text-orange-600" />} />
-        <StatsCard title="Abandoned / Lead" value={unifiedCustomers.filter(c => c.isAbandoned).length.toString()} label="Pending Selection" icon={<UserPlus className="h-3.5 w-3.5 text-purple-600" />} />
-        <StatsCard title="Total Retention" value={Math.round((unifiedCustomers.filter(c => c.orderCount > 0).length / Math.max(1, unifiedCustomers.length)) * 100) + '%'} label="Purchase Velocity" icon={<CreditCard className="h-3.5 w-3.5 text-green-600" />} />
+        <StatsCard title="Registered" value={unifiedCustomers.filter(c => c.tier === 'Registered').length.toString()} label="Profiles Created" icon={<UserCheck className="h-3.5 w-3.5 text-blue-600" />} />
+        <StatsCard title="Guest" value={unifiedCustomers.filter(c => c.tier === 'Guest').length.toString()} label="Purchasers" icon={<ShoppingBag className="h-3.5 w-3.5 text-orange-600" />} />
+        <StatsCard title="Abandoned" value={unifiedCustomers.filter(c => c.isAbandoned).length.toString()} label="Leads" icon={<UserPlus className="h-3.5 w-3.5 text-purple-600" />} />
+        <StatsCard title="Retention" value={Math.round((unifiedCustomers.filter(c => c.orderCount > 0).length / Math.max(1, unifiedCustomers.length)) * 100) + '%'} label="Purchase Velocity" icon={<CreditCard className="h-3.5 w-3.5 text-green-600" />} />
       </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
@@ -203,7 +213,7 @@ export default function CustomersPage() {
           <div className="flex flex-col md:flex-row items-center gap-4 w-full lg:max-w-3xl">
             <div className="relative w-full md:flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
-              <Input placeholder="Quick search..." className="pl-10 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold w-full rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              <Input placeholder="Search..." className="pl-10 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold w-full rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
             <div className="flex w-full md:w-auto border rounded-none p-1 bg-white shadow-sm overflow-x-auto scrollbar-hide">
               {(['all', 'registered', 'guest', 'abandoned'] as const).map((tier) => (
@@ -212,37 +222,41 @@ export default function CustomersPage() {
             </div>
           </div>
           <Dialog open={isAuditOpen} onOpenChange={setIsAuditOpen}>
-            <DialogTrigger asChild><Button variant="outline" className={cn("h-10 border-[#e1e3e5] gap-2 font-bold uppercase tracking-widest text-[10px] w-full lg:w-auto rounded-none", (advName || advOrderNum || advPhone || advAddress || advProduct || advDateRange) && "bg-blue-50 border-blue-200 text-blue-700")}><Filter className="h-3.5 w-3.5" /> Advanced Audit</Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant="outline" className={cn("h-10 border-[#e1e3e5] gap-2 font-bold uppercase tracking-widest text-[10px] w-full lg:w-auto rounded-none", (advName || advOrderNum || advPhone || advAddress || advProduct || advDateRange) && "bg-blue-50 border-blue-200 text-blue-700")}><Filter className="h-3.5 w-3.5" /> Filter</Button></DialogTrigger>
             <DialogContent className="max-w-[100vw] w-screen h-screen sm:max-w-xl sm:h-auto m-0 rounded-none bg-white border-none flex flex-col p-0">
-              <DialogHeader className="p-6 sm:p-8 border-b shrink-0"><DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Forensic Audit Protocol</DialogTitle></DialogHeader>
+              <DialogHeader className="p-6 sm:p-8 border-b shrink-0"><DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Search Criteria</DialogTitle></DialogHeader>
               <div className="flex-1 overflow-y-auto p-6 sm:p-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Participant Name</Label><Input placeholder="Search by handle..." value={advName} onChange={(e) => setAdvName(e.target.value)} className="h-11 uppercase text-[10px] font-bold" /></div>
-                  <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Forensic Order ID</Label><Input placeholder="e.g. #ORD-7721" value={advOrderNum} onChange={(e) => setAdvOrderNum(e.target.value)} className="h-11 uppercase font-mono text-[10px]" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label><Input placeholder="Handle..." value={advName} onChange={(e) => setAdvName(e.target.value)} className="h-11 uppercase text-[10px] font-bold" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Order ID</Label><Input placeholder="e.g. #ORD-7721" value={advOrderNum} onChange={(e) => setAdvOrderNum(e.target.value)} className="h-11 uppercase font-mono text-[10px]" /></div>
                 </div>
               </div>
-              <DialogFooter className="p-6 sm:p-8 border-t shrink-0 flex flex-row items-center justify-between gap-4"><Button variant="ghost" className="text-[10px] font-bold uppercase tracking-widest h-12" onClick={() => { setAdvName(''); setAdvOrderNum(''); setAdvPhone(''); setAdvAddress(''); setAdvProduct(''); setAdvDateRange(undefined); }}>Reset</Button><Button className="flex-1 bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]" onClick={() => setIsAuditOpen(false)}>Apply Audit</Button></DialogFooter>
+              <DialogFooter className="p-6 sm:p-8 border-t shrink-0 flex flex-row items-center justify-between gap-4"><Button variant="ghost" className="text-[10px] font-bold uppercase tracking-widest h-12" onClick={() => { setAdvName(''); setAdvOrderNum(''); setAdvPhone(''); setAdvAddress(''); setAdvProduct(''); setAdvDateRange(undefined); }}>Reset</Button><Button className="flex-1 bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]" onClick={() => setIsAuditOpen(false)}>Apply</Button></DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
 
         <div className="hidden lg:block">
           <Table>
-            <TableHeader className="bg-[#f6f6f7]"><TableRow className="border-[#e1e3e5]"><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 pl-6">Participant Identity</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Contact Manifest</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Archival Entry</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Purchase Profile</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Status Protocol</TableHead><TableHead className="w-[50px]"></TableHead></TableRow></TableHeader>
+            <TableHeader className="bg-[#f6f6f7]"><TableRow className="border-[#e1e3e5]"><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 pl-6">Identity</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Contact</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Joined</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Purchase History</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Status</TableHead><TableHead className="w-[50px]"></TableHead></TableRow></TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow><TableCell colSpan={6} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
               ) : filteredCustomers.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">No participants match the filter.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">No members found.</TableCell></TableRow>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id} className="hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group">
+                  <TableRow 
+                    key={customer.id} 
+                    onClick={() => setSelectedCustomer(customer)}
+                    className="hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group cursor-pointer transition-colors"
+                  >
                     <TableCell className="pl-6"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm">{customer.photoURL ? <img src={customer.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircle className="h-6 w-6 text-gray-300" />}</div><div className="flex flex-col"><span className="text-sm font-bold uppercase tracking-tight text-primary">{customer.displayName}</span><span className="text-[9px] font-mono text-gray-400 uppercase">ID: {customer.id.substring(0, 8)}...</span></div></div></TableCell>
                     <TableCell><div className="flex flex-col gap-1"><div className="flex items-center gap-2 text-xs font-medium"><Mail className="h-3 w-3 text-gray-400" /><span className="lowercase">{customer.email}</span></div></div></TableCell>
                     <TableCell><div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase"><CalendarIcon className="h-3 w-3" />{formatDate(customer.createdAt)}</div></TableCell>
-                    <TableCell><div className="flex flex-col gap-0.5"><span className="text-xs font-bold text-primary">C$${customer.totalSpent.toFixed(2)}</span><span className="text-[9px] font-bold text-gray-400 uppercase">{customer.orderCount} TRANSACTIONS</span></div></TableCell>
+                    <TableCell><div className="flex flex-col gap-0.5"><span className="text-xs font-bold text-primary">C$${customer.totalSpent.toFixed(2)}</span><span className="text-[9px] font-bold text-gray-400 uppercase">{customer.orderCount} ORDERS</span></div></TableCell>
                     <TableCell><Badge variant="secondary" className={cn("uppercase text-[9px] font-bold border-none px-3", customer.isAbandoned ? "bg-purple-50 text-purple-700" : customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700")}>{customer.status}</Badge></TableCell>
-                    <TableCell className="pr-6"><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4 text-gray-400" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end" className="w-48 bg-white border-black/10 shadow-xl rounded-none"><DropdownMenuLabel className="text-[10px] uppercase font-bold text-gray-400">Management</DropdownMenuLabel><DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer hover:bg-gray-50 py-3"><ArrowRight className="h-3 w-3 mr-2" /> View Profile</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem className="text-xs uppercase font-bold cursor-pointer text-red-600 hover:bg-red-50 py-3">Suspend Access</DropdownMenuItem></DropdownMenuContent></DropdownMenu></TableCell>
+                    <TableCell className="pr-6"><Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"><ArrowRight className="h-4 w-4 text-gray-400" /></Button></TableCell>
                   </TableRow>
                 ))
               )}
@@ -254,11 +268,15 @@ export default function CustomersPage() {
           {isLoading ? (
             <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-gray-300" /></div>
           ) : filteredCustomers.length === 0 ? (
-            <div className="p-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">No participants match the filter.</div>
+            <div className="p-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">No members found.</div>
           ) : (
             <div className="divide-y border-t">
               {filteredCustomers.map((customer) => (
-                <div key={customer.id} className="p-4 space-y-4 bg-white hover:bg-gray-50 transition-colors">
+                <div 
+                  key={customer.id} 
+                  onClick={() => setSelectedCustomer(customer)}
+                  className="p-4 space-y-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm">{customer.photoURL ? <img src={customer.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircle className="h-6 w-6 text-gray-300" />}</div>
@@ -270,7 +288,7 @@ export default function CustomersPage() {
                     <div className="space-y-1"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Contact</p><p className="text-[10px] font-medium truncate lowercase">{customer.email}</p></div>
                     <div className="space-y-1 text-right"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Joined</p><p className="text-[10px] font-bold uppercase">{formatDate(customer.createdAt)}</p></div>
                     <div className="space-y-1"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Spent</p><p className="text-[10px] font-bold text-primary">C$${customer.totalSpent.toFixed(2)}</p></div>
-                    <div className="space-y-1 text-right"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Orders</p><p className="text-[10px] font-bold">{customer.orderCount} Trans</p></div>
+                    <div className="space-y-1 text-right"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Orders</p><p className="text-[10px] font-bold">{customer.orderCount}</p></div>
                   </div>
                 </div>
               ))}
@@ -278,6 +296,140 @@ export default function CustomersPage() {
           )}
         </div>
       </div>
+
+      <Sheet open={!!selectedCustomer} onOpenChange={(open) => !open && setSelectedCustomer(null)}>
+        <SheetContent className="w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10">
+          {selectedCustomer && (
+            <>
+              <SheetHeader className="p-8 border-b bg-gray-50/50 shrink-0">
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 rounded-full bg-white border-2 border-primary/5 overflow-hidden flex items-center justify-center shrink-0 shadow-xl">
+                    {selectedCustomer.photoURL ? (
+                      <img src={selectedCustomer.photoURL} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <UserCircle className="h-12 w-12 text-gray-200" />
+                    )}
+                  </div>
+                  <div className="space-y-1 overflow-hidden">
+                    <div className="flex items-center gap-3">
+                      <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight truncate">
+                        {selectedCustomer.displayName}
+                      </SheetTitle>
+                      <Badge className={cn("uppercase text-[8px] font-bold tracking-widest px-2 h-5 border-none", selectedCustomer.tier === 'Registered' ? 'bg-blue-600' : 'bg-orange-500')}>
+                        {selectedCustomer.tier}
+                      </Badge>
+                    </div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest truncate">{selectedCustomer.email}</p>
+                    <div className="flex items-center gap-2 text-[9px] font-mono text-gray-400 mt-1 uppercase">
+                      <Fingerprint className="h-3 w-3" /> ID: {selectedCustomer.id}
+                    </div>
+                  </div>
+                </div>
+              </SheetHeader>
+
+              <ScrollArea className="flex-1">
+                <div className="p-8 space-y-12">
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <Card className="shadow-none rounded-none border border-black/5 bg-gray-50/30">
+                      <CardContent className="p-6">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Lifetime Value</p>
+                        <p className="text-2xl font-bold font-headline text-primary">C$${selectedCustomer.totalSpent.toFixed(2)}</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="shadow-none rounded-none border border-black/5 bg-gray-50/30">
+                      <CardContent className="p-6">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Orders</p>
+                        <p className="text-2xl font-bold font-headline text-primary">{selectedCustomer.orderCount}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <section className="space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
+                      <History className="h-3.5 w-3.5 text-blue-500" /> Order History
+                    </h3>
+                    {selectedCustomer.orderIds.size > 0 ? (
+                      <div className="grid gap-3">
+                        {Array.from(selectedCustomer.orderIds).map((id: any) => (
+                          <div key={id} className="p-4 border rounded-none bg-white hover:border-black transition-all group flex items-center justify-between">
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-mono font-bold">#{id}</p>
+                              <p className="text-[9px] font-bold uppercase text-muted-foreground">Archival Transaction</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                              <a href={`/admin/orders/${id.toLowerCase()}`} target="_blank">
+                                <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-primary transition-colors" />
+                              </a>
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[10px] font-bold uppercase text-gray-400 italic py-4">No transactions found.</p>
+                    )}
+                  </section>
+
+                  <section className="space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
+                      <Package className="h-3.5 w-3.5 text-orange-500" /> Items Manifest
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {Array.from(selectedCustomer.productNames).map((name: any) => (
+                        <Badge key={name} variant="outline" className="rounded-none border-black/10 bg-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-tight">
+                          {name}
+                        </Badge>
+                      ))}
+                      {selectedCustomer.productNames.size === 0 && (
+                        <p className="text-[10px] font-bold uppercase text-gray-400 italic">No items cataloged.</p>
+                      )}
+                    </div>
+                  </section>
+
+                  <section className="space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 text-emerald-500" /> Contact & Logistics
+                    </h3>
+                    <div className="grid gap-6">
+                      <div className="space-y-3">
+                        <Label className="text-[9px] font-bold text-gray-400 uppercase">Addresses</Label>
+                        <div className="grid gap-3">
+                          {Array.from(selectedCustomer.addresses).map((addr: any) => (
+                            <div key={addr} className="p-4 bg-gray-50 border rounded-none text-xs font-bold uppercase leading-relaxed text-gray-600">
+                              {addr}
+                            </div>
+                          ))}
+                          {selectedCustomer.addresses.size === 0 && <p className="text-[9px] font-medium text-gray-400 italic">None provided.</p>}
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[9px] font-bold text-gray-400 uppercase">Phones</Label>
+                        <div className="flex flex-wrap gap-3">
+                          {Array.from(selectedCustomer.phones).map((p: any) => (
+                            <div key={p} className="flex items-center gap-2 px-3 py-2 bg-gray-50 border text-[10px] font-mono font-bold text-primary">
+                              <Phone className="h-3 w-3 text-gray-400" /> {p}
+                            </div>
+                          ))}
+                          {selectedCustomer.phones.size === 0 && <p className="text-[9px] font-medium text-gray-400 italic">None provided.</p>}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </ScrollArea>
+
+              <div className="p-8 border-t bg-gray-50/50 shrink-0">
+                <Button 
+                  className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl"
+                  onClick={() => setSelectedCustomer(null)}
+                >
+                  Close Manifest
+                </Button>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
