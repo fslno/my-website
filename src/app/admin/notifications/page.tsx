@@ -55,6 +55,7 @@ import {
   DialogDescription 
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -345,7 +346,7 @@ export default function NotificationsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Notifications & Automation</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage friendly automated emails, marketing recovery, and global branding.</p>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage automated emails, marketing recovery, and global branding.</p>
         </div>
         <Button variant="outline" className="w-full sm:w-auto h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black" onClick={handleSendTest} disabled={isSendingTest}>
           {isSendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send Live Preview
@@ -426,7 +427,6 @@ export default function NotificationsPage() {
               <h2 className="text-sm font-bold uppercase tracking-widest">Fulfillment Notifications</h2>
             </div>
             
-            {/* Desktop Table */}
             <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
@@ -468,7 +468,6 @@ export default function NotificationsPage() {
               </Table>
             </div>
 
-            {/* Mobile Card View */}
             <div className="md:hidden grid grid-cols-1 gap-4">
               {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
                 const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
@@ -555,7 +554,7 @@ export default function NotificationsPage() {
               </Table>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:hidden">
+            <div className="md:hidden grid grid-cols-1 gap-4">
               {recoveryCampaigns.map((campaign) => (
                 <Card key={campaign.id} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
                   <div className="flex items-center justify-between">
