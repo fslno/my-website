@@ -145,7 +145,7 @@ export default function CategoriesPage() {
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!db || !confirm("Authoritatively delete category?")) return;
+    if (!db || !confirm("Delete category?")) return;
     deleteDoc(doc(db, 'categories', id)).then(() => { toast({ title: "Deleted", description: "Category removed." }); });
   };
 
@@ -160,7 +160,7 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-8 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-        <div><h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Categories</h1><p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Group your products and manage SEO.</p></div>
+        <div><h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Categories</h1><p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Group products and manage SEO.</p></div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild><Button className="w-full sm:w-auto bg-black text-white font-bold h-10 gap-2"><Plus className="h-4 w-4" /> Add Category</Button></DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
@@ -175,11 +175,11 @@ export default function CategoriesPage() {
               </div>
               <div className="flex-1 overflow-y-auto">
                 <TabsContent value="general" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8"><div className="space-y-6"><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label><Input placeholder="e.g. Outerwear" value={name} onChange={(e) => setName(e.target.value)} className="h-12" /></div><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label><Textarea placeholder="..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[120px]" /></div></div><div className="space-y-4"><Label className="text-[10px] uppercase font-bold text-gray-500">Visual</Label><div onClick={() => !imageUrl && fileInputRef.current?.click()} className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-4 bg-gray-50 min-h-[250px] cursor-pointer hover:border-black transition-all">{imageUrl ? <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden border"><Image src={imageUrl} alt="Preview" fill className="object-cover" /></div> : <><Upload className="h-6 w-6 text-gray-400" /><p className="text-[10px] font-bold uppercase text-gray-500">Upload Visual</p></>}</div><input type="file" fileInputRef={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} /></div></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8"><div className="space-y-6"><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label><Input placeholder="e.g. Outerwear" value={name} onChange={(e) => setName(e.target.value)} className="h-12" /></div><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label><Textarea placeholder="..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[120px]" /></div></div><div className="space-y-4"><Label className="text-[10px] uppercase font-bold text-gray-500">Visual</Label><div onClick={() => !imageUrl && fileInputRef.current?.click()} className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-4 bg-gray-50 min-h-[250px] cursor-pointer hover:border-black transition-all">{imageUrl ? <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden border"><Image src={imageUrl} alt="Preview" fill className="object-cover" /></div> : <><Upload className="h-6 w-6 text-gray-400" /><p className="text-[10px] font-bold uppercase text-gray-500">Upload</p></>}</div><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} /></div></div>
                 </TabsContent>
               </div>
             </Tabs>
-            <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50/50 shrink-0"><Button onClick={handleSave} disabled={isSaving || !name} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">{isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}{editingId ? 'Save Category' : 'Add Category'}</Button></DialogFooter>
+            <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50/50 shrink-0"><Button onClick={handleSave} disabled={isSaving || !name} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">{isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}{editingId ? 'Save' : 'Add'}</Button></DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

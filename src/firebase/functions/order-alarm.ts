@@ -1,18 +1,17 @@
 /**
- * @fileOverview Firebase Cloud Function for High-Priority Order Alarms and Diagnostics.
+ * @fileOverview Firebase Cloud Function for Order Alarms.
  */
 
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
-// Authoritatively initialize the Admin SDK for messaging triggers
 if (!admin.apps.length) {
   admin.initializeApp();
 }
 
 /**
- * Dispatches a high-priority alarm when a new order is manifested.
+ * Dispatches an alarm when a new order is created.
  */
 export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event) => {
   const data = event.data?.data();
@@ -20,12 +19,12 @@ export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event
 
   const orderId = event.params.orderId;
   const total = data.total || 0;
-  const formattedTotal = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(total);
+  const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(total);
 
   const payload = {
     notification: {
       title: `New Order - ${formattedTotal}`,
-      body: `Order #${orderId.substring(0, 8).toUpperCase()} received.`,
+      body: `Order received.`,
       sound: "alarm.mp3",
     },
     data: {
@@ -36,23 +35,20 @@ export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event
     }
   };
 
-  // Target the specific topic for admin alarms
   try {
     await admin.messaging().sendToTopic("admin_orders", payload, {
       priority: "high",
       timeToLive: 60 * 60 * 24
     });
-    console.log(`[ALARM] Notification sent for Order ${orderId}`);
   } catch (error) {
-    console.error("[ALARM] Failed to send FCM notification:", error);
+    console.error("[ALARM] Notification failed:", error);
   }
 });
 
 /**
- * Authoritatively dispatches a test alarm to the admin topic for diagnostic verification.
+ * Dispatches a test alarm.
  */
 export const sendTestNotification = onCall(async (request) => {
-  // Security Guard: Check if the user is an admin
   if (!request.auth || (request.auth.token.email !== 'fslno.dev@gmail.com' && request.auth.uid !== 'ulyu5w9XtYeVTmceUfOZLZwDQxF2')) {
     throw new HttpsError('permission-denied', 'Unauthorized access.');
   }
@@ -60,7 +56,7 @@ export const sendTestNotification = onCall(async (request) => {
   const payload = {
     notification: {
       title: "Test Alarm - Diagnostic",
-      body: "High-priority diagnostic alert triggered.",
+      body: "High-priority test alert.",
       sound: "alarm.mp3",
     },
     data: {
@@ -73,9 +69,8 @@ export const sendTestNotification = onCall(async (request) => {
     await admin.messaging().sendToTopic("admin_orders", payload, {
       priority: "high"
     });
-    return { success: true, message: "Diagnostic alarm sent." };
+    return { success: true, message: "Alarm sent." };
   } catch (error: any) {
-    console.error("[DIAGNOSTIC] Failed to send test:", error);
     throw new HttpsError('internal', `Diagnostic failure: ${error.message}`);
   }
 });

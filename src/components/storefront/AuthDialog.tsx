@@ -69,7 +69,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       resetForm();
       toast({
         title: "Account Created",
-        description: "Welcome to FSLNO Studio. You can now track your orders.",
+        description: "Welcome. You can now track your orders.",
       });
     } catch (error: any) {
       toast({
@@ -101,10 +101,10 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
           <DialogHeader className="mb-8">
             <div className="flex items-center gap-3 mb-2 text-primary">
               <ShieldCheck className="h-6 w-6" />
-              <DialogTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Studio Identity</DialogTitle>
+              <DialogTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Sign In</DialogTitle>
             </div>
             <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
-              Sign in to track orders and manage your selection.
+              Sign in to track orders.
             </DialogDescription>
           </DialogHeader>
 
@@ -127,14 +127,14 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
             <div className="relative">
               <div className="absolute inset-0 flex items-center"><Separator /></div>
               <div className="relative flex justify-center text-[10px] uppercase font-bold">
-                <span className="bg-white px-2 text-muted-foreground">Or email protocol</span>
+                <span className="bg-white px-2 text-muted-foreground">Or email</span>
               </div>
             </div>
 
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-gray-50 h-12 p-1 mb-8 rounded-none border">
                 <TabsTrigger value="login" className="font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Sign In</TabsTrigger>
-                <TabsTrigger value="register" className="font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Join Studio</TabsTrigger>
+                <TabsTrigger value="register" className="font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Join</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
@@ -172,7 +172,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     disabled={isLoading}
                     className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all"
                   >
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Access Account"}
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
                   </Button>
                 </form>
               </TabsContent>

@@ -173,10 +173,10 @@ export function Footer() {
                 <div className="space-y-3">
                   <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
                   <h3 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight leading-none">
-                    {config?.newsletterHeadline || "Join the Archive"}
+                    Join
                   </h3>
                   <p className="text-[10px] uppercase tracking-widest font-bold opacity-60 leading-relaxed max-w-xs">
-                    {config?.newsletterSubtext || "Sign up for early access."}
+                    Sign up for early access.
                   </p>
                 </div>
                 <form onSubmit={handleSubscribe} className="relative w-full">

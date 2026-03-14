@@ -455,7 +455,7 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                   <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0 space-y-4">
-                    <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-primary">Cart ({cartCount})</SheetTitle>
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight uppercase text-primary">Cart ({cartCount})</SheetTitle>
                     
                     {cartSubtotal > 0 && (
                       <div className="space-y-2">
