@@ -133,6 +133,20 @@ const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
     subject: "Incomplete selection: Finish your order at {{business_name}}",
     body: "Hi {{customer_name}},\n\nYou left some high-fidelity pieces in your bag! We've reserved them for a limited time, but we can't guarantee stock forever.\n\nRESUME CHECKOUT:\nhttps://fslno.ca/checkout\n\nYour pending selection:\n{{product_list}}\n\nComplete your purchase now to secure these archive drops."
   },
+  browseRecovery: {
+    label: "Browse Abandoned Email",
+    description: "Sent to customers who viewed products but didn't add to cart.",
+    enabled: false,
+    subject: "A personalized selection for you at {{business_name}}",
+    body: "Hi {{customer_name}},\n\nWe noticed you were exploring the archive. Some of the pieces you viewed are in high demand and low inventory.\n\nVIEW COLLECTION:\nhttps://fslno.ca/collections/all\n\n{{business_name}}"
+  },
+  winback: {
+    label: "Win-back Email",
+    description: "Sent 60 days after a customer's last purchase.",
+    enabled: false,
+    subject: "We miss you in the studio, {{customer_name}}",
+    body: "Hi {{customer_name}},\n\nIt's been a while since your last archive selection. We've just released some new sculptural silhouettes that we think you'll appreciate.\n\nDISCOVER NEW DROPS:\nhttps://fslno.ca/collections/all\n\n{{business_name}}"
+  },
   feedbackRequest: {
     label: "Feedback Request",
     description: "Sent after an order is marked 'Delivered' to gather reviews.",
