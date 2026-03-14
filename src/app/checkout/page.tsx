@@ -49,7 +49,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle 
-} from "@/dialog";
+} from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
