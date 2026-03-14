@@ -26,18 +26,15 @@ export function ProductCard({ id, name, price, image, category, rating, reviewCo
             src={image}
             alt={name}
             fill
-            className={cn(
-              "object-cover",
-              isSoldOut && "opacity-40 grayscale"
-            )}
+            className="object-cover"
           />
         ) : (
           <div className="absolute inset-0 bg-gray-200" />
         )}
         
         {isSoldOut && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="bg-white/90 text-black text-[9px] font-bold uppercase tracking-[0.3em] px-4 py-2 shadow-lg animate-in zoom-in duration-500">
+          <div className="absolute top-0 right-0 z-10 p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
+            <span className="bg-black text-white text-[8px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl">
               Sold Out
             </span>
           </div>
