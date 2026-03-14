@@ -83,62 +83,62 @@ interface NotificationConfig {
 const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
   orderConfirmation: {
     label: "Order Confirmation",
-    description: "Sent immediately after successful placement. Confirms pieces and studio preparation.",
+    description: "Sent after purchase. Confirms order and studio prep.",
     enabled: true,
-    subject: "Confirmed: Your {{business_name}} Archive Selection #{{order_id}}",
-    body: "Hi {{customer_name}},\n\nWe're thrilled to confirm your archive selection! Our studio team has received order #{{order_id}} and is now preparing your pieces with absolute precision.\n\nYOUR ARCHIVE SELECTION:\n{{product_list}}\n\nOrder Total: {{order_total}}\n\nSTUDIO DETAILS:\n{{business_address}}\n{{business_phone}}\n\nWe'll notify you as soon as your items are dispatched. Thank you for your trust."
+    subject: "Order Confirmed: #{{order_id}}",
+    body: "Hi {{customer_name}},\n\nYour archive order #{{order_id}} is confirmed. Our studio is preparing your pieces.\n\nYOUR SELECTION:\n{{product_list}}\n\nTotal: {{order_total}}\n\nSTUDIO:\n{{business_address}}\n{{business_phone}}\n\nWe will notify you when items ship."
   },
   statusChanged: {
-    label: "Order Status Changed",
-    description: "Sent whenever you manually update the progress of an order fulfillment.",
+    label: "Status Update",
+    description: "Sent when order status changes.",
     enabled: true,
-    subject: "Update: The status of order #{{order_id}} has evolved",
-    body: "Hi {{customer_name}},\n\nJust a quick update from the {{business_name}} studio. The status of your archive order #{{order_id}} has been updated to: {{status}}.\n\nWe are moving through the fulfillment stages to ensure your pieces reach you in perfect condition.\n\nRegards,\n{{business_name}} Team"
+    subject: "Update: Order #{{order_id}}",
+    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} status updated to: {{status}}.\n\nRegards,\n{{business_name}} Team"
   },
   shipped: {
     label: "Order Shipped",
-    description: "Triggered when a tracking number is assigned or status moves to 'Shipped.'",
+    description: "Sent when tracking is assigned.",
     enabled: true,
-    subject: "In Transit: Your {{business_name}} order #{{order_id}} is on the move",
-    body: "Excellent news, {{customer_name}}!\n\nYour archive selection has been Authoritatively dispatched from our studio. \n\nCARRIER: {{courier}}\nLOGISTICS ID: {{tracking_number}}\n\nYou can track the journey of your pieces using the link below:\nhttps://fslno.ca/track/{{tracking_number}}\n\nThank you for shopping the archive."
+    subject: "Shipped: Order #{{order_id}}",
+    body: "Hi {{customer_name}},\n\nYour order has shipped.\n\nCARRIER: {{courier}}\nTRACKING: {{tracking_number}}\n\nTrack here: https://fslno.ca/track/{{tracking_number}}\n\nThanks for shopping."
   },
   readyForPickup: {
-    label: "Order Ready for Pickup",
-    description: "Sent to notify customers that their items are waiting at your physical location.",
+    label: "Ready for Pickup",
+    description: "Sent when items are ready at store.",
     enabled: false,
-    subject: "Ready for Pickup: Your selection is waiting at the Spot",
-    body: "Hi {{customer_name}},\n\nYour archive pieces for order #{{order_id}} are ready for collection at our physical location.\n\nPICKUP ADDRESS:\n{{business_address}}\n\nHOURS:\nMon-Fri: 10AM - 6PM\n\nPlease ensure you bring a valid government-issued photo ID and your order confirmation ID for biometric validation."
+    subject: "Ready for Pickup: #{{order_id}}",
+    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} is ready for pickup.\n\nADDRESS:\n{{business_address}}\n\nHOURS:\nMon-Fri: 10AM - 6PM\n\nBring order ID for validation."
   },
   delivered: {
     label: "Order Delivered",
-    description: "Sent once the carrier confirms delivery or status is updated to 'Delivered.'",
+    description: "Sent after delivery confirmation.",
     enabled: true,
-    subject: "Arrived: Your {{business_name}} pieces have been delivered",
-    body: "Hi {{customer_name}},\n\nAccording to our records, order #{{order_id}} has arrived at its destination. We hope these archive pieces become a cornerstone of your wardrobe.\n\nWe'd love to hear your thoughts on the silhouette and fit. Feel free to reply to this email or tag us on Instagram.\n\nEnjoy the drop,\n{{business_name}}"
+    subject: "Delivered: Order #{{order_id}}",
+    body: "Hi {{customer_name}},\n\nOrder #{{order_id}} was delivered. We hope you enjoy the pieces.\n\nReply to this email with feedback.\n\nBest,\n{{business_name}}"
   },
   refunded: {
     label: "Order Refunded",
-    description: "Notifies the customer of a processed refund and expected payment return.",
+    description: "Sent after refund processing.",
     enabled: true,
-    subject: "Refund Processed: Order #{{order_id}} Reconciliation",
-    body: "Hi {{customer_name}},\n\nThis email confirms that a refund has been processed for your order #{{order_id}}. The funds should return to your original payment method within 3-5 business days, depending on your bank's protocol.\n\nIf you have any questions regarding this reconciliation, please contact our support team at {{business_phone}}."
+    subject: "Refund: Order #{{order_id}}",
+    body: "Hi {{customer_name}},\n\nRefund processed for order #{{order_id}}. Funds will return to your payment method within 3-5 days.\n\nContact support at {{business_phone}} with questions."
   }
 };
 
 const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
   cartRecovery: {
-    label: "Abandoned Cart Recovery",
-    description: "Automatically reminds shoppers about unfinished orders left in their cart.",
+    label: "Abandoned Cart",
+    description: "Reminds shoppers about unfinished orders.",
     enabled: true,
-    subject: "Incomplete selection: Finish your order at {{business_name}}",
-    body: "Hi {{customer_name}},\n\nYou left some high-fidelity pieces in your bag! We've reserved them for a limited time, but we can't guarantee stock forever.\n\nRESUME CHECKOUT:\nhttps://fslno.ca/checkout\n\nYour pending selection:\n{{product_list}}\n\nComplete your purchase now to secure these archive drops."
+    subject: "Incomplete order at {{business_name}}",
+    body: "Hi {{customer_name}},\n\nYou left items in your cart. Resume checkout now to secure these pieces.\n\nCHECKOUT:\nhttps://fslno.ca/checkout\n\nYour cart:\n{{product_list}}"
   },
   feedbackRequest: {
     label: "Feedback Request",
-    description: "Sent after an order is marked 'Delivered' to gather reviews.",
+    description: "Requests reviews after delivery.",
     enabled: true,
-    subject: "How is the fit? Share your thoughts on {{business_name}}",
-    body: "Hi {{customer_name}},\n\nNow that you've had a few days with your archive pieces from order #{{order_id}}, we'd love to know what you think. \n\nWas the silhouette as expected? How was the logistics experience?\n\n[LEAVE A REVIEW]\n\nYour feedback helps us refine the archive experience."
+    subject: "Review your {{business_name}} order",
+    body: "Hi {{customer_name}},\n\nHow is the fit? Share your thoughts on order #{{order_id}}.\n\n[LEAVE A REVIEW]\n\nYour feedback helps us improve."
   }
 };
 
@@ -189,19 +189,18 @@ export default function NotificationsPage() {
     
     try {
       const messaging = await getMessagingInstance(app);
-      if (!messaging) throw new Error("Web Messaging protocol not supported in this environment.");
+      if (!messaging) throw new Error("Push not supported.");
 
-      // Authoritative Handshake: Attempt to retrieve token with VAPID protection
       const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '';
       
       const token = await getToken(messaging, { vapidKey }).catch(err => {
         if (err.message?.includes('applicationServerKey') || err.code === 'messaging/invalid-vapid-key') {
-          throw new Error("Invalid VAPID Key. Please configure NEXT_PUBLIC_FIREBASE_VAPID_KEY in your environment with the key from Firebase Console > Cloud Messaging.");
+          throw new Error("Invalid VAPID key.");
         }
         throw err;
       });
 
-      if (!token) throw new Error("Could not manifest an identity token for this device.");
+      if (!token) throw new Error("Could not get token.");
 
       const functions = getFunctions(app);
       const subscribeFunc = httpsCallable(functions, 'subscribeAdminToOrders');
@@ -210,24 +209,22 @@ export default function NotificationsPage() {
         const result: any = await subscribeFunc({ token });
         if (result.data?.success) {
           toast({
-            title: "Device Bound",
-            description: "This device is Authoritatively subscribed to High-Priority Alarms."
+            title: "Device registered",
+            description: "Alarms active on this device."
           });
         }
       } catch (funcError: any) {
-        console.error("[ALARM] Protocol Error:", funcError);
         toast({
           variant: "destructive",
-          title: "Synchronization Error",
-          description: funcError.message || "Cloud Function internal protocol failure. Check Admin SDK initialization."
+          title: "Sync error",
+          description: funcError.message || "Failed to subscribe."
         });
       }
     } catch (error: any) {
-      console.error("[ALARM] Device registration failure:", error);
       toast({
         variant: "destructive",
-        title: "Registration Failure",
-        description: error.message || "Failed to bind device to the alarm protocol."
+        title: "Registration failed",
+        description: error.message || "Failed to register device."
       });
     } finally {
       setIsRegisteringDevice(false);
@@ -243,15 +240,15 @@ export default function NotificationsPage() {
       const result: any = await sendTest();
       if (result.data?.success) {
         toast({
-          title: "Diagnostic Sent",
-          description: "High-priority test alarm dispatched to admin topic."
+          title: "Test sent",
+          description: "Check device for notification."
         });
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Dispatch Failure",
-        description: error.message || "Failed to trigger diagnostic alarm."
+        title: "Failed to send",
+        description: error.message
       });
     }
   };
@@ -261,8 +258,8 @@ export default function NotificationsPage() {
     const testOrder = {
       to: user.email,
       message: {
-        subject: "[TEST] FSLNO Studio Confirmation",
-        html: `<p>This is a diagnostic email from the FSLNO Notifications Command.</p>`
+        subject: "[TEST] FSLNO Confirmation",
+        html: `<p>Diagnostic email from FSLNO.</p>`
       },
       createdAt: new Date().toISOString()
     };
@@ -270,14 +267,14 @@ export default function NotificationsPage() {
     try {
       await addDoc(collection(db, 'mail'), testOrder);
       toast({
-        title: "Email Queued",
-        description: `Test dispatch sent to ${user.email}.`
+        title: "Email sent",
+        description: `Sent to ${user.email}.`
       });
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Queue Error",
-        description: "Failed to ingest test email into the mail manifest."
+        title: "Error",
+        description: "Failed to queue email."
       });
     }
   };
@@ -316,7 +313,7 @@ export default function NotificationsPage() {
     setDoc(configRef, updates, { merge: true })
       .then(() => {
         setEditingKey(null);
-        toast({ title: "Template Saved", description: "Email content has been Authoritatively updated." });
+        toast({ title: "Template saved", description: "Email content updated." });
       });
   };
 
@@ -331,7 +328,7 @@ export default function NotificationsPage() {
     };
 
     setDoc(configRef, payload, { merge: true })
-      .then(() => toast({ title: "Branding Finalized", description: "Global notification settings are live." }))
+      .then(() => toast({ title: "Settings saved", description: "Global configs updated." }))
       .finally(() => setIsSaving(false));
   };
 
@@ -347,8 +344,8 @@ export default function NotificationsPage() {
     <div className="space-y-8 sm:space-y-12 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Notifications & Automation</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage automated emails, high-priority alarms, and branding.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Notifications</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage emails, alarms, and branding.</p>
         </div>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           {isAdminUser && (
@@ -358,7 +355,7 @@ export default function NotificationsPage() {
               disabled={isRegisteringDevice}
             >
               {isRegisteringDevice ? <Loader2 className="h-4 w-4 animate-spin" /> : <Smartphone className="h-4 w-4" />}
-              Bind Device to Alarms
+              Enable Alarms
             </Button>
           )}
           <Dialog open={isSendingTest} onOpenChange={setIsSendingTest}>
@@ -369,26 +366,26 @@ export default function NotificationsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md bg-white border-none rounded-none shadow-2xl">
               <DialogHeader className="pt-6">
-                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Diagnostic Test Protocol</DialogTitle>
-                <DialogDescription className="text-xs uppercase font-bold text-muted-foreground mt-1">Select a diagnostic channel to verify system integrity.</DialogDescription>
+                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Test Diagnostics</DialogTitle>
+                <DialogDescription className="text-xs uppercase font-bold text-muted-foreground mt-1">Select channel to verify.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-8">
                 <Button 
                   onClick={handleSendTestNotification}
                   className="h-14 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest text-[10px] gap-3"
                 >
-                  <ShieldAlert className="h-4 w-4" /> Trigger Test Alarm (FCM)
+                  <ShieldAlert className="h-4 w-4" /> Test Alarm (FCM)
                 </Button>
                 <Button 
                   onClick={handleSendTestEmail}
                   variant="outline"
                   className="h-14 border-black font-bold uppercase tracking-widest text-[10px] gap-3"
                 >
-                  <Mail className="h-4 w-4" /> Send Test Email (Template)
+                  <Mail className="h-4 w-4" /> Test Email (Template)
                 </Button>
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsSendingTest(false)} className="w-full text-[10px] font-bold uppercase tracking-widest">Close Diagnostics</Button>
+                <Button variant="ghost" onClick={() => setIsSendingTest(false)} className="w-full text-[10px] font-bold uppercase tracking-widest">Close</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -401,27 +398,27 @@ export default function NotificationsPage() {
           <section className="space-y-6">
             <div className="flex items-center gap-2">
               <ShieldAlert className="h-5 w-5 text-red-600" />
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">High-Priority Order Alarms</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">Order Alarms</h2>
             </div>
             
             <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden border-l-4 border-l-red-600">
               <CardHeader className="flex flex-row items-center justify-between border-b bg-red-50/10 p-4 sm:p-6">
                 <div className="space-y-1">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-red-600 flex items-center gap-2">
-                    <Music className="h-3.5 w-3.5" /> PWA Order Alarm Protocol
+                    <Music className="h-3.5 w-3.5" /> Alarm Protocol
                   </CardTitle>
-                  <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">High-priority FCM triggers for instant acoustic awareness.</CardDescription>
+                  <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">FCM triggers for acoustic awareness.</CardDescription>
                 </div>
                 <Switch checked={orderAlarmEnabled} onCheckedChange={setOrderAlarmEnabled} className="data-[state=checked]:bg-red-600" />
               </CardHeader>
               <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Ringtone Identity</Label>
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Alarm Sound URL</Label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Input 
-                          placeholder="PASTE SONIC URL" 
+                          placeholder="PASTE URL" 
                           value={orderAlarmUrl} 
                           onChange={(e) => setOrderAlarmUrl(e.target.value)}
                           className="h-12 text-[10px] font-mono pr-10 uppercase"
@@ -438,10 +435,10 @@ export default function NotificationsPage() {
                   <div className="space-y-4">
                     <div className="p-4 bg-gray-50 border rounded-none">
                       <p className="text-[9px] font-bold text-red-800 uppercase tracking-widest mb-2 flex items-center gap-2">
-                        <ShieldAlert className="h-3 w-3" /> System Integrity Note
+                        <ShieldAlert className="h-3 w-3" /> System Note
                       </p>
                       <p className="text-[10px] text-gray-600 leading-relaxed uppercase font-medium">
-                        Order alarms bypass deep sleep on Android and manifest as high-priority heads-up notifications. Ensure "Require Interaction" is enabled in browser settings for maximum persistence.
+                        Ensure browser interaction is allowed for persistent audio alerts.
                       </p>
                     </div>
                   </div>
@@ -453,7 +450,7 @@ export default function NotificationsPage() {
           <section className="space-y-6">
             <div className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-gray-400" />
-              <h2 className="text-sm font-bold uppercase tracking-widest">Email Touchpoints</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest">Emails</h2>
             </div>
             <div className="bg-white border rounded-none overflow-hidden shadow-sm">
               <Table>
@@ -479,7 +476,7 @@ export default function NotificationsPage() {
                           <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, false)} />
                         </TableCell>
                         <TableCell className="pr-6">
-                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, false)}>Refine</Button>
+                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, false)}>Edit</Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -494,15 +491,15 @@ export default function NotificationsPage() {
           <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none">
             <CardHeader className="border-b border-white/10">
               <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
-                <Terminal className="h-3.5 w-3.5 text-blue-400" /> System Legend
+                <Terminal className="h-3.5 w-3.5 text-blue-400" /> Legend
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-4 font-mono text-[10px]">
                 <p><span className="text-zinc-500">{"{{customer_name}}"}</span> - Recipient</p>
-                <p><span className="text-zinc-500">{"{{order_id}}"}</span> - Transaction ID</p>
-                <p><span className="text-zinc-500">{"{{order_total}}"}</span> - Financial Value</p>
-                <p><span className="text-zinc-500">{"{{product_list}}"}</span> - Itemized Manifest</p>
+                <p><span className="text-zinc-500">{"{{order_id}}"}</span> - Order ID</p>
+                <p><span className="text-zinc-500">{"{{order_total}}"}</span> - Value</p>
+                <p><span className="text-zinc-500">{"{{product_list}}"}</span> - Items</p>
               </div>
             </CardContent>
           </Card>
@@ -513,7 +510,7 @@ export default function NotificationsPage() {
             disabled={isSaving}
           >
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-            Save All Settings
+            Save All
           </Button>
         </div>
       </div>
@@ -524,22 +521,22 @@ export default function NotificationsPage() {
             <DialogHeader className="p-0 border-none">
               <div className="flex items-center gap-2 text-primary">
                 <Sparkles className="h-5 w-5 text-purple-500" />
-                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Refining Template</DialogTitle>
+                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Edit Template</DialogTitle>
               </div>
             </DialogHeader>
             <div className="grid gap-6">
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Subject Identity</Label>
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Subject</Label>
                 <Input value={editSubject} onChange={(e) => setEditingSubject(e.target.value)} className="h-12 font-medium" />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Copy Content</Label>
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Body</Label>
                 <Textarea value={editBody} onChange={(e) => setEditingBody(e.target.value)} className="min-h-[300px] text-sm leading-relaxed p-6 bg-gray-50 resize-none font-medium" />
               </div>
             </div>
           </div>
           <DialogFooter className="p-6 sm:p-10 border-t bg-gray-50/50">
-            <Button className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]" onClick={saveNotificationEdit}>Finalize Protocol</Button>
+            <Button className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]" onClick={saveNotificationEdit}>Save Template</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

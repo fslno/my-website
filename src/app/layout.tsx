@@ -10,7 +10,7 @@ import { Chatbot } from '@/components/storefront/Chatbot';
 
 export const metadata: Metadata = {
   title: 'FSLNO | Luxury Studio Storefront',
-  description: 'High-end minimalist studio e-commerce experience.',
+  description: 'High-end archive storefront. Shop curated apparel.',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,

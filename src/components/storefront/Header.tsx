@@ -111,8 +111,8 @@ export function Header() {
     try {
       await auth.signOut();
       toast({
-        title: "Signed Out",
-        description: "Your session has been terminated.",
+        title: "Signed out",
+        description: "Your session closed.",
       });
     } catch (error: any) {
       toast({
@@ -141,7 +141,7 @@ export function Header() {
     setEditingVariantId(null);
     toast({
       title: "Updated",
-      description: "Customization details synchronized.",
+      description: "Customization saved.",
     });
   };
 
@@ -195,7 +195,7 @@ export function Header() {
                 <ScrollArea className="flex-1">
                   <div className="p-8 space-y-12">
                     <div className="space-y-6">
-                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Shop Collections</h3>
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Collections</h3>
                       <nav className="flex flex-col gap-6">
                         {categories?.map((cat: any) => (
                           <Link 
@@ -216,7 +216,7 @@ export function Header() {
                           <p className="text-[10px] font-bold uppercase text-primary truncate">{user.displayName || user.email}</p>
                           <nav className="flex flex-col gap-4">
                             <Link href="/account/orders" className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                              <Package className="h-4 w-4" /> Order History
+                              <Package className="h-4 w-4" /> Orders
                             </Link>
                             <button onClick={handleLogout} className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-destructive">
                               <LogOut className="h-4 w-4" /> Sign Out
@@ -228,7 +228,7 @@ export function Header() {
                           onClick={() => setIsAuthOpen(true)}
                           className="w-full h-12 bg-black text-white font-bold uppercase tracking-widest text-[10px] rounded-none"
                         >
-                          Sign In / Join
+                          Sign In
                         </Button>
                       )}
                     </div>
@@ -251,7 +251,7 @@ export function Header() {
             <nav className="hidden lg:flex items-center gap-8">
               <DropdownMenu>
                 <DropdownMenuTrigger className="text-sm font-medium tracking-widest uppercase text-primary hover:opacity-60 transition-opacity outline-none flex items-center gap-1.5">
-                  Categories <ChevronDown className="h-3 w-3" />
+                  Shop <ChevronDown className="h-3 w-3" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56 bg-white border border-black/10 shadow-xl rounded-none p-0 mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="py-2">
@@ -302,13 +302,13 @@ export function Header() {
                     <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                       Results for "{searchQuery}"
                     </p>
-                    <span className="text-[9px] font-bold uppercase text-primary">{filteredProducts.length} Pieces Found</span>
+                    <span className="text-[9px] font-bold uppercase text-primary">{filteredProducts.length} items</span>
                   </div>
                   
                   <ScrollArea className="max-h-[60vh]">
                     {filteredProducts.length === 0 ? (
                       <div className="p-12 text-center">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">No pieces found.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">No matches.</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 divide-y">
@@ -365,7 +365,7 @@ export function Header() {
                             {user.displayName || user.email}
                           </p>
                           <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                            Studio Member
+                            Member
                           </p>
                         </div>
                       </DropdownMenuLabel>
@@ -373,7 +373,7 @@ export function Header() {
                       <div className="py-1">
                         <DropdownMenuItem asChild>
                           <Link href="/account/orders" className="flex items-center px-4 py-3 text-[9px] font-bold uppercase tracking-widest cursor-pointer hover:bg-gray-50">
-                            <Package className="mr-3 h-3.5 w-3.5" /> Order History
+                            <Package className="mr-3 h-3.5 w-3.5" /> Orders
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 text-[9px] font-bold uppercase tracking-widest cursor-pointer text-destructive hover:bg-red-50">
@@ -413,7 +413,7 @@ export function Header() {
                     {wishlist.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
                         <Heart className="h-12 w-12 text-muted-foreground mb-4" />
-                        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Save your favorite items here.</p>
+                        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Save favorites here.</p>
                       </div>
                     ) : (
                       <div className="p-6 space-y-8">
@@ -455,14 +455,14 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                   <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0 space-y-4">
-                    <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-primary">Your Cart ({cartCount})</SheetTitle>
+                    <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-primary">Cart ({cartCount})</SheetTitle>
                     
                     {cartSubtotal > 0 && (
                       <div className="space-y-2">
                         <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-primary">
                           <span className="flex items-center gap-1.5">
                             <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-muted-foreground")} />
-                            {thresholdProgress >= 100 ? "Discount Unlocked" : `${`C$${formatCurrency(remainingForThreshold)}`} more for $100 off`}
+                            {thresholdProgress >= 100 ? "Discount unlocked" : `${`C$${formatCurrency(remainingForThreshold)}`} more for $100 off`}
                           </span>
                           <span>{Math.round(thresholdProgress)}%</span>
                         </div>
@@ -475,9 +475,9 @@ export function Header() {
                     {cart.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
                         <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
-                        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your cart is empty.</p>
+                        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Cart empty.</p>
                         <Button asChild variant="outline" className="mt-6 border-primary text-primary font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-secondary transition-all duration-300 ease-in-out">
-                          <Link href="/">Shop Now</Link>
+                          <Link href="/">Shop now</Link>
                         </Button>
                       </div>
                     ) : (
@@ -519,7 +519,7 @@ export function Header() {
                                       </div>
                                     </div>
                                     <div className="space-y-1">
-                                      <Label className="text-[8px] font-bold uppercase text-gray-400">Special Note</Label>
+                                      <Label className="text-[8px] font-bold uppercase text-gray-400">Note</Label>
                                       <Input 
                                         value={editFields.note} 
                                         onChange={(e) => setEditFields({...editFields, note: e.target.value.toUpperCase()})}
@@ -554,7 +554,7 @@ export function Header() {
                                         </p>
                                       )}
                                       {item.specialNote && (
-                                        <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
+                                        <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 mt-0.5">
                                           <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
                                           {item.specialNote}
                                         </p>
@@ -598,7 +598,7 @@ export function Header() {
                           <span className="text-xl font-bold text-primary">{`C$${formatCurrency(cartSubtotal)}`}</span>
                         </div>
                         <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
-                          Tax and shipping calculated at checkout.
+                          Tax and shipping at checkout.
                         </p>
                       </div>
                       <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">

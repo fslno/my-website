@@ -24,8 +24,8 @@ export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event
 
   const payload = {
     notification: {
-      title: "🚨 NEW ORDER RECEIVED!",
-      body: `Order #${orderId.substring(0, 8).toUpperCase()} - ${formattedTotal}`,
+      title: `New Order - ${formattedTotal}`,
+      body: `Order #${orderId.substring(0, 8).toUpperCase()} received.`,
       sound: "alarm.mp3",
     },
     data: {
@@ -42,9 +42,9 @@ export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event
       priority: "high",
       timeToLive: 60 * 60 * 24
     });
-    console.log(`[ALARM] High-priority notification dispatched for Order ${orderId}`);
+    console.log(`[ALARM] Notification sent for Order ${orderId}`);
   } catch (error) {
-    console.error("[ALARM] Failed to dispatch FCM notification:", error);
+    console.error("[ALARM] Failed to send FCM notification:", error);
   }
 });
 
@@ -54,13 +54,13 @@ export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event
 export const sendTestNotification = onCall(async (request) => {
   // Security Guard: Check if the user is an admin
   if (!request.auth || (request.auth.token.email !== 'fslno.dev@gmail.com' && request.auth.uid !== 'ulyu5w9XtYeVTmceUfOZLZwDQxF2')) {
-    throw new HttpsError('permission-denied', 'Unauthorized diagnostic attempt.');
+    throw new HttpsError('permission-denied', 'Unauthorized access.');
   }
 
   const payload = {
     notification: {
-      title: "🚨 TEST ALARM RECEIVED",
-      body: "This is a high-priority diagnostic trigger from the FSLNO Studio.",
+      title: "Test Alarm - Diagnostic",
+      body: "High-priority diagnostic alert triggered.",
       sound: "alarm.mp3",
     },
     data: {
@@ -73,7 +73,7 @@ export const sendTestNotification = onCall(async (request) => {
     await admin.messaging().sendToTopic("admin_orders", payload, {
       priority: "high"
     });
-    return { success: true, message: "Diagnostic alarm dispatched." };
+    return { success: true, message: "Diagnostic alarm sent." };
   } catch (error: any) {
     console.error("[DIAGNOSTIC] Failed to send test:", error);
     throw new HttpsError('internal', `Diagnostic failure: ${error.message}`);

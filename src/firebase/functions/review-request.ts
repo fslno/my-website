@@ -1,9 +1,5 @@
 /**
  * @fileOverview Firebase Cloud Function for automated post-purchase review requests.
- * 
- * Logic:
- * - Triggered when an order status is updated to 'delivered'.
- * - Schedules a review request email manifest to be dispatched 2 days later.
  */
 
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
@@ -17,7 +13,6 @@ if (!admin.apps.length) {
 
 /**
  * Orchestrates the review request dispatch protocol.
- * Monitors order updates and identifies transitions to 'delivered'.
  */
 export const orderDeliveredReviewRequest = onDocumentUpdated("orders/{orderId}", async (event) => {
   const beforeData = event.data?.before.data();
@@ -38,15 +33,15 @@ export const orderDeliveredReviewRequest = onDocumentUpdated("orders/{orderId}",
     const emailManifest = {
       to: email,
       message: {
-        subject: `How is the fit? Share your thoughts on your FSLNO Studio selection`,
+        subject: `Review your FSLNO Studio order`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; color: #000;">
-            <h1 style="text-transform: uppercase; font-size: 24px; letter-spacing: -0.02em;">Selection Feedback</h1>
+            <h1 style="text-transform: uppercase; font-size: 24px; letter-spacing: -0.02em;">Order Review</h1>
             <p style="text-transform: uppercase; font-size: 10px; font-weight: bold; color: #666; letter-spacing: 0.2em;">Order #${orderId.substring(0, 8)}</p>
             
             <p style="font-size: 14px; line-height: 1.6; margin: 30px 0;">
               Hi ${customer?.name || 'there'},<br/><br/>
-              Now that you've had a few days with your archive pieces, we'd love to hear your thoughts on the silhouette and fit. Your feedback helps us refine the studio experience.
+              Review your recent archive purchase below. Your feedback helps us improve.
             </p>
 
             <div style="margin: 40px 0;">

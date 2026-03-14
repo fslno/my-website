@@ -54,19 +54,18 @@ export function Footer() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
           
-          {/* Brand Identity & Contact - Spans 4 columns */}
           <div className="lg:col-span-4 space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
               {config?.businessName || "FSLNO"}
             </h2>
             <div className="space-y-6">
               <p className="max-w-sm text-sm leading-relaxed uppercase tracking-tight opacity-80">
-                {config?.footerDescription || "Redefining luxury through minimalist design and technical innovation."}
+                {config?.footerDescription || "High-end archive storefront. Shop curated apparel."}
               </p>
               <div className="space-y-4">
                 {config?.address && (
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">The Spot</p>
+                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">Location</p>
                     <a 
                       href={mapsUrl} 
                       target="_blank" 
@@ -79,7 +78,7 @@ export function Footer() {
                 )}
                 {config?.openingHours && (
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">Operating Hours</p>
+                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">Hours</p>
                     <p className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed italic">
                       {config.openingHours}
                     </p>
@@ -131,7 +130,6 @@ export function Footer() {
             </div>
           </div>
           
-          {/* Support Links - Spans 2 columns */}
           <div className="lg:col-span-2 space-y-8">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
@@ -151,7 +149,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links - Spans 2 columns */}
           <div className="lg:col-span-2 space-y-8">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
@@ -170,17 +167,16 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Newsletter Section - Integrated into the row (Spans 4 columns) */}
           <div className="lg:col-span-4 space-y-8">
             {config?.newsletterEnabled !== false && (
               <div className="space-y-6">
                 <div className="space-y-3">
                   <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
                   <h3 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight leading-none">
-                    {config?.newsletterHeadline || "JOIN THE ARCHIVE"}
+                    {config?.newsletterHeadline || "Join the Archive"}
                   </h3>
                   <p className="text-[10px] uppercase tracking-widest font-bold opacity-60 leading-relaxed max-w-xs">
-                    {config?.newsletterSubtext || "Early access to high-velocity drops and private selection events."}
+                    {config?.newsletterSubtext || "Sign up for early access."}
                   </p>
                 </div>
                 <form onSubmit={handleSubscribe} className="relative w-full">
@@ -202,7 +198,7 @@ export function Footer() {
                   </div>
                   {isSubscribed && (
                     <p className="mt-3 text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400 animate-in fade-in slide-in-from-top-1">
-                      Handshake complete. Welcome to the archive.
+                      Subscription confirmed.
                     </p>
                   )}
                 </form>

@@ -145,7 +145,6 @@ export default function CheckoutPage() {
     return cartSubtotal >= threshold;
   }, [shippingConfig, cartSubtotal]);
 
-  // Authoritative Protocol: Auto-select free shipping if threshold hit and no selection made
   useEffect(() => {
     if (deliveryMethod === 'shipping' && isFreeShippingEligible && !formData.courier && enabledCarriers.length > 0) {
       const firstCarrier = typeof enabledCarriers[0] === 'string' ? enabledCarriers[0] : enabledCarriers[0].name;
@@ -163,7 +162,6 @@ export default function CheckoutPage() {
 
   const isShippingReady = useMemo(() => {
     if (deliveryMethod === 'shipping') {
-      // Authoritatively allow passing if free shipping is hit, even if courier isn't explicitly set (though handled by useEffect)
       return !!formData.courier || isFreeShippingEligible;
     }
     return true; 
@@ -214,7 +212,6 @@ export default function CheckoutPage() {
       if (!formData.province) newErrors.province = true;
       if (!formData.country) newErrors.country = true;
       
-      // Authoritatively allow "pass" if free shipping is active
       if (!formData.courier && !isFreeShippingEligible) newErrors.courier = true;
 
       if (!billingSameAsShipping) {
@@ -249,16 +246,16 @@ export default function CheckoutPage() {
         const data = couponDoc.data() as Coupon;
         if (data.active) {
           applyCoupon(data);
-          toast({ title: "Discount Applied", description: `Your code has been validated.` });
+          toast({ title: "Discount applied", description: `Your code was validated.` });
           setCouponInput('');
         } else {
-          toast({ variant: "destructive", title: "Invalid Code", description: "This code is no longer active." });
+          toast({ variant: "destructive", title: "Invalid code", description: "Code inactive." });
         }
       } else {
-        toast({ variant: "destructive", title: "Not Found", description: "Discount code not recognized." });
+        toast({ variant: "destructive", title: "Not found", description: "Invalid code." });
       }
     } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to validate code." });
+      toast({ variant: "destructive", title: "Error", description: "Validation failed." });
     } finally {
       setIsValidatingCoupon(false);
     }
@@ -286,7 +283,7 @@ export default function CheckoutPage() {
     setEditingVariantId(null);
     toast({
       title: "Updated",
-      description: "Customization details synchronized.",
+      description: "Customization saved.",
     });
   };
 
@@ -368,7 +365,7 @@ export default function CheckoutPage() {
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center p-4 text-center pt-28 sm:pt-40 pb-20">
           <Package className="h-12 w-12 text-muted-foreground mb-4" />
-          <h1 className="text-2xl font-headline font-bold mb-4 uppercase text-primary">Your cart is empty</h1>
+          <h1 className="text-2xl font-headline font-bold mb-4 uppercase text-primary">Cart empty</h1>
           <Button asChild className="bg-primary text-primary-foreground h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out">
             <Link href="/">Shop Now</Link>
           </Button>
@@ -386,7 +383,7 @@ export default function CheckoutPage() {
         <div className="lg:col-span-7 p-6 lg:p-12 space-y-12">
           
           <section className="space-y-6">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">01. Delivery Method</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">01. Delivery</h2>
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }}
@@ -395,7 +392,7 @@ export default function CheckoutPage() {
                 <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")} />
                 <div>
                   <p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")}>Shipping</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Deliver to my address</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Deliver to address</p>
                 </div>
               </button>
               <button
@@ -404,7 +401,7 @@ export default function CheckoutPage() {
               >
                 <Store className={cn("h-6 w-6", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")} />
                 <div>
-                  <p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")}>Store Pickup</p>
+                  <p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")}>Pickup</p>
                   <p className="text-[10px] text-muted-foreground mt-1">Pick up in-person</p>
                 </div>
               </button>
@@ -412,18 +409,18 @@ export default function CheckoutPage() {
           </section>
 
           <section className="space-y-8 bg-white p-8 border shadow-sm rounded-none">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Personal Details</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email Address {errors.email && "- REQUIRED"}</Label>
+                <Label htmlFor="email" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email {errors.email && "* REQUIRED"}</Label>
                 <Input id="email" name="email" type="email" autoComplete="email" placeholder="" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
+                <Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone {errors.phone && "* REQUIRED"}</Label>
                 <Input id="tel" name="phone" type="tel" autoComplete="tel" placeholder="" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name {errors.name && "- REQUIRED"}</Label>
+                <Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name {errors.name && "* REQUIRED"}</Label>
                 <Input id="name" name="name" type="text" autoComplete="name" placeholder="" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} />
               </div>
             </div>
@@ -434,26 +431,26 @@ export default function CheckoutPage() {
                   <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Shipping Address</h3>
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="shipping-address" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Address {errors.address && "- REQUIRED"}</Label>
+                      <Label htmlFor="shipping-address" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Address {errors.address && "* REQUIRED"}</Label>
                       <Input id="shipping-address" name="shipping-address" type="text" autoComplete="shipping address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="shipping-city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City {errors.city && "- REQUIRED"}</Label>
+                        <Label htmlFor="shipping-city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City {errors.city && "* REQUIRED"}</Label>
                         <Input id="shipping-city" name="shipping-city" type="text" autoComplete="shipping address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="shipping-zip" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.postalCode && "- REQUIRED"}</Label>
+                        <Label htmlFor="shipping-zip" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.postalCode && "* REQUIRED"}</Label>
                         <Input id="shipping-zip" name="shipping-zip" type="text" autoComplete="shipping postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="shipping-state" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.province && "- REQUIRED"}</Label>
+                        <Label htmlFor="shipping-state" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>State / Province {errors.province && "* REQUIRED"}</Label>
                         <Input id="shipping-state" name="shipping-state" type="text" autoComplete="shipping address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="shipping-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-destructive" : "text-muted-foreground")}>Country {errors.country && "- REQUIRED"}</Label>
+                        <Label htmlFor="shipping-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-destructive" : "text-muted-foreground")}>Country {errors.country && "* REQUIRED"}</Label>
                         <Input id="shipping-country" name="shipping-country" type="text" autoComplete="shipping country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
                       </div>
                     </div>
@@ -468,7 +465,7 @@ export default function CheckoutPage() {
                       onCheckedChange={(checked) => setBillingSameAsShipping(checked === true)} 
                     />
                     <Label htmlFor="billing-same" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer text-primary">
-                      Billing address is same as shipping address
+                      Billing same as shipping
                     </Label>
                   </div>
 
@@ -479,26 +476,26 @@ export default function CheckoutPage() {
                       </h3>
                       <div className="grid gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="billing-address" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
+                          <Label htmlFor="billing-address" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "* REQUIRED"}</Label>
                           <Input id="billing-address" name="billing-address" type="text" autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="billing-city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
+                            <Label htmlFor="billing-city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "* REQUIRED"}</Label>
                             <Input id="billing-city" name="billing-city" type="text" autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="billing-zip" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
+                            <Label htmlFor="billing-zip" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "* REQUIRED"}</Label>
                             <Input id="billing-zip" name="billing-zip" type="text" autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="billing-state" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
+                            <Label htmlFor="billing-state" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>State / Province {errors.billingProvince && "* REQUIRED"}</Label>
                             <Input id="billing-state" name="billing-state" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="billing-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
+                            <Label htmlFor="billing-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "* REQUIRED"}</Label>
                             <Input id="billing-country" name="billing-country" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                           </div>
                         </div>
@@ -510,7 +507,7 @@ export default function CheckoutPage() {
                 <div className="space-y-4 pt-6 border-t">
                   <div className="flex items-center justify-between">
                     <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", (errors.courier && !isFreeShippingEligible) ? "text-destructive" : "text-primary")}>
-                      <Truck className="h-3 w-3" /> Select Shipping Method {(errors.courier && !isFreeShippingEligible) && "- REQUIRED"}
+                      <Truck className="h-3 w-3" /> Shipping Method {(errors.courier && !isFreeShippingEligible) && "* REQUIRED"}
                     </h3>
                     {isFreeShippingEligible && (
                       <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[8px] font-bold tracking-widest gap-1.5 flex items-center">
@@ -552,9 +549,6 @@ export default function CheckoutPage() {
                           </div>
                         );
                       })}
-                      {enabledCarriers.length === 0 && (
-                        <p className="text-[10px] text-muted-foreground italic py-4">No shipping carriers currently authorized for this drop.</p>
-                      )}
                     </RadioGroup>
                   )}
                 </div>
@@ -567,26 +561,26 @@ export default function CheckoutPage() {
                   </h3>
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="billing-address-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
+                      <Label htmlFor="billing-address-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "* REQUIRED"}</Label>
                       <Input id="billing-address-pickup" name="billing address-line1" type="text" autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="billing-city-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
+                        <Label htmlFor="billing-city-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "* REQUIRED"}</Label>
                         <Input id="billing-city-pickup" name="billing address-level2" type="text" autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="billing-zip-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
+                        <Label htmlFor="billing-zip-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "* REQUIRED"}</Label>
                         <Input id="billing-zip-pickup" name="billing postal-code" type="text" autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="billing-state-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
+                        <Label htmlFor="billing-state-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>State / Province {errors.billingProvince && "* REQUIRED"}</Label>
                         <Input id="billing-state-pickup" name="billing address-level1" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="billing-country-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
+                        <Label htmlFor="billing-country-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "* REQUIRED"}</Label>
                         <Input id="billing-country-pickup" name="billing country-name" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                       </div>
                     </div>
@@ -600,7 +594,7 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="pickup-date" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupDate ? "text-destructive" : "text-muted-foreground")}>
-                        Date {errors.pickupDate && "- REQUIRED"}
+                        Date {errors.pickupDate && "* REQUIRED"}
                       </Label>
                       <Input 
                         id="pickup-date"
@@ -613,7 +607,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="pickup-time" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupTime ? "text-destructive" : "text-muted-foreground")}>
-                        Time {errors.pickupTime && "- REQUIRED"}
+                        Time {errors.pickupTime && "* REQUIRED"}
                       </Label>
                       <Input 
                         id="pickup-time"
@@ -631,10 +625,10 @@ export default function CheckoutPage() {
           </section>
 
           <section className="space-y-6 bg-gray-50 border p-8 rounded-none">
-            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-destructive" : "text-primary")}>Referral Source {errors.referral && "- REQUIRED"}</h2>
+            <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-destructive" : "text-primary")}>Referral {errors.referral && "* REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
               <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:opacity-80 transition-all duration-300 ease-in-out text-[10px] font-bold uppercase tracking-widest rounded-none text-primary">
-                <SelectValue placeholder="SELECT AN OPTION" />
+                <SelectValue placeholder="SELECT SOURCE" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="google_pinterest" className="text-[10px] font-bold uppercase tracking-widest">Google/Pinterest</SelectItem>
@@ -651,12 +645,12 @@ export default function CheckoutPage() {
             {showErrorBanner && (
               <Alert variant="destructive" className="rounded-none border-2">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Validation Error</AlertTitle>
-                <AlertDescription className="text-[9px] uppercase font-medium">Please review all required fields and select valid delivery/payment methods.</AlertDescription>
+                <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Error</AlertTitle>
+                <AlertDescription className="text-[9px] uppercase font-medium">Review required fields.</AlertDescription>
               </Alert>
             )}
 
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4 text-primary">Order Summary ({cartCount})</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4 text-primary">Summary ({cartCount})</h2>
             
             <div className="space-y-6">
               {cart.map((item) => (
@@ -697,7 +691,7 @@ export default function CheckoutPage() {
                             </div>
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-[8px] font-bold uppercase text-gray-400">Special Note</Label>
+                            <Label className="text-[8px] font-bold uppercase text-gray-400">Note</Label>
                             <Input 
                               value={editFields.note} 
                               onChange={(e) => handleEditChange('note', e.target.value.toUpperCase())}
@@ -732,7 +726,7 @@ export default function CheckoutPage() {
                               </p>
                             )}
                             {item.specialNote && (
-                              <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 leading-tight">
+                              <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 mt-0.5">
                                 <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
                                 {item.specialNote}
                               </p>
@@ -756,9 +750,9 @@ export default function CheckoutPage() {
 
             <div className="pt-8 border-t space-y-4">
               <div className="space-y-2">
-                <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Order Note (Optional)</Label>
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Order Note</Label>
                 <Textarea 
-                  placeholder="ADD ANY SPECIAL INSTRUCTIONS FOR YOUR ORDER..." 
+                  placeholder="ADD INSTRUCTIONS..." 
                   className="bg-gray-50 border-gray-200 text-[10px] font-bold uppercase rounded-none resize-none min-h-[80px]"
                   value={orderNote}
                   onChange={(e) => setOrderNote(e.target.value.toUpperCase())}
@@ -802,14 +796,14 @@ export default function CheckoutPage() {
                 </div>
                 {discountTotal > 0 && (
                   <div className="flex justify-between text-[10px] font-bold uppercase text-destructive">
-                    <span>Discounts</span>
+                    <span>Discount</span>
                     <span className="text-destructive">{`-C$${formatCurrency(discountTotal)}`}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
-                  <span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
+                  <span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pickup'}</span>
                   <span className={cn("text-primary", isFreeShippingEligible && "text-emerald-600")}>
-                    {isShippingReady ? (shippingRate > 0 ? `C$${formatCurrency(shippingRate)}` : (deliveryMethod === 'pickup' ? 'Pick up FREE' : 'FREE')) : '--'}
+                    {isShippingReady ? (shippingRate > 0 ? `C$${formatCurrency(shippingRate)}` : 'FREE') : '--'}
                   </span>
                 </div>
                 <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
@@ -827,7 +821,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <section className="space-y-8 pt-8 border-t mt-8">
-                  <h2 className={cn("text-xs font-bold uppercase tracking-[0.2em]", errors.payment ? "text-destructive" : "text-primary")}>03. Payment Method {errors.payment && "- REQUIRED"}</h2>
+                  <h2 className={cn("text-xs font-bold uppercase tracking-[0.2em]", errors.payment ? "text-destructive" : "text-primary")}>03. Payment {errors.payment && "* REQUIRED"}</h2>
                   {paymentsLoading ? (
                     <div className="flex justify-center py-4">
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -835,7 +829,7 @@ export default function CheckoutPage() {
                   ) : !paymentConfig ? (
                     <Alert className="bg-amber-50 border-amber-100 rounded-none">
                       <AlertCircle className="h-4 w-4 text-amber-600" />
-                      <AlertDescription className="text-[10px] font-bold uppercase text-amber-700">Payment system is currently in maintenance mode.</AlertDescription>
+                      <AlertDescription className="text-[10px] font-bold uppercase text-amber-700">Payment system unavailable.</AlertDescription>
                     </Alert>
                   ) : (
                     <div className="grid grid-cols-1 gap-3">
@@ -851,7 +845,7 @@ export default function CheckoutPage() {
                             <CreditCard className="h-5 w-5 text-primary" />
                             <div>
                               <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Credit Card</p>
-                              <p className="text-[8px] text-muted-foreground">Secure Stripe Checkout</p>
+                              <p className="text-[8px] text-muted-foreground">Secure Checkout</p>
                             </div>
                           </div>
                           {selectedPayment === 'stripe' && <CheckCircle2 className="h-4 w-4 text-primary" />}
@@ -869,64 +863,10 @@ export default function CheckoutPage() {
                             <Globe className="h-5 w-5 text-[#0070BA]" />
                             <div>
                               <p className="text-[10px] font-bold uppercase tracking-widest text-primary">PayPal</p>
-                              <p className="text-[8px] text-muted-foreground">Global Digital Wallet</p>
+                              <p className="text-[8px] text-muted-foreground">Digital Wallet</p>
                             </div>
                           </div>
                           {selectedPayment === 'paypal' && <CheckCircle2 className="h-4 w-4 text-primary" />}
-                        </button>
-                      )}
-                      {paymentConfig.klarnaEnabled && (
-                        <button 
-                          onClick={() => setSelectedPayment('klarna')}
-                          className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
-                            selectedPayment === 'klarna' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
-                          )}
-                        >
-                          <div className="flex items-center gap-4">
-                            <Coins className="h-5 w-5 text-[#FFB3C7]" />
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Klarna</p>
-                              <p className="text-[8px] text-muted-foreground">Buy now, pay later</p>
-                            </div>
-                          </div>
-                          {selectedPayment === 'klarna' && <CheckCircle2 className="h-4 w-4 text-primary" />}
-                        </button>
-                      )}
-                      {paymentConfig.afterpayEnabled && (
-                        <button 
-                          onClick={() => setSelectedPayment('afterpay')}
-                          className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
-                            selectedPayment === 'afterpay' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
-                          )}
-                        >
-                          <div className="flex items-center gap-4">
-                            <History className="h-5 w-5 text-[#B2FCE4]" />
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Afterpay</p>
-                              <p className="text-[8px] text-muted-foreground">Interest-free installments</p>
-                            </div>
-                          </div>
-                          {selectedPayment === 'afterpay' && <CheckCircle2 className="h-4 w-4 text-primary" />}
-                        </button>
-                      )}
-                      {paymentConfig.adyenEnabled && (
-                        <button 
-                          onClick={() => setSelectedPayment('adyen')}
-                          className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
-                            selectedPayment === 'adyen' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
-                          )}
-                        >
-                          <div className="flex items-center gap-4">
-                            <Banknote className="h-5 w-5 text-[#00FF66]" />
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Adyen</p>
-                              <p className="text-[8px] text-muted-foreground">Global merchant network</p>
-                            </div>
-                          </div>
-                          {selectedPayment === 'adyen' && <CheckCircle2 className="h-4 w-4 text-primary" />}
                         </button>
                       )}
                     </div>
@@ -938,7 +878,7 @@ export default function CheckoutPage() {
                       disabled={isSubmitting || !selectedPayment}
                       className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:opacity-90 transition-all duration-300 ease-in-out"
                     >
-                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Complete Order"}
+                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Place Order"}
                     </Button>
                   </div>
                 </section>
@@ -951,13 +891,13 @@ export default function CheckoutPage() {
                     {paymentConfig?.applePayEnabled && (
                       <Button className="h-14 w-full bg-primary text-primary-foreground hover:opacity-90 rounded-none flex items-center justify-center gap-3">
                         <Apple className="h-5 w-5" />
-                        <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Apple Pay</span>
+                        <span className="text-xs font-bold uppercase tracking-[0.2em]">Apple Pay</span>
                       </Button>
                     )}
                     {paymentConfig?.googlePayEnabled && (
                       <Button className="h-14 w-full bg-white border-2 border-primary text-primary hover:bg-secondary rounded-none flex items-center justify-center gap-3">
                         <Smartphone className="h-5 w-5" />
-                        <span className="text-xs font-bold uppercase tracking-[0.2em]">Pay with Google Pay</span>
+                        <span className="text-xs font-bold uppercase tracking-[0.2em]">Google Pay</span>
                       </Button>
                     )}
                   </div>
@@ -977,10 +917,10 @@ export default function CheckoutPage() {
               <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto" />
               <DialogHeader className="p-0 border-none">
                 <DialogTitle className="text-3xl font-headline font-bold uppercase tracking-tight text-primary text-center">
-                  Order Confirmed
+                  Order confirmed
                 </DialogTitle>
               </DialogHeader>
-              <p className="text-sm text-muted-foreground uppercase tracking-[0.2em]">Thank you for your purchase.</p>
+              <p className="text-sm text-muted-foreground uppercase tracking-[0.2em]">Order placed successfully.</p>
             </div>
 
             {confirmedOrder && (
@@ -992,7 +932,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="space-y-2">
                     <p className="text-muted-foreground">Status</p>
-                    <p className="text-emerald-600">Confirmed</p>
+                    <p className="text-emerald-600">Processing</p>
                   </div>
                 </div>
 
@@ -1005,22 +945,6 @@ export default function CheckoutPage() {
                           <span>{item.quantity}x {item.name} ({item.size})</span>
                           <span>{`C$${formatCurrency(item.price * item.quantity)}`}</span>
                         </div>
-                        {(item.customName || item.customNumber || item.specialNote) && (
-                          <div className="flex flex-col gap-0.5 pl-4 border-l border-gray-100">
-                            {(item.customName || item.customNumber) && (
-                              <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
-                                <Sparkles className="h-2.5 w-2.5" />
-                                {item.customName} {item.customNumber && `#${item.customNumber}`}
-                              </p>
-                            )}
-                            {item.specialNote && (
-                              <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 mt-0.5">
-                                <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
-                                {item.specialNote}
-                              </p>
-                            )}
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -1034,7 +958,7 @@ export default function CheckoutPage() {
             )}
 
             <Button asChild className="w-full h-14 bg-primary text-primary-foreground font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out">
-              <Link href="/">Return to Shop</Link>
+              <Link href="/">Back to Shop</Link>
             </Button>
           </div>
         </DialogContent>
