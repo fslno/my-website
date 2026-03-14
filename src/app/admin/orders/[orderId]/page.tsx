@@ -81,12 +81,13 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-export default function OrderDetailPage(props: { 
-  params: Promise<{ orderId: string }>,
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
+interface PageProps {
+  params: Promise<{ orderId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default function OrderDetailPage(props: PageProps) {
   const params = use(props.params);
-  const searchParams = use(props.searchParams);
   const orderId = params.orderId;
   
   const db = useFirestore();

@@ -56,12 +56,13 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage(props: { 
-  params: Promise<{ productId: string }>,
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
+interface PageProps {
+  params: Promise<{ productId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default function ProductDetailPage(props: PageProps) {
   const params = use(props.params);
-  const searchParams = use(props.searchParams);
   const productId = params.productId;
   
   const db = useFirestore();

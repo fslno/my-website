@@ -11,12 +11,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 
-export default function CollectionPage(props: { 
-  params: Promise<{ categoryId: string }>,
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
+interface PageProps {
+  params: Promise<{ categoryId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default function CollectionPage(props: PageProps) {
   const params = use(props.params);
-  const searchParams = use(props.searchParams);
   const categoryId = params.categoryId;
   
   const db = useFirestore();
