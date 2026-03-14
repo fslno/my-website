@@ -557,7 +557,7 @@ export default function ProductDetailPage(props: {
                     : "bg-primary text-primary-foreground hover:opacity-90 active:scale-95"
                 )}
               >
-                {!selectedSize ? 'Select Size' : isStockReached ? 'Sold Out' : 'Add to Cart'}
+                {!selectedSize ? 'Select Size' : isStockReached ? 'Limited Reached' : 'Add to Cart'}
               </button>
               <div className="grid grid-cols-2 gap-2">
                 <Button 
