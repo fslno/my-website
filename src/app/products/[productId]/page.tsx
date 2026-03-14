@@ -95,7 +95,7 @@ export default function ProductDetailPage(props: {
   );
   const { data: sizeChart } = useDoc(sizeChartRef);
 
-  // Fetch Reviews for Rating Aggregation (for stars below name)
+  // Fetch Reviews for Rating Aggregation
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
@@ -495,7 +495,7 @@ export default function ProductDetailPage(props: {
                       No
                     </button>
                     <button
-                      onClick={() => setWantsCustomization(true)}
+                      onClick={() => wantsCustomization(true)}
                       className={cn(
                         "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
                         wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"

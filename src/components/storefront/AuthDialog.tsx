@@ -15,7 +15,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { 
   useAuth, 
-  useFirestore, 
   initiateEmailSignIn, 
   initiateEmailSignUp,
   initiateGoogleSignIn
