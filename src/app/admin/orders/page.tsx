@@ -20,7 +20,8 @@ import {
   Clock,
   CheckCircle2,
   ChevronRight,
-  Phone
+  Phone,
+  RotateCcw
 } from 'lucide-react';
 import {
   Select,
@@ -93,6 +94,7 @@ export default function OrdersPage() {
     let total = 0;
     let pending = 0;
     let revenue = 0;
+    let returned = 0;
 
     for (const order of orders) {
       total++;
@@ -105,10 +107,13 @@ export default function OrdersPage() {
       ) {
         pending++;
       }
+      if (order.status === 'returned') {
+        returned++;
+      }
       revenue += Number(order.total) || 0;
     }
 
-    return { total, pending, revenue };
+    return { total, pending, revenue, returned };
   }, [orders]);
 
   const formatDate = (timestamp: any) => {
@@ -182,7 +187,7 @@ export default function OrdersPage() {
         <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto">Export CSV</Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
@@ -208,6 +213,20 @@ export default function OrdersPage() {
               {stats.pending}
             </div>
             <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Awaiting studio dispatch</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[10px] flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">
+              <RotateCcw className="h-3.5 w-3.5" /> Returned Orders
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.returned}
+            </div>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Archival re-integrations</p>
           </CardContent>
         </Card>
 
