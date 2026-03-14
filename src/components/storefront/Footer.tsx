@@ -47,7 +47,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-primary text-primary-foreground py-20 mt-12 border-t border-primary-foreground/10">
+    <footer className="bg-primary text-primary-foreground py-16 mt-10 border-t border-primary-foreground/10">
       <div className="max-w-[1440px] mx-auto px-4">
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
@@ -215,7 +215,7 @@ export function Footer() {
           </div>
         </div>
         
-        <div className="border-t border-primary-foreground/10 mt-20 pt-12 flex flex-col md:flex-row justify-between items-center gap-12 text-[9px] uppercase tracking-[0.2em]">
+        <div className="border-t border-primary-foreground/10 mt-16 pt-10 flex flex-col md:flex-row justify-between items-center gap-12 text-[9px] uppercase tracking-[0.2em]">
           <div className="flex flex-col items-center md:items-start gap-4">
             <div className="space-y-1 opacity-50 text-center md:text-left">
               <p>{config?.copyrightText || defaultCopyright}</p>
