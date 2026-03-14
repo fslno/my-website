@@ -313,7 +313,18 @@ export default function CategoriesPage() {
                             </TableRow>
                           ) : assignedProducts.map((p: any) => (
                             <TableRow key={p.id} className="border-black/5">
-                              <TableCell className="text-xs font-bold uppercase">{p.name}</TableCell>
+                              <TableCell className="text-xs font-bold uppercase">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-gray-100 relative border overflow-hidden shrink-0 rounded-sm">
+                                    {p.media?.[0]?.url ? (
+                                      <Image src={p.media[0].url} alt="" fill className="object-cover" />
+                                    ) : (
+                                      <ShoppingBag className="h-4 w-4 text-gray-300 mx-auto mt-3" />
+                                    )}
+                                  </div>
+                                  <span className="truncate max-w-[200px]">{p.name}</span>
+                                </div>
+                              </TableCell>
                               <TableCell className="text-[10px] font-mono text-gray-400 uppercase">{p.sku || 'N/A'}</TableCell>
                               <TableCell className="text-right text-xs font-bold">C${p.price?.toFixed(2)}</TableCell>
                             </TableRow>
