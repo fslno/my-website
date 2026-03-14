@@ -156,6 +156,11 @@ export default function ProductDetailPage(props: {
     return currentQtyInCart >= selectedVariant.stock;
   }, [selectedVariant, currentQtyInCart]);
 
+  const hasAnyStock = useMemo(() => {
+    if (!product?.variants) return false;
+    return product.variants.some((v: any) => (Number(v.stock) || 0) > 0);
+  }, [product]);
+
   useEffect(() => {
     if (!api) return;
     
@@ -579,12 +584,14 @@ export default function ProductDetailPage(props: {
               </div>
             </div>
 
-            <div className="pt-4 space-y-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Check className="h-3 w-3 text-emerald-500" />
-                <span className="text-[9px] font-bold uppercase tracking-widest">Ready to ship</span>
+            {hasAnyStock && (
+              <div className="pt-4 space-y-3">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Check className="h-3 w-3 text-emerald-500" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest">Ready to ship</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
