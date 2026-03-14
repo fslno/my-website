@@ -14,9 +14,10 @@ interface ProductCardProps {
   category: string;
   rating?: number;
   reviewCount?: number;
+  isSoldOut?: boolean;
 }
 
-export function ProductCard({ id, name, price, image, category, rating, reviewCount }: ProductCardProps) {
+export function ProductCard({ id, name, price, image, category, rating, reviewCount, isSoldOut }: ProductCardProps) {
   return (
     <div className="group flex flex-col gap-3 product-text-align">
       <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
@@ -25,12 +26,23 @@ export function ProductCard({ id, name, price, image, category, rating, reviewCo
             src={image}
             alt={name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            className={cn(
+              "object-cover transition-transform duration-700 group-hover:scale-110",
+              isSoldOut && "opacity-40 grayscale"
+            )}
           />
         ) : (
           <div className="absolute inset-0 bg-gray-200" />
         )}
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+        
+        {isSoldOut && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="bg-white/90 text-black text-[9px] font-bold uppercase tracking-[0.3em] px-4 py-2 shadow-lg animate-in zoom-in duration-500">
+              Sold Out
+            </span>
+          </div>
+        )}
       </Link>
       
       <div className="flex flex-col gap-2 py-1 product-flex-align">
@@ -46,6 +58,12 @@ export function ProductCard({ id, name, price, image, category, rating, reviewCo
         >
           {name}
         </Link>
+        
+        {isSoldOut && (
+          <p className="text-[9px] font-bold text-red-600 uppercase tracking-widest mt-0.5">
+            Sold Out
+          </p>
+        )}
         
         {reviewCount && reviewCount > 0 ? (
           <div className="flex items-center gap-1.5 mt-0.5">

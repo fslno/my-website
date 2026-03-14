@@ -129,6 +129,7 @@ export default function CollectionPage(props: {
                 const ratingInfo = productRatings[product.id];
                 const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
                 const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
+                const isSoldOut = (Number(product.inventory) || 0) <= 0;
 
                 return (
                   <ProductCard 
@@ -140,6 +141,7 @@ export default function CollectionPage(props: {
                     category={productCategory}
                     rating={avgRating}
                     reviewCount={reviewCount}
+                    isSoldOut={isSoldOut}
                   />
                 );
               })}
