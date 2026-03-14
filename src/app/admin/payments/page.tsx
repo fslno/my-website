@@ -31,7 +31,11 @@ import {
   Scale,
   Percent,
   MessageSquare,
-  Save
+  Save,
+  Plus,
+  Trash2,
+  Key,
+  Shield
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -41,6 +45,23 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger, 
+  DialogFooter,
+  DialogDescription 
+} from '@/components/ui/dialog';
+
+interface CustomGateway {
+  id: string;
+  name: string;
+  apiKey: string;
+  secretKey?: string;
+  enabled: boolean;
+}
 
 export default function PaymentsPage() {
   const db = useFirestore();
@@ -49,6 +70,10 @@ export default function PaymentsPage() {
   const { toast } = useToast();
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddGatewayOpen, setIsAddGatewayOpen] = useState(false);
+  
+  // New Gateway Form State
+  const [newGateway, setNewGateway] = useState({ name: '', apiKey: '', secretKey: '', enabled: true });
 
   const handleInitialize = () => {
     if (!configRef) return;
@@ -88,6 +113,7 @@ export default function PaymentsPage() {
       acceptedCurrencies: ['USD', 'CAD', 'GBP', 'EUR'],
       geoBlockingEnabled: false,
       taxCloudEnabled: true,
+      customGateways: [],
       updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -108,6 +134,24 @@ export default function PaymentsPage() {
         requestResourceData: updates
       }));
     });
+  };
+
+  const handleAddGateway = () => {
+    if (!newGateway.name || !configRef) return;
+    const currentCustom = config.customGateways || [];
+    const updated = [...currentCustom, { ...newGateway, id: Math.random().toString(36).substr(2, 9) }];
+    
+    handleUpdate({ customGateways: updated });
+    setNewGateway({ name: '', apiKey: '', secretKey: '', enabled: true });
+    setIsAddGatewayOpen(false);
+    toast({ title: "Gateway Added", description: `${newGateway.name} protocol ingested.` });
+  };
+
+  const handleRemoveGateway = (id: string) => {
+    if (!configRef || !config) return;
+    const updated = (config.customGateways || []).filter((g: any) => g.id !== id);
+    handleUpdate({ customGateways: updated });
+    toast({ title: "Gateway Removed", description: "Protocol de-indexed from the vault." });
   };
 
   const handleSaveAll = () => {
@@ -147,8 +191,63 @@ export default function PaymentsPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Global Checkout Orchestration</h1>
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage secure checkout integrations, AI fraud defense, and regional compliance.</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Badge variant="outline" className="w-full sm:w-auto text-green-600 bg-green-50 border-green-100 py-1.5 px-3 flex items-center justify-center gap-2 font-bold uppercase text-[9px] tracking-widest">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <Dialog open={isAddGatewayOpen} onOpenChange={setIsAddGatewayOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-10 border-black font-bold uppercase tracking-widest text-[10px] bg-white gap-2 flex-1 sm:flex-none">
+                <Plus className="h-4 w-4" /> Add Gateway
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+              <DialogHeader className="pt-6">
+                <DialogTitle className="text-xl font-bold uppercase tracking-tight">Manual Gateway Ingestion</DialogTitle>
+                <DialogDescription className="text-xs font-bold uppercase text-muted-foreground mt-1">Connect an external provider via high-fidelity API credentials.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-6 py-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Provider Name</Label>
+                  <Input 
+                    placeholder="e.g. Coinbase Commerce" 
+                    value={newGateway.name}
+                    onChange={(e) => setNewGateway({...newGateway, name: e.target.value.toUpperCase()})}
+                    className="h-12 font-bold uppercase"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">API Key</Label>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input 
+                      placeholder="ENTER PUBLIC API KEY" 
+                      value={newGateway.apiKey}
+                      onChange={(e) => setNewGateway({...newGateway, apiKey: e.target.value})}
+                      className="pl-10 h-12 font-mono text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Secret Key (Optional)</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input 
+                      type="password"
+                      placeholder="••••••••••••••••" 
+                      value={newGateway.secretKey}
+                      onChange={(e) => setNewGateway({...newGateway, secretKey: e.target.value})}
+                      className="pl-10 h-12 font-mono text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleAddGateway} disabled={!newGateway.name || !newGateway.apiKey} className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]">
+                  Ingest Provider
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Badge variant="outline" className="text-green-600 bg-green-50 border-green-100 py-1.5 px-3 flex items-center justify-center gap-2 font-bold uppercase text-[9px] tracking-widest flex-1 sm:flex-none">
             <ShieldCheck className="h-3 w-3" /> PCI DSS Compliant
           </Badge>
         </div>
@@ -173,6 +272,9 @@ export default function PaymentsPage() {
                 </TabsTrigger>
                 <TabsTrigger value="adyen" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#00FF66] data-[state=active]:text-black">
                   <Banknote className="h-3.5 w-3.5" /> Adyen
+                </TabsTrigger>
+                <TabsTrigger value="vault" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
+                  <Shield className="h-3.5 w-3.5" /> API Vault
                 </TabsTrigger>
                 <TabsTrigger value="scope" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-primary data-[state=active]:text-white">
                   <Globe className="h-3.5 w-3.5" /> Global Scope
@@ -281,6 +383,69 @@ export default function PaymentsPage() {
                         />
                       </div>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="vault" className="m-0 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+                <CardHeader className="bg-zinc-900 text-white border-b p-4 sm:p-6">
+                  <div className="flex items-center gap-3">
+                    <Shield className="h-5 w-5 text-zinc-400" />
+                    <div>
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Manual API Vault</CardTitle>
+                      <CardDescription className="text-[9px] text-zinc-500 uppercase font-bold mt-1">Manage manual gateway integrations and forensics.</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    {(config.customGateways || []).map((gateway: CustomGateway) => (
+                      <div key={gateway.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className={cn("w-10 h-10 rounded border flex items-center justify-center font-bold text-xs shrink-0", gateway.enabled ? 'bg-black text-white border-black' : 'bg-gray-100 text-gray-400')}>
+                            {gateway.name.substring(0, 2)}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold uppercase tracking-tight">{gateway.name}</p>
+                            <div className="flex items-center gap-2">
+                              <code className="text-[9px] bg-gray-100 px-1.5 py-0.5 rounded font-mono text-muted-foreground">{gateway.apiKey.substring(0, 12)}••••</code>
+                              <Badge variant="outline" className={cn("text-[7px] font-bold uppercase border-none px-1.5 h-4", gateway.enabled ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-400")}>
+                                {gateway.enabled ? 'Active' : 'Disabled'}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest sm:hidden">Enabled</span>
+                            <Switch 
+                              checked={gateway.enabled} 
+                              onCheckedChange={(checked) => {
+                                const updated = config.customGateways.map((g: any) => 
+                                  g.id === gateway.id ? { ...g, enabled: checked } : g
+                                );
+                                handleUpdate({ customGateways: updated });
+                              }}
+                            />
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleRemoveGateway(gateway.id)}
+                            className="h-9 w-9 text-gray-300 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {(!config.customGateways || config.customGateways.length === 0) && (
+                      <div className="py-16 text-center">
+                        <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">No custom gateways in the vault.</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -659,24 +824,6 @@ export default function PaymentsPage() {
                   ))}
                 </div>
               </ScrollArea>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#e1e3e5] shadow-none rounded-none">
-            <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-              <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Terminal</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 p-4 sm:p-6 space-y-3">
-              <Button variant="outline" className="w-full justify-between text-[10px] font-bold uppercase h-11 border-black" asChild>
-                <a href="https://dashboard.stripe.com" target="_blank">
-                  Stripe Terminal <ExternalLink className="h-3 w-3" />
-                </a>
-              </Button>
-              <Button variant="outline" className="w-full justify-between text-[10px] font-bold uppercase h-11 border-black" asChild>
-                <a href="https://www.paypal.com/mep/dashboard" target="_blank">
-                  PayPal Manager <ExternalLink className="h-3 w-3" />
-                </a>
-              </Button>
             </CardContent>
           </Card>
 
