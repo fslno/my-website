@@ -61,7 +61,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogFooter,
+  DialogFooter, 
   DialogDescription
 } from '@/components/ui/dialog';
 import {
@@ -81,14 +81,16 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-export default function OrderDetailPage(props: { 
+export default function OrderDetailPage({ 
+  params,
+  searchParams 
+}: { 
   params: Promise<{ orderId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const resolvedParams = use(props.params);
-  const orderId = resolvedParams.orderId;
+  const { orderId } = use(params);
   // Authoritatively unwrap searchParams to comply with Next.js 15 proxy protocols
-  use(props.searchParams);
+  use(searchParams);
   
   const db = useFirestore();
   const { toast } = useToast();
@@ -269,113 +271,6 @@ export default function OrderDetailPage(props: {
 
   return (
     <div className="space-y-8">
-      <div id="printable-invoice" className="hidden print:block w-[210mm] mx-auto bg-white text-black p-12 font-sans min-h-[297mm]">
-        <div className="flex justify-between items-start border-b-2 border-black pb-8 mb-12">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-black rounded flex items-center justify-center text-white font-bold text-xl overflow-hidden">
-                {storeConfig?.logoUrl ? <img src={storeConfig.logoUrl} className="w-full h-full object-cover" alt="logo" /> : (storeConfig?.businessName?.[0] || 'S')}
-              </div>
-              <h1 className="text-3xl font-headline font-bold tracking-tighter uppercase">{storeConfig?.businessName || 'FSLNO STUDIO'}</h1>
-            </div>
-          </div>
-          <div className="text-right">
-            <h2 className="text-4xl font-headline font-bold tracking-tighter mb-2">INVOICE</h2>
-            <p className="text-sm font-mono font-bold uppercase tracking-tight">Order #{order.id.substring(0, 6).toUpperCase()}</p>
-            <p className="text-[10px] text-gray-400 mt-1">{formatDate(new Date())}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-12 mb-12">
-          <div className="space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">From</h3>
-            <div className="space-y-1">
-              <p className="font-bold uppercase text-sm">{storeConfig?.businessName || 'FSLNO STUDIO'}</p>
-              <p className="text-xs uppercase leading-relaxed text-gray-600 whitespace-pre-wrap">
-                {storeConfig?.address || '123 Luxury Way\nLondon, UK'}
-              </p>
-              <p className="text-xs font-bold mt-2">{storeConfig?.phone || '+1 (555) 000-0000'}</p>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">To</h3>
-            <div className="space-y-1">
-              <p className="font-bold uppercase text-sm">{order.customer?.name || 'Valued Client'}</p>
-              {order.customer?.shipping ? (
-                <p className="text-xs uppercase leading-relaxed text-gray-600">
-                  {order.customer.shipping.address}<br />
-                  {order.customer.shipping.city}, {order.customer.shipping.province}<br />
-                  {order.customer.shipping.postalCode}<br />
-                  {order.customer.shipping.country}
-                </p>
-              ) : (
-                <p className="text-xs uppercase italic text-gray-400">In-Store Pickup</p>
-              )}
-              <p className="text-xs font-bold mt-2">{order.email}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4 mb-12">
-          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Items Purchased</h3>
-          <Table className="border-none shadow-none">
-            <TableHeader className="bg-gray-50">
-              <TableRow className="border-black border-b">
-                <TableHead className="text-[9px] font-bold uppercase text-black">Product</TableHead>
-                <TableHead className="text-[9px] font-bold uppercase text-black text-center">Size</TableHead>
-                <TableHead className="text-[9px] font-bold uppercase text-black text-center">Qty</TableHead>
-                <TableHead className="text-[9px] font-bold uppercase text-black text-right">Price</TableHead>
-                <TableHead className="text-[9px] font-bold uppercase text-black text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(order.items || []).map((item: any, i: number) => (
-                <TableRow key={i} className="border-b border-gray-100">
-                  <TableCell>
-                    <div className="py-1">
-                      <p className="font-bold uppercase text-xs">{item.name}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center font-bold text-xs uppercase">{item.size}</TableCell>
-                  <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
-                  <TableCell className="text-right text-xs">C$${formatCurrency(Number(item.price) || 0)}</TableCell>
-                  <TableCell className="text-right font-bold text-xs">C$${formatCurrency((Number(item.price) || 0) * item.quantity)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="flex justify-end mb-12">
-          <div className="w-[300px] space-y-3">
-            <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
-              <span>{order.deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
-              <span className="text-black">{Number(order.shipping) > 0 ? `C$${formatCurrency(Number(order.shipping))}` : 'FREE'}</span>
-            </div>
-            {Number(order.discountTotal) > 0 && (
-              <div className="flex justify-between text-[10px] font-bold uppercase text-red-600">
-                <span>Discounts</span>
-                <span>-C$${formatCurrency(Number(order.discountTotal) || 0)}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-[10px] font-bold uppercase text-gray-400">
-              <span>Sales Tax</span>
-              <span className="text-black">C$${formatCurrency(Number(order.tax) || 0)}</span>
-            </div>
-            <div className="h-px bg-black my-2" />
-            <div className="flex justify-between items-end">
-              <span className="text-[12px] font-bold uppercase tracking-widest">Grand Total</span>
-              <span className="text-2xl font-headline font-bold">C$${formatCurrency(Number(order.total) || 0)}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-auto pt-12 border-t text-[9px] uppercase tracking-widest text-gray-400 text-center">
-          <p>Thank you for shopping with {storeConfig?.businessName || 'FSLNO'}.</p>
-          <p className="mt-1">© {new Date().getFullYear()} {storeConfig?.businessName || 'FSLNO'}. ALL RIGHTS RESERVED.</p>
-        </div>
-      </div>
-
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="space-y-1">
           <Link href="/admin/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">

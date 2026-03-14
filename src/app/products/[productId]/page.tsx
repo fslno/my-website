@@ -57,14 +57,16 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage(props: { 
+export default function ProductDetailPage({ 
+  params,
+  searchParams 
+}: { 
   params: Promise<{ productId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const resolvedParams = use(props.params);
-  const productId = resolvedParams.productId;
+  const { productId } = use(params);
   // Authoritatively unwrap searchParams to comply with Next.js 15 proxy protocols
-  use(props.searchParams);
+  use(searchParams);
   
   const db = useFirestore();
   const router = useRouter();
