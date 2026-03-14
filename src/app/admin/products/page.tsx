@@ -731,7 +731,14 @@ export default function ProductsPage() {
             <div className="flex items-center gap-2 w-full md:w-auto">
               <Select value={sortBy} onValueChange={(v: string) => setSortBy(v)}>
                 <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><ArrowUpDown className="h-3 w-3 mr-2" /><span className="truncate">Sort By</span></SelectTrigger>
-                <SelectContent><SelectItem value="newest" className="text-[10px] uppercase font-bold">Newest First</SelectItem><SelectItem value="oldest" className="text-[10px] uppercase font-bold">Oldest First</SelectItem><SelectItem value="name-asc" className="text-[10px] uppercase font-bold">Name: A - Z</SelectItem><SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Name: Z - A</SelectItem><SelectItem value="price-high" className="text-[10px] uppercase font-bold">Price: High to Low</SelectItem><SelectItem value="price-low" className="text-[10px] uppercase font-bold">Price: Low to High</SelectItem></Select>
+                <SelectContent>
+                  <SelectItem value="newest" className="text-[10px] uppercase font-bold">Newest First</SelectItem>
+                  <SelectItem value="oldest" className="text-[10px] uppercase font-bold">Oldest First</SelectItem>
+                  <SelectItem value="name-asc" className="text-[10px] uppercase font-bold">Name: A - Z</SelectItem>
+                  <SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Name: Z - A</SelectItem>
+                  <SelectItem value="price-high" className="text-[10px] uppercase font-bold">Price: High to Low</SelectItem>
+                  <SelectItem value="price-low" className="text-[10px] uppercase font-bold">Price: Low to High</SelectItem>
+                </SelectContent>
               </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><Filter className="h-3 w-3 mr-2" /><span className="truncate">{categoryFilter === 'all' ? 'All Categories' : categories?.find(c => c.id === categoryFilter)?.name}</span></SelectTrigger>
@@ -748,9 +755,17 @@ export default function ProductsPage() {
             </TableHeader>
             <TableBody>
               {productsLoading || categoriesLoading ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-20">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" />
+                  </TableCell>
+                </TableRow>
               ) : filteredProducts.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 uppercase text-[10px] font-bold tracking-[0.2em]">No products found.</TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-20 text-gray-400 uppercase text-[10px] font-bold tracking-[0.2em]">
+                    No products found.
+                  </TableCell>
+                </TableRow>
               ) : (
                 filteredProducts.map((product: any) => {
                   const category = categories?.find((c: any) => c.id === product.categoryId);
@@ -773,7 +788,7 @@ export default function ProductsPage() {
 
         <div className="lg:hidden divide-y">
           {productsLoading || categoriesLoading ? (
-            <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-gray-300" /></div>
+            <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-300" /></div>
           ) : filteredProducts.length === 0 ? (
             <div className="p-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">No products found.</div>
           ) : (
