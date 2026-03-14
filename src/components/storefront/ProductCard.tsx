@@ -47,8 +47,8 @@ export function ProductCard({ id, name, price, image, hoverImage, category, rati
         )}
         
         {isSoldOut && (
-          <div className="absolute top-0 right-0 z-10 p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
-            <span className="bg-red-600 text-white text-[8px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl">
+          <div className="absolute top-0 right-0 z-10 p-1.5 sm:p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
+            <span className="bg-red-600 text-white text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-2 py-1 sm:px-3 sm:py-1.5 shadow-xl">
               Sold Out
             </span>
           </div>
