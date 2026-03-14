@@ -52,7 +52,6 @@ export default function GoogleSyncPage() {
   const [isStoreDialogOpen, setIsStoreDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Local form state for settings
   const [merchantId, setMerchantId] = useState('');
   const [targetCountry, setTargetCountry] = useState('US');
   const [contentLanguage, setContentLanguage] = useState('en');
@@ -99,7 +98,7 @@ export default function GoogleSyncPage() {
       issues: [
         { id: '1', message: "Missing 'Material' attribute on product SKU-0981", severity: 'warning' },
         { id: '2', message: "Missing 'Material' attribute on product SKU-0982", severity: 'warning' },
-        { id: '3', message: "Image missing for product SKU-7721 (Hero Selection)", severity: 'error' }
+        { id: '3', message: "Image missing for product SKU-7721", severity: 'error' }
       ]
     };
 
@@ -125,7 +124,7 @@ export default function GoogleSyncPage() {
     updateDoc(configRef, updates)
       .then(() => {
         setIsSettingsOpen(false);
-        toast({ title: "Settings Saved", description: "Google Merchant API configuration has been updated." });
+        toast({ title: "Settings saved", description: "Google Merchant API configuration updated." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -149,7 +148,7 @@ export default function GoogleSyncPage() {
     updateDoc(configRef, updates)
       .then(() => {
         setIsStoreDialogOpen(false);
-        toast({ title: "Address Linked", description: "Your local spot location has been synchronized." });
+        toast({ title: "Address linked", description: "Location synchronized." });
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -177,8 +176,8 @@ export default function GoogleSyncPage() {
         .then(() => {
           setIsSyncing(false);
           toast({
-            title: "Sync Complete",
-            description: "Google Merchant Center catalog has been updated.",
+            title: "Sync complete",
+            description: "Google Merchant Center catalog updated.",
           });
         })
         .catch(() => {
@@ -205,9 +204,9 @@ export default function GoogleSyncPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
         <Zap className="h-12 w-12 text-gray-300" />
-        <h2 className="text-xl font-bold text-gray-900">Google Sync Not Initialized</h2>
-        <p className="text-gray-500 max-w-sm">Connect your FSLNO store to the Google Merchant API to start syncing your luxury catalog.</p>
-        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-10 font-bold uppercase tracking-widest text-[10px]">Initialize Merchant API</Button>
+        <h2 className="text-xl font-bold text-gray-900">Google Sync not initialized</h2>
+        <p className="text-gray-500 max-w-sm">Connect your store to Google Merchant API to sync your catalog.</p>
+        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-10 font-bold uppercase tracking-widest text-[10px]">Initialize API</Button>
       </div>
     );
   }
@@ -217,7 +216,7 @@ export default function GoogleSyncPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Google Merchant Center Sync</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase tracking-tight font-medium">Manage your Merchant API (V1) integration and real-time product feeds.</p>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase tracking-tight font-medium">Manage API integration and product feeds.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
@@ -228,8 +227,8 @@ export default function GoogleSyncPage() {
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
               <DialogHeader className="pt-6">
-                <DialogTitle className="text-xl font-bold uppercase tracking-tight text-primary">Merchant API Configuration</DialogTitle>
-                <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Establish the handshake parameters for your Google catalog.</DialogDescription>
+                <DialogTitle className="text-xl font-bold uppercase tracking-tight text-primary">Merchant API config</DialogTitle>
+                <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Set parameters for your Google catalog.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
                 <div className="space-y-2">
@@ -258,7 +257,7 @@ export default function GoogleSyncPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500">Language Code</Label>
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Language</Label>
                     <Input 
                       placeholder="en" 
                       value={contentLanguage} 
@@ -271,7 +270,7 @@ export default function GoogleSyncPage() {
               <DialogFooter>
                 <Button onClick={handleSaveSettings} disabled={isSaving || !merchantId} className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]">
                   {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Update API Handshake
+                  Update API
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -283,7 +282,7 @@ export default function GoogleSyncPage() {
             disabled={isSyncing}
           >
             {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            {isSyncing ? 'Syncing...' : 'Force Full Sync'}
+            {isSyncing ? 'Syncing...' : 'Sync now'}
           </Button>
         </div>
       </div>
@@ -297,13 +296,13 @@ export default function GoogleSyncPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{config.feedHealth?.toFixed(1)}%</div>
-            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Items approved & optimized</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Items approved</p>
           </CardContent>
         </Card>
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Zap className="h-3.5 w-3.5" text-orange-500" /> Sync Latency
+              <Zap className="h-3.5 w-3.5 text-orange-500" /> Sync Latency
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -314,12 +313,12 @@ export default function GoogleSyncPage() {
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Layers className="h-3.5 w-3.5" text-blue-600" /> Active Channels
+              <Layers className="h-3.5 w-3.5 text-blue-600" /> Active Channels
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#1a1c1e]">{config.activeChannelsCount}</div>
-            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Search, Shop, YT, Ads</p>
+            <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Search, Shop, Youtube, Ads</p>
           </CardContent>
         </Card>
       </div>
@@ -331,7 +330,7 @@ export default function GoogleSyncPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-orange-500" />
-                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Merchant API (V1) Integration</CardTitle>
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Merchant API integration</CardTitle>
                 </div>
                 <div className="flex items-center gap-3">
                   <Switch 
@@ -339,12 +338,12 @@ export default function GoogleSyncPage() {
                     onCheckedChange={(checked) => handleUpdate({ apiConnected: checked })}
                   />
                   <Badge variant="outline" className={cn("text-[8px] sm:text-[10px] font-bold uppercase border-none px-2", config.apiConnected ? "text-green-600 bg-green-50" : "text-gray-400 bg-gray-50")}>
-                    {config.apiConnected ? 'API Connected' : 'Disconnected'}
+                    {config.apiConnected ? 'Connected' : 'Disconnected'}
                   </Badge>
                 </div>
               </div>
               <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-muted-foreground mt-1">
-                Unlike standard feeds that update once a day, the API pushes price or stock changes to Google in minutes.
+                Updates push to Google in minutes.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
@@ -360,7 +359,7 @@ export default function GoogleSyncPage() {
                     <span className="text-[11px] font-bold uppercase tracking-widest">On-Demand Updates</span>
                     {config.onDemandUpdates ? <CheckCircle2 className="h-4 w-4 text-black" /> : <div className="h-4 w-4 rounded-full border border-[#babfc3]" />}
                   </div>
-                  <p className="text-[10px] text-[#5c5f62] mt-2 uppercase tracking-tight font-medium leading-relaxed opacity-70">Real-time synchronization of critical attributes (Price, Inventory).</p>
+                  <p className="text-[10px] text-[#5c5f62] mt-2 uppercase tracking-tight font-medium leading-relaxed opacity-70">Sync price and inventory changes instantly.</p>
                 </button>
                 <button 
                   onClick={() => handleToggleFeature('partialSync', !!config.partialSync)}
@@ -370,10 +369,10 @@ export default function GoogleSyncPage() {
                   )}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-widest">Partial Sync Protocol</span>
+                    <span className="text-[11px] font-bold uppercase tracking-widest">Partial sync</span>
                     {config.partialSync ? <CheckCircle2 className="h-4 w-4 text-black" /> : <div className="h-4 w-4 rounded-full border border-[#babfc3]" />}
                   </div>
-                  <p className="text-[10px] text-[#5c5f62] mt-2 uppercase tracking-tight font-medium leading-relaxed opacity-70">Only update specific fields without re-sending the entire catalog.</p>
+                  <p className="text-[10px] text-[#5c5f62] mt-2 uppercase tracking-tight font-medium leading-relaxed opacity-70">Update specific fields without re-sending the entire catalog.</p>
                 </button>
               </div>
             </CardContent>
@@ -384,7 +383,7 @@ export default function GoogleSyncPage() {
               <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30 p-4 sm:p-6">
                 <div className="flex items-center gap-2">
                   <Youtube className="h-5 w-5 text-red-600" />
-                  <CardTitle className="text-sm font-bold uppercase tracking-widest">YouTube Shopping</CardTitle>
+                  <CardTitle className="text-sm font-bold uppercase tracking-widest">Youtube Shopping</CardTitle>
                 </div>
                 <Switch 
                   checked={config.youtubeTaggingEnabled} 
@@ -393,17 +392,17 @@ export default function GoogleSyncPage() {
               </CardHeader>
               <CardContent className="pt-6 px-4 sm:px-6 space-y-4">
                 <p className="text-[10px] sm:text-[11px] text-[#5c5f62] leading-relaxed uppercase font-bold tracking-tight">
-                  Automatically syncs your FSLNO catalog so you can tag products in YouTube videos.
+                  Tag products in Youtube videos.
                 </p>
                 {config.youtubeTaggingEnabled ? (
                   <div className="flex items-center gap-2 text-[9px] font-bold text-green-700 bg-green-50 p-2 border border-green-100 uppercase tracking-widest">
                     <CheckCircle2 className="h-3 w-3" />
-                    Catalog Tagging Active
+                    Tagging active
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 bg-gray-50 p-2 border border-gray-100 uppercase tracking-widest">
                     <AlertCircle className="h-3 w-3" />
-                    Tagging Decommissioned
+                    Tagging disabled
                   </div>
                 )}
               </CardContent>
@@ -422,7 +421,7 @@ export default function GoogleSyncPage() {
               </CardHeader>
               <CardContent className="pt-6 px-4 sm:px-6 space-y-4">
                 <p className="text-[10px] sm:text-[11px] text-[#5c5f62] leading-relaxed uppercase font-bold tracking-tight">
-                  Tell Google users exactly what is in stock at your physical "Spot" locations.
+                  Display stock levels for your physical locations.
                 </p>
                 
                 <div className="space-y-3">
@@ -430,7 +429,7 @@ export default function GoogleSyncPage() {
                     <div className="p-3 bg-blue-50 border border-blue-100 rounded-none flex items-start gap-3 shadow-sm">
                       <Store className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
                       <div className="min-w-0 overflow-hidden">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-blue-700">Linked Spot</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-blue-700">Linked spot</p>
                         <p className="text-[10px] text-blue-900 font-bold uppercase truncate">{config.linkedStoreAddress}</p>
                       </div>
                     </div>
@@ -439,13 +438,13 @@ export default function GoogleSyncPage() {
                   <Dialog open={isStoreDialogOpen} onOpenChange={setIsStoreDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm" className="h-10 gap-2 w-full border-black font-bold uppercase tracking-widest text-[9px] bg-white rounded-none">
-                        <MapPin className="h-3.5 w-3.5" /> {config.linkedStoreAddress ? 'Change Store Address' : 'Link Store Address'}
+                        <MapPin className="h-3.5 w-3.5" /> {config.linkedStoreAddress ? 'Change store address' : 'Link store address'}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
                       <DialogHeader className="pt-6">
-                        <DialogTitle className="text-xl font-bold uppercase tracking-tight">Local Spot Linking</DialogTitle>
-                        <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground mt-1">Identify your physical archive location for Google Local Inventory maps.</DialogDescription>
+                        <DialogTitle className="text-xl font-bold uppercase tracking-tight">Local spot linking</DialogTitle>
+                        <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground mt-1">Set physical location for Google Local Inventory.</DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-6 py-6">
                         <div className="space-y-2">
@@ -461,7 +460,7 @@ export default function GoogleSyncPage() {
                       <DialogFooter>
                         <Button onClick={handleSaveStoreAddress} disabled={isSaving || !storeAddress} className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]">
                           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                          Authorize Location
+                          Verify location
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -476,9 +475,9 @@ export default function GoogleSyncPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Terminal className="h-5 w-5 text-green-500" />
-                  <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Diagnostics Console</CardTitle>
+                  <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Diagnostics</CardTitle>
                 </div>
-                <Badge variant="outline" className="bg-red-500/10 text-red-400 border-none text-[8px] font-bold uppercase tracking-widest animate-pulse">Live Protocol</Badge>
+                <Badge variant="outline" className="bg-red-500/10 text-red-400 border-none text-[8px] font-bold uppercase tracking-widest animate-pulse">Live</Badge>
               </div>
             </CardHeader>
             <CardContent className="pt-6 px-4 sm:px-6">
@@ -498,13 +497,13 @@ export default function GoogleSyncPage() {
                         className="text-[9px] h-auto p-0 text-zinc-500 hover:text-white underline uppercase font-bold tracking-widest opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                         onClick={() => handleFixIssue(issue.id)}
                       >
-                        FIX_NOW <ChevronRight className="h-2.5 w-2.5 ml-1" />
+                        FIX <ChevronRight className="h-2.5 w-2.5 ml-1" />
                       </Button>
                     </div>
                   ))
                 ) : (
                   <div className="py-12 text-center border border-dashed border-white/10 rounded-none">
-                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Protocol Clean: Zero Feed Exceptions Detected.</p>
+                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">No issues detected.</p>
                   </div>
                 )}
               </div>
@@ -517,7 +516,7 @@ export default function GoogleSyncPage() {
             <CardHeader className="border-b px-4 sm:px-6">
               <div className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-emerald-500" />
-                <CardTitle className="text-sm font-bold uppercase tracking-widest text-primary">Global Visibility</CardTitle>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-primary">Visibility</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="pt-6 px-4 sm:px-6 space-y-6">
@@ -541,8 +540,8 @@ export default function GoogleSyncPage() {
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-tight truncate">Google Ads Sync</p>
-                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Manual feed coordination.</p>
+                  <p className="text-[10px] font-bold uppercase tracking-tight truncate">Google Ads sync</p>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Feed coordination active.</p>
                 </div>
               </div>
             </CardContent>
@@ -550,18 +549,18 @@ export default function GoogleSyncPage() {
 
           <div className="p-6 bg-gray-50 border rounded-none space-y-4">
             <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
-              <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> API V1 Integrity Note
+              <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Integrity Note
             </h3>
-            <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight font-bold opacity-70">
-              Synchronized changes apply Authoritatively to the live Google catalog. Ensure all product attributes are manually cataloged to prevent diagnostic exceptions.
+            <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-bold opacity-70">
+              Changes apply to the live Google catalog. Verify all product attributes to prevent errors.
             </p>
           </div>
 
           <Button 
             className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 rounded-none" 
-            onClick={() => toast({ title: "Catalog Finalized", description: "Global Merchant API feeds are now Authoritatively synchronized." })}
+            onClick={() => toast({ title: "Settings saved", description: "Google Merchant API feeds synchronized." })}
           >
-            Save Catalog Settings
+            Save catalog settings
           </Button>
         </div>
       </div>
