@@ -188,7 +188,7 @@ export default function NotificationsPage() {
     
     try {
       const messaging = await getMessagingInstance(app);
-      if (!messaging) throw new Error("Messaging not supported in this environment.");
+      if (!messaging) throw new Error("Web Messaging protocol not supported in this environment.");
 
       // Authoritative Handshake: Attempt to retrieve token with VAPID protection
       const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '';
@@ -206,23 +206,27 @@ export default function NotificationsPage() {
       const subscribeFunc = httpsCallable(functions, 'subscribeAdminToOrders');
       
       try {
-        await subscribeFunc({ token });
-        toast({
-          title: "Device Bound",
-          description: "This device is Authoritatively subscribed to High-Priority Alarms."
-        });
-      } catch (funcError: any) {
-        // Authoritatively handle specific internal errors from Cloud Functions
-        if (funcError.code === 'functions/internal') {
-          throw new Error("Cloud Function internal protocol failure. Ensure the Admin SDK is initialized on the server.");
+        const result: any = await subscribeFunc({ token });
+        if (result.data?.success) {
+          toast({
+            title: "Device Bound",
+            description: "This device is Authoritatively subscribed to High-Priority Alarms."
+          });
         }
-        throw funcError;
+      } catch (funcError: any) {
+        // Detailed error reporting for protocol synchronization
+        console.error("[ALARM] Protocol Error:", funcError);
+        toast({
+          variant: "destructive",
+          title: "Synchronization Error",
+          description: funcError.message || "Cloud Function internal protocol failure. Check Admin SDK initialization."
+        });
       }
     } catch (error: any) {
       console.error("[ALARM] Device registration failure:", error);
       toast({
         variant: "destructive",
-        title: "Protocol Failure",
+        title: "Registration Failure",
         description: error.message || "Failed to bind device to the alarm protocol."
       });
     } finally {
