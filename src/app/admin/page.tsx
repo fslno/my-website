@@ -161,7 +161,7 @@ export default function AdminDashboard() {
   }, [filteredData]);
 
   const chartData = useMemo(() => {
-    const { orders: fOrders } = filteredData;
+    const { orders: fOrders, users: fUsers } = filteredData;
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
     let rangeLimit = 7;
@@ -193,16 +193,20 @@ export default function AdminDashboard() {
 
       if (unit === 'hour') {
         d.setHours(d.getHours() - i);
-        return { name: `${d.getHours()}:00`, time: d.getTime(), sales: 0 };
+        return { name: `${d.getHours()}:00`, time: d.getTime(), sales: 0, tax: 0, fees: 0, orders: 0, members: 0 };
       } else if (unit === 'month') {
         d.setMonth(d.getMonth() - i);
-        return { name: d.toLocaleString('default', { month: 'short' }), month: d.getMonth(), year: d.getFullYear(), sales: 0 };
+        return { name: d.toLocaleString('default', { month: 'short' }), month: d.getMonth(), year: d.getFullYear(), sales: 0, tax: 0, fees: 0, orders: 0, members: 0 };
       } else {
         d.setDate(d.getDate() - i);
         return { 
           name: days[d.getDay()], 
           date: d.toLocaleDateString(),
-          sales: 0 
+          sales: 0,
+          tax: 0,
+          fees: 0,
+          orders: 0,
+          members: 0
         };
       }
     }).reverse();
@@ -219,6 +223,24 @@ export default function AdminDashboard() {
       });
       if (point) {
         point.sales += (Number(order.total) || 0);
+        point.tax += (Number(order.tax) || 0);
+        point.fees += ((Number(order.total) || 0) * 0.029 + 0.30);
+        point.orders += 1;
+      }
+    });
+
+    fUsers.forEach(u => {
+      const userDate = u.createdAt?.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+      const point = dataPoints.find(p => {
+        if (unit === 'hour') {
+          return new Date(p.time!).getHours() === userDate.getHours() && new Date(p.time!).getDate() === userDate.getDate();
+        } else if (unit === 'month') {
+          return (p as any).month === userDate.getMonth() && (p as any).year === userDate.getFullYear();
+        }
+        return (p as any).date === userDate.toLocaleDateString();
+      });
+      if (point) {
+        point.members += 1;
       }
     });
 
@@ -388,37 +410,49 @@ export default function AdminDashboard() {
           title="Total Sales" 
           value={`C$${formatCurrency(stats.revenue)}`} 
           trend="Confirmed" 
-          icon={<DollarSign className="h-4 w-4 text-green-600" />} 
+          icon={<DollarSign className="h-4 w-4 text-green-600" />}
+          data={chartData.map(d => ({ value: d.sales }))}
+          color="#16a34a"
         />
         <StatsCard 
           title="Total Tax" 
           value={`C$${formatCurrency(stats.tax)}`} 
           trend="Detailed" 
           icon={<Receipt className="h-4 w-4 text-blue-600" />} 
+          data={chartData.map(d => ({ value: d.tax }))}
+          color="#2563eb"
         />
         <StatsCard 
           title="Processing Fees" 
           value={`C$${formatCurrency(stats.fees)}`} 
           trend="Estimate" 
           icon={<CreditCard className="h-4 w-4 text-red-600" />} 
+          data={chartData.map(d => ({ value: d.fees }))}
+          color="#dc2626"
         />
         <StatsCard 
           title="Total Orders" 
           value={stats.orders.toString()} 
           trend="Confirmed" 
           icon={<ShoppingCart className="h-4 w-4 text-blue-600" />} 
+          data={chartData.map(d => ({ value: d.orders }))}
+          color="#2563eb"
         />
         <StatsCard 
           title="Total Customers" 
           value={stats.members.toString()} 
           trend="Signed Up" 
           icon={<UserPlus className="h-4 w-4 text-purple-600" />} 
+          data={chartData.map(d => ({ value: d.members }))}
+          color="#9333ea"
         />
         <StatsCard 
           title="Active Sessions" 
           value="42" 
           trend="Live" 
           icon={<TrendingUp className="h-4 w-4 text-orange-600" />} 
+          data={Array.from({ length: 7 }, () => ({ value: Math.floor(Math.random() * 20) + 30 }))}
+          color="#ea580c"
         />
       </div>
 
@@ -492,7 +526,14 @@ export default function AdminDashboard() {
   );
 }
 
-function StatsCard({ title, value, trend, icon }: { title: string, value: string, trend: string, icon: React.ReactNode }) {
+function StatsCard({ title, value, trend, icon, data, color = "#000" }: { 
+  title: string, 
+  value: string, 
+  trend: string, 
+  icon: React.ReactNode,
+  data?: any[],
+  color?: string 
+}) {
   return (
     <Card className="border-[#e1e3e5] shadow-none hover:border-black transition-all duration-300 rounded-none group">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -509,6 +550,24 @@ function StatsCard({ title, value, trend, icon }: { title: string, value: string
           </span>
           <span className="text-[9px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight truncate">Confirmed</span>
         </div>
+        
+        {data && (
+          <div className="h-[40px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data}>
+                <Area 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke={color} 
+                  fill={color} 
+                  fillOpacity={0.1} 
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
