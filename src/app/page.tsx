@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
@@ -8,20 +8,23 @@ import { BentoHero } from '@/components/storefront/BentoHero';
 import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const db = useFirestore();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 60;
 
   useEffect(() => {
-    // Authoritatively reset scroll position to the top on mount to ensure the viewport starts at the Hero Banner
+    // Authoritatively reset scroll position to the top on mount
     window.scrollTo(0, 0);
   }, []);
 
-  // Fetch top categories for the collection grid - strictly ordered by curated 'order' field
+  // Fetch top categories for the collection grid
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'categories'), orderBy('order', 'asc'), limit(12));
@@ -29,10 +32,10 @@ export default function Home() {
 
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
 
-  // Fetch top 8 products for "Featured Selection"
+  // Fetch products for "Featured Selection" - Increased limit to support pagination
   const featuredQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(8));
+    return query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(300));
   }, [db]);
 
   const { data: featuredProducts, isLoading: productsLoading } = useCollection(featuredQuery);
@@ -41,7 +44,7 @@ export default function Home() {
   const reviewConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
   const { data: reviewConfig } = useDoc(reviewConfigRef);
 
-  // Fetch all reviews for global rating aggregation (Zero-Error simple query)
+  // Fetch all reviews for global rating aggregation
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'reviews'));
@@ -62,6 +65,24 @@ export default function Home() {
     return map;
   }, [allReviews]);
 
+  // Pagination Logic
+  const paginatedProducts = useMemo(() => {
+    if (!featuredProducts) return [];
+    const start = (currentPage - 1) * pageSize;
+    return featuredProducts.slice(start, start + pageSize);
+  }, [featuredProducts, currentPage, pageSize]);
+
+  const totalPages = Math.ceil((featuredProducts?.length || 0) / pageSize);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    // Smooth scroll back to the products section header
+    const element = document.getElementById('featured-products-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   // Fetch theme for layout decisions
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
@@ -75,7 +96,7 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <Header />
       
-      {/* Hero Selection based on Theme Config - Padding adjusted to pt-36 to clear fixed header/banner */}
+      {/* Hero Selection based on Theme Config */}
       {theme?.homepageLayout === 'classic' ? (
         <section className="pt-36 pb-12">
           <div className="w-full overflow-hidden bg-primary shadow-2xl group border-b">
@@ -118,7 +139,7 @@ export default function Home() {
         />
       )}
 
-      {/* Categories Selection - Reflects the curated sort order */}
+      {/* Categories Selection */}
       <section className="pt-24 pb-12 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col mb-16 gap-6 category-text-align">
@@ -168,8 +189,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Products Selection */}
-      <section className="pt-12 pb-24 bg-background">
+      {/* Featured Products Selection with Pagination */}
+      <section id="featured-products-section" className="pt-12 pb-24 bg-background">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col mb-16 gap-6 featured-text-align">
             <div className="space-y-3">
@@ -186,30 +207,77 @@ export default function Home() {
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Products coming soon.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
-              {featuredProducts.map((product: any) => {
-                const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
-                const ratingInfo = productRatings[product.id];
-                const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
-                const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
-                const isSoldOut = (Number(product.inventory) || 0) <= 0;
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
+                {paginatedProducts.map((product: any) => {
+                  const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
+                  const ratingInfo = productRatings[product.id];
+                  const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
+                  const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
+                  const isSoldOut = (Number(product.inventory) || 0) <= 0;
 
-                return (
-                  <ProductCard 
-                    key={product.id} 
-                    id={product.id}
-                    name={product.name}
-                    price={`C$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                    image={product.media?.[0]?.url || ''}
-                    hoverImage={product.media?.[1]?.url}
-                    category={productCategory}
-                    rating={avgRating}
-                    reviewCount={reviewCount}
-                    isSoldOut={isSoldOut}
-                  />
-                );
-              })}
-            </div>
+                  return (
+                    <ProductCard 
+                      key={product.id} 
+                      id={product.id}
+                      name={product.name}
+                      price={`C$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                      image={product.media?.[0]?.url || ''}
+                      hoverImage={product.media?.[1]?.url}
+                      category={productCategory}
+                      rating={avgRating}
+                      reviewCount={reviewCount}
+                      isSoldOut={isSoldOut}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* High-Fidelity Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="mt-20 flex flex-col sm:flex-row justify-center items-center gap-8">
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      variant="outline" 
+                      className="rounded-none border-black font-bold uppercase tracking-widest text-[10px] h-12 px-6 disabled:opacity-30 transition-all"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+                    </Button>
+                    
+                    <div className="flex gap-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={cn(
+                            "w-10 h-10 text-[10px] font-bold border transition-all duration-300",
+                            currentPage === page 
+                              ? "bg-black text-white border-black" 
+                              : "bg-white text-primary border-gray-200 hover:border-black"
+                          )}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+
+                    <Button 
+                      variant="outline" 
+                      className="rounded-none border-black font-bold uppercase tracking-widest text-[10px] h-12 px-6 disabled:opacity-30 transition-all"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next <ChevronRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
