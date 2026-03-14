@@ -30,7 +30,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -91,6 +91,20 @@ export default function StorefrontAdminPage() {
     }
   };
 
+  const handleDeleteCategory = async (id: string) => {
+    if (!db || !confirm("Authoritatively delete this category from the archive?")) return;
+    deleteDoc(doc(db, 'categories', id))
+      .then(() => {
+        toast({ title: "Deleted", description: "Category removed." });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `categories/${id}`,
+          operation: 'delete'
+        }));
+      });
+  };
+
   const handleSave = async () => {
     if (!themeRef) return;
     setIsSaving(true);
@@ -127,7 +141,7 @@ export default function StorefrontAdminPage() {
   if (themeLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-10 w-10 animate-spin text-gray-400" />
       </div>
     );
   }
@@ -288,6 +302,14 @@ export default function StorefrontAdminPage() {
                             <Button variant="ghost" size="sm" asChild className="text-[9px] font-bold uppercase tracking-widest hover:underline h-8">
                               <Link href="/admin/categories">Edit Metadata <ArrowRight className="ml-2 h-3 w-3" /></Link>
                             </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-destructive hover:bg-red-50"
+                              onClick={() => handleDeleteCategory(cat.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       ))}
@@ -429,7 +451,7 @@ export default function StorefrontAdminPage() {
 
               <div className="space-y-4">
                 <h4 className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                  <Terminal className="h-3.5 w-3.5 text-blue-400" /> Engine Status
+                  <div className="h-3.5 w-3.5 text-blue-400"><Terminal className="h-full w-full" /></div> Engine Status
                 </h4>
                 <div className="space-y-2 text-[9px] font-mono uppercase">
                   <div className="flex justify-between">
