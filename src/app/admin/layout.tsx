@@ -114,14 +114,6 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/storefront">
-                  <Monitor />
-                  <span>Storefront</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Orders" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/orders">
                   <ShoppingBag />
@@ -175,6 +167,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         <SidebarGroup className="mt-4">
           <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Settings</SidebarGroupLabel>
           <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/storefront">
+                  <Monitor />
+                  <span>Storefront</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/theme">
@@ -502,7 +502,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 max-w-xl">
               <SidebarTrigger className="h-9 w-9 shrink-0" />
               <div className="relative w-full hidden sm:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196] " />
                 <input 
                   type="text" 
                   placeholder="Search..." 
