@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -104,7 +103,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   };
 
   return (
-    <div className="space-y-16 py-12 border-t">
+    <div className="space-y-16 py-12 border-t w-full">
       <section className="max-w-2xl">
         <div className="flex items-center gap-3 mb-8">
           <MessageSquare className="h-5 w-5 text-primary" />
@@ -181,9 +180,9 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Transmit Review"}
             </Button>
-            <p className="text-[8px] text-center text-gray-400 uppercase font-bold tracking-widest flex items-center justify-center gap-2">
+            <div className="text-[8px] text-center text-gray-400 uppercase font-bold tracking-widest flex items-center justify-center gap-2">
               <ShieldCheck className="h-3 w-3" /> Security Protocol: All reviews undergo forensic moderation.
-            </p>
+            </div>
           </form>
         ) : (
           <div className="p-12 text-center border-2 border-dashed rounded-none bg-gray-50/50">
@@ -220,9 +219,9 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                   )}
                   <div className="space-y-3 flex-1">
                     <p className="text-sm font-medium leading-relaxed italic text-gray-600">"{review.comment}"</p>
-                    <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                    <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {review.userName}
-                    </p>
+                    </div>
                   </div>
                 </div>
               </div>
