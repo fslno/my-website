@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -397,16 +398,16 @@ export default function CheckoutPage() {
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Personal Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email Address {errors.email && "- REQUIRED"}</Label>
-                <Input autoComplete="email" placeholder="" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
+                <Label htmlFor="email" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email Address {errors.email && "- REQUIRED"}</Label>
+                <Input id="email" name="email" type="email" autoComplete="email" placeholder="" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
-                <Input autoComplete="tel" placeholder="" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                <Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
+                <Input id="tel" name="tel" type="tel" autoComplete="tel" placeholder="" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
-                <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name {errors.name && "- REQUIRED"}</Label>
-                <Input autoComplete="name" placeholder="" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} />
+                <Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name {errors.name && "- REQUIRED"}</Label>
+                <Input id="name" name="name" type="text" autoComplete="name" placeholder="" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} />
               </div>
             </div>
 
@@ -416,27 +417,27 @@ export default function CheckoutPage() {
                   <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Shipping Address</h3>
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Address {errors.address && "- REQUIRED"}</Label>
-                      <Input autoComplete="address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
+                      <Label htmlFor="shipping-address" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Address {errors.address && "- REQUIRED"}</Label>
+                      <Input id="shipping-address" name="shipping-address" type="text" autoComplete="shipping address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City {errors.city && "- REQUIRED"}</Label>
-                        <Input autoComplete="address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} />
+                        <Label htmlFor="shipping-city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City {errors.city && "- REQUIRED"}</Label>
+                        <Input id="shipping-city" name="shipping-city" type="text" autoComplete="shipping address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.postalCode && "- REQUIRED"}</Label>
-                        <Input autoComplete="postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
+                        <Label htmlFor="shipping-zip" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.postalCode && "- REQUIRED"}</Label>
+                        <Input id="shipping-zip" name="shipping-zip" type="text" autoComplete="shipping postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.province && "- REQUIRED"}</Label>
-                        <Input autoComplete="address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
+                        <Label htmlFor="shipping-state" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.province && "- REQUIRED"}</Label>
+                        <Input id="shipping-state" name="shipping-state" type="text" autoComplete="shipping address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-destructive" : "text-muted-foreground")}>Country {errors.country && "- REQUIRED"}</Label>
-                        <Input autoComplete="country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
+                        <Label htmlFor="shipping-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-destructive" : "text-muted-foreground")}>Country {errors.country && "- REQUIRED"}</Label>
+                        <Input id="shipping-country" name="shipping-country" type="text" autoComplete="shipping country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
                       </div>
                     </div>
                   </div>
@@ -461,27 +462,27 @@ export default function CheckoutPage() {
                       </h3>
                       <div className="grid gap-4">
                         <div className="space-y-2">
-                          <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
-                          <Input autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                          <Label htmlFor="billing-address" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
+                          <Input id="billing-address" name="billing-address" type="text" autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
-                            <Input autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
+                            <Label htmlFor="billing-city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
+                            <Input id="billing-city" name="billing-city" type="text" autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
                           </div>
                           <div className="space-y-2">
-                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
-                            <Input autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                            <Label htmlFor="billing-zip" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
+                            <Input id="billing-zip" name="billing-zip" type="text" autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
-                            <Input autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                            <Label htmlFor="billing-state" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
+                            <Input id="billing-state" name="billing-state" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                           </div>
                           <div className="space-y-2">
-                            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
-                            <Input autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                            <Label htmlFor="billing-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
+                            <Input id="billing-country" name="billing-country" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                           </div>
                         </div>
                       </div>
@@ -549,27 +550,27 @@ export default function CheckoutPage() {
                   </h3>
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
-                      <Input autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                      <Label htmlFor="billing-address-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
+                      <Input id="billing-address-pickup" name="billing-address" type="text" autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
-                        <Input autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
+                        <Label htmlFor="billing-city-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
+                        <Input id="billing-city-pickup" name="billing-city" type="text" autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
-                        <Input autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                        <Label htmlFor="billing-zip-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
+                        <Input id="billing-zip-pickup" name="billing-zip" type="text" autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
-                        <Input autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                        <Label htmlFor="billing-state-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
+                        <Input id="billing-state-pickup" name="billing-state" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
-                        <Input autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                        <Label htmlFor="billing-country-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
+                        <Input id="billing-country-pickup" name="billing-country" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                       </div>
                     </div>
                   </div>
@@ -581,10 +582,12 @@ export default function CheckoutPage() {
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupDate ? "text-destructive" : "text-muted-foreground")}>
+                      <Label htmlFor="pickup-date" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupDate ? "text-destructive" : "text-muted-foreground")}>
                         Date {errors.pickupDate && "- REQUIRED"}
                       </Label>
                       <Input 
+                        id="pickup-date"
+                        name="pickup-date"
                         type="date" 
                         className="h-12 uppercase rounded-none" 
                         value={formData.pickupDate} 
@@ -592,10 +595,12 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupTime ? "text-destructive" : "text-muted-foreground")}>
+                      <Label htmlFor="pickup-time" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.pickupTime ? "text-destructive" : "text-muted-foreground")}>
                         Time {errors.pickupTime && "- REQUIRED"}
                       </Label>
                       <Input 
+                        id="pickup-time"
+                        name="pickup-time"
                         type="time" 
                         className="h-12 uppercase rounded-none" 
                         value={formData.pickupTime} 
