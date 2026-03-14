@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Phone, Mail, Instagram, Twitter, MessageSquare, X, Globe, Facebook, MessageCircle } from 'lucide-react';
@@ -12,6 +13,7 @@ import { cn } from '@/lib/utils';
  * Each platform icon is Authoritatively differentiated by its brand-specific color.
  */
 export function Chatbot() {
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -28,8 +30,10 @@ export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
 
   // Authoritative Guard: Strictly do not render until mounted AND theme is explicitly enabled
+  // AND we are NOT in the admin area.
   if (!mounted || themeLoading || configLoading) return null;
   if (!theme || theme.chatbotEnabled !== true) return null;
+  if (pathname?.startsWith('/admin')) return null;
 
   const phoneNumbers = config?.phoneNumbers || (config?.phone ? [{ label: 'Voice', value: config.phone }] : []);
   const emailAddresses = config?.emailAddresses || (config?.email ? [{ label: 'Dispatch', value: config.email }] : []);
