@@ -20,7 +20,8 @@ import {
   ExternalLink,
   Smartphone,
   Eye,
-  Settings2
+  Settings2,
+  Layout
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
@@ -32,6 +33,8 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import Link from 'next/link';
 
 export default function StorefrontAdminPage() {
   const db = useFirestore();
