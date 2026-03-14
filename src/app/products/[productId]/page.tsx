@@ -291,39 +291,16 @@ export default function ProductDetailPage(props: {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-24">
           
           <div className="space-y-6">
-            <div className="space-y-4">
-              <Carousel setApi={setApi} className="w-full">
-                <CarouselContent>
-                  {media.length > 0 ? (
-                    media.map((item: any, idx: number) => (
-                      <CarouselItem key={idx}>
-                        <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
-                          <Image 
-                            src={item.url} 
-                            alt={product.name} 
-                            fill 
-                            className="object-cover"
-                            priority={idx === 0}
-                          />
-                        </div>
-                      </CarouselItem>
-                    ))
-                  ) : (
-                    <CarouselItem>
-                      <div className="aspect-square relative bg-gray-200 rounded-sm border" />
-                    </CarouselItem>
-                  )}
-                </CarouselContent>
-              </Carousel>
-              
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Vertical Thumbnails on Desktop, Horizontal on Mobile */}
               {media.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto scrollbar-hide order-2 lg:order-1 lg:w-20 shrink-0">
                   {media.map((item: any, idx: number) => (
                     <button 
                       key={idx}
                       onClick={() => handleThumbnailClick(idx)}
                       className={cn(
-                        "w-16 h-16 shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
+                        "w-16 h-16 lg:w-full lg:aspect-square shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
                         activeImageIndex === idx ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
                       )}
                     >
@@ -332,6 +309,32 @@ export default function ProductDetailPage(props: {
                   ))}
                 </div>
               )}
+              
+              <div className="flex-1 order-1 lg:order-2 overflow-hidden">
+                <Carousel setApi={setApi} className="w-full">
+                  <CarouselContent>
+                    {media.length > 0 ? (
+                      media.map((item: any, idx: number) => (
+                        <CarouselItem key={idx}>
+                          <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
+                            <Image 
+                              src={item.url} 
+                              alt={product.name} 
+                              fill 
+                              className="object-cover"
+                              priority={idx === 0}
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))
+                    ) : (
+                      <CarouselItem>
+                        <div className="aspect-square relative bg-gray-200 rounded-sm border" />
+                      </CarouselItem>
+                    )}
+                  </CarouselContent>
+                </Carousel>
+              </div>
             </div>
 
             <div className="hidden lg:block space-y-4 pt-6 border-t">
@@ -495,7 +498,7 @@ export default function ProductDetailPage(props: {
                       No
                     </button>
                     <button
-                      onClick={() => wantsCustomization(true)}
+                      onClick={() => setWantsCustomization(true)}
                       className={cn(
                         "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
                         wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
