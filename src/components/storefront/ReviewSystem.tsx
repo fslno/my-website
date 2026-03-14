@@ -1,14 +1,15 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useStorage } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Star, Camera, Loader2, CheckCircle2, MessageSquare, ShieldCheck } from 'lucide-react';
+import { Star, Camera, Loader2, MessageSquare, ShieldCheck, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -29,18 +30,21 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch only PUBLISHED reviews for this product
-  const reviewsQuery = useMemoFirebase(() => {
-    if (!db || !productId) return null;
-    return query(
-      collection(db, 'reviews'), 
-      where('productId', '==', productId),
-      where('published', '==', true),
-      orderBy('createdAt', 'desc')
-    );
-  }, [db, productId]);
+  const isAdmin = user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
-  const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
+  // Zero-Error Listing Protocol: Use a simple query to avoid permission and index exceptions.
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
+  }, [db]);
+
+  const { data: allReviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
+
+  // Authoritative Client-Side Filtration for zero-error manifest.
+  const productReviews = useMemo(() => {
+    if (!allReviews || !productId) return [];
+    return allReviews.filter(r => r.productId === productId && r.published === true);
+  }, [allReviews, productId]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,33 +64,30 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     let imageUrl = null;
 
     try {
-      // 01. Handle Image Upload to Storage
       if (imageFile && storage) {
         const storageRef = ref(storage, `reviews/${productId}/${user.uid}-${Date.now()}`);
         const snapshot = await uploadBytes(storageRef, imageFile);
         imageUrl = await getDownloadURL(snapshot.ref);
       }
 
-      // 02. Create Review Document
       const reviewData = {
         productId,
         userId: user.uid,
-        userName: user.displayName || user.email?.split('@')[0] || 'Anonymous Participant',
+        userName: user.displayName || user.email?.split('@')[0] || 'Studio Participant',
         rating,
         comment,
         imageUrl,
-        published: false, // Authoritative: New reviews are strictly pending moderation
+        published: false, // New reviews require forensic moderation
         createdAt: serverTimestamp()
       };
 
       await addDoc(collection(db, 'reviews'), reviewData);
 
       toast({
-        title: "Review Submitted",
-        description: "Your selection feedback is pending studio moderation.",
+        title: "Review Transmitted",
+        description: "Your feedback is pending archival moderation.",
       });
 
-      // Reset Form
       setComment('');
       setRating(5);
       setImageFile(null);
@@ -94,12 +95,19 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Submission Error",
-        description: "Forensic upload failed. Please try again.",
+        title: "Submission Failure",
+        description: "Could not sync review with the archive.",
       });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDelete = async (reviewId: string) => {
+    if (!db || !confirm("Authoritatively delete this review?")) return;
+    deleteDoc(doc(db, 'reviews', reviewId)).then(() => {
+      toast({ title: "Deleted", description: "Review removed from the archive." });
+    });
   };
 
   return (
@@ -113,7 +121,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
         {user ? (
           <form onSubmit={handleSubmit} className="space-y-6 bg-gray-50 p-8 border rounded-none shadow-sm">
             <div className="space-y-4">
-              <Label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Rating Identity</Label>
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Rating Scale</Label>
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <button
@@ -132,18 +140,18 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Testimonial Content</Label>
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Testimonial</Label>
               <Textarea 
                 required 
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Share your thoughts on the silhouette and fit..."
+                placeholder="Share your thoughts on the silhouette..."
                 className="min-h-[120px] bg-white text-sm rounded-none border-gray-200 resize-none font-medium"
               />
             </div>
 
             <div className="space-y-4">
-              <Label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Visual Evidence (Optional)</Label>
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Visuals (Optional)</Label>
               <div className="flex items-center gap-4">
                 <div 
                   onClick={() => document.getElementById('review-image')?.click()}
@@ -178,10 +186,10 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
               disabled={isSubmitting}
               className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
             >
-              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Transmit Review"}
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Review"}
             </Button>
             <div className="text-[8px] text-center text-gray-400 uppercase font-bold tracking-widest flex items-center justify-center gap-2">
-              <ShieldCheck className="h-3 w-3" /> Security Protocol: All reviews undergo forensic moderation.
+              <ShieldCheck className="h-3 w-3" /> Security: All reviews undergo forensic moderation.
             </div>
           </form>
         ) : (
@@ -196,19 +204,26 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
         
         {reviewsLoading ? (
           <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-200" /></div>
-        ) : (!reviews || reviews.length === 0) ? (
+        ) : productReviews.length === 0 ? (
           <div className="py-8 text-center"><p className="text-[10px] font-bold uppercase text-gray-300 tracking-widest italic">No public testimonials for this piece.</p></div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {reviews.map((review) => (
-              <div key={review.id} className="space-y-4 animate-in fade-in duration-700">
+            {productReviews.map((review) => (
+              <div key={review.id} className="space-y-4 animate-in fade-in duration-700 group">
                 <div className="flex items-center justify-between">
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((s) => (
                       <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-primary text-primary" : "text-gray-100")} />
                     ))}
                   </div>
-                  <span className="text-[9px] font-mono text-gray-300 uppercase">{new Date(review.createdAt?.toDate?.() || review.createdAt).toLocaleDateString()}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[9px] font-mono text-gray-300 uppercase">{new Date(review.createdAt?.toDate?.() || review.createdAt).toLocaleDateString()}</span>
+                    {isAdmin && (
+                      <button onClick={() => handleDelete(review.id)} className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex gap-6">

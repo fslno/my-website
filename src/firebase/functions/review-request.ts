@@ -4,7 +4,7 @@
  * 
  * Logic:
  * - Triggered when an order status is updated to 'delivered'.
- * - Schedules a review request email via a messaging protocol (e.g. Trigger Email Extension).
+ * - Schedules a review request email manifest to be dispatched 2 days later.
  */
 
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
@@ -26,10 +26,7 @@ export const orderDeliveredReviewRequest = onDocumentUpdated("orders/{orderId}",
     const orderId = event.params.orderId;
     const { email, customer, items } = afterData;
 
-    // Logic for scheduling: In a high-fidelity environment, we use a 'mail' collection
-    // monitored by the "Trigger Email" Firebase Extension.
-    
-    // Calculate delivery date + 2 days for scheduling
+    // Logic for scheduling: Orchestrate a 2-day temporal delay
     const sendAt = new Date();
     sendAt.setDate(sendAt.getDate() + 2);
 
@@ -65,12 +62,11 @@ export const orderDeliveredReviewRequest = onDocumentUpdated("orders/{orderId}",
           </div>
         `,
       },
-      // Authoritative: Metadata for the scheduling protocol
       deliveryDate: sendAt,
       status: 'scheduled'
     };
 
-    // Dispatch to the mail vault for the Trigger Email extension
+    // Dispatch to the mail collection for the automated messaging extension
     await db.collection("mail").add(emailManifest);
     
     console.log(`[FORENSIC] Review request scheduled for order ${orderId} to ${email}`);

@@ -4,8 +4,6 @@
 import React, { useState, useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { deleteObject, ref } from 'firebase/storage';
-import { useStorage } from '@/firebase/provider';
 import { 
   Table, 
   TableBody, 
@@ -22,8 +20,6 @@ import {
   Eye, 
   EyeOff, 
   Loader2, 
-  CheckCircle2, 
-  XCircle,
   MessageSquare,
   Image as ImageIcon
 } from 'lucide-react';
@@ -33,7 +29,6 @@ import { cn } from '@/lib/utils';
 
 export default function AdminReviewsPage() {
   const db = useFirestore();
-  const storage = useStorage();
   const { user } = useUser();
   const { toast } = useToast();
 
@@ -41,6 +36,7 @@ export default function AdminReviewsPage() {
     return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
   }, [user]);
 
+  // Zero-Error Listing Protocol: Use a simple query to ensure high-fidelity data ingestion.
   const reviewsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
@@ -57,36 +53,20 @@ export default function AdminReviewsPage() {
       updatedAt: new Date().toISOString()
     }).then(() => {
       toast({
-        title: newStatus ? "Review Published" : "Review Unpublished",
-        description: `Visibility updated for ${review.userName}'s review.`,
+        title: newStatus ? "Review Published" : "Review Hidden",
+        description: `Archival visibility updated for ${review.userName}.`,
       });
     });
   };
 
   const handleDeleteReview = async (review: any) => {
-    if (!db || !confirm("Authoritatively delete this review? This action is irreversible.")) return;
-
-    try {
-      // 01. Remove image from storage if exists
-      if (review.imageUrl && storage) {
-        const imageRef = ref(storage, review.imageUrl);
-        await deleteObject(imageRef).catch(e => console.warn("Storage removal skipped:", e));
-      }
-
-      // 02. Delete document
-      await deleteDoc(doc(db, 'reviews', review.id));
-      
+    if (!db || !confirm("Authoritatively delete this review?")) return;
+    deleteDoc(doc(db, 'reviews', review.id)).then(() => {
       toast({
         title: "Review Purged",
-        description: "Review and associated media have been removed.",
+        description: "Entry removed from the forensic manifest.",
       });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete review.",
-      });
-    }
+    });
   };
 
   if (isLoading) {
@@ -167,7 +147,6 @@ export default function AdminReviewsPage() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleTogglePublish(review)}
-                        title={review.published ? "Unpublish" : "Publish"}
                         className="h-8 w-8"
                       >
                         {review.published ? <EyeOff className="h-4 w-4 text-orange-500" /> : <Eye className="h-4 w-4 text-green-600" />}
