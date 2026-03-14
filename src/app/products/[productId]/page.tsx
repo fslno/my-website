@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, use, useEffect } from 'react';
@@ -10,6 +11,7 @@ import {
 import { doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
+import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -261,7 +263,7 @@ export default function ProductDetailPage(props: {
           Back to Previous
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-24">
           
           <div className="space-y-6">
             <div className="space-y-4">
@@ -555,6 +557,9 @@ export default function ProductDetailPage(props: {
             </div>
           </div>
         </div>
+
+        {/* Archival Feedback Loop */}
+        <ReviewSystem productId={product.id} />
       </div>
 
       <Footer />

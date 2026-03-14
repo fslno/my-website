@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -31,7 +32,8 @@ import {
   Loader2,
   Volume2,
   VolumeX,
-  Monitor
+  Monitor,
+  Star
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -142,6 +144,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 <Link href="/admin/promotions">
                   <TicketPercent />
                   <span>Promotions</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Reviews" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/reviews">
+                  <Star />
+                  <span>Reviews</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

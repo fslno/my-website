@@ -23,7 +23,14 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
-    // FORCE_REDEPLOY_PROTOCOL_V18_BANDWIDTH_LIMIT_RESOLVED
+    match /reviews/{reviewId} {
+      // Public can see published reviews
+      allow read: if resource.data.published == true || isAdmin();
+      // Auth users can create their own reviews
+      allow create: if isSignedIn();
+      // Only Admin can moderate or delete
+      allow update, delete: if isAdmin();
+    }
 
     match /orders/{orderId} {
       allow create: if request.resource.data.userId == 'guest' || isOwner(request.resource.data.userId);
@@ -49,11 +56,6 @@ service cloud.firestore {
     }
 
     match /sizeCharts/{sizeChartId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /reviews/{reviewId} {
       allow read: if true;
       allow write: if isAdmin();
     }
