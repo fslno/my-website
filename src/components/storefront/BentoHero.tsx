@@ -29,7 +29,7 @@ export function BentoHero({
 }: BentoHeroProps) {
   // Authoritatively set pt-36 to clear the fixed Header + Announcement Banner
   if (isLoading) {
-    return <section className="pt-36 pb-12"><div className="w-full h-[52.5vh] bg-gray-50" /></section>;
+    return <section className="pt-36 pb-12"><div className="w-full h-[70vh] bg-gray-50" /></section>;
   }
 
   const imageSrc = heroImageUrl || fallbackImageUrl || "";
@@ -37,7 +37,7 @@ export function BentoHero({
   return (
     <section className="pt-36 pb-12">
       <div className="w-full bg-primary overflow-hidden group shadow-2xl">
-        <div className="relative h-[52.5vh] w-full">
+        <div className="relative h-[70vh] w-full">
           {imageSrc ? (
             <Image
               src={imageSrc}
