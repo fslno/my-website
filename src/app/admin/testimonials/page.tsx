@@ -18,14 +18,10 @@ import {
   Plus, 
   Trash2, 
   Loader2, 
-  MessageSquare, 
   Star,
   Save,
-  Image as ImageIcon,
-  X,
   Upload,
-  UserCheck,
-  LayoutGrid
+  MoreHorizontal
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -160,52 +156,60 @@ export default function AdminTestimonialsPage() {
               <Plus className="h-4 w-4" /> Add Testimonial
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
-            <DialogHeader className="pt-6">
-              <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Testimonial Protocol</DialogTitle>
-              <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Ingest new verified feedback into the studio manifest.</DialogDescription>
+          <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl p-0">
+            <DialogHeader className="p-6 border-b">
+              <DialogTitle className="text-lg font-headline font-bold uppercase tracking-tight">Testimonial Protocol</DialogTitle>
+              <DialogDescription className="text-[9px] uppercase font-bold text-muted-foreground mt-1">Ingest verified feedback into the studio manifest.</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-6 py-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Participant Name</Label>
-                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="e.g. JAMES ARCHIVE" className="h-12 uppercase font-bold" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Testimonial Quote</Label>
-                <Textarea value={quote} onChange={(e) => setQuote(e.target.value)} placeholder="The fit was absolute precision..." className="min-h-[100px] resize-none text-sm" />
-              </div>
+            
+            <div className="p-6 grid gap-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Rating</Label>
-                  <Input type="number" min="1" max="5" value={rating} onChange={(e) => setRating(e.target.value)} className="h-12" />
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Participant Name</Label>
+                  <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="JAMES ARCHIVE" className="h-10 uppercase font-bold text-[11px]" />
                 </div>
-                <div className="flex flex-col justify-center gap-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Featured</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Rating (1-5)</Label>
+                  <Input type="number" min="1" max="5" value={rating} onChange={(e) => setRating(e.target.value)} className="h-10 text-[11px]" />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[9px] uppercase font-bold text-gray-500">Testimonial Quote</Label>
+                <Textarea value={quote} onChange={(e) => setQuote(e.target.value)} placeholder="The fit was absolute precision..." className="min-h-[80px] resize-none text-[11px]" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 items-end">
+                <div className="flex flex-col gap-2 p-3 bg-gray-50 border rounded-sm">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Featured Status</Label>
                   <div className="flex items-center gap-2">
-                    <Switch checked={isFeatured} onCheckedChange={setIsFeatured} />
-                    <span className="text-[9px] font-bold uppercase">{isFeatured ? 'Home Page' : 'Draft'}</span>
+                    <Switch checked={isFeatured} onCheckedChange={setIsFeatured} className="scale-75 origin-left" />
+                    <span className="text-[8px] font-bold uppercase text-primary">{isFeatured ? 'Frontpage' : 'Draft'}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Avatar Visual</Label>
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed rounded-sm h-12 flex items-center justify-center gap-2 bg-gray-50 cursor-pointer hover:border-black transition-all"
+                  >
+                    {customerImageUrl ? (
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden border">
+                        <Image src={customerImageUrl} alt="Preview" fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <Upload className="h-4 w-4 text-gray-400" />
+                    )}
+                    <span className="text-[8px] font-bold uppercase text-gray-400">{customerImageUrl ? 'Change' : 'Upload'}</span>
                   </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Avatar Visual</Label>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-none p-4 h-24 flex flex-col items-center justify-center gap-2 bg-gray-50 cursor-pointer hover:border-black transition-all"
-                >
-                  {customerImageUrl ? (
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden border">
-                      <Image src={customerImageUrl} alt="Preview" fill className="object-cover" />
-                    </div>
-                  ) : (
-                    <><Upload className="h-5 w-5 text-gray-400" /><span className="text-[9px] font-bold uppercase text-gray-400">Ingest Avatar</span></>
-                  )}
-                </div>
-              </div>
             </div>
-            <DialogFooter>
-              <Button onClick={handleSave} disabled={isSaving || !customerName || !quote} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]">
+
+            <DialogFooter className="p-6 border-t bg-gray-50/50">
+              <Button onClick={handleSave} disabled={isSaving || !customerName || !quote} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px]">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 {editingId ? 'Update Entry' : 'Ingest Entry'}
               </Button>
