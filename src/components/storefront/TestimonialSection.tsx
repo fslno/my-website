@@ -1,8 +1,9 @@
+
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import Image from 'next/image';
 import { Star, Quote, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,22 +11,24 @@ import { cn } from '@/lib/utils';
 /**
  * Archival Testimonial Section.
  * Manifests featured customer feedback in a high-fidelity minimalist grid.
+ * Utilizes Zero-Error Query Protocol to avoid index/permission exceptions.
  */
 export function TestimonialSection() {
   const db = useFirestore();
 
-  // Authoritative Query: Fetch only featured testimonials ordered by creation
+  // Authoritative Query: Simple manifest to avoid index/permission exceptions.
   const testimonialsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(
-      collection(db, 'testimonials'),
-      where('isFeatured', '==', true),
-      orderBy('createdAt', 'desc'),
-      limit(6)
-    );
+    return query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'));
   }, [db]);
 
-  const { data: testimonials, isLoading } = useCollection(testimonialsQuery);
+  const { data: allTestimonials, isLoading } = useCollection(testimonialsQuery);
+
+  // Authoritative Client-Side Filtration for zero-error manifest.
+  const testimonials = useMemo(() => {
+    if (!allTestimonials) return [];
+    return allTestimonials.filter(t => t.isFeatured === true).slice(0, 6);
+  }, [allTestimonials]);
 
   if (isLoading) {
     return (

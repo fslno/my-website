@@ -138,7 +138,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <Tag />
                   <span>Categories</span>
                 </Link>
-              </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Promotions" onClick={handleNavClick} className="font-admin-body">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useMemo } from 'react';
@@ -37,7 +38,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -53,8 +54,9 @@ export default function AdminTestimonialsPage() {
     return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
   }, [user]);
 
+  // Zero-Error Listing Protocol: Use a simple query to ensure high-fidelity data ingestion.
   const testimonialsQuery = useMemoFirebase(() => 
-    db && isAdmin ? collection(db, 'testimonials') : null, 
+    db && isAdmin ? query(collection(db, 'testimonials'), orderBy('createdAt', 'desc')) : null, 
     [db, isAdmin]
   );
 
@@ -231,7 +233,7 @@ export default function AdminTestimonialsPage() {
               <TableRow><TableCell colSpan={6} className="text-center py-20 text-[10px] font-bold uppercase tracking-widest text-gray-400">No testimonials cataloged.</TableCell></TableRow>
             ) : (
               testimonials.map((t) => (
-                <TableRow key={t.id} className="hover:bg-gray-50/30 group border-b last:border-0">
+                <TableRow key={t.id} className="hover:bg-gray-50/30 group border-b last:border-0 cursor-pointer" onClick={() => openEdit(t)}>
                   <TableCell className="p-6">
                     <div className="w-10 h-10 rounded-full border bg-gray-100 overflow-hidden relative shrink-0">
                       {t.customerImageUrl ? <Image src={t.customerImageUrl} alt={t.customerName} fill className="object-cover" /> : null}
@@ -251,16 +253,13 @@ export default function AdminTestimonialsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <div className="flex justify-center">
+                    <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
                       <Switch checked={t.isFeatured} onCheckedChange={() => toggleFeatured(t.id, t.isFeatured)} />
                     </div>
                   </TableCell>
                   <TableCell className="pr-6">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(t)}>
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={() => handleDelete(t.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
