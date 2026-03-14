@@ -16,12 +16,7 @@ import {
   Trash2, 
   Loader2, 
   Ruler, 
-  MoreHorizontal,
   X,
-  PlusCircle,
-  Settings2,
-  Table as TableIcon,
-  Tag,
   Save
 } from 'lucide-react';
 import { 
@@ -47,6 +42,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface RowData {
   label: string;
@@ -88,31 +84,104 @@ export default function SizeChartPage() {
     if (!db || !name) return;
     setIsSaving(true);
     const chartData = { name, unit, category, columns, rows, updatedAt: serverTimestamp() };
+    
     if (editingId) {
       updateDoc(doc(db, 'sizeCharts', editingId), chartData)
-        .then(() => { setIsDialogOpen(false); resetForm(); toast({ title: "Updated", description: `${name} template synchronized.` }); })
-        .catch((error) => { errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `sizeCharts/${editingId}`, operation: 'update', requestResourceData: chartData })); })
+        .then(() => { 
+          setIsDialogOpen(false); 
+          resetForm(); 
+          toast({ title: "Updated", description: "Guide saved." }); 
+        })
+        .catch((error) => { 
+          errorEmitter.emit('permission-error', new FirestorePermissionError({ 
+            path: `sizeCharts/${editingId}`, 
+            operation: 'update', 
+            requestResourceData: chartData 
+          })); 
+        })
         .finally(() => setIsSaving(false));
     } else {
       addDoc(collection(db, 'sizeCharts'), { ...chartData, createdAt: serverTimestamp() })
-        .then(() => { setIsDialogOpen(false); resetForm(); toast({ title: "Created", description: `${name} added to library.` }); })
-        .catch((error) => { errorEmitter.emit('permission-error', new FirestorePermissionError({ path: 'sizeCharts', operation: 'create', requestResourceData: chartData })); })
+        .then(() => { 
+          setIsDialogOpen(false); 
+          resetForm(); 
+          toast({ title: "Created", description: "Guide created." }); 
+        })
+        .catch((error) => { 
+          errorEmitter.emit('permission-error', new FirestorePermissionError({ 
+            path: 'sizeCharts', 
+            operation: 'create', 
+            requestResourceData: chartData 
+          })); 
+        })
         .finally(() => setIsSaving(false));
     }
   };
 
-  const handleDelete = (id: string, e: React.MouseEvent) => { e.stopPropagation(); if (!db || !confirm("Authoritatively delete?")) return; deleteDoc(doc(db, 'sizeCharts', id)); };
-  const resetForm = () => { setName(''); setUnit('cm'); setCategory(''); setColumns(['Chest', 'Length', 'Shoulder']); setRows([{ label: 'XS', values: ['', '', ''] }, { label: 'S', values: ['', '', ''] }, { label: 'M', values: ['', '', ''] }, { label: 'L', values: ['', '', ''] }, { label: 'XL', values: ['', '', ''] }]); setEditingId(null); };
-  const openEdit = (chart: any) => { setName(chart.name || ''); setUnit(chart.unit || 'cm'); setCategory(chart.category || ''); setColumns(chart.columns || []); setRows(chart.rows || []); setEditingId(chart.id); setIsDialogOpen(true); };
+  const handleDelete = (id: string, e: React.MouseEvent) => { 
+    e.stopPropagation(); 
+    if (!db || !confirm("Delete size guide?")) return; 
+    
+    const chartRef = doc(db, 'sizeCharts', id);
+    deleteDoc(chartRef)
+      .then(() => {
+        toast({ title: "Deleted", description: "Guide removed." });
+      })
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `sizeCharts/${id}`,
+          operation: 'delete',
+        }));
+      });
+  };
+
+  const resetForm = () => { 
+    setName(''); 
+    setUnit('cm'); 
+    setCategory(''); 
+    setColumns(['Chest', 'Length', 'Shoulder']); 
+    setRows([
+      { label: 'XS', values: ['', '', ''] }, 
+      { label: 'S', values: ['', '', ''] }, 
+      { label: 'M', values: ['', '', ''] }, 
+      { label: 'L', values: ['', '', ''] }, 
+      { label: 'XL', values: ['', '', ''] }
+    ]); 
+    setEditingId(null); 
+  };
+
+  const openEdit = (chart: any) => { 
+    setName(chart.name || ''); 
+    setUnit(chart.unit || 'cm'); 
+    setCategory(chart.category || ''); 
+    setColumns(chart.columns || []); 
+    setRows(chart.rows || []); 
+    setEditingId(chart.id); 
+    setIsDialogOpen(true); 
+  };
 
   return (
     <div className="space-y-8 min-w-0 overflow-x-hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div><h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Guides</h1><p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Reusable measurement templates.</p></div>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Size Guides</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Reusable measurement templates.</p>
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild><Button className="bg-black text-white font-bold h-10 gap-2 w-full sm:w-auto"><Plus className="h-4 w-4" /> Create Guide</Button></DialogTrigger>
+          <DialogTrigger asChild>
+            <Button className="bg-black text-white font-bold h-10 gap-2 w-full sm:w-auto">
+              <Plus className="h-4 w-4" /> Create Guide
+            </Button>
+          </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
-            <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between"><DialogTitle className="text-lg font-headline font-bold uppercase tracking-tight">{editingId ? `Edit: ${name}` : 'New Size Guide'}</DialogTitle><Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)}><X className="h-5 w-5" /></Button></DialogHeader>
+            <DialogHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between">
+              <DialogTitle className="text-lg font-headline font-bold uppercase tracking-tight">
+                {editingId ? `Edit: ${name}` : 'New Guide'}
+              </DialogTitle>
+              <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </DialogHeader>
             <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
               <section className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50 p-6 rounded-none border">
                 <div className="space-y-6">
@@ -137,18 +206,17 @@ export default function SizeChartPage() {
 
               <section className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurement Matrix</h3>
+                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Measurements</h3>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={addColumn} className="h-8 text-[9px] uppercase font-bold border-black">
+                    <Button variant="outline" size="sm" onClick={addColumn} className="h-8 text-[9px] uppercase font-bold border-black bg-white">
                       <Plus className="h-3 w-3 mr-1" /> Add Column
                     </Button>
-                    <Button variant="outline" size="sm" onClick={addRow} className="h-8 text-[9px] uppercase font-bold border-black">
+                    <Button variant="outline" size="sm" onClick={addRow} className="h-8 text-[9px] uppercase font-bold border-black bg-white">
                       <Plus className="h-3 w-3 mr-1" /> Add Row
                     </Button>
                   </div>
                 </div>
 
-                {/* Column Labels Editor (Mobile Only) */}
                 <div className="md:hidden space-y-4 bg-gray-50 p-4 border border-dashed rounded-none">
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Column Titles</Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -174,7 +242,6 @@ export default function SizeChartPage() {
                   </div>
                 </div>
 
-                {/* Desktop Spreadsheet View */}
                 <div className="hidden md:block border rounded-none overflow-x-auto bg-white shadow-sm scrollbar-hide">
                   <Table className="min-w-[600px]">
                     <TableHeader className="bg-gray-50/50">
@@ -239,7 +306,6 @@ export default function SizeChartPage() {
                   </Table>
                 </div>
 
-                {/* Mobile Card Manifest (No Sliding) */}
                 <div className="md:hidden space-y-4">
                   {rows.map((row, rowIdx) => (
                     <Card key={rowIdx} className="rounded-none border shadow-none bg-white overflow-hidden">
@@ -284,7 +350,7 @@ export default function SizeChartPage() {
             <DialogFooter className="p-6 border-t bg-gray-50/50 shrink-0">
               <Button onClick={handleSave} disabled={isSaving || !name} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl rounded-none">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <Save className="h-4 w-4 mr-3" />}
-                Save Size Guide
+                Save Guide
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -294,7 +360,14 @@ export default function SizeChartPage() {
       <div className="bg-white border rounded-none overflow-hidden shadow-sm">
         <div className="hidden lg:block">
           <Table>
-            <TableHeader className="bg-gray-50/50"><TableRow><TableHead className="text-[10px] font-bold uppercase tracking-widest p-6">Template Name</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-widest">Unit</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-widest">Category</TableHead><TableHead className="w-[100px]"></TableHead></TableRow></TableHeader>
+            <TableHeader className="bg-gray-50/50">
+              <TableRow>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6">Template Name</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest">Unit</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest">Category</TableHead>
+                <TableHead className="w-[100px]"></TableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow><TableCell colSpan={4} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
@@ -305,7 +378,13 @@ export default function SizeChartPage() {
                   <TableCell className="p-6"><span className="font-bold text-sm uppercase tracking-tight">{chart.name}</span></TableCell>
                   <TableCell><Badge variant="outline" className="text-[10px] font-bold uppercase bg-black text-white border-none px-2 py-0.5 rounded-none">{chart.unit}</Badge></TableCell>
                   <TableCell><span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">{chart.category || 'N/A'}</span></TableCell>
-                  <TableCell className="pr-6"><div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity"><Button variant="ghost" size="icon" onClick={e => { e.stopPropagation(); handleDelete(chart.id, e); }}><Trash2 className="h-4 w-4 text-red-500" /></Button></div></TableCell>
+                  <TableCell className="pr-6">
+                    <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" onClick={e => handleDelete(chart.id, e)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -318,8 +397,16 @@ export default function SizeChartPage() {
             <div className="py-20 text-center text-gray-400 uppercase text-[10px] font-bold tracking-widest">Empty manifest.</div>
           ) : charts?.map((chart: any) => (
             <div key={chart.id} onClick={() => openEdit(chart)} className="p-4 bg-white flex justify-between items-center hover:bg-gray-50 transition-colors">
-              <div className="space-y-1"><p className="font-bold text-xs uppercase tracking-tight">{chart.name}</p><div className="flex gap-2"><Badge variant="outline" className="text-[7px] font-bold uppercase border-none bg-black text-white px-1.5">{chart.unit}</Badge><span className="text-[8px] font-bold text-gray-400 uppercase">{chart.category || 'NO TAG'}</span></div></div>
-              <Button variant="ghost" size="icon" onClick={e => { e.stopPropagation(); handleDelete(chart.id, e); }} className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
+              <div className="space-y-1">
+                <p className="font-bold text-xs uppercase tracking-tight">{chart.name}</p>
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-[7px] font-bold uppercase border-none bg-black text-white px-1.5">{chart.unit}</Badge>
+                  <span className="text-[8px] font-bold text-gray-400 uppercase">{chart.category || 'NO TAG'}</span>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={e => handleDelete(chart.id, e)} className="text-red-500">
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           ))}
         </div>
