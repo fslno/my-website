@@ -2,11 +2,12 @@
 'use client';
 
 import React, { use, useMemo } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
+import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2 } from 'lucide-react';
@@ -148,6 +149,8 @@ export default function CollectionPage(props: {
           )}
         </div>
       </section>
+
+      <TestimonialSection />
 
       <Footer />
     </main>

@@ -13,6 +13,7 @@ import { doc, collection, query, orderBy } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
+import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -602,6 +603,8 @@ export default function ProductDetailPage(props: {
         {/* Archival Feedback Loop */}
         <ReviewSystem productId={product.id} />
       </div>
+
+      <TestimonialSection />
 
       <Footer />
     </main>
