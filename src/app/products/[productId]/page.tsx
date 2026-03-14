@@ -12,8 +12,6 @@ import {
 import { doc, collection, query, orderBy } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
-import { ReviewSystem } from '@/components/storefront/ReviewSystem';
-import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -98,7 +96,7 @@ export default function ProductDetailPage(props: {
   );
   const { data: sizeChart } = useDoc(sizeChartRef);
 
-  // Fetch Reviews for Rating Aggregation
+  // Fetch Reviews for Rating Aggregation (for stars below name)
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
@@ -161,7 +159,6 @@ export default function ProductDetailPage(props: {
     return currentQtyInCart >= selectedVariant.stock;
   }, [selectedVariant, currentQtyInCart]);
 
-  // Sync Carousel with Thumbnail selection
   useEffect(() => {
     if (!api) return;
     
@@ -599,12 +596,7 @@ export default function ProductDetailPage(props: {
             </div>
           </div>
         </div>
-
-        {/* Archival Feedback Loop */}
-        <ReviewSystem productId={product.id} />
       </div>
-
-      <TestimonialSection />
 
       <Footer />
     </main>
