@@ -101,7 +101,11 @@ export default function Home() {
             </div>
           </div>
           
-          {!categories || categories.length === 0 ? (
+          {categoriesLoading ? (
+            <div className="py-20 flex justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-black/10" />
+            </div>
+          ) : !categories || categories.length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed rounded-none bg-gray-50/50">
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Collections coming soon.</p>
             </div>
@@ -151,7 +155,7 @@ export default function Home() {
           
           {productsLoading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <Loader2 className="h-8 w-8 animate-spin text-black/10" />
             </div>
           ) : !featuredProducts || featuredProducts.length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed rounded-none bg-gray-50/50">

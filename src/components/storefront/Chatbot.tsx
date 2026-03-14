@@ -27,8 +27,9 @@ export function Chatbot() {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  // Authoritative Guard: Strictly do not render until mounted AND theme is explicitly enabled
   if (!mounted) return null;
-  if (theme?.chatbotEnabled === false) return null;
+  if (!theme || theme.chatbotEnabled !== true) return null;
 
   const phoneNumbers = config?.phoneNumbers || (config?.phone ? [{ label: 'Voice', value: config.phone }] : []);
   const emailAddresses = config?.emailAddresses || (config?.email ? [{ label: 'Dispatch', value: config.email }] : []);

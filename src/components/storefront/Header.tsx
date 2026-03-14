@@ -62,7 +62,7 @@ export function Header() {
   const { data: theme } = useDoc(themeRef);
 
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
-  const { data: storeConfig } = useDoc(storeConfigRef);
+  const { data: storeConfig, isLoading: storeLoading } = useDoc(storeConfigRef);
 
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
   const { data: categories } = useCollection(categoriesQuery);
@@ -188,7 +188,7 @@ export function Header() {
                         <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                       </div>
                     )}
-                    {storeConfig?.businessName || "FSLNO"}
+                    {!storeLoading && (storeConfig?.businessName || "STUDIO")}
                   </SheetTitle>
                 </SheetHeader>
                 
@@ -244,7 +244,7 @@ export function Header() {
                 </div>
               ) : null}
               <h1 className="text-xl sm:text-3xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
-                {storeConfig?.businessName || "FSLNO"}
+                {!storeLoading && (storeConfig?.businessName || "STUDIO")}
               </h1>
             </Link>
 
