@@ -267,7 +267,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useUser();
+  const { user, isUserLoading: loading } = useUser();
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -431,8 +431,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen w-full admin-viewport">
         <AppSidebar storeConfig={storeConfig} />
 
-        <main className="flex-1 flex flex-col min-w-0 relative max-w-full overflow-x-hidden">
-          <header className="admin-header-height bg-white border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30 w-full shrink-0">
+        <main className="flex-1 flex flex-col min-w-0 relative max-w-full h-screen overflow-hidden">
+          <header className="admin-header-height bg-white/80 backdrop-blur-md border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30 w-full shrink-0">
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 max-w-xl">
               <SidebarTrigger className="h-9 w-9 shrink-0" />
               <div className="relative w-full hidden sm:block">
@@ -453,7 +453,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <div className="flex-1 p-4 sm:p-8 w-full font-admin-body bg-inherit">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8 w-full font-admin-body bg-inherit scrollbar-hide">
             <div className="max-w-7xl mx-auto w-full">
               {children}
             </div>
