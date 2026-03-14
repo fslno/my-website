@@ -335,7 +335,7 @@ export function Header() {
                             <div className="flex-1 flex flex-col justify-center gap-0.5 overflow-hidden">
                               <p className="text-[8px] uppercase tracking-widest font-bold text-muted-foreground truncate">{product.brand || 'FSLNO Studio'}</p>
                               <h3 className="text-xs font-headline font-bold uppercase tracking-tight truncate text-primary group-hover:underline">{product.name}</h3>
-                              <p className="text-[10px] font-bold text-primary">C$${formatCurrency(Number(product.price))}</p>
+                              <p className="text-[10px] font-bold text-primary">{`C$${formatCurrency(Number(product.price))}`}</p>
                             </div>
                             <div className="flex items-center text-muted-foreground group-hover:text-primary transition-colors">
                               <ArrowRight className="h-4 w-4" />
@@ -425,7 +425,7 @@ export function Header() {
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div className="space-y-1">
                                 <h3 className="text-xs font-bold uppercase tracking-tight leading-tight text-primary">{item.name}</h3>
-                                <p className="text-sm font-bold text-primary">C$${formatCurrency(item.price)}</p>
+                                <p className="text-sm font-bold text-primary">{`C$${formatCurrency(item.price)}`}</p>
                               </div>
                               <button 
                                 onClick={() => toggleWishlist(item)}
@@ -462,7 +462,7 @@ export function Header() {
                         <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-primary">
                           <span className="flex items-center gap-1.5">
                             <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-muted-foreground")} />
-                            {thresholdProgress >= 100 ? "Discount Unlocked" : `C$${formatCurrency(remainingForThreshold)} more for $100 off`}
+                            {thresholdProgress >= 100 ? "Discount Unlocked" : `${`C$${formatCurrency(remainingForThreshold)}`} more for $100 off`}
                           </span>
                           <span>{Math.round(thresholdProgress)}%</span>
                         </div>
@@ -595,7 +595,7 @@ export function Header() {
                       <div className="space-y-2">
                         <div className="flex justify-between items-end">
                           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Subtotal</span>
-                          <span className="text-xl font-bold text-primary">C$${formatCurrency(cartSubtotal)}</span>
+                          <span className="text-xl font-bold text-primary">{`C$${formatCurrency(cartSubtotal)}`}</span>
                         </div>
                         <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
                           Tax and shipping calculated at checkout.

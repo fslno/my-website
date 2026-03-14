@@ -376,7 +376,7 @@ export default function ProductDetailPage(props: {
               )}
 
               <div className="flex items-center gap-4 pt-2">
-                <p className="text-lg font-bold text-primary">C$${formatCurrency(totalPrice)}</p>
+                <p className="text-lg font-bold text-primary">{`C$${formatCurrency(totalPrice)}`}</p>
               </div>
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">
@@ -479,7 +479,7 @@ export default function ProductDetailPage(props: {
                       Customization
                     </Label>
                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
-                      C$${formatCurrency(Number(product.customizationFee) || 10)}
+                      {`C$${formatCurrency(Number(product.customizationFee) || 10)}`}
                     </span>
                   </div>
                   <div className="flex gap-2">

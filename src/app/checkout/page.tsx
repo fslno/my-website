@@ -798,12 +798,12 @@ export default function CheckoutPage() {
               <div className="space-y-3 pt-4">
                 <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
                   <span>Subtotal</span>
-                  <span className="text-primary">C$${formatCurrency(cartSubtotal)}</span>
+                  <span className="text-primary">{`C$${formatCurrency(cartSubtotal)}`}</span>
                 </div>
                 {discountTotal > 0 && (
                   <div className="flex justify-between text-[10px] font-bold uppercase text-destructive">
                     <span>Discounts</span>
-                    <span>-C$${formatCurrency(discountTotal)}</span>
+                    <span className="text-destructive">{`-C$${formatCurrency(discountTotal)}`}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
@@ -1003,7 +1003,7 @@ export default function CheckoutPage() {
                       <div key={i} className="flex flex-col gap-1 border-b border-gray-50 pb-2 last:border-0">
                         <div className="flex justify-between text-[11px] font-bold uppercase text-primary">
                           <span>{item.quantity}x {item.name} ({item.size})</span>
-                          <span>C$${formatCurrency(item.price * item.quantity)}</span>
+                          <span>{`C$${formatCurrency(item.price * item.quantity)}`}</span>
                         </div>
                         {(item.customName || item.customNumber || item.specialNote) && (
                           <div className="flex flex-col gap-0.5 pl-4 border-l border-gray-100">
@@ -1028,7 +1028,7 @@ export default function CheckoutPage() {
 
                 <div className="pt-4 border-t flex justify-between items-end">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Total</span>
-                  <span className="text-xl font-bold font-headline text-primary">C$${formatCurrency(confirmedOrder.total)}</span>
+                  <span className="text-xl font-bold font-headline text-primary">{`C$${formatCurrency(confirmedOrder.total)}`}</span>
                 </div>
               </div>
             )}

@@ -360,7 +360,7 @@ export default function OrderDetailPage(props: {
                       <SelectItem value="awaiting" className="text-[10px] font-bold uppercase">Awaiting</SelectItem>
                       <SelectItem value="refunded" className="text-[10px] font-bold uppercase">Refunded</SelectItem>
                       <SelectItem value="partially_refunded" className="text-[10px] font-bold uppercase">Partially Refunded</SelectItem>
-                      <SelectItem value="canceled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
+                      <SelectItem value="canceled" className="text-[10px) font-bold uppercase">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -417,8 +417,8 @@ export default function OrderDetailPage(props: {
                         </div>
                       </TableCell>
                       <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
-                      <TableCell className="text-right text-xs">C$${formatCurrency(Number(item.price) || 0)}</TableCell>
-                      <TableCell className="text-right text-xs font-bold">C$${formatCurrency((Number(item.price) || 0) * item.quantity)}</TableCell>
+                      <TableCell className="text-right text-xs">{`C$${formatCurrency(Number(item.price) || 0)}`}</TableCell>
+                      <TableCell className="text-right text-xs font-bold">{`C$${formatCurrency((Number(item.price) || 0) * item.quantity)}`}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -434,12 +434,12 @@ export default function OrderDetailPage(props: {
               <CardContent className="p-6 space-y-3">
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Subtotal</span>
-                  <span className="text-black">C$${formatCurrency(Number(order.subtotal) || 0)}</span>
+                  <span className="text-black">{`C$${formatCurrency(Number(order.subtotal) || 0)}`}</span>
                 </div>
                 {Number(order.discountTotal) > 0 && (
                   <div className="flex justify-between text-[11px] font-bold text-red-600 uppercase">
                     <span>Discounts</span>
-                    <span>-C$${formatCurrency(Number(order.discountTotal) || 0)}</span>
+                    <span>{`-C$${formatCurrency(Number(order.discountTotal) || 0)}`}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
@@ -448,12 +448,12 @@ export default function OrderDetailPage(props: {
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Sales Tax</span>
-                  <span className="text-black">C$${formatCurrency(Number(order.tax) || 0)}</span>
+                  <span className="text-black">{`C$${formatCurrency(Number(order.tax) || 0)}`}</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[13px] font-bold uppercase tracking-[0.1em]">Total</span>
-                  <span className="text-xl font-bold font-headline">C$${formatCurrency(Number(order.total) || 0)}</span>
+                  <span className="text-xl font-bold font-headline">{`C$${formatCurrency(Number(order.total) || 0)}`}</span>
                 </div>
               </CardContent>
             </Card>
@@ -616,7 +616,7 @@ export default function OrderDetailPage(props: {
                                   </p>
                                 </div>
                                 <div className="text-right space-y-1">
-                                  <p className="text-[11px] font-bold">C$${formatCurrency(prevOrder.total)}</p>
+                                  <p className="text-[11px] font-bold">{`C$${formatCurrency(prevOrder.total)}`}</p>
                                   <Badge className={cn("text-[8px] font-bold uppercase border-none h-4", prevOrder.status === 'delivered' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700')}>
                                     {prevOrder.status.replace('_', ' ')}
                                   </Badge>

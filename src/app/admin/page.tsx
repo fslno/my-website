@@ -474,7 +474,7 @@ export default function AdminDashboard() {
                       <span className="text-[10px] font-bold uppercase text-[#5c5f62] truncate">{order.customer?.name || order.email}</span>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="text-[11px] font-bold">C$${formatCurrency(order.total)}</span>
+                      <span className="text-[11px] font-bold">{`C$${formatCurrency(order.total)}`}</span>
                       {getStatusBadge(order.status || 'Pending')}
                     </div>
                   </Link>
