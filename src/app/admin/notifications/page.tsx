@@ -36,7 +36,9 @@ import {
   Volume2,
   Music,
   Activity,
-  PlayCircle
+  PlayCircle,
+  ShieldAlert,
+  Smartphone
 } from 'lucide-react';
 import { 
   Card, 
@@ -56,8 +58,11 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirebaseApp, useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { getMessagingInstance } from '@/firebase';
+import { getToken } from 'firebase/messaging';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -120,13 +125,6 @@ const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
 };
 
 const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
-  favReminder: {
-    label: "Wishlist Reminder",
-    description: "Sent 3 days after a customer adds items to their favorites.",
-    enabled: false,
-    subject: "Still on your mind? Your archive favorites",
-    body: "Hi {{customer_name}},\n\nWe noticed you saved some architectural pieces to your wishlist recently. Items in the archive move quickly—don't miss the chance to secure your size before the spot closes.\n\nREVISIT YOUR FAVORITES:\n{{product_list}}\n\n{{business_name}}"
-  },
   cartRecovery: {
     label: "Abandoned Cart Recovery",
     description: "Automatically reminds shoppers about unfinished orders left in their cart.",
@@ -134,40 +132,20 @@ const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
     subject: "Incomplete selection: Finish your order at {{business_name}}",
     body: "Hi {{customer_name}},\n\nYou left some high-fidelity pieces in your bag! We've reserved them for a limited time, but we can't guarantee stock forever.\n\nRESUME CHECKOUT:\nhttps://fslno.ca/checkout\n\nYour pending selection:\n{{product_list}}\n\nComplete your purchase now to secure these archive drops."
   },
-  browseRecovery: {
-    label: "Browse Abandoned Email",
-    description: "Sent to customers who viewed products but didn't add to cart.",
-    enabled: false,
-    subject: "A personalized selection for you at {{business_name}}",
-    body: "Hi {{customer_name}},\n\nWe noticed you were exploring the archive. Some of the pieces you viewed are in high demand and low inventory.\n\nVIEW COLLECTION:\nhttps://fslno.ca/collections/all\n\n{{business_name}}"
-  },
-  winback: {
-    label: "Win-back Email",
-    description: "Sent 60 days after a customer's last purchase.",
-    enabled: false,
-    subject: "We miss you in the studio, {{customer_name}}",
-    body: "Hi {{customer_name}},\n\nIt's been a while since your last archive selection. We've just released some new sculptural silhouettes that we think you'll appreciate.\n\nDISCOVER NEW DROPS:\nhttps://fslno.ca/collections/all\n\n{{business_name}}"
-  },
   feedbackRequest: {
     label: "Feedback Request",
     description: "Sent after an order is marked 'Delivered' to gather reviews.",
     enabled: true,
     subject: "How is the fit? Share your thoughts on {{business_name}}",
     body: "Hi {{customer_name}},\n\nNow that you've had a few days with your archive pieces from order #{{order_id}}, we'd love to know what you think. \n\nWas the silhouette as expected? How was the logistics experience?\n\n[LEAVE A REVIEW]\n\nYour feedback helps us refine the archive experience."
-  },
-  loyaltyAppreciation: {
-    label: "Loyalty Appreciation",
-    description: "Sent 1 day after a customer’s 2nd order to say thanks.",
-    enabled: true,
-    subject: "A special thank you from the {{business_name}} studio",
-    body: "Hi {{customer_name}},\n\nAs a recurring participant in our archive drops, we wanted to reach out and express our appreciation. Use the code LOYALTY10 at your next checkout for an Authoritative 10% off.\n\nThank you for being part of the FSLNO journey."
   }
 };
 
 export default function NotificationsPage() {
+  const app = useFirebaseApp();
   const db = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const ringtoneInputRef = useRef<HTMLInputElement>(null);
   const testAudioRef = useRef<HTMLAudioElement>(null);
 
@@ -176,20 +154,18 @@ export default function NotificationsPage() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isRegisteringDevice, setIsRegisteringDevice] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isMarketingEdit, setIsMarketingEdit] = useState(false);
   
-  // Local form state for editing a specific notification
   const [editSubject, setEditingSubject] = useState('');
   const [editBody, setEditingBody] = useState('');
 
-  // Global branding state
   const [logoUrl, setLogoUrl] = useState('');
   const [accentColor, setAccentColor] = useState('#000000');
   const [footerContent, setFooterContent] = useState('');
   const [attachInvoice, setAttachInvoice] = useState(true);
 
-  // Sonic Alarm state
   const [orderAlarmEnabled, setOrderAlarmEnabled] = useState(true);
   const [orderAlarmUrl, setOrderAlarmUrl] = useState('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
@@ -205,6 +181,38 @@ export default function NotificationsPage() {
       setOrderAlarmUrl(config.orderAlarmUrl || 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     }
   }, [config]);
+
+  const handleRegisterDevice = async () => {
+    if (!app || isRegisteringDevice) return;
+    setIsRegisteringDevice(true);
+    
+    try {
+      const messaging = await getMessagingInstance(app);
+      if (!messaging) throw new Error("Messaging not supported.");
+
+      const token = await getToken(messaging, {
+        vapidKey: 'BHz_YOUR_VAPID_KEY_HERE'
+      });
+
+      const functions = getFunctions(app);
+      const subscribeFunc = httpsCallable(functions, 'subscribeAdminToOrders');
+      await subscribeFunc({ token });
+
+      toast({
+        title: "Device Bound",
+        description: "This device is Authoritatively subscribed to High-Priority Alarms."
+      });
+    } catch (error) {
+      console.error("[ALARM] Device registration failure:", error);
+      toast({
+        variant: "destructive",
+        title: "Handshake Failure",
+        description: "Failed to bind device to the alarm protocol."
+      });
+    } finally {
+      setIsRegisteringDevice(false);
+    }
+  };
 
   const handleToggle = (key: string, enabled: boolean, isMarketing = false) => {
     if (!configRef) return;
@@ -241,141 +249,79 @@ export default function NotificationsPage() {
       .then(() => {
         setEditingKey(null);
         toast({ title: "Template Saved", description: "Email content has been Authoritatively updated." });
-      })
-      .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: configRef.path,
-          operation: 'update',
-          requestResourceData: updates
-        }));
       });
   };
 
   const handleSaveGlobal = () => {
     if (!configRef) return;
     setIsSaving(true);
-    const globalData = {
-      logoUrl,
-      accentColor,
-      footer: footerContent,
-      attachInvoice,
-      updatedAt: new Date().toISOString()
-    };
-
     const payload = { 
-      global: globalData,
+      global: { logoUrl, accentColor, footer: footerContent, attachInvoice },
       orderAlarmEnabled,
       orderAlarmUrl,
       updatedAt: new Date().toISOString() 
     };
 
     setDoc(configRef, payload, { merge: true })
-      .then(() => {
-        toast({ title: "Branding Finalized", description: "Global notification and sonic settings are now live." });
-      })
-      .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: configRef.path,
-          operation: 'update',
-          requestResourceData: payload
-        }));
-      })
+      .then(() => toast({ title: "Branding Finalized", description: "Global notification settings are live." }))
       .finally(() => setIsSaving(false));
   };
 
-  const handleSendTest = () => {
-    setIsSendingTest(true);
-    setTimeout(() => {
-      setIsSendingTest(false);
-      toast({ 
-        title: "Test Sent", 
-        description: "A friendly high-fidelity preview has been sent to your staff email.",
-        variant: "default"
-      });
-    }, 1500);
-  };
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setLogoUrl(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRingtoneUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setOrderAlarmUrl(reader.result as string);
-        toast({ title: "Sonic Ready", description: "New ringtone has been ingested. Press Play to verify." });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const playTestAlarm = () => {
-    testAudioRef.current?.play().catch(e => {
-      toast({ variant: "destructive", title: "Acoustic Shield", description: "Interaction required before playback can manifest." });
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
-  }
+  if (loading) return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>;
 
   const activeNotification = editingKey 
     ? (isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey])) 
     : null;
 
-  const recoveryCampaigns = [
-    { id: 'cartRecovery', label: 'Abandoned Cart Email', description: 'Sent 4 hours after a customer leaves their cart.', enabled: !!(config?.cartRecovery?.enabled ?? DEFAULT_MARKETING.cartRecovery.enabled), conversion: '12.4%' },
-    { id: 'browseRecovery', label: 'Browse Abandoned Email', description: 'Sent to customers who viewed products but didn\'t add to cart.', enabled: !!(config?.browseRecovery?.enabled ?? DEFAULT_MARKETING.browseRecovery.enabled), conversion: '4.8%' },
-    { id: 'winback', label: 'Win-back Email', description: 'Sent 60 days after a customer\'s last purchase.', enabled: !!(config?.winback?.enabled ?? DEFAULT_MARKETING.winback.enabled), conversion: '--' },
-    { id: 'loyaltyAppreciation', label: 'Loyalty Reward Email', description: 'Sent to repeat customers to say thank you.', enabled: !!(config?.loyaltyAppreciation?.enabled ?? DEFAULT_MARKETING.loyaltyAppreciation.enabled), conversion: '22.1%' }
-  ];
+  const isAdminUser = user?.email === 'fslno.dev@gmail.com';
 
   return (
     <div className="space-y-8 sm:space-y-12 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Notifications & Automation</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage automated emails, marketing recovery, and global branding.</p>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage automated emails, high-priority alarms, and branding.</p>
         </div>
-        <Button variant="outline" className="w-full sm:w-auto h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black" onClick={handleSendTest} disabled={isSendingTest}>
-          {isSendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send Live Preview
-        </Button>
+        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+          {isAdminUser && (
+            <Button 
+              className="flex-1 sm:flex-none h-10 gap-2 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest text-[10px] shadow-xl"
+              onClick={handleRegisterDevice}
+              disabled={isRegisteringDevice}
+            >
+              {isRegisteringDevice ? <Loader2 className="h-4 w-4 animate-spin" /> : <Smartphone className="h-4 w-4" />}
+              Bind Device to Alarms
+            </Button>
+          )}
+          <Button variant="outline" className="flex-1 sm:flex-none h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black" onClick={() => setIsSendingTest(true)}>
+            <Send className="h-4 w-4" /> Send Test
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 space-y-12">
-          {/* Sonic Alerts Section */}
+          
           <section className="space-y-6">
             <div className="flex items-center gap-2">
-              <Volume2 className="h-5 w-5 text-blue-500" />
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">Sonic Alerts & Ringtones</h2>
+              <ShieldAlert className="h-5 w-5 text-red-600" />
+              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">High-Priority Order Alarms</h2>
             </div>
             
-            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between border-b bg-blue-50/10 p-4 sm:p-6">
-                <div>
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2">
-                    <Music className="h-3.5 w-3.5" /> Order Notification Alarm
+            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden border-l-4 border-l-red-600">
+              <CardHeader className="flex flex-row items-center justify-between border-b bg-red-50/10 p-4 sm:p-6">
+                <div className="space-y-1">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-red-600 flex items-center gap-2">
+                    <Music className="h-3.5 w-3.5" /> PWA Order Alarm Protocol
                   </CardTitle>
-                  <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Real-time acoustic alert for new studio drops.</CardDescription>
+                  <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">High-priority FCM triggers for instant acoustic awareness.</CardDescription>
                 </div>
-                <Switch checked={orderAlarmEnabled} onCheckedChange={setOrderAlarmEnabled} />
+                <Switch checked={orderAlarmEnabled} onCheckedChange={setOrderAlarmEnabled} className="data-[state=checked]:bg-red-600" />
               </CardHeader>
               <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Ringtone Selection</Label>
+                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Ringtone Identity</Label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Input 
@@ -386,12 +332,7 @@ export default function NotificationsPage() {
                         />
                         <Music className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-300" />
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-12 w-12 border-black rounded-none"
-                        onClick={playTestAlarm}
-                      >
+                      <Button variant="outline" size="icon" className="h-12 w-12 border-black rounded-none" onClick={() => testAudioRef.current?.play()}>
                         <PlayCircle className="h-5 w-5" />
                       </Button>
                     </div>
@@ -399,41 +340,31 @@ export default function NotificationsPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Custom Upload</Label>
-                    <input type="file" ref={ringtoneInputRef} className="hidden" accept="audio/*" onChange={handleRingtoneUpload} />
-                    <div 
-                      onClick={() => ringtoneInputRef.current?.click()}
-                      className="border-2 border-dashed rounded-none p-4 h-12 flex items-center justify-center gap-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group"
-                    >
-                      <Upload className="h-4 w-4 text-zinc-400 group-hover:text-black transition-colors" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 group-hover:text-black">Ingest Sound File</span>
+                    <div className="p-4 bg-gray-50 border rounded-none">
+                      <p className="text-[9px] font-bold text-red-800 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <ShieldAlert className="h-3 w-3" /> System Integrity Note
+                      </p>
+                      <p className="text-[10px] text-gray-600 leading-relaxed uppercase font-medium">
+                        Order alarms bypass deep sleep on Android and manifest as high-priority heads-up notifications. Ensure "Require Interaction" is enabled in browser settings for maximum persistence.
+                      </p>
                     </div>
-                    <p className="text-[8px] text-zinc-400 uppercase font-bold tracking-tighter">Supports all formats: MP3, WAV, OGG, M4A, AAC.</p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-4 bg-zinc-900 rounded-none border border-zinc-800">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">Acoustic Handshake: Ready for real-time dispatch.</p>
                 </div>
               </CardContent>
             </Card>
           </section>
 
-          {/* Fulfillment Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-gray-400" />
-              <h2 className="text-sm font-bold uppercase tracking-widest">Fulfillment Notifications</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest">Email Touchpoints</h2>
             </div>
-            
-            <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-white border rounded-none overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500 py-4 pl-6">Touchpoint</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Logistical Trigger</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Status</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6">Touchpoint</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest">Status</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -442,140 +373,23 @@ export default function NotificationsPage() {
                     const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
                     return (
                       <TableRow key={key} className="hover:bg-gray-50/30 transition-colors">
-                        <TableCell className="pl-6 py-4">
-                          <span className="font-bold text-sm tracking-tight">{data.label}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs text-gray-500">{data.description}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-center">
-                            <Switch 
-                              checked={data.enabled} 
-                              onCheckedChange={(checked) => handleToggle(key, checked, false)}
-                            />
+                        <TableCell className="p-6">
+                          <div className="space-y-1">
+                            <span className="font-bold text-sm tracking-tight uppercase">{data.label}</span>
+                            <p className="text-[10px] text-gray-500 font-medium">{data.description}</p>
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, false)} />
                         </TableCell>
                         <TableCell className="pr-6">
-                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px] hover:underline" onClick={() => handleEdit(key, false)}>
-                            Refine
-                          </Button>
+                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, false)}>Refine</Button>
                         </TableCell>
                       </TableRow>
                     );
                   })}
                 </TableBody>
               </Table>
-            </div>
-
-            <div className="md:hidden grid grid-cols-1 gap-4">
-              {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
-                const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
-                return (
-                  <Card key={key} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm uppercase tracking-tight text-primary">{data.label}</span>
-                      <Switch 
-                        checked={data.enabled} 
-                        onCheckedChange={(checked) => handleToggle(key, checked, false)}
-                      />
-                    </div>
-                    <p className="text-[10px] text-gray-500 uppercase leading-relaxed font-medium">{data.description}</p>
-                    <Button variant="outline" className="w-full h-10 border-black font-bold uppercase tracking-widest text-[9px]" onClick={() => handleEdit(key, false)}>
-                      Refine Template
-                    </Button>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Marketing Recovery Section */}
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-orange-500" />
-                <h2 className="text-sm font-bold uppercase tracking-widest">Growth & Recovery Campaigns</h2>
-              </div>
-              <Badge variant="secondary" className="bg-primary text-primary-foreground text-[9px] font-bold px-3 py-1">AUTOMATED</Badge>
-            </div>
-            
-            <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
-              <Table>
-                <TableHeader className="bg-gray-50/50">
-                  <TableRow className="border-b border-black/5">
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Description</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Sales Rate</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Active</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Object.keys(DEFAULT_MARKETING).map((key) => {
-                    const data = config?.[key] || DEFAULT_MARKETING[key];
-                    return (
-                      <TableRow key={key} className="hover:bg-gray-50/30 transition-all border-b border-black/5 last:border-0 group">
-                        <TableCell className="p-6">
-                          <div className="flex items-center gap-3">
-                            <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", data.enabled ? 'border-green-100' : 'border-gray-100')}>
-                              <Mail className={cn("h-5 w-5", data.enabled ? 'text-green-600' : 'text-gray-400')} />
-                            </div>
-                            <span className="font-bold text-sm tracking-tight text-primary uppercase">{data.label}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-[10px] font-medium text-gray-500 uppercase leading-relaxed">{data.description}</span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs font-bold text-primary">--</span>
-                            <Activity className="h-3 w-3 text-gray-300 mt-1" />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-center">
-                            <Switch 
-                              checked={data.enabled} 
-                              onCheckedChange={(checked) => handleToggle(key, checked, true)}
-                              className="data-[state=checked]:bg-black"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleEdit(key, true)}>
-                            <ChevronRight className="h-4 w-4 text-gray-400" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-
-            <div className="md:hidden grid grid-cols-1 gap-4">
-              {recoveryCampaigns.map((campaign) => (
-                <Card key={campaign.id} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", campaign.enabled ? 'border-green-100' : 'border-gray-100')}>
-                        <Mail className={cn("h-5 w-5", campaign.enabled ? 'text-green-600' : 'text-gray-400')} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-xs uppercase tracking-tight text-primary">{campaign.label}</span>
-                        <span className="text-[8px] font-bold text-green-600 uppercase tracking-widest">{campaign.conversion} Conv.</span>
-                      </div>
-                    </div>
-                    <Switch 
-                      checked={campaign.enabled} 
-                      onCheckedChange={(checked) => handleToggle(campaign.id, checked, true)}
-                      className="data-[state=checked]:bg-black"
-                    />
-                  </div>
-                  <p className="text-[10px] text-gray-500 uppercase leading-relaxed font-medium">{campaign.description}</p>
-                </Card>
-              ))}
             </div>
           </section>
         </div>
@@ -584,169 +398,52 @@ export default function NotificationsPage() {
           <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none">
             <CardHeader className="border-b border-white/10">
               <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
-                <Terminal className="h-3.5 w-3.5 text-blue-400" /> Placeholder Legend
+                <Terminal className="h-3.5 w-3.5 text-blue-400" /> System Legend
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              <ScrollArea className="h-[300px] pr-4">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <p className="text-[9px] font-bold uppercase text-blue-400">Customer Identity</p>
-                    <div className="space-y-1 text-[10px] font-mono">
-                      <p><span className="text-zinc-500">{"{{customer_name}}"}</span> - Full Name</p>
-                      <p><span className="text-zinc-500">{"{{order_id}}"}</span> - Confirmation ID</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 border-t border-white/5 pt-4">
-                    <p className="text-[9px] font-bold uppercase text-orange-400">Archival Data</p>
-                    <div className="space-y-1 text-[10px] font-mono">
-                      <p><span className="text-zinc-500">{"{{product_list}}"}</span> - Formatted items</p>
-                      <p><span className="text-zinc-500">{"{{order_total}}"}</span> - Grand total</p>
-                      <p><span className="text-zinc-500">{"{{status}}"}</span> - Fulfillment stage</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 border-t border-white/5 pt-4">
-                    <p className="text-[9px] font-bold uppercase text-emerald-400">Business Context</p>
-                    <div className="space-y-1 text-[10px] font-mono">
-                      <p><span className="text-zinc-500">{"{{business_name}}"}</span> - Store Identity</p>
-                      <p><span className="text-zinc-500">{"{{business_address}}"}</span> - Physical Spot</p>
-                      <p><span className="text-zinc-500">{"{{business_phone}}"}</span> - Contact line</p>
-                    </div>
-                  </div>
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#e1e3e5] shadow-none rounded-none">
-            <CardHeader className="bg-gray-50/50 border-b">
-              <div className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Global Email Styles</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-8">
-              <div className="space-y-4">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Accent Color</Label>
-                <div className="flex gap-2">
-                  <div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                    <Input 
-                      type="color" 
-                      className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
-                      value={accentColor} 
-                      onChange={(e) => setAccentColor(e.target.value)} 
-                    />
-                  </div>
-                  <Input 
-                    value={accentColor} 
-                    onChange={(e) => setAccentColor(e.target.value)} 
-                    className="h-12 font-mono text-xs uppercase" 
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Visual (Logo)</Label>
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-4 bg-gray-50 hover:border-black transition-all cursor-pointer group h-24"
-                >
-                  {logoUrl ? (
-                    <div className="relative w-full max-w-[150px] h-12">
-                      <Image src={logoUrl} alt="Logo" fill className="object-contain" />
-                    </div>
-                  ) : (
-                    <>
-                      <ImageIcon className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Upload Visual</p>
-                    </>
-                  )}
-                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-blue-500" />
-                    <Label className="text-[10px] font-bold uppercase">Attach Invoices</Label>
-                  </div>
-                  <Switch 
-                    checked={attachInvoice} 
-                    onCheckedChange={setAttachInvoice}
-                  />
-                </div>
-                <p className="text-[9px] text-gray-400 uppercase leading-relaxed italic">Automatically attach forensic PDF invoices to confirmation emails.</p>
+              <div className="space-y-4 font-mono text-[10px]">
+                <p><span className="text-zinc-500">{"{{customer_name}}"}</span> - Recipient</p>
+                <p><span className="text-zinc-500">{"{{order_id}}"}</span> - Transaction ID</p>
+                <p><span className="text-zinc-500">{"{{order_total}}"}</span> - Financial Value</p>
+                <p><span className="text-zinc-500">{"{{product_list}}"}</span> - Itemized Manifest</p>
               </div>
             </CardContent>
           </Card>
 
           <Button 
-            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
+            className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all" 
             onClick={handleSaveGlobal} 
             disabled={isSaving}
           >
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-            Save All Styles
+            Save All Settings
           </Button>
         </div>
       </div>
 
       <Dialog open={!!editingKey} onOpenChange={(open) => !open && setEditingKey(null)}>
-        <DialogContent className="max-w-[100vw] w-screen h-screen sm:max-w-2xl sm:h-auto m-0 rounded-none bg-white border-none shadow-2xl p-0 overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[100vw] w-screen h-screen sm:max-w-2xl sm:h-auto m-0 rounded-none bg-white border-none p-0 overflow-hidden flex flex-col">
           <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8">
-            <DialogHeader className="p-0 border-none space-y-2">
-              <div className="flex items-center justify-between sm:justify-start gap-2 text-primary">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
-                  <DialogTitle className="text-xl sm:text-2xl font-headline font-bold uppercase tracking-tight">
-                    Refining: {activeNotification?.label}
-                  </DialogTitle>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setEditingKey(null)} className="rounded-full sm:hidden">
-                  <X className="h-5 w-5" />
-                </Button>
+            <DialogHeader className="p-0 border-none">
+              <div className="flex items-center gap-2 text-primary">
+                <Sparkles className="h-5 w-5 text-purple-500" />
+                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Refining Template</DialogTitle>
               </div>
-              <DialogDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Ensure templates contain essential business and product placeholders for high-fidelity communication.
-              </DialogDescription>
             </DialogHeader>
-
-            <div className="grid gap-8">
+            <div className="grid gap-6">
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Linguistic Identity (Subject Line)</Label>
-                <div className="relative">
-                  <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input 
-                    value={editSubject} 
-                    onChange={(e) => setEditingSubject(e.target.value)} 
-                    className="h-12 pl-10 text-sm font-medium"
-                  />
-                </div>
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Subject Identity</Label>
+                <Input value={editSubject} onChange={(e) => setEditingSubject(e.target.value)} className="h-12 font-medium" />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Dispatch Content (Body Copy)</Label>
-                <Textarea 
-                  value={editBody} 
-                  onChange={(e) => setEditingBody(e.target.value)} 
-                  className="min-h-[250px] sm:min-h-[350px] text-sm leading-relaxed p-4 sm:p-6 bg-gray-50 border-gray-200 resize-none font-medium"
-                />
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Copy Content</Label>
+                <Textarea value={editBody} onChange={(e) => setEditingBody(e.target.value)} className="min-h-[300px] text-sm leading-relaxed p-6 bg-gray-50 resize-none font-medium" />
               </div>
-            </div>
-
-            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100">
-              <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
-              <p className="text-[9px] sm:text-[10px] text-blue-800 uppercase font-medium leading-relaxed">
-                Use <code className="bg-blue-100 px-1 rounded text-blue-900 font-bold">{"{{product_list}}"}</code> to Authoritatively inject ordered items and <code className="bg-blue-100 px-1 rounded text-blue-900 font-bold">{"{{business_address}}"}</code> for the studio Spot.
-              </p>
             </div>
           </div>
-
-          <DialogFooter className="p-6 sm:p-10 border-t bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
-            <Button variant="ghost" className="w-full sm:w-auto text-[10px] font-bold uppercase tracking-widest text-muted-foreground order-2 sm:order-1" onClick={handleSendTest}>Preview in Inbox</Button>
-            <Button className="w-full sm:w-auto bg-black text-white h-12 px-10 font-bold uppercase tracking-widest text-[10px] order-1 sm:order-2" onClick={saveNotificationEdit}>
-              Finalize Template
-            </Button>
+          <DialogFooter className="p-6 sm:p-10 border-t bg-gray-50/50">
+            <Button className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[10px]" onClick={saveNotificationEdit}>Finalize Protocol</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
