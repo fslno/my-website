@@ -30,7 +30,8 @@ import {
   Hash,
   Scale,
   Percent,
-  MessageSquare
+  MessageSquare,
+  Save
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -581,7 +582,7 @@ export default function PaymentsPage() {
         </div>
 
         <div className="xl:col-span-4 space-y-6">
-          <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none">
+          <Card className="border-[#e1e3e5] shadow-none bg-black text-white rounded-none overflow-hidden">
             <CardHeader className="border-b border-white/10 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
@@ -631,8 +632,9 @@ export default function PaymentsPage() {
             <CardHeader className="border-b border-white/10 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Terminal className="h-3.5 w-3.5 text-blue-400" /> Transaction Protocol
-                </CardTitle>
+                  <Terminal className="h-3.5 w-3.5 text-blue-400" />
+                  <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Transaction Protocol</CardTitle>
+                </div>
                 <Activity className="h-3 w-3 text-blue-400 animate-pulse" />
               </div>
             </CardHeader>
