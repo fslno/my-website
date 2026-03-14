@@ -319,6 +319,13 @@ export default function NotificationsPage() {
     ? (isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey])) 
     : null;
 
+  const recoveryCampaigns = [
+    { id: 'cartRecovery', label: 'Abandoned Cart Email', description: 'Sent 4 hours after a customer leaves their cart.', enabled: !!(config?.cartRecovery?.enabled ?? DEFAULT_MARKETING.cartRecovery.enabled), conversion: '12.4%' },
+    { id: 'browseRecovery', label: 'Browse Abandoned Email', description: 'Sent to customers who viewed products but didn\'t add to cart.', enabled: !!(config?.browseRecovery?.enabled ?? DEFAULT_MARKETING.browseRecovery.enabled), conversion: '4.8%' },
+    { id: 'winback', label: 'Win-back Email', description: 'Sent 60 days after a customer\'s last purchase.', enabled: !!(config?.winback?.enabled ?? DEFAULT_MARKETING.winback.enabled), conversion: '--' },
+    { id: 'loyaltyAppreciation', label: 'Loyalty Reward Email', description: 'Sent to repeat customers to say thank you.', enabled: !!(config?.loyaltyAppreciation?.enabled ?? DEFAULT_MARKETING.loyaltyAppreciation.enabled), conversion: '22.1%' }
+  ];
+
   return (
     <div className="space-y-8 sm:space-y-12 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
@@ -472,20 +479,23 @@ export default function NotificationsPage() {
 
           {/* Marketing Recovery Section */}
           <section className="space-y-6">
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-orange-500" />
-              <h2 className="text-sm font-bold uppercase tracking-widest">Growth & Recovery Campaigns</h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-orange-500" />
+                <h2 className="text-sm font-bold uppercase tracking-widest">Growth & Recovery Campaigns</h2>
+              </div>
+              <Badge variant="secondary" className="bg-primary text-primary-foreground text-[9px] font-bold px-3 py-1">AUTOMATED</Badge>
             </div>
             
-            {/* Desktop Table */}
             <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
-                  <TableRow>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign Logic</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Automated Dispatch</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Status</TableHead>
-                    <TableHead className="w-[100px]"></TableHead>
+                  <TableRow className="border-b border-black/5">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Description</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Sales Rate</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center text-gray-500">Active</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -531,27 +541,28 @@ export default function NotificationsPage() {
               </Table>
             </div>
 
-            {/* Mobile Card View */}
-            <div className="md:hidden grid grid-cols-1 gap-4">
-              {Object.keys(DEFAULT_MARKETING).map((key) => {
-                const data = config?.[key] || DEFAULT_MARKETING[key];
-                return (
-                  <Card key={key} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm uppercase tracking-tight text-primary">{data.label}</span>
-                      <Switch 
-                        checked={data.enabled} 
-                        onCheckedChange={(checked) => handleToggle(key, checked, true)}
-                        className="data-[state=checked]:bg-black"
-                      />
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+              {recoveryCampaigns.map((campaign) => (
+                <Card key={campaign.id} className="border-[#e1e3e5] shadow-none rounded-none bg-white p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-10 h-10 rounded border flex items-center justify-center shadow-sm bg-white", campaign.enabled ? 'border-green-100' : 'border-gray-100')}>
+                        <Mail className={cn("h-5 w-5", campaign.enabled ? 'text-green-600' : 'text-gray-400')} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs uppercase tracking-tight text-primary">{campaign.label}</span>
+                        <span className="text-[8px] font-bold text-green-600 uppercase tracking-widest">{campaign.conversion} Conv.</span>
+                      </div>
                     </div>
-                    <p className="text-[10px] text-gray-500 uppercase leading-relaxed font-medium">{data.description}</p>
-                    <Button variant="outline" className="w-full h-10 border-black font-bold uppercase tracking-widest text-[9px]" onClick={() => handleEdit(key, true)}>
-                      Refine Template
-                    </Button>
-                  </Card>
-                );
-              })}
+                    <Switch 
+                      checked={campaign.enabled} 
+                      onCheckedChange={(checked) => handleToggle(campaign.id, checked, true)}
+                      className="data-[state=checked]:bg-black"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-500 uppercase leading-relaxed font-medium">{campaign.description}</p>
+                </Card>
+              ))}
             </div>
           </section>
         </div>
