@@ -223,11 +223,12 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <Truck />
                   <span>Shipping</span>
                 </Link>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
@@ -244,7 +245,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
            </SidebarMenu>
-        </SidebarFooter>
+      </SidebarFooter>
     </Sidebar>
   );
 }
@@ -291,7 +292,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           }
 
           toast({
-            title: "New Order",
+            title: "New order",
             description: "Order received.",
             duration: 10000,
           });
@@ -361,7 +362,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         ) : (
           <>
-            <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Admin Sign In</h1>
+            <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Sign In</h1>
             <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
               <div className="space-y-2 text-left">
                 <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email</Label>
