@@ -27,7 +27,7 @@ import {
   MousePointer2,
   ChevronRight,
   Search as SearchIcon,
-  Image as ImageIcon,
+  ImageIcon,
   Upload,
   Trash2,
   Sparkles,
@@ -96,7 +96,13 @@ const DEFAULT_THEME = {
   adminAccentColor: '#f6f6f7',
   adminHeadlineFont: 'Inter',
   adminBodyFont: 'Inter',
-  adminHeaderHeight: '64'
+  adminHeaderHeight: '64',
+  chatbotEnabled: true,
+  chatbotPosition: 'right',
+  chatbotColor: '#000000',
+  chatbotSize: 60,
+  chatbotEffect: 'pulsate',
+  chatbotDuration: 3
 };
 
 export default function ThemeEnginePage() {
@@ -154,6 +160,14 @@ export default function ThemeEnginePage() {
   const [adminBodyFont, setAdminBodyFont] = useState(DEFAULT_THEME.adminBodyFont);
   const [adminHeaderHeight, setAdminHeaderHeight] = useState(DEFAULT_THEME.adminHeaderHeight);
 
+  // Chatbot state
+  const [chatbotEnabled, setChatbotEnabled] = useState(DEFAULT_THEME.chatbotEnabled);
+  const [chatbotPosition, setChatbotPosition] = useState(DEFAULT_THEME.chatbotPosition);
+  const [chatbotColor, setChatbotColor] = useState(DEFAULT_THEME.chatbotColor);
+  const [chatbotSize, setChatbotSize] = useState(DEFAULT_THEME.chatbotSize);
+  const [chatbotEffect, setChatbotEffect] = useState(DEFAULT_THEME.chatbotEffect);
+  const [chatbotDuration, setChatbotDuration] = useState(DEFAULT_THEME.chatbotDuration);
+
   useEffect(() => {
     if (themeData) {
       setPrimaryColor(themeData.primaryColor || DEFAULT_THEME.primaryColor);
@@ -194,6 +208,12 @@ export default function ThemeEnginePage() {
       setAdminHeadlineFont(themeData.adminHeadlineFont || DEFAULT_THEME.adminHeadlineFont);
       setAdminBodyFont(themeData.adminBodyFont || DEFAULT_THEME.adminBodyFont);
       setAdminHeaderHeight(themeData.adminHeaderHeight?.toString() || DEFAULT_THEME.adminHeaderHeight);
+      setChatbotEnabled(themeData.chatbotEnabled ?? DEFAULT_THEME.chatbotEnabled);
+      setChatbotPosition(themeData.chatbotPosition || DEFAULT_THEME.chatbotPosition);
+      setChatbotColor(themeData.chatbotColor || DEFAULT_THEME.chatbotColor);
+      setChatbotSize(themeData.chatbotSize || DEFAULT_THEME.chatbotSize);
+      setChatbotEffect(themeData.chatbotEffect || DEFAULT_THEME.chatbotEffect);
+      setChatbotDuration(themeData.chatbotDuration || DEFAULT_THEME.chatbotDuration);
     }
   }, [themeData]);
 
@@ -249,6 +269,12 @@ export default function ThemeEnginePage() {
       adminHeadlineFont,
       adminBodyFont,
       adminHeaderHeight: Number(adminHeaderHeight),
+      chatbotEnabled,
+      chatbotPosition,
+      chatbotColor,
+      chatbotSize: Number(chatbotSize),
+      chatbotEffect,
+      chatbotDuration: Number(chatbotDuration),
       updatedAt: new Date().toISOString()
     };
 
@@ -513,7 +539,7 @@ export default function ThemeEnginePage() {
                           </Button>
                         </div>
                       ) : (
-                        <><ImageIcon className="h-6 w-6 text-gray-400" /><p className="text-[10px] font-bold uppercase text-gray-500">Upload visual</p></>
+                        <><SearchIcon className="h-6 w-6 text-gray-400" /><p className="text-[10px] font-bold uppercase text-gray-500">Upload visual</p></>
                       )}
                     </div>
                   </div>

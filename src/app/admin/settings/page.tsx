@@ -65,7 +65,8 @@ import {
   Twitter,
   MessageCircle,
   Facebook,
-  MoreHorizontal
+  MoreHorizontal,
+  Clock
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -127,6 +128,7 @@ export default function SettingsPage() {
   const [chatbotColor, setChatbotColor] = useState('#000000');
   const [chatbotSize, setChatbotSize] = useState('60');
   const [chatbotEffect, setChatbotEffect] = useState('pulsate');
+  const [chatbotDuration, setChatbotDuration] = useState('3');
 
   useEffect(() => {
     if (storeConfig) {
@@ -146,6 +148,7 @@ export default function SettingsPage() {
       setChatbotColor(themeData.chatbotColor || '#000000');
       setChatbotSize(themeData.chatbotSize?.toString() || '60');
       setChatbotEffect(themeData.chatbotEffect || 'pulsate');
+      setChatbotDuration(themeData.chatbotDuration?.toString() || '3');
     }
   }, [storeConfig, themeData]);
 
@@ -188,6 +191,7 @@ export default function SettingsPage() {
       chatbotColor,
       chatbotSize: Number(chatbotSize),
       chatbotEffect,
+      chatbotDuration: Number(chatbotDuration),
       updatedAt: new Date().toISOString() 
     };
     handleSaveStore();
@@ -598,6 +602,24 @@ export default function SettingsPage() {
                         <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} />
                       </div>
                       <Input value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} className="h-11 font-mono text-xs uppercase" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                        <Clock className="h-3.5 w-3.5" /> Motion Speed
+                      </Label>
+                      <span className="text-[9px] font-mono font-bold text-primary">{chatbotDuration}S CYCLE</span>
+                    </div>
+                    <input 
+                      type="range" min="0.5" max="10" step="0.5" value={chatbotDuration} 
+                      onChange={(e) => setChatbotDuration(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                    <div className="flex justify-between text-[7px] font-bold text-gray-400 uppercase tracking-tighter">
+                      <span>High Velocity (0.5s)</span>
+                      <span>Ambient (10s)</span>
                     </div>
                   </div>
                 </div>

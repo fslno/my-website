@@ -162,7 +162,8 @@ export function Chatbot() {
         style={{ 
           backgroundColor: theme?.chatbotColor || '#000000',
           width: `${theme?.chatbotSize || 60}px`,
-          height: `${theme?.chatbotSize || 60}px`
+          height: `${theme?.chatbotSize || 60}px`,
+          animationDuration: !isOpen && theme?.chatbotDuration ? `${theme.chatbotDuration}s` : undefined
         }}
       >
         {isOpen ? (
