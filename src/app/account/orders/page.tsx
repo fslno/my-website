@@ -5,6 +5,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
+import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Loader2, Package, ChevronRight, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -140,6 +141,7 @@ export default function OrderHistoryPage() {
         )}
       </div>
 
+      <TestimonialSection />
       <Footer />
     </main>
   );

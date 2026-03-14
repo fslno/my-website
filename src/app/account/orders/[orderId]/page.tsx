@@ -5,6 +5,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
+import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Loader2, Package, Truck, MapPin, Calendar, CreditCard, ExternalLink, ArrowLeft, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -283,6 +284,7 @@ export default function OrderDetailPage(props: {
         </div>
       </div>
 
+      <TestimonialSection />
       <Footer />
     </main>
   );

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, use, useEffect } from 'react';
@@ -12,6 +11,7 @@ import {
 import { doc, collection, query, orderBy } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
+import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -598,6 +598,7 @@ export default function ProductDetailPage(props: {
         </div>
       </div>
 
+      <TestimonialSection />
       <Footer />
     </main>
   );
