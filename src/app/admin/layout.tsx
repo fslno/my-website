@@ -240,7 +240,8 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <Globe />
                   <span>Domain</span>
                 </Link>
-              </SidebarMenuItem>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
