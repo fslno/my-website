@@ -23,10 +23,8 @@ import {
   Image as ImageIcon,
   Settings2,
   CheckCircle2,
-  AlertCircle,
   Plus,
   Upload,
-  Search,
   X,
   Save
 } from 'lucide-react';
@@ -54,6 +52,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function AdminReviewsPage() {
   const db = useFirestore();
@@ -81,7 +80,6 @@ export default function AdminReviewsPage() {
   const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
   const { data: products } = useCollection(productsQuery);
 
-  // Add Review Form State
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [newReview, setNewReview] = useState({
@@ -98,8 +96,8 @@ export default function AdminReviewsPage() {
     setDoc(configRef, { enabled, updatedAt: serverTimestamp() }, { merge: true })
       .then(() => {
         toast({
-          title: enabled ? "System Enabled" : "System Disabled",
-          description: `Product review manifest has been Authoritatively updated.`,
+          title: enabled ? "Reviews Enabled" : "Reviews Disabled",
+          description: `Storefront review status updated.`,
         });
       });
   };
@@ -114,17 +112,17 @@ export default function AdminReviewsPage() {
     }).then(() => {
       toast({
         title: newStatus ? "Review Published" : "Review Hidden",
-        description: `Archival visibility updated for ${review.userName}.`,
+        description: `Visibility updated for ${review.userName}.`,
       });
     });
   };
 
   const handleDeleteReview = async (review: any) => {
-    if (!db || !confirm("Authoritatively delete this review?")) return;
+    if (!db || !confirm("Delete this review?")) return;
     deleteDoc(doc(db, 'reviews', review.id)).then(() => {
       toast({
-        title: "Review Purged",
-        description: "Entry removed from the forensic manifest.",
+        title: "Review Deleted",
+        description: "Entry removed from the system.",
       });
     });
   };
@@ -159,7 +157,7 @@ export default function AdminReviewsPage() {
           imageUrl: '',
           published: true
         });
-        toast({ title: "Review Cataloged", description: "Manual entry ingested successfully." });
+        toast({ title: "Review Added", description: "Feedback saved successfully." });
       })
       .finally(() => setIsSaving(false));
   };
@@ -176,8 +174,8 @@ export default function AdminReviewsPage() {
     <div className="space-y-8 min-w-0 overflow-x-hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Review Moderation</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage archival feedback and curated testimonials.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Reviews</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Moderate feedback and testimonials.</p>
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
@@ -185,93 +183,95 @@ export default function AdminReviewsPage() {
               <Plus className="h-4 w-4" /> Add Review
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl p-0">
-            <DialogHeader className="p-6 border-b">
-              <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Archival Review</DialogTitle>
-              <DialogDescription className="text-xs uppercase font-bold text-muted-foreground mt-1">Manually catalog participant feedback for the studio.</DialogDescription>
+          <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl p-0 flex flex-col max-h-[90vh]">
+            <DialogHeader className="p-6 border-b shrink-0">
+              <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Review</DialogTitle>
+              <DialogDescription className="text-xs uppercase font-bold text-muted-foreground mt-1">Add feedback for the studio.</DialogDescription>
             </DialogHeader>
-            <div className="p-6 space-y-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Target Product</Label>
-                <Select value={newReview.productId} onValueChange={(v) => setNewReview({ ...newReview, productId: v })}>
-                  <SelectTrigger className="h-12 uppercase font-bold text-[10px]">
-                    <SelectValue placeholder="SELECT PIECE" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products?.map((p: any) => (
-                      <SelectItem key={p.id} value={p.id} className="uppercase font-bold text-[10px]">{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+            <ScrollArea className="flex-1">
+              <div className="p-6 space-y-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Participant Handle</Label>
-                  <Input 
-                    value={newReview.userName} 
-                    onChange={(e) => setNewReview({ ...newReview, userName: e.target.value })}
-                    placeholder="e.g. fei"
-                    className="h-12 uppercase font-bold text-[10px]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Rating Intensity</Label>
-                  <Select value={String(newReview.rating)} onValueChange={(v) => setNewReview({ ...newReview, rating: Number(v) })}>
-                    <SelectTrigger className="h-12 font-bold text-[10px]">
-                      <SelectValue />
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Product</Label>
+                  <Select value={newReview.productId} onValueChange={(v) => setNewReview({ ...newReview, productId: v })}>
+                    <SelectTrigger className="h-12 uppercase font-bold text-[10px]">
+                      <SelectValue placeholder="SELECT PIECE" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[5, 4, 3, 2, 1].map((r) => (
-                        <SelectItem key={r} value={String(r)} className="font-bold text-[10px]">{r} STARS</SelectItem>
+                      {products?.map((p: any) => (
+                        <SelectItem key={p.id} value={p.id} className="uppercase font-bold text-[10px]">{p.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Testimonial Manifest</Label>
-                <Textarea 
-                  value={newReview.comment}
-                  onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                  placeholder="GREAT JERSEYS."
-                  className="min-h-[100px] resize-none uppercase font-medium text-[11px]"
-                />
-              </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 border rounded-none">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-bold uppercase">Publish Immediately</p>
-                  <p className="text-[8px] text-muted-foreground uppercase font-bold">Visibility Active</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label>
+                    <Input 
+                      value={newReview.userName} 
+                      onChange={(e) => setNewReview({ ...newReview, userName: e.target.value })}
+                      placeholder="e.g. fei"
+                      className="h-12 uppercase font-bold text-[10px]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Rating</Label>
+                    <Select value={String(newReview.rating)} onValueChange={(v) => setNewReview({ ...newReview, rating: Number(v) })}>
+                      <SelectTrigger className="h-12 font-bold text-[10px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[5, 4, 3, 2, 1].map((r) => (
+                          <SelectItem key={r} value={String(r)} className="font-bold text-[10px]">{r} STARS</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <Switch checked={newReview.published} onCheckedChange={(v) => setNewReview({ ...newReview, published: v })} />
-              </div>
-              <div className="space-y-4">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Archival Visual</Label>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-                <div 
-                  onClick={() => !newReview.imageUrl && fileInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-none h-24 flex items-center justify-center gap-3 bg-gray-50 cursor-pointer hover:border-black transition-all"
-                >
-                  {newReview.imageUrl ? (
-                    <div className="relative w-16 h-16 rounded-sm overflow-hidden border shadow-sm">
-                      <Image src={newReview.imageUrl} alt="Preview" fill className="object-cover" />
-                      <button onClick={(e) => { e.stopPropagation(); setNewReview({ ...newReview, imageUrl: '' }); }} className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                        <X className="h-4 w-4 text-white" />
-                      </button>
-                    </div>
-                  ) : (
-                    <><Upload className="h-5 w-5 text-gray-400" /><span className="text-[10px] font-bold uppercase text-gray-500">Ingest Media</span></>
-                  )}
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Feedback</Label>
+                  <Textarea 
+                    value={newReview.comment}
+                    onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                    placeholder="GREAT PIECE."
+                    className="min-h-[100px] resize-none uppercase font-medium text-[11px]"
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4 bg-gray-50 border rounded-none">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-bold uppercase">Publish Now</p>
+                    <p className="text-[8px] text-muted-foreground uppercase font-bold">Visibility Active</p>
+                  </div>
+                  <Switch checked={newReview.published} onCheckedChange={(v) => setNewReview({ ...newReview, published: v })} />
+                </div>
+                <div className="space-y-4">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Photo</Label>
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+                  <div 
+                    onClick={() => !newReview.imageUrl && fileInputRef.current?.click()}
+                    className="border-2 border-dashed rounded-none h-24 flex items-center justify-center gap-3 bg-gray-50 cursor-pointer hover:border-black transition-all"
+                  >
+                    {newReview.imageUrl ? (
+                      <div className="relative w-16 h-16 rounded-sm overflow-hidden border shadow-sm">
+                        <Image src={newReview.imageUrl} alt="Preview" fill className="object-cover" />
+                        <button onClick={(e) => { e.stopPropagation(); setNewReview({ ...newReview, imageUrl: '' }); }} className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <X className="h-4 w-4 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <><Upload className="h-5 w-5 text-gray-400" /><span className="text-[10px] font-bold uppercase text-gray-500">Add Photo</span></>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-            <DialogFooter className="p-6 border-t">
+            </ScrollArea>
+            <DialogFooter className="p-6 border-t shrink-0">
               <Button 
                 onClick={handleSaveNewReview} 
                 disabled={isSaving || !newReview.productId || !newReview.userName || !newReview.comment}
                 className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Finalize Ingestion
+                Save Review
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -282,9 +282,9 @@ export default function AdminReviewsPage() {
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b bg-gray-50/30 p-4 sm:p-6 gap-4">
           <div className="space-y-1">
             <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-              <Settings2 className="h-3.5 w-3.5" /> Global Review System
+              <Settings2 className="h-3.5 w-3.5" /> Global System
             </CardTitle>
-            <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Enable or decommission the entire storefront review manifest.</CardDescription>
+            <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Enable or disable all storefront reviews.</CardDescription>
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0">
             <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ export default function AdminReviewsPage() {
           <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-none">
             <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
             <p className="text-[10px] text-blue-800 uppercase font-medium leading-relaxed">
-              When disabled, the review form and all rating stars are strictly hidden from the storefront viewport to maintain editorial control.
+              When disabled, reviews and ratings are hidden from the storefront viewport.
             </p>
           </div>
         </CardContent>
@@ -310,10 +310,10 @@ export default function AdminReviewsPage() {
             <TableHeader className="bg-gray-50/50">
               <TableRow>
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6">Status</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest">Participant</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest">Name</TableHead>
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Rating</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest w-[300px]">Testimonial</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Media</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest w-[300px]">Feedback</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Photo</TableHead>
                 <TableHead className="w-[100px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -321,7 +321,7 @@ export default function AdminReviewsPage() {
               {(!reviews || reviews.length === 0) ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-                    No reviews cataloged in the archive.
+                    No reviews found.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -392,7 +392,7 @@ export default function AdminReviewsPage() {
         <div className="lg:hidden divide-y">
           {(!reviews || reviews.length === 0) ? (
             <div className="text-center py-20 text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-              No reviews cataloged.
+              No reviews found.
             </div>
           ) : (
             reviews.map((review) => (
@@ -444,7 +444,7 @@ export default function AdminReviewsPage() {
                     onClick={() => handleDeleteReview(review)}
                     className="h-9 px-3 gap-2 font-bold uppercase tracking-widest text-[9px] text-red-500 hover:bg-red-50"
                   >
-                    <Trash2 className="h-3.5 w-3.5" /> Purge
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
                   </Button>
                 </div>
               </div>
