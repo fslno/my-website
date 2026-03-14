@@ -4,41 +4,38 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user account in the FSLNO e-commerce ecosystem, linked to an external authentication provider (e.g., Google Sign-In). This entity stores user profile information and role, but no sensitive authentication credentials.",
+      "description": "Represents a user account in the FSLNO e-commerce ecosystem.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the User entity, typically provided by the external authentication system (e.g., Firebase User ID)."
+          "description": "Unique identifier for the User entity."
         },
         "email": {
           "type": "string",
-          "description": "The user's email address, often provided by the authentication system.",
+          "description": "The user's email address.",
           "format": "email"
         },
         "displayName": {
           "type": "string",
-          "description": "The user's display name or full name, as provided by the authentication system or set by the user."
+          "description": "The user's display name."
         },
         "photoUrl": {
           "type": "string",
-          "description": "URL to the user's profile picture, if available from the authentication system.",
+          "description": "URL to the user's profile picture.",
           "format": "uri"
         },
         "role": {
           "type": "string",
-          "description": "The role of the user within the application, defining their permissions and access levels. (e.g., 'customer' for shoppers, 'admin' for administrators).",
-          "items": {
-            "type": "string"
-          }
+          "description": "The role of the user (customer/admin)."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp indicating when the user account was created in the system.",
+          "description": "Timestamp of account creation.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp indicating the last time the user's profile information was updated.",
+          "description": "Timestamp of last update.",
           "format": "date-time"
         }
       },
@@ -48,12 +45,24 @@
         "role",
         "createdAt"
       ]
+    },
+    "Config": {
+      "title": "Config",
+      "type": "object",
+      "description": "Universal configuration container for global store settings.",
+      "properties": {
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google"
     ]
   },
   "firestore": {
@@ -65,75 +74,41 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores individual user profiles. Access is primarily restricted to the owner (`request.auth.uid` must match `userId`). This path ensures Authorization Independence for user-specific data. It's also writable by administrators for role management (though roles are primarily managed via '/roles_admin').",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user, matching 'request.auth.uid'."
-            }
-          ]
+          "description": "Stores individual user profiles."
+        }
+      },
+      {
+        "path": "/config/{configId}",
+        "definition": {
+          "entityName": "Config",
+          "schema": {
+            "$ref": "#/backend/entities/Config"
+          },
+          "description": "Global storefront configurations including theme and store info."
         }
       },
       {
         "path": "/roles_admin/{userId}",
         "definition": {
           "entityName": "AdminRole",
-          "schema": {
-            "$ref": "#/backend/entities/AdminRole"
-          },
-          "description": "Dedicated collection for explicit administrative role assignment. The existence of a document at this path for a given 'userId' signifies global admin privileges. This supports DBAC (Database Access Control) using 'existence over content' for Authorization Independence and simplifies QAPs for admin checks.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user granted administrative access."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/cms_control/settings",
-        "definition": {
-          "entityName": "CmsSettings",
-          "schema": {
-            "$ref": "#/backend/entities/CmsSettings"
-          },
-          "description": "A singleton document containing global CMS settings, theme styles (global_styles), banner configurations (banner_patrol), and layout managers (layout_manager). It is publicly readable for instant storefront updates ('Real-time Content & Style Editor') and writable only by administrators, ensuring Authorization Independence for read/write operations.",
-          "params": []
+          "description": "Administrative authority manifest."
         }
       },
       {
         "path": "/products/{productId}",
         "definition": {
           "entityName": "Product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Stores individual product details for the storefront. This collection is publicly readable for all users, supporting Query-Accurate Permissions (QAPs) for efficient product catalog display. Writable only by administrators for content management. Structural segregation ensures homogeneous security posture.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for a specific product."
-            }
-          ]
+          "description": "Archival pieces manifest."
         }
       },
       {
         "path": "/categories/{categoryId}",
         "definition": {
           "entityName": "Category",
-          "schema": {
-            "$ref": "#/backend/entities/Category"
-          },
-          "description": "Stores product category information, including dynamic size chart data. This collection is publicly readable, enabling efficient data retrieval for 'Advanced Product Interaction' (QAPs). Writable only by administrators for content management. Structural segregation maintains a consistent security posture.",
-          "params": [
-            {
-              "name": "categoryId",
-              "description": "The unique identifier for a specific product category."
-            }
-          ]
+          "description": "Product drop collections."
         }
       }
     ],
-    "reasoning": "The Firestore structure prioritizes Authorization Independence and Query-Accurate Permissions (QAPs) by applying structural segregation and strategic denormalization. User-specific data is isolated under `/users/{userId}`, ensuring path-based ownership and eliminating the need for hierarchical security checks. Global administrative roles are managed via the `/roles_admin/{userId}` collection, leveraging 'existence over content' for robust and atomic authorization checks (e.g., `exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))`). This completely avoids `get()` calls for authorization dependencies, making security rules simple and debuggable.\n\nPublicly accessible data, such as products (`/products/{productId}`) and categories (`/categories/{categoryId}`), are housed in top-level collections. This structural segregation ensures that `list` operations (QAPs) are naturally secure, as all documents within these collections share the same public read security posture. Modifications to these public collections, as well as to global CMS settings (`/cms_control/settings`), are strictly limited to authenticated administrators, whose roles are verified through the independent `/roles_admin` collection. The singleton `/cms_control/settings` document is designed for efficient, real-time updates and public read access, with admin-only write permissions, aligning with the 'Real-time Content & Style Editor' feature. This design strategy minimizes security rule complexity by moving authorization logic from conditional `get()` operations into the inherent structure and access patterns of the database."
+    "reasoning": "The Firestore structure prioritizes path-based ownership and global configuration accessibility. Sensitivity is managed via granular security rules while ensuring the storefront remains Authoritatively dynamic."
   }
 }

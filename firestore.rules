@@ -7,50 +7,26 @@ service cloud.firestore {
      * 
      * Core Philosophy:
      * This ruleset implements a robust, multi-tier security model for an e-commerce platform. 
-     * It leverages "Authorization Independence" by separating user-private data from public 
-     * catalog data and administrative configurations.
-     * 
-     * Data Structure:
-     * - /users/{userId}: Private user profiles, owned by the user but manageable by admins.
-     * - /roles_admin/{userId}: A high-security collection where the presence of a UID 
-     *   grants global administrative privileges across the entire database.
-     * - /products & /categories: Publicly readable product catalogs.
-     * - /cms_control/settings: Global storefront configuration, publicly readable for 
-     *   real-time updates but restricted to admin writes.
-     * 
-     * Key Security Decisions:
-     * - DBAC (Database Access Control): Admin permissions are verified by checking for the 
-     *   existence of a document in the /roles_admin collection. This "existence over content" 
-     *   pattern is highly performant and secure.
-     * - Path-Based Ownership: User data access is strictly tied to the {userId} in the path 
-     *   matching the authenticated user's UID.
-     * - Public Read Access: Product and CMS data are globally readable to support SEO and 
-     *   unauthenticated browsing, while writes are locked down to verified administrators.
      */
 
     // --- Helper Functions ---
 
-    /** @description Checks if the user is authenticated with any provider. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user's UID matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Checks if the user has global admin privileges via the roles_admin collection. */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    /** @description Verifies ownership on an existing document. */
     function isExistingOwner(userId) {
       return resource != null && isOwner(userId);
     }
 
-    /** @description Verifies admin status for operations on existing documents. */
     function isExistingAdmin() {
       return resource != null && isAdmin();
     }
@@ -58,65 +34,100 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     /**
-     * @description Rules for user profiles. Users can manage their own profile; admins can manage all.
-     * @path /users/{userId}
-     * @allow (create) if auth.uid matches {userId} and data.id matches {userId}.
-     * @deny (update) if a non-admin tries to change another user's profile or change the ID field.
-     * @principle Path-based ownership with relational integrity and admin override.
+     * @description Rules for user profiles.
      */
     match /users/{userId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if (isExistingOwner(userId) || isExistingAdmin()) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId) || isExistingAdmin();
+      
+      match /cart/{itemId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+      match /wishlist/{itemId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
     }
 
     /**
      * @description high-security collection for administrative role assignment.
-     * @path /roles_admin/{userId}
-     * @allow (read/write) Only by existing administrators.
-     * @deny (all) Access for standard users or unauthenticated requests.
-     * @principle Existence-based authorization (DBAC) for global roles.
      */
     match /roles_admin/{userId} {
-      allow get, list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow read, write: if isAdmin();
     }
 
     /**
-     * @description Global CMS settings for theme and layout.
-     * @path /cms_control/settings
-     * @allow (get) Publicly readable for real-time storefront styling.
-     * @deny (write) Any non-admin attempts to modify global settings.
-     * @principle Publicly readable configuration with strictly controlled admin writes.
+     * @description Global storefront settings.
      */
-    match /cms_control/settings {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+    match /config/{configId} {
+      allow get: if true;
+      allow list, write: if isAdmin();
     }
 
     /**
      * @description Product catalog data.
-     * @path /products/{productId}
-     * @allow (get/list) Public access for shoppers.
-     * @deny (write) Any modification by non-administrators.
-     * @principle Structural segregation of public resources.
      */
     match /products/{productId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     /**
      * @description Product categories and metadata.
-     * @path /categories/{categoryId}
-     * @allow (get/list) Public access for storefront navigation.
-     * @deny (write) Any modification by non-administrators.
-     * @principle Consistent security posture for homogeneous public collections.
      */
     match /categories/{categoryId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    /**
+     * @description Size guide templates.
+     */
+    match /sizeCharts/{chartId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+    
+    /**
+     * @description High-fidelity transaction manifests.
+     */
+    match /orders/{orderId} {
+      allow create: if true;
+      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid) || (resource.data.userId == 'guest');
+      allow list: if isAdmin() || (isSignedIn() && request.query.filters.userId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+    
+    /**
+     * @description Archival feedback manifest.
+     */
+    match /reviews/{reviewId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+    
+    /**
+     * @description Featured customer testimonials.
+     */
+    match /testimonials/{testimonialId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+    
+    /**
+     * @description Internal team access.
+     */
+    match /staff/{staffId} {
+      allow read, write: if isAdmin();
+    }
+    
+    /**
+     * @description Partner connectivity manifest.
+     */
+    match /partners/{partnerId} {
+      allow read, write: if isAdmin();
     }
   }
 }
