@@ -152,17 +152,17 @@ export default function StorefrontAdminPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 space-y-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full bg-white border h-14 p-1 flex justify-start rounded-none mb-8 overflow-x-auto scrollbar-hide">
-              <TabsTrigger value="general" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-full">
+            <TabsList className="w-full bg-white border h-auto xl:h-14 p-1 flex flex-wrap xl:flex-nowrap justify-start rounded-none mb-8 overflow-hidden">
+              <TabsTrigger value="general" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-12 xl:h-full">
                 <FileText className="h-3.5 w-3.5" /> General Info
               </TabsTrigger>
-              <TabsTrigger value="featured" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-full">
+              <TabsTrigger value="featured" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-12 xl:h-full">
                 <ShoppingBag className="h-3.5 w-3.5" /> Category Products
               </TabsTrigger>
-              <TabsTrigger value="seo" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-full">
+              <TabsTrigger value="seo" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-12 xl:h-full">
                 <Globe className="h-3.5 w-3.5" /> Home SEO
               </TabsTrigger>
-              <TabsTrigger value="layout" className="gap-2 px-6 font-bold uppercase tracking-widest text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-full">
+              <TabsTrigger value="layout" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-12 xl:h-full">
                 <Layout className="h-3.5 w-3.5" /> Architecture
               </TabsTrigger>
             </TabsList>
@@ -449,7 +449,7 @@ export default function StorefrontAdminPage() {
 
           <div className="p-6 bg-gray-50 border rounded-none space-y-4">
             <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
-              <Settings2 className="h-3.5 w-3.5 text-blue-600" /> Administrative Logic
+              <Settings2 className="h-3.5 w-3.5" /> Administrative Logic
             </h3>
             <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-bold opacity-70">
               Changes apply Authoritatively to the live storefront. Ensure all visuals are high-fidelity before saving.

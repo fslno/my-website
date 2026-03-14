@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef, useMemo, useEffect } from 'react';
@@ -577,10 +576,10 @@ export default function ProductsPage() {
               </div>
             </DialogHeader>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-              <div className="px-4 sm:px-6 border-b bg-gray-50/50 shrink-0 overflow-x-auto scrollbar-hide">
-                <TabsList className="bg-transparent h-14 p-0 gap-4 sm:gap-8 min-w-max">
+              <div className="px-4 sm:px-6 border-b bg-gray-50/50 shrink-0">
+                <TabsList className="bg-transparent h-auto p-1 flex flex-wrap gap-2 sm:gap-8 justify-start">
                   {[{ id: 'general', label: '01. Details', icon: LayoutGrid }, { id: 'inventory', label: '02. Stock', icon: Layers }, { id: 'seo', label: '03. SEO', icon: Globe }, { id: 'logistics', label: '04. Shipping', icon: Truck }].map((tab) => (
-                    <TabsTrigger key={tab.id} value={tab.id} className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">
+                    <TabsTrigger key={tab.id} value={tab.id} className="flex-grow sm:flex-grow-0 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-12 gap-2 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">
                       <tab.icon className="h-3.5 w-3.5" /> {tab.label}
                     </TabsTrigger>
                   ))}

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef, useMemo } from 'react';
@@ -167,16 +166,16 @@ export default function CategoriesPage() {
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-4 sm:p-6 border-b shrink-0 flex flex-row items-center justify-between"><DialogTitle className="text-lg sm:text-xl font-headline font-bold uppercase tracking-tight">{editingId ? `Edit: ${name}` : 'New Category'}</DialogTitle><Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)} className="rounded-full"><X className="h-5 w-5" /></Button></DialogHeader>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-              <div className="px-4 sm:px-6 border-b bg-gray-50/50 shrink-0 overflow-x-auto scrollbar-hide">
-                <TabsList className="bg-transparent h-14 p-0 gap-4 sm:gap-8 min-w-max">
+              <div className="px-4 sm:px-6 border-b bg-gray-50/50 shrink-0">
+                <TabsList className="bg-transparent h-auto p-1 flex flex-wrap gap-2 sm:gap-8 justify-start">
                   {[{ id: 'general', label: '01. Info', icon: LayoutGrid }, { id: 'seo', label: '02. Preview', icon: Globe }, { id: 'products', label: '03. Catalog', icon: ShoppingBag, hidden: !editingId }].filter(t => !t.hidden).map((tab) => (
-                    <TabsTrigger key={tab.id} value={tab.id} className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-full gap-2 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]"><tab.icon className="h-3.5 w-3.5" /> {tab.label}</TabsTrigger>
+                    <TabsTrigger key={tab.id} value={tab.id} className="flex-grow sm:flex-grow-0 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-black rounded-none shadow-none px-0 h-12 gap-2 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]"><tab.icon className="h-3.5 w-3.5" /> {tab.label}</TabsTrigger>
                   ))}
                 </TabsList>
               </div>
               <div className="flex-1 overflow-y-auto">
                 <TabsContent value="general" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8"><div className="space-y-6"><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label><Input placeholder="e.g. Outerwear" value={name} onChange={(e) => setName(e.target.value)} className="h-12" /></div><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label><Textarea placeholder="..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[120px]" /></div></div><div className="space-y-4"><Label className="text-[10px] uppercase font-bold text-gray-500">Visual</Label><div onClick={() => !imageUrl && fileInputRef.current?.click()} className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-4 bg-gray-50 min-h-[250px] cursor-pointer hover:border-black transition-all">{imageUrl ? <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden border"><Image src={imageUrl} alt="Preview" fill className="object-cover" /></div> : <><Upload className="h-6 w-6 text-gray-400" /><p className="text-[10px] font-bold uppercase text-gray-500">Upload Visual</p></>}</div><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} /></div></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8"><div className="space-y-6"><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label><Input placeholder="e.g. Outerwear" value={name} onChange={(e) => setName(e.target.value)} className="h-12" /></div><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label><Textarea placeholder="..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[120px]" /></div></div><div className="space-y-4"><Label className="text-[10px] uppercase font-bold text-gray-500">Visual</Label><div onClick={() => !imageUrl && fileInputRef.current?.click()} className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-4 bg-gray-50 min-h-[250px] cursor-pointer hover:border-black transition-all">{imageUrl ? <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden border"><Image src={imageUrl} alt="Preview" fill className="object-cover" /></div> : <><Upload className="h-6 w-6 text-gray-400" /><p className="text-[10px] font-bold uppercase text-gray-500">Upload Visual</p></>}</div><input type="file" fileInputRef={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} /></div></div>
                 </TabsContent>
               </div>
             </Tabs>
