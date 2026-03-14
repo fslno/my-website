@@ -85,7 +85,7 @@ export default function Home() {
                   src={heroImageSrc}
                   alt="Main Hero"
                   fill
-                  className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
+                  className="object-cover opacity-80"
                   priority
                 />
               ) : (
@@ -149,12 +149,11 @@ export default function Home() {
                         src={cat.imageUrl} 
                         alt={cat.name} 
                         fill 
-                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                        className="object-cover"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gray-200" />
                     )}
-                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   </Link>
                   
                   <div className="space-y-3 text-center">

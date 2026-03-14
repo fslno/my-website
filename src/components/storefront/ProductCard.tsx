@@ -27,14 +27,13 @@ export function ProductCard({ id, name, price, image, category, rating, reviewCo
             alt={name}
             fill
             className={cn(
-              "object-cover transition-transform duration-700 group-hover:scale-110",
+              "object-cover",
               isSoldOut && "opacity-40 grayscale"
             )}
           />
         ) : (
           <div className="absolute inset-0 bg-gray-200" />
         )}
-        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
         
         {isSoldOut && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
