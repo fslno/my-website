@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -108,7 +109,7 @@ export default function OrderHistoryPage() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-[9px] uppercase font-bold text-gray-400">Total</p>
-                      <p className="text-xs font-bold uppercase">${order.total?.toFixed(2)} CAD</p>
+                      <p className="text-xs font-bold uppercase">C$${order.total?.toFixed(2)}</p>
                     </div>
                   </div>
                   {getStatusBadge(order.status)}

@@ -202,7 +202,7 @@ export default function Home() {
                     key={product.id} 
                     id={product.id}
                     name={product.name}
-                    price={`$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CAD`}
+                    price={`C$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     image={product.media?.[0]?.url || ''}
                     category={productCategory}
                     rating={avgRating}

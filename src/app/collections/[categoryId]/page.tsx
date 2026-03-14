@@ -137,7 +137,7 @@ export default function CollectionPage(props: {
                     key={product.id} 
                     id={product.id}
                     name={product.name}
-                    price={`$${formatCurrency(Number(product.price))} CAD`}
+                    price={`C$${formatCurrency(Number(product.price))}`}
                     image={product.media?.[0]?.url || ''}
                     category={productCategory}
                     rating={avgRating}

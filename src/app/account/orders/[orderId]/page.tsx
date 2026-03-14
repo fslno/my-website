@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { use } from 'react';
@@ -157,7 +158,7 @@ export default function OrderDetailPage(props: {
                         <div className="space-y-2">
                           <div className="flex justify-between items-start">
                             <h3 className="text-sm font-bold uppercase tracking-tight text-primary leading-none">{item.name}</h3>
-                            <p className="text-sm font-bold text-primary">${formatCurrency(item.price * item.quantity)}</p>
+                            <p className="text-sm font-bold text-primary">C$${formatCurrency(item.price * item.quantity)}</p>
                           </div>
                           <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">
                             <span>Size: {item.size}</span>
@@ -227,26 +228,26 @@ export default function OrderDetailPage(props: {
                 <CardContent className="p-6 space-y-3">
                   <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
                     <span>Subtotal</span>
-                    <span className="text-primary">${formatCurrency(order.subtotal)}</span>
+                    <span className="text-primary">C$${formatCurrency(order.subtotal)}</span>
                   </div>
                   {order.discountTotal > 0 && (
                     <div className="flex justify-between text-[10px] font-bold text-red-600 uppercase">
                       <span>Discounts</span>
-                      <span>-${formatCurrency(order.discountTotal)}</span>
+                      <span>-C$${formatCurrency(order.discountTotal)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
                     <span>Shipping</span>
-                    <span className="text-primary">{order.shipping > 0 ? `$${formatCurrency(order.shipping)}` : 'FREE'}</span>
+                    <span className="text-primary">{order.shipping > 0 ? `C$${formatCurrency(order.shipping)}` : 'FREE'}</span>
                   </div>
                   <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
                     <span>Tax</span>
-                    <span className="text-primary">${formatCurrency(order.tax)}</span>
+                    <span className="text-primary">C$${formatCurrency(order.tax)}</span>
                   </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between items-end pt-2">
                     <span className="text-[12px] font-bold uppercase tracking-widest">Grand Total</span>
-                    <span className="text-xl font-bold font-headline">${formatCurrency(order.total)} CAD</span>
+                    <span className="text-xl font-bold font-headline">C$${formatCurrency(order.total)}</span>
                   </div>
                 </CardContent>
               </Card>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -543,7 +544,7 @@ export default function CheckoutPage() {
                               <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-widest cursor-pointer text-primary">{name} {isExpress ? 'Express' : 'Standard'}</Label>
                             </div>
                             <span className={cn("text-[11px] font-bold", isFreeShippingEligible ? "text-emerald-600" : "text-primary")}>
-                              {cost === 0 ? 'FREE' : `$${formatCurrency(cost)}`}
+                              {cost === 0 ? 'FREE' : `C$${formatCurrency(cost)}`}
                             </span>
                           </div>
                         );
@@ -664,7 +665,7 @@ export default function CheckoutPage() {
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <h3 className="text-[10px] font-bold uppercase tracking-tight line-clamp-1 text-primary">{item.name}</h3>
-                        <p className="text-[11px] font-bold text-primary">{item.price === 0 ? 'FREE' : `$${formatCurrency(item.price * item.quantity)}`}</p>
+                        <p className="text-[11px] font-bold text-primary">{item.price === 0 ? 'FREE' : `C$${formatCurrency(item.price * item.quantity)}`}</p>
                       </div>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[9px] text-muted-foreground font-bold uppercase">
                         <span>Size: {item.size}</span>
@@ -794,31 +795,31 @@ export default function CheckoutPage() {
               <div className="space-y-3 pt-4">
                 <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
                   <span>Subtotal</span>
-                  <span className="text-primary">${formatCurrency(cartSubtotal)}</span>
+                  <span className="text-primary">C$${formatCurrency(cartSubtotal)}</span>
                 </div>
                 {discountTotal > 0 && (
                   <div className="flex justify-between text-[10px] font-bold uppercase text-destructive">
                     <span>Discounts</span>
-                    <span>-${formatCurrency(discountTotal)}</span>
+                    <span>-C$${formatCurrency(discountTotal)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
                   <span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pick up'}</span>
                   <span className={cn("text-primary", isFreeShippingEligible && "text-emerald-600")}>
-                    {isShippingReady ? (shippingRate > 0 ? `$${formatCurrency(shippingRate)}` : (deliveryMethod === 'pickup' ? 'Pick up FREE' : 'FREE')) : '--'}
+                    {isShippingReady ? (shippingRate > 0 ? `C$${formatCurrency(shippingRate)}` : (deliveryMethod === 'pickup' ? 'Pick up FREE' : 'FREE')) : '--'}
                   </span>
                 </div>
                 <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
                   <span>Tax</span>
                   <span className="text-primary">
-                    {isTaxReady ? `$${formatCurrency(calculatedTax)}` : '--'}
+                    {isTaxReady ? `C$${formatCurrency(calculatedTax)}` : '--'}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">Total</span>
                   <p className="text-2xl font-bold font-headline tracking-tighter text-primary">
-                    {isSummaryReady ? `$${formatCurrency(finalTotal)} CAD` : '--'}
+                    {isSummaryReady ? `C$${formatCurrency(finalTotal)}` : '--'}
                   </p>
                 </div>
 
@@ -999,7 +1000,7 @@ export default function CheckoutPage() {
                       <div key={i} className="flex flex-col gap-1 border-b border-gray-50 pb-2 last:border-0">
                         <div className="flex justify-between text-[11px] font-bold uppercase text-primary">
                           <span>{item.quantity}x {item.name} ({item.size})</span>
-                          <span>${formatCurrency(item.price * item.quantity)}</span>
+                          <span>C$${formatCurrency(item.price * item.quantity)}</span>
                         </div>
                         {(item.customName || item.customNumber || item.specialNote) && (
                           <div className="flex flex-col gap-0.5 pl-4 border-l border-gray-100">
@@ -1024,7 +1025,7 @@ export default function CheckoutPage() {
 
                 <div className="pt-4 border-t flex justify-between items-end">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Total</span>
-                  <span className="text-xl font-bold font-headline text-primary">${formatCurrency(confirmedOrder.total)} CAD</span>
+                  <span className="text-xl font-bold font-headline text-primary">C$${formatCurrency(confirmedOrder.total)}</span>
                 </div>
               </div>
             )}

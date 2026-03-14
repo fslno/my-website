@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useMemo, useEffect } from 'react';
@@ -985,7 +986,7 @@ export default function ProductsPage() {
                       <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span></div></TableCell>
                       <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'None'}</div></TableCell>
                       <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
-                      <TableCell className="text-sm font-semibold">${formatCurrency(Number(product.price))} CAD</TableCell>
+                      <TableCell className="text-sm font-semibold">C$${formatCurrency(Number(product.price))}</TableCell>
                     </TableRow>
                   );
                 })
@@ -1029,13 +1030,13 @@ export default function ProductsPage() {
                         {firstMedia ? (
                           <img src={firstMedia} alt={product.name} className="object-cover w-full h-full" />
                         ) : (
-                          <div className="flex items-center justify-center h-full text-gray-300"><Layers className="h-6 w-6" /></div>
+                          <div className="flex items-center justify-center h-full text-gray-200"><Layers className="h-6 w-6" /></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0 space-y-1">
                         <div className="flex justify-between items-start gap-2">
                           <h3 className="font-bold text-xs uppercase truncate leading-tight">{product.name}</h3>
-                          <span className="font-bold text-xs shrink-0">${formatCurrency(Number(product.price))}</span>
+                          <span className="font-bold text-xs shrink-0">C$${formatCurrency(Number(product.price))}</span>
                         </div>
                         <p className="text-[9px] font-mono text-gray-400 uppercase truncate">SKU: {product.sku || 'N/A'}</p>
                         <div className="flex flex-wrap gap-2 pt-1">
