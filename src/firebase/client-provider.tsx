@@ -5,6 +5,7 @@ import { FirebaseProvider } from '@/firebase/provider';
 import { initializeFirebase, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -22,15 +23,27 @@ function ConfigGate({ children }: { children: ReactNode }) {
   const { isLoading: themeLoading } = useDoc(themeRef);
 
   const storeRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
-  const { isLoading: storeLoading } = useDoc(storeRef);
+  const { data: storeData, isLoading: storeLoading } = useDoc(storeRef);
 
   if (themeLoading || storeLoading) {
     return (
       <div className="fixed inset-0 bg-white z-[1000] flex items-center justify-center">
         <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
-          <div className="w-12 h-12 bg-black rounded-sm flex items-center justify-center text-white font-headline font-bold text-xl">
-            F
-          </div>
+          {storeData?.logoUrl ? (
+            <div className="relative w-16 h-16">
+              <Image 
+                src={storeData.logoUrl} 
+                alt="Loading" 
+                fill 
+                className="object-contain"
+                priority 
+              />
+            </div>
+          ) : (
+            <div className="w-12 h-12 bg-black rounded-sm flex items-center justify-center text-white font-headline font-bold text-xl">
+              F
+            </div>
+          )}
           <Loader2 className="h-5 w-5 animate-spin text-black/20" />
         </div>
       </div>
