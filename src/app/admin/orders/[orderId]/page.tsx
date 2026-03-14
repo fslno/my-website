@@ -230,6 +230,31 @@ export default function OrderDetailPage(props: {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'awaiting_processing':
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting</Badge>;
+      case 'processing':
+        return <Badge className="bg-violet-50 text-violet-700 border-violet-100 uppercase text-[10px] font-bold">Processing</Badge>;
+      case 'ready_for_pickup':
+        return <Badge className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[10px] font-bold">Ready for Pickup</Badge>;
+      case 'shipped':
+        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 uppercase text-[10px] font-bold">Shipped</Badge>;
+      case 'delivered':
+        return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] font-bold">Delivered</Badge>;
+      case 'out_for_delivery':
+        return <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 uppercase text-[10px] font-bold">Out for Delivery</Badge>;
+      case 'returned':
+        return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[10px] font-bold">Returned</Badge>;
+      case 'canceled':
+        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
+      case 'confirmed':
+        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
+      default:
+        return <Badge className="bg-gray-50 text-gray-700 border-gray-100 uppercase text-[10px] font-bold">{status?.replace('_', ' ')}</Badge>;
+    }
+  };
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -275,7 +300,10 @@ export default function OrderDetailPage(props: {
           </Link>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Order #{order.id.substring(0, 6).toUpperCase()}</h1>
-            {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+            <div className="flex gap-2 items-center">
+              {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+              {getStatusBadge(order.status)}
+            </div>
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
