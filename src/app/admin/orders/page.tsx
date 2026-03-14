@@ -25,7 +25,8 @@ import {
   Mail,
   Truck,
   MapPin,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 import {
   Select,
@@ -412,6 +413,30 @@ export default function OrdersPage() {
                   <div className="text-sm font-bold text-primary">{`C$${formatCurrency(Number(order.total) || 0)}`}</div>
                   {getPaymentStatusBadge(order.paymentStatus || 'pending')}
                 </div>
+              </div>
+
+              {/* Item Manifest with Customizations */}
+              <div className="space-y-3 pt-3 border-t border-dashed">
+                {(order.items || []).map((item: any, i: number) => (
+                  <div key={i} className="flex justify-between items-start gap-4">
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold uppercase leading-tight">{item.name} ({item.size})</p>
+                      {(item.customName || item.customNumber || item.specialNote) && (
+                        <div className="flex flex-col gap-1 mt-1.5 pl-2 border-l-2 border-blue-100">
+                          {(item.customName || item.customNumber) && (
+                            <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                              <Sparkles className="h-2.5 w-2.5" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                            </p>
+                          )}
+                          {item.specialNote && (
+                            <p className="text-[9px] text-gray-500 italic leading-snug">"{item.specialNote}"</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-400 shrink-0">QTY: {item.quantity}</p>
+                  </div>
+                ))}
               </div>
 
               {/* Forensic Details Manifest (Mobile Card Expansion) */}

@@ -433,6 +433,18 @@ export default function OrderDetailPage(props: {
                             <div className="flex flex-col justify-center">
                               <span className="text-xs font-bold uppercase line-clamp-1">{item.name}</span>
                               <span className="text-[8px] h-4 uppercase font-bold">Size: {item.size}</span>
+                              {(item.customName || item.customNumber || item.specialNote) && (
+                                <div className="mt-1 flex flex-col gap-0.5">
+                                  {(item.customName || item.customNumber) && (
+                                    <p className="text-[8px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                                      <Sparkles className="h-2 w-2" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                    </p>
+                                  )}
+                                  {item.specialNote && (
+                                    <p className="text-[8px] text-gray-400 italic">"{item.specialNote}"</p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </TableCell>
@@ -459,6 +471,18 @@ export default function OrderDetailPage(props: {
                           <span className="text-[10px] uppercase font-bold text-gray-400">Size: {item.size} • Qty: {item.quantity}</span>
                           <span className="text-sm font-bold">{`C$${formatCurrency((Number(item.price) || 0) * item.quantity)}`}</span>
                         </div>
+                        {(item.customName || item.customNumber || item.specialNote) && (
+                          <div className="mt-2 p-2 bg-blue-50/50 border border-blue-100 rounded-sm space-y-1">
+                            {(item.customName || item.customNumber) && (
+                              <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                                <Sparkles className="h-3 w-3" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                              </p>
+                            )}
+                            {item.specialNote && (
+                              <p className="text-[9px] text-gray-500 italic leading-tight">"{item.specialNote}"</p>
+                            )}
+                          </div>
+                        )}
                         <p className="text-[10px] text-gray-400 mt-0.5">{`C$${formatCurrency(Number(item.price) || 0)} / item`}</p>
                       </div>
                     </div>
