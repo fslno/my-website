@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { use } from 'react';
@@ -160,7 +159,7 @@ export default function OrderDetailPage({
                         <div className="space-y-2">
                           <div className="flex justify-between items-start">
                             <h3 className="text-sm font-bold uppercase tracking-tight text-primary leading-none">{item.name}</h3>
-                            <p className="text-sm font-bold text-primary">C$${formatCurrency(item.price * item.quantity)}</p>
+                            <p className="text-sm font-bold text-primary">C${formatCurrency(item.price * item.quantity)}</p>
                           </div>
                           <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">
                             <span>Size: {item.size}</span>

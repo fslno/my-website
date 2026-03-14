@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -272,6 +271,10 @@ export default function CheckoutPage() {
       number: item.customNumber || '',
       note: item.specialNote || ''
     });
+  };
+
+  const handleEditChange = (field: string, value: string) => {
+    setEditFields(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveEdit = (variantId: string) => {
@@ -679,7 +682,7 @@ export default function CheckoutPage() {
                               <Label className="text-[8px] font-bold uppercase text-gray-400">Name</Label>
                               <Input 
                                 value={editFields.name} 
-                                onChange={(e) => setEditFields({...editFields, name: e.target.value.toUpperCase()})}
+                                onChange={(e) => handleEditChange('name', e.target.value.toUpperCase())}
                                 className="h-7 text-[9px] font-bold rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
                               />
                             </div>
@@ -688,7 +691,7 @@ export default function CheckoutPage() {
                               <Input 
                                 value={editFields.number} 
                                 maxLength={2}
-                                onChange={(e) => setEditFields({...editFields, number: e.target.value})}
+                                onChange={(e) => handleEditChange('number', e.target.value)}
                                 className="h-7 text-[9px] font-bold text-center rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
                               />
                             </div>
@@ -697,7 +700,7 @@ export default function CheckoutPage() {
                             <Label className="text-[8px] font-bold uppercase text-gray-400">Special Note</Label>
                             <Input 
                               value={editFields.note} 
-                              onChange={(e) => setEditFields({...editFields, note: e.target.value.toUpperCase()})}
+                              onChange={(e) => handleEditChange('note', e.target.value.toUpperCase())}
                               className="h-7 text-[9px] font-bold rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
                             />
                           </div>
