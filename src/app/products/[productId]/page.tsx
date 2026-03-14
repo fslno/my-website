@@ -366,7 +366,7 @@ export default function ProductDetailPage(props: {
                         key={s} 
                         className={cn(
                           "h-3 w-3", 
-                          s <= Math.round(ratingStats.avg) ? "fill-primary text-primary" : "text-gray-200"
+                          s <= Math.round(ratingStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
                         )} 
                       />
                     ))}

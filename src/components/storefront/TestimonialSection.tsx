@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo } from 'react';
@@ -78,7 +77,7 @@ export function TestimonialSection() {
                           key={s} 
                           className={cn(
                             "h-2.5 w-2.5", 
-                            s <= t.rating ? "fill-primary text-primary" : "text-gray-200"
+                            s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
                           )} 
                         />
                       ))}

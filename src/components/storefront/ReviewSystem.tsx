@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -213,7 +212,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-primary text-primary" : "text-gray-100")} />
+                      <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-100")} />
                     ))}
                   </div>
                   <div className="flex items-center gap-4">
