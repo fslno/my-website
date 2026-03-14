@@ -32,7 +32,8 @@ import {
   CheckCircle2,
   X,
   Save,
-  ArrowRight
+  ArrowRight,
+  MessageSquare
 } from 'lucide-react';
 import { 
   Table, 
@@ -290,6 +291,23 @@ export default function OrderDetailPage(props: {
 
       <div className="flex flex-col xl:flex-row gap-8 print:hidden">
         <div className="flex-1 min-w-0 space-y-8">
+          
+          {/* Order Note / Special Request Manifest */}
+          {order.note && (
+            <Card className="border-[#e1e3e5] shadow-none bg-amber-50/20 border-amber-100 rounded-none border-l-4 border-l-amber-500">
+              <CardHeader className="bg-amber-50/30 border-b py-4">
+                <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-amber-700 flex items-center gap-2">
+                  <MessageSquare className="h-3 w-3" /> Special Request (Customer Note)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <p className="text-sm font-medium italic text-amber-900 leading-relaxed uppercase tracking-tight">
+                  "{order.note}"
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="border-[#e1e3e5] shadow-none rounded-none border-blue-100 bg-blue-50/10">
             <CardHeader className="bg-blue-50/30 border-b py-4">
               <div className="flex items-center justify-between">

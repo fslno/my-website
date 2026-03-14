@@ -21,7 +21,11 @@ import {
   CheckCircle2,
   ChevronRight,
   Phone,
-  RotateCcw
+  RotateCcw,
+  Mail,
+  Truck,
+  MapPin,
+  MessageSquare
 } from 'lucide-react';
 import {
   Select,
@@ -409,6 +413,30 @@ export default function OrdersPage() {
                   {getPaymentStatusBadge(order.paymentStatus || 'pending')}
                 </div>
               </div>
+
+              {/* Forensic Details Manifest (Mobile Card Expansion) */}
+              <div className="flex flex-col gap-2 border-t pt-3">
+                <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                  <Mail className="h-3 w-3" /> {order.email}
+                </div>
+                <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                  <Phone className="h-3 w-3" /> {order.customer?.phone || 'NO PHONE'}
+                </div>
+                <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                  {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
+                  {order.deliveryMethod?.toUpperCase()} {order.courier ? `• ${order.courier.toUpperCase()}` : ''}
+                </div>
+              </div>
+
+              {/* Special Request Prompt */}
+              {order.note && (
+                <div className="p-3 bg-amber-50 border border-amber-100 mt-2 rounded-sm">
+                  <p className="text-[8px] font-bold uppercase text-amber-800 mb-1 flex items-center gap-1.5">
+                    <MessageSquare className="h-2.5 w-2.5" /> Special Request
+                  </p>
+                  <p className="text-[10px] text-amber-900 font-medium italic">"{order.note}"</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
