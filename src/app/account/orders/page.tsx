@@ -61,7 +61,7 @@ export default function OrderHistoryPage() {
     return (
       <main className="min-h-screen bg-background">
         <Header />
-        <div className="pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
+        <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
           <ShoppingBag className="h-12 w-12 text-gray-200 mb-6" />
           <h1 className="text-3xl font-headline font-bold uppercase mb-4">Account Required</h1>
           <p className="text-gray-500 max-w-xs mb-8">Please sign in to view your archive order history.</p>
@@ -75,7 +75,7 @@ export default function OrderHistoryPage() {
     <main className="min-h-screen bg-background">
       <Header />
       
-      <div className="pt-40 pb-24 max-w-[1440px] mx-auto px-4">
+      <div className="pt-28 sm:pt-40 pb-24 max-w-[1440px] mx-auto px-4">
         <div className="mb-12">
           <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Your Account</span>
           <h1 className="text-4xl md:text-6xl font-headline font-bold uppercase tracking-tight mt-2">Order History</h1>

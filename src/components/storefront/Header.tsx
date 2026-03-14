@@ -160,7 +160,7 @@ export function Header() {
     <>
       {theme?.bannerEnabled && (
         <div 
-          className="fixed top-0 left-0 right-0 z-[60] h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center banner-style text-[8px] sm:text-[10px]"
+          className="fixed top-0 left-0 right-0 z-[60] h-7 sm:h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center banner-style"
           style={{ backgroundColor: theme.bannerBgColor || 'var(--primary)' }}
         >
           {theme.bannerText}
@@ -169,7 +169,7 @@ export function Header() {
       <header
         className={cn(
           'fixed left-0 right-0 z-50 transition-all duration-300 h-16 sm:h-20 flex items-center bg-white border-b shadow-sm',
-          theme?.bannerEnabled ? 'top-10' : 'top-0'
+          theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
         )}
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between">
@@ -407,7 +407,7 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                   <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0">
-                    <SheetTitle className="text-xl font-headline font-bold tracking-tight uppercase text-center text-primary">Wishlist ({wishlistCount})</SheetTitle>
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight uppercase text-center text-primary">Wishlist ({wishlistCount})</SheetTitle>
                   </SheetHeader>
                   <ScrollArea className="flex-1">
                     {wishlist.length === 0 ? (

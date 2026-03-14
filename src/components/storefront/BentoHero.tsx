@@ -27,15 +27,15 @@ export function BentoHero({
   textAlign = 'center',
   verticalAlign = 'center'
 }: BentoHeroProps) {
-  // Authoritatively set pt-36 to clear the fixed Header + Announcement Banner
+  // Authoritatively set pt-28 sm:pt-36 to clear the fixed Header + Announcement Banner
   if (isLoading) {
-    return <section className="pt-36 pb-12"><div className="w-full h-[52.5vh] bg-gray-50" /></section>;
+    return <section className="pt-28 sm:pt-36 pb-12"><div className="w-full h-[52.5vh] bg-gray-50" /></section>;
   }
 
   const imageSrc = heroImageUrl || fallbackImageUrl || "";
 
   return (
-    <section className="pt-36 pb-12">
+    <section className="pt-28 sm:pt-36 pb-12">
       <div className="w-full bg-primary overflow-hidden group shadow-2xl">
         <div className="relative h-[52.5vh] w-full">
           {imageSrc ? (

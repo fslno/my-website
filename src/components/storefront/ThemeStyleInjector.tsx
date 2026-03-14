@@ -154,10 +154,13 @@ export function ThemeStyleInjector() {
       .border-accent {
         border-color: var(--accent) !important;
       }
+      
+      /* RESPONSIVE BANNER PROTOCOL */
       .banner-style {
         font-family: var(--banner-font) !important;
-        font-size: var(--banner-font-size) !important;
+        font-size: clamp(7px, 2.5vw, var(--banner-font-size)) !important;
       }
+      
       .hero-text-align {
         text-align: var(--hero-text-align) !important;
       }

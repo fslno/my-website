@@ -262,10 +262,10 @@ export default function ProductDetailPage(props: {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center p-4 pt-28 sm:pt-36">
         <h1 className="text-2xl font-headline font-bold mb-4 text-primary">Product Not Found</h1>
         <p className="text-muted-foreground mb-8">This item may no longer be available.</p>
-        <Button asChild className="bg-primary text-primary-foreground rounded-none">
+        <Button asChild className="bg-primary text-primary-foreground rounded-none h-12 px-8">
           <Link href="/">Back to Shop</Link>
         </Button>
       </div>
@@ -279,7 +279,7 @@ export default function ProductDetailPage(props: {
     <main className="min-h-screen bg-white">
       <Header />
       
-      <div className="max-w-[1280px] mx-auto px-4 pt-36 pb-12">
+      <div className="max-w-[1280px] mx-auto px-4 pt-28 sm:pt-36 pb-12">
         <button 
           onClick={() => router.back()}
           className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
@@ -417,7 +417,7 @@ export default function ProductDetailPage(props: {
                         <Ruler className="h-5 w-5" /> Size Guide
                       </button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 overflow-hidden flex flex-col">
+                    <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 flex flex-col">
                       <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                         <div className="flex items-center gap-3 text-primary mb-2">
                           <Ruler className="h-5 w-5" />

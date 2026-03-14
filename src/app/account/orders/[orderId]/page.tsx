@@ -79,7 +79,7 @@ export default function OrderDetailPage(props: {
     return (
       <main className="min-h-screen bg-background">
         <Header />
-        <div className="pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
+        <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
           <div className="bg-red-50 p-8 border border-red-100 max-w-md">
             <h1 className="text-2xl font-headline font-bold uppercase mb-4">Access Denied</h1>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-8 leading-relaxed">
@@ -99,7 +99,7 @@ export default function OrderDetailPage(props: {
     return (
       <main className="min-h-screen bg-background">
         <Header />
-        <div className="pt-40 pb-24 px-4 text-center">
+        <div className="pt-28 sm:pt-40 pb-24 px-4 text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Transaction Not Found.</p>
           <Link href="/account/orders" className="mt-8 inline-block text-[10px] font-bold uppercase underline tracking-widest">Return to Studio</Link>
         </div>
@@ -112,7 +112,7 @@ export default function OrderDetailPage(props: {
     <main className="min-h-screen bg-[#F9F9F9]">
       <Header />
       
-      <div className="pt-40 pb-24 max-w-[1280px] mx-auto px-4">
+      <div className="pt-28 sm:pt-40 pb-24 max-w-[1280px] mx-auto px-4">
         <div className="mb-12">
           <Link href="/account/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors mb-6 group w-fit">
             <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back to History

@@ -366,7 +366,7 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen flex flex-col bg-white">
         <Header />
-        <div className="flex-1 flex flex-col items-center justify-center p-4 text-center pt-40 pb-20">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 text-center pt-28 sm:pt-40 pb-20">
           <Package className="h-12 w-12 text-muted-foreground mb-4" />
           <h1 className="text-2xl font-headline font-bold mb-4 uppercase text-primary">Your cart is empty</h1>
           <Button asChild className="bg-primary text-primary-foreground h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out">
@@ -382,7 +382,7 @@ export default function CheckoutPage() {
     <main className="min-h-screen bg-[#F9F9F9] flex flex-col">
       <Header />
 
-      <div className="pt-32 max-w-[1440px] mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12">
+      <div className="pt-24 sm:pt-32 max-w-[1440px] mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12">
         <div className="lg:col-span-7 p-6 lg:p-12 space-y-12">
           
           <section className="space-y-6">
