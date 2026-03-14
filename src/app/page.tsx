@@ -98,7 +98,7 @@ export default function Home() {
       
       {/* Hero Selection based on Theme Config */}
       {theme?.homepageLayout === 'classic' ? (
-        <section className="pt-28 sm:pt-36 pb-12">
+        <section className="pt-28 sm:pt-36">
           <div className="w-full overflow-hidden bg-primary shadow-2xl group border-b">
             <div className="relative h-[52.5vh] w-full">
               {heroImageSrc ? (
