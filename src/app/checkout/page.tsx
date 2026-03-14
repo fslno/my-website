@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -136,11 +135,24 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showErrorBanner, setShowErrors] = useState(false);
 
+  const enabledCarriers = useMemo(() => {
+    return shippingConfig?.carriers?.filter((c: any) => typeof c === 'string' ? true : c.active) || [];
+  }, [shippingConfig]);
+
   const isFreeShippingEligible = useMemo(() => {
     if (!shippingConfig?.freeShippingEnabled) return false;
     const threshold = Number(shippingConfig.freeShippingThreshold) || 500;
     return cartSubtotal >= threshold;
   }, [shippingConfig, cartSubtotal]);
+
+  // Authoritative Protocol: Auto-select free shipping if threshold hit and no selection made
+  useEffect(() => {
+    if (deliveryMethod === 'shipping' && isFreeShippingEligible && !formData.courier && enabledCarriers.length > 0) {
+      const firstCarrier = typeof enabledCarriers[0] === 'string' ? enabledCarriers[0] : enabledCarriers[0].name;
+      setFormData(prev => ({ ...prev, courier: firstCarrier }));
+      setShippingRate(0);
+    }
+  }, [isFreeShippingEligible, enabledCarriers, deliveryMethod, formData.courier]);
 
   const isTaxReady = useMemo(() => {
     if (deliveryMethod === 'shipping') {
@@ -151,10 +163,11 @@ export default function CheckoutPage() {
 
   const isShippingReady = useMemo(() => {
     if (deliveryMethod === 'shipping') {
-      return !!formData.courier;
+      // Authoritatively allow passing if free shipping is hit, even if courier isn't explicitly set (though handled by useEffect)
+      return !!formData.courier || isFreeShippingEligible;
     }
     return true; 
-  }, [deliveryMethod, formData.courier]);
+  }, [deliveryMethod, formData.courier, isFreeShippingEligible]);
 
   const isSummaryReady = isTaxReady && isShippingReady && !!selectedPayment;
 
@@ -200,7 +213,9 @@ export default function CheckoutPage() {
       if (!formData.postalCode) newErrors.postalCode = true;
       if (!formData.province) newErrors.province = true;
       if (!formData.country) newErrors.country = true;
-      if (!formData.courier) newErrors.courier = true;
+      
+      // Authoritatively allow "pass" if free shipping is active
+      if (!formData.courier && !isFreeShippingEligible) newErrors.courier = true;
 
       if (!billingSameAsShipping) {
         if (!formData.billingAddress) newErrors.billingAddress = true;
@@ -309,7 +324,7 @@ export default function CheckoutPage() {
       shipping: shippingRate,
       total: finalTotal,
       deliveryMethod,
-      courier: formData.courier,
+      courier: formData.courier || (isFreeShippingEligible ? "FREE SHIPPING" : ""),
       paymentMethod: selectedPayment,
       referral: formData.referral,
       note: orderNote,
@@ -359,8 +374,6 @@ export default function CheckoutPage() {
     );
   }
 
-  const enabledCarriers = shippingConfig?.carriers?.filter((c: any) => typeof c === 'string' ? true : c.active) || [];
-
   return (
     <main className="min-h-screen bg-[#F9F9F9] flex flex-col">
       <Header />
@@ -403,7 +416,7 @@ export default function CheckoutPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone Number {errors.phone && "- REQUIRED"}</Label>
-                <Input id="tel" name="tel" type="tel" autoComplete="tel" placeholder="" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                <Input id="tel" name="phone" type="tel" autoComplete="tel" placeholder="" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
                 <Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name {errors.name && "- REQUIRED"}</Label>
@@ -492,8 +505,8 @@ export default function CheckoutPage() {
 
                 <div className="space-y-4 pt-6 border-t">
                   <div className="flex items-center justify-between">
-                    <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", errors.courier ? "text-destructive" : "text-primary")}>
-                      <Truck className="h-3 w-3" /> Select Shipping Method {errors.courier && "- REQUIRED"}
+                    <h3 className={cn("text-[10px] uppercase tracking-widest font-bold flex items-center gap-2", (errors.courier && !isFreeShippingEligible) ? "text-destructive" : "text-primary")}>
+                      <Truck className="h-3 w-3" /> Select Shipping Method {(errors.courier && !isFreeShippingEligible) && "- REQUIRED"}
                     </h3>
                     {isFreeShippingEligible && (
                       <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[8px] font-bold tracking-widest gap-1.5 flex items-center">
@@ -551,26 +564,26 @@ export default function CheckoutPage() {
                   <div className="grid gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="billing-address-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address {errors.billingAddress && "- REQUIRED"}</Label>
-                      <Input id="billing-address-pickup" name="billing-address" type="text" autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
+                      <Input id="billing-address-pickup" name="billing address-line1" type="text" autoComplete="billing address-line1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="billing-city-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "- REQUIRED"}</Label>
-                        <Input id="billing-city-pickup" name="billing-city" type="text" autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
+                        <Input id="billing-city-pickup" name="billing address-level2" type="text" autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="billing-zip-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "- REQUIRED"}</Label>
-                        <Input id="billing-zip-pickup" name="billing-zip" type="text" autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                        <Input id="billing-zip-pickup" name="billing postal-code" type="text" autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="billing-state-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province / State {errors.billingProvince && "- REQUIRED"}</Label>
-                        <Input id="billing-state-pickup" name="billing-state" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                        <Input id="billing-state-pickup" name="billing address-level1" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="billing-country-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "- REQUIRED"}</Label>
-                        <Input id="billing-country-pickup" name="billing-country" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                        <Input id="billing-country-pickup" name="billing country-name" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                       </div>
                     </div>
                   </div>
