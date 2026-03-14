@@ -108,7 +108,6 @@ export default function CheckoutPage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<any>(null);
 
-  // Edit State for Items
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   const [editFields, setEditFields] = useState({ name: '', number: '', note: '' });
 
@@ -246,16 +245,16 @@ export default function CheckoutPage() {
         const data = couponDoc.data() as Coupon;
         if (data.active) {
           applyCoupon(data);
-          toast({ title: "Discount applied", description: `Your code was validated.` });
+          toast({ title: "Applied", description: `Discount verified.` });
           setCouponInput('');
         } else {
-          toast({ variant: "destructive", title: "Invalid code", description: "Code inactive." });
+          toast({ variant: "destructive", title: "Error", description: "Code inactive." });
         }
       } else {
-        toast({ variant: "destructive", title: "Not found", description: "Invalid code." });
+        toast({ variant: "destructive", title: "Error", description: "Invalid code." });
       }
     } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Validation failed." });
+      toast({ variant: "destructive", title: "Error", description: "Verification failed." });
     } finally {
       setIsValidatingCoupon(false);
     }
@@ -366,7 +365,7 @@ export default function CheckoutPage() {
         <div className="flex-1 flex flex-col items-center justify-center p-4 text-center pt-28 sm:pt-40 pb-20">
           <Package className="h-12 w-12 text-muted-foreground mb-4" />
           <h1 className="text-2xl font-headline font-bold mb-4 uppercase text-primary">Cart empty</h1>
-          <Button asChild className="bg-primary text-primary-foreground h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out">
+          <Button asChild className="bg-primary text-primary-foreground h-12 px-8 rounded-none uppercase tracking-widest font-bold text-[10px] hover:opacity-90 transition-all">
             <Link href="/">Shop Now</Link>
           </Button>
         </div>
@@ -387,7 +386,7 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }}
-                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 ease-in-out hover:bg-secondary", deliveryMethod === 'shipping' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
+                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 hover:bg-secondary", deliveryMethod === 'shipping' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
               >
                 <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")} />
                 <div>
@@ -397,7 +396,7 @@ export default function CheckoutPage() {
               </button>
               <button
                 onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); setErrors({}); }}
-                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 ease-in-out hover:bg-secondary", deliveryMethod === 'pickup' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
+                className={cn("p-6 border-2 text-left flex flex-col gap-3 transition-all duration-300 hover:bg-secondary", deliveryMethod === 'pickup' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}
               >
                 <Store className={cn("h-6 w-6", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")} />
                 <div>
@@ -511,7 +510,7 @@ export default function CheckoutPage() {
                     </h3>
                     {isFreeShippingEligible && (
                       <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[8px] font-bold tracking-widest gap-1.5 flex items-center">
-                        <Trophy className="h-2.5 w-2.5" /> Free Shipping Active
+                        <Trophy className="h-2.5 w-2.5" /> Free Shipping
                       </Badge>
                     )}
                   </div>
@@ -538,7 +537,7 @@ export default function CheckoutPage() {
                         const cost = isFreeShippingEligible ? 0 : (isExpress ? (Number(shippingConfig?.expressRate) || 25) : (Number(shippingConfig?.standardRate) || 0));
                         
                         return (
-                          <div key={name} className={cn("flex items-center justify-between p-4 border rounded-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-secondary", formData.courier === name ? "bg-white border-primary ring-1 ring-primary" : "bg-gray-50/50")}>
+                          <div key={name} className={cn("flex items-center justify-between p-4 border rounded-none cursor-pointer transition-all hover:bg-secondary", formData.courier === name ? "bg-white border-primary ring-1 ring-primary" : "bg-gray-50/50")}>
                             <div className="flex items-center space-x-3">
                               <RadioGroupItem value={name} id={name} className="border-primary text-primary" />
                               <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-widest cursor-pointer text-primary">{name} {isExpress ? 'Express' : 'Standard'}</Label>
@@ -627,7 +626,7 @@ export default function CheckoutPage() {
           <section className="space-y-6 bg-gray-50 border p-8 rounded-none">
             <h2 className={cn("text-sm font-bold uppercase tracking-[0.2em]", errors.referral ? "text-destructive" : "text-primary")}>Referral {errors.referral && "* REQUIRED"}</h2>
             <Select onValueChange={(val) => handleInputChange('referral', val)}>
-              <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:opacity-80 transition-all duration-300 ease-in-out text-[10px] font-bold uppercase tracking-widest rounded-none text-primary">
+              <SelectTrigger className="h-12 bg-secondary border-gray-200 hover:opacity-80 transition-all text-[10px] font-bold uppercase tracking-widest rounded-none text-primary">
                 <SelectValue placeholder="SELECT SOURCE" />
               </SelectTrigger>
               <SelectContent>
@@ -640,13 +639,13 @@ export default function CheckoutPage() {
           </section>
         </div>
 
-        <div className="lg:col-span-5 bg-white border-l p-6 lg:p-12 sticky lg:h-screen lg:top-20 overflow-y-auto">
+        <div className="lg:col-span-5 bg-white border-l p-6 lg:p-12 lg:sticky lg:h-screen lg:top-20 overflow-y-auto">
           <div className="max-md:max-w-md mx-auto space-y-8">
             {showErrorBanner && (
               <Alert variant="destructive" className="rounded-none border-2">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle className="text-[10px] font-bold uppercase tracking-widest">Error</AlertTitle>
-                <AlertDescription className="text-[9px] uppercase font-medium">Review required fields.</AlertDescription>
+                <AlertDescription className="text-[9px] uppercase font-medium">Check fields.</AlertDescription>
               </Alert>
             )}
 
@@ -677,7 +676,7 @@ export default function CheckoutPage() {
                               <Input 
                                 value={editFields.name} 
                                 onChange={(e) => handleEditChange('name', e.target.value.toUpperCase())}
-                                className="h-7 text-[9px] font-bold rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                                className="h-7 text-[9px] font-bold rounded-none bg-white"
                               />
                             </div>
                             <div className="space-y-1">
@@ -686,7 +685,7 @@ export default function CheckoutPage() {
                                 value={editFields.number} 
                                 maxLength={2}
                                 onChange={(e) => handleEditChange('number', e.target.value)}
-                                className="h-7 text-[9px] font-bold text-center rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                                className="h-7 text-[9px] font-bold text-center rounded-none bg-white"
                               />
                             </div>
                           </div>
@@ -695,13 +694,13 @@ export default function CheckoutPage() {
                             <Input 
                               value={editFields.note} 
                               onChange={(e) => handleEditChange('note', e.target.value.toUpperCase())}
-                              className="h-7 text-[9px] font-bold rounded-none bg-white focus-visible:ring-1 focus-visible:ring-black"
+                              className="h-7 text-[9px] font-bold rounded-none bg-white"
                             />
                           </div>
                           <div className="flex gap-2 pt-1">
                             <Button 
                               size="sm" 
-                              className="h-7 flex-1 text-[8px] font-bold uppercase tracking-widest rounded-none bg-black text-white hover:bg-black/80"
+                              className="h-7 flex-1 text-[8px] font-bold uppercase tracking-widest rounded-none bg-black text-white"
                               onClick={() => handleSaveEdit(item.variantId)}
                             >
                               Save
@@ -772,9 +771,9 @@ export default function CheckoutPage() {
                     onClick={handleValidateCoupon}
                     disabled={isValidatingCoupon}
                     variant="outline" 
-                    className="h-10 px-4 rounded-none border-primary text-[9px] font-bold uppercase tracking-widest hover:bg-secondary transition-all duration-300 ease-in-out text-primary"
+                    className="h-10 px-4 rounded-none border-primary text-[9px] font-bold uppercase tracking-widest transition-all text-primary"
                   >
-                    {isValidatingCoupon ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
+                    {isValidatingCoupon ? <Loader2 className="h-3 w-3 animate-spin" /> : "Verify"}
                   </Button>
                 </div>
                 {appliedCoupon && (
@@ -829,7 +828,7 @@ export default function CheckoutPage() {
                   ) : !paymentConfig ? (
                     <Alert className="bg-amber-50 border-amber-100 rounded-none">
                       <AlertCircle className="h-4 w-4 text-amber-600" />
-                      <AlertDescription className="text-[10px] font-bold uppercase text-amber-700">Payment system unavailable.</AlertDescription>
+                      <AlertDescription className="text-[10px] font-bold uppercase text-amber-700">Payment system offline.</AlertDescription>
                     </Alert>
                   ) : (
                     <div className="grid grid-cols-1 gap-3">
@@ -837,7 +836,7 @@ export default function CheckoutPage() {
                         <button 
                           onClick={() => setSelectedPayment('stripe')}
                           className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
+                            "flex items-center justify-between p-4 border-2 transition-all text-left rounded-none",
                             selectedPayment === 'stripe' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
                           )}
                         >
@@ -855,7 +854,7 @@ export default function CheckoutPage() {
                         <button 
                           onClick={() => setSelectedPayment('paypal')}
                           className={cn(
-                            "flex items-center justify-between p-4 border-2 transition-all duration-300 ease-in-out text-left rounded-none",
+                            "flex items-center justify-between p-4 border-2 transition-all text-left rounded-none",
                             selectedPayment === 'paypal' ? "border-primary bg-white shadow-lg" : "border-gray-100 bg-gray-50/50 hover:border-gray-300"
                           )}
                         >
@@ -876,7 +875,7 @@ export default function CheckoutPage() {
                     <Button 
                       onClick={handleSubmit}
                       disabled={isSubmitting || !selectedPayment}
-                      className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:opacity-90 transition-all duration-300 ease-in-out"
+                      className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:opacity-90"
                     >
                       {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Place Order"}
                     </Button>
@@ -957,7 +956,7 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <Button asChild className="w-full h-14 bg-primary text-primary-foreground font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out">
+            <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none hover:opacity-90 transition-all">
               <Link href="/">Back to Shop</Link>
             </Button>
           </div>

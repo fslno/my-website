@@ -77,13 +77,13 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
       await auth.signOut();
       toast({
         title: "Signed out",
-        description: "Your session is closed.",
+        description: "Session closed.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to sign out.",
+        description: "Logout failed.",
       });
     }
   };
@@ -183,7 +183,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         </SidebarGroup>
 
         <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Store Settings</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Settings</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
@@ -197,7 +197,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               <SidebarMenuButton asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/theme">
                   <Palette />
-                  <span>Theme Engine</span>
+                  <span>Theme</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -205,7 +205,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               <SidebarMenuButton asChild tooltip="Footer" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/footer">
                   <MenuIcon />
-                  <span>Footer Editor</span>
+                  <span>Footer</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -221,77 +221,30 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               <SidebarMenuButton asChild tooltip="Shipping" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/shipping">
                   <Truck />
-                  <span>Shipping & Pickup</span>
+                  <span>Shipping</span>
                 </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Payments" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/payments">
-                  <CreditCard />
-                  <span>Payments</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/domain">
-                  <Globe />
-                  <span>Domain</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Channels</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Google" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/google">
-                  <RefreshCw />
-                  <span>Google Sync</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Social" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/social">
-                  <Share2 />
-                  <span>Social Commerce</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/analytics">
-                  <BarChart />
-                  <span>Analytics</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
-         <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/settings">
-                  <Settings />
-                  <span>Settings</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body">
-                <LogOut />
-                <span>Sign Out</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-         </SidebarMenu>
-      </SidebarFooter>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
+           <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
+                  <Link href="/admin/settings">
+                    <Settings />
+                    <span>Settings</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body text-destructive">
+                  <LogOut />
+                  <span>Sign Out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+           </SidebarMenu>
+        </SidebarFooter>
     </Sidebar>
   );
 }
@@ -333,13 +286,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           
           if (notificationConfig?.orderAlarmEnabled && !isAudioMuted) {
             audioRef.current?.play().catch(e => {
-              console.warn("Autoplay prevented. Audio alert suppressed until interaction.", e);
+              console.warn("Autoplay prevented.", e);
             });
           }
 
           toast({
-            title: "New Order Manifested",
-            description: "A high-fidelity transaction has just been registered.",
+            title: "New Order",
+            description: "Order received.",
             duration: 10000,
           });
 
@@ -350,35 +303,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return () => unsubscribe();
   }, [db, user, hasMounted, notificationConfig, isAudioMuted, toast]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target as HTMLElement).isContentEditable
-      ) {
-        return;
-      }
-
-      if (e.altKey) {
-        switch (e.key.toLowerCase()) {
-          case 'd': e.preventDefault(); router.push('/admin'); break;
-          case 'o': e.preventDefault(); router.push('/admin/orders'); break;
-          case 'p': e.preventDefault(); router.push('/admin/products'); break;
-          case 'c': e.preventDefault(); router.push('/admin/categories'); break;
-          case 's': e.preventDefault(); router.push('/admin/settings'); break;
-          case 't': e.preventDefault(); router.push('/admin/theme'); break;
-          case 'r': e.preventDefault(); router.push('/admin/promotions'); break;
-          case 'u': e.preventDefault(); router.push('/admin/customers'); break;
-          case 'z': e.preventDefault(); router.push('/admin/size-chart'); break;
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [router]);
 
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
@@ -396,9 +320,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setIsLoggingIn(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Logged In", description: "Identity confirmed." });
+      toast({ title: "Signed in", description: "Identity confirmed." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Login Failed", description: "Invalid email or password." });
+      toast({ variant: "destructive", title: "Error", description: "Invalid email or password." });
     } finally {
       setIsLoggingIn(false);
     }
@@ -430,14 +354,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <ShieldAlert className="h-12 w-12 text-red-600 mx-auto mb-4" />
               <h1 className="text-xl font-headline font-bold mb-2 uppercase tracking-tight">Access Denied</h1>
               <p className="text-gray-500 text-xs leading-relaxed uppercase tracking-widest font-bold">
-                Your account ({user.email}) does not have admin permissions.
+                Account ({user.email}) lacks permissions.
               </p>
             </div>
             <Button onClick={() => signOut(auth!)} variant="outline" className="w-full border-black font-bold uppercase text-[10px] tracking-widest">Sign Out</Button>
           </div>
         ) : (
           <>
-            <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Admin Login</h1>
+            <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Admin Sign In</h1>
             <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
               <div className="space-y-2 text-left">
                 <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email</Label>
@@ -454,7 +378,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
               </div>
               <Button type="submit" disabled={isLoggingIn} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 transition-all rounded-none">
-                {isLoggingIn ? "Logging in..." : "Login"}
+                {isLoggingIn ? "Signing in..." : "Sign In"}
               </Button>
             </form>
           </>
@@ -520,7 +444,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <button 
                 onClick={() => setIsAudioMuted(!isAudioMuted)}
                 className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors"
-                title={isAudioMuted ? "Unmute Order Alarm" : "Mute Order Alarm"}
+                title={isAudioMuted ? "Unmute Alarm" : "Mute Alarm"}
               >
                 {isAudioMuted ? <VolumeX className="h-5 w-5 text-red-400" /> : <Volume2 className="h-5 w-5 text-[#5c5f62]" />}
               </button>

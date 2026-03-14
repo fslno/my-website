@@ -33,7 +33,6 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   
   const [isLoading, setIsLoading] = useState(false);
   
-  // Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -50,7 +49,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Login Failed",
+        title: "Error",
         description: error.message || "Invalid credentials."
       });
     } finally {
@@ -68,14 +67,14 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       onOpenChange(false);
       resetForm();
       toast({
-        title: "Account Created",
-        description: "Welcome. You can now track your orders.",
+        title: "Account created",
+        description: "Welcome.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Registration Failed",
-        description: error.message || "Could not create account."
+        title: "Error",
+        description: error.message || "Account creation failed."
       });
     } finally {
       setIsLoading(false);
@@ -141,7 +140,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                 <form onSubmit={handleSignIn} className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Email Address</Label>
+                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Email</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -181,7 +180,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                 <form onSubmit={handleSignUp} className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Full Name</Label>
+                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Name</Label>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -193,7 +192,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Email Address</Label>
+                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Email</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -224,7 +223,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     disabled={isLoading}
                     className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all"
                   >
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Profile"}
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Join"}
                   </Button>
                 </form>
               </TabsContent>

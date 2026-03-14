@@ -96,8 +96,8 @@ export default function AdminReviewsPage() {
     setDoc(configRef, { enabled, updatedAt: serverTimestamp() }, { merge: true })
       .then(() => {
         toast({
-          title: enabled ? "Reviews Enabled" : "Reviews Disabled",
-          description: `Storefront review status updated.`,
+          title: enabled ? "Reviews enabled" : "Reviews disabled",
+          description: `Storefront status updated.`,
         });
       });
   };
@@ -111,18 +111,18 @@ export default function AdminReviewsPage() {
       updatedAt: new Date().toISOString()
     }).then(() => {
       toast({
-        title: newStatus ? "Review Published" : "Review Hidden",
-        description: `Visibility updated for ${review.userName}.`,
+        title: newStatus ? "Published" : "Hidden",
+        description: `Visibility updated.`,
       });
     });
   };
 
   const handleDeleteReview = async (review: any) => {
-    if (!db || !confirm("Delete this review?")) return;
+    if (!db || !confirm("Delete review?")) return;
     deleteDoc(doc(db, 'reviews', review.id)).then(() => {
       toast({
-        title: "Review Deleted",
-        description: "Entry removed from the system.",
+        title: "Deleted",
+        description: "Review removed.",
       });
     });
   };
@@ -157,7 +157,7 @@ export default function AdminReviewsPage() {
           imageUrl: '',
           published: true
         });
-        toast({ title: "Review Added", description: "Feedback saved successfully." });
+        toast({ title: "Saved", description: "Review added." });
       })
       .finally(() => setIsSaving(false));
   };
@@ -175,7 +175,7 @@ export default function AdminReviewsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Reviews</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Moderate feedback and testimonials.</p>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Moderate studio feedback.</p>
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
@@ -183,13 +183,13 @@ export default function AdminReviewsPage() {
               <Plus className="h-4 w-4" /> Add Review
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl p-0 flex flex-col max-h-[90vh]">
-            <DialogHeader className="p-6 border-b shrink-0">
+          <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl p-0 flex flex-col h-fit max-h-[95vh]">
+            <DialogHeader className="p-4 sm:p-6 border-b shrink-0">
               <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Review</DialogTitle>
-              <DialogDescription className="text-xs uppercase font-bold text-muted-foreground mt-1">Add feedback for the studio.</DialogDescription>
+              <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Add feedback for the studio.</DialogDescription>
             </DialogHeader>
             <ScrollArea className="flex-1">
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-gray-500">Product</Label>
                   <Select value={newReview.productId} onValueChange={(v) => setNewReview({ ...newReview, productId: v })}>
@@ -209,7 +209,7 @@ export default function AdminReviewsPage() {
                     <Input 
                       value={newReview.userName} 
                       onChange={(e) => setNewReview({ ...newReview, userName: e.target.value })}
-                      placeholder="e.g. fei"
+                      placeholder="Name"
                       className="h-12 uppercase font-bold text-[10px]"
                     />
                   </div>
@@ -232,14 +232,14 @@ export default function AdminReviewsPage() {
                   <Textarea 
                     value={newReview.comment}
                     onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                    placeholder="GREAT PIECE."
+                    placeholder="Feedback text"
                     className="min-h-[100px] resize-none uppercase font-medium text-[11px]"
                   />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-gray-50 border rounded-none">
                   <div className="space-y-0.5">
-                    <p className="text-[10px] font-bold uppercase">Publish Now</p>
-                    <p className="text-[8px] text-muted-foreground uppercase font-bold">Visibility Active</p>
+                    <p className="text-[10px] font-bold uppercase">Publish now</p>
+                    <p className="text-[8px] text-muted-foreground uppercase font-bold">Visibility active</p>
                   </div>
                   <Switch checked={newReview.published} onCheckedChange={(v) => setNewReview({ ...newReview, published: v })} />
                 </div>
@@ -264,7 +264,7 @@ export default function AdminReviewsPage() {
                 </div>
               </div>
             </ScrollArea>
-            <DialogFooter className="p-6 border-t shrink-0">
+            <DialogFooter className="p-4 sm:p-6 border-t shrink-0">
               <Button 
                 onClick={handleSaveNewReview} 
                 disabled={isSaving || !newReview.productId || !newReview.userName || !newReview.comment}
@@ -282,9 +282,9 @@ export default function AdminReviewsPage() {
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b bg-gray-50/30 p-4 sm:p-6 gap-4">
           <div className="space-y-1">
             <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-              <Settings2 className="h-3.5 w-3.5" /> Global System
+              <Settings2 className="h-3.5 w-3.5" /> System Status
             </CardTitle>
-            <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Enable or disable all storefront reviews.</CardDescription>
+            <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Control all storefront reviews.</CardDescription>
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0">
             <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ export default function AdminReviewsPage() {
           <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-none">
             <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
             <p className="text-[10px] text-blue-800 uppercase font-medium leading-relaxed">
-              When disabled, reviews and ratings are hidden from the storefront viewport.
+              When disabled, reviews and ratings stay hidden from the store.
             </p>
           </div>
         </CardContent>

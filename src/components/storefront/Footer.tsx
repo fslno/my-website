@@ -176,14 +176,14 @@ export function Footer() {
                     Join
                   </h3>
                   <p className="text-[10px] uppercase tracking-widest font-bold opacity-60 leading-relaxed max-w-xs">
-                    Sign up for early access.
+                    Access latest drops.
                   </p>
                 </div>
                 <form onSubmit={handleSubscribe} className="relative w-full">
                   <div className="flex flex-col gap-4">
                     <Input 
                       type="email" 
-                      placeholder="EMAIL@ADDRESS.COM" 
+                      placeholder="EMAIL ADDRESS" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="bg-transparent border-primary-foreground/20 border-0 border-b rounded-none h-12 px-0 focus-visible:ring-0 placeholder:text-primary-foreground/30 font-bold uppercase tracking-widest text-xs" 
@@ -198,7 +198,7 @@ export function Footer() {
                   </div>
                   {isSubscribed && (
                     <p className="mt-3 text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400 animate-in fade-in slide-in-from-top-1">
-                      Subscription confirmed.
+                      Subscribed.
                     </p>
                   )}
                 </form>

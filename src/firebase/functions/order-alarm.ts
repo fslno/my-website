@@ -71,6 +71,6 @@ export const sendTestNotification = onCall(async (request) => {
     });
     return { success: true, message: "Alarm sent." };
   } catch (error: any) {
-    throw new HttpsError('internal', `Diagnostic failure: ${error.message}`);
+    throw new HttpsError('internal', `Error: ${error.message}`);
   }
 });

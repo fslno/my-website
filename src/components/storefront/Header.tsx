@@ -75,7 +75,6 @@ export function Header() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Edit State for Cart Items
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   const [editFields, setEditFields] = useState({ name: '', number: '', note: '' });
 
@@ -112,13 +111,13 @@ export function Header() {
       await auth.signOut();
       toast({
         title: "Signed out",
-        description: "Your session closed.",
+        description: "Session closed.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to sign out.",
+        description: "Logout failed.",
       });
     }
   };
@@ -354,7 +353,7 @@ export function Header() {
                 {user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm h-10 w-10">
+                      <Button variant="ghost" size="icon" className="text-primary hover:bg-secondary transition-all rounded-sm h-10 w-10">
                         <UserIcon className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -386,7 +385,7 @@ export function Header() {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="text-primary hover:bg-secondary transition-all duration-300 rounded-sm h-10 w-10"
+                    className="text-primary hover:bg-secondary transition-all rounded-sm h-10 w-10"
                     onClick={() => setIsAuthOpen(true)}
                   >
                     <UserIcon className="h-5 w-5" />
@@ -396,10 +395,10 @@ export function Header() {
 
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out h-10 w-10">
+                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all h-10 w-10">
                     <Heart className="h-5 w-5" />
                     {wishlistCount > 0 && (
-                      <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[8px] sm:text-[10px] w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                      <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[8px] sm:text-[10px] w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center">
                         {wishlistCount}
                       </span>
                     )}
@@ -407,7 +406,7 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                   <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0">
-                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight uppercase text-center text-primary">Wishlist ({wishlistCount})</SheetTitle>
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-center text-primary">Wishlist ({wishlistCount})</SheetTitle>
                   </SheetHeader>
                   <ScrollArea className="flex-1">
                     {wishlist.length === 0 ? (
@@ -444,10 +443,10 @@ export function Header() {
               
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all duration-300 ease-in-out h-10 w-10">
+                  <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all h-10 w-10">
                     <ShoppingBag className="h-5 w-5" />
                     {cartCount > 0 && (
-                      <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[8px] sm:text-[10px] w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                      <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[8px] sm:text-[10px] w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center">
                         {cartCount}
                       </span>
                     )}
@@ -455,7 +454,7 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                   <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0 space-y-4">
-                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight uppercase text-primary">Cart ({cartCount})</SheetTitle>
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Cart ({cartCount})</SheetTitle>
                     
                     {cartSubtotal > 0 && (
                       <div className="space-y-2">
@@ -476,7 +475,7 @@ export function Header() {
                       <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
                         <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
                         <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Cart empty.</p>
-                        <Button asChild variant="outline" className="mt-6 border-primary text-primary font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-secondary transition-all duration-300 ease-in-out">
+                        <Button asChild variant="outline" className="mt-6 border-primary text-primary font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-secondary transition-all">
                           <Link href="/">Shop now</Link>
                         </Button>
                       </div>
@@ -601,7 +600,7 @@ export function Header() {
                           Tax and shipping at checkout.
                         </p>
                       </div>
-                      <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:opacity-90 transition-all duration-300 ease-in-out flex items-center justify-center gap-3 shadow-xl">
+                      <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-xl">
                         <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
                       </Button>
                     </SheetFooter>
