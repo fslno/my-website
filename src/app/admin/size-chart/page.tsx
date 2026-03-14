@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -22,7 +21,8 @@ import {
   PlusCircle,
   Settings2,
   Table as TableIcon,
-  Tag
+  Tag,
+  Save
 } from 'lucide-react';
 import { 
   Dialog, 
