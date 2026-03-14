@@ -292,15 +292,15 @@ export default function ProductDetailPage(props: {
           
           <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-4">
-              {/* Vertical Thumbnails on Desktop, Horizontal on Mobile */}
+              {/* Vertical Thumbnails on Desktop, Hidden on Mobile (Using Dots) */}
               {media.length > 1 && (
-                <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto scrollbar-hide order-2 lg:order-1 lg:w-20 shrink-0">
+                <div className="hidden lg:flex lg:flex-col gap-2 overflow-y-auto scrollbar-hide lg:w-20 shrink-0">
                   {media.map((item: any, idx: number) => (
                     <button 
                       key={idx}
                       onClick={() => handleThumbnailClick(idx)}
                       className={cn(
-                        "w-16 h-16 lg:w-full lg:aspect-square shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
+                        "w-full aspect-square shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
                         activeImageIndex === idx ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
                       )}
                     >
@@ -310,7 +310,7 @@ export default function ProductDetailPage(props: {
                 </div>
               )}
               
-              <div className="flex-1 order-1 lg:order-2 overflow-hidden">
+              <div className="flex-1 overflow-hidden relative group/carousel">
                 <Carousel setApi={setApi} className="w-full">
                   <CarouselContent>
                     {media.length > 0 ? (
@@ -334,6 +334,21 @@ export default function ProductDetailPage(props: {
                     )}
                   </CarouselContent>
                 </Carousel>
+
+                {/* Mobile Siding Indicators (Dots) */}
+                {media.length > 1 && (
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 lg:hidden z-10">
+                    {media.map((_: any, idx: number) => (
+                      <div 
+                        key={idx} 
+                        className={cn(
+                          "w-1.5 h-1.5 rounded-full transition-all duration-500",
+                          activeImageIndex === idx ? "bg-black w-4" : "bg-black/20"
+                        )}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
