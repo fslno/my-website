@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -192,7 +191,7 @@ export default function CustomersPage() {
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard title="Registered" value={unifiedCustomers.filter(c => c.tier === 'Registered').length.toString()} label="Profile Created" icon={<UserCheck className="h-3.5 w-3.5 text-blue-600" />} />
         <StatsCard title="Guest Purchasers" value={unifiedCustomers.filter(c => c.tier === 'Guest').length.toString()} label="No Formal Profile" icon={<ShoppingBag className="h-3.5 w-3.5 text-orange-600" />} />
         <StatsCard title="Abandoned / Lead" value={unifiedCustomers.filter(c => c.isAbandoned).length.toString()} label="Pending Selection" icon={<UserPlus className="h-3.5 w-3.5 text-purple-600" />} />

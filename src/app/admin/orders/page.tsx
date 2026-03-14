@@ -182,7 +182,7 @@ export default function OrdersPage() {
         <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto">Export CSV</Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] flex items-center gap-2 uppercase tracking-widest text-[#5c5f62]">

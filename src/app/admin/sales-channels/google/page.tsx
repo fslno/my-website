@@ -288,7 +288,7 @@ export default function GoogleSyncPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
@@ -303,7 +303,7 @@ export default function GoogleSyncPage() {
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Zap className="h-3.5 w-3.5 text-orange-500" /> Sync Latency
+              <Zap className="h-3.5 w-3.5" text-orange-500" /> Sync Latency
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -314,7 +314,7 @@ export default function GoogleSyncPage() {
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
-              <Layers className="h-3.5 w-3.5 text-blue-600" /> Active Channels
+              <Layers className="h-3.5 w-3.5" text-blue-600" /> Active Channels
             </CardTitle>
           </CardHeader>
           <CardContent>

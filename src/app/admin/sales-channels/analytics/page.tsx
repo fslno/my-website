@@ -139,7 +139,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card className="border-[#e1e3e5] shadow-none rounded-none group hover:border-black transition-colors">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase tracking-widest text-[#5c5f62] flex items-center gap-2">
