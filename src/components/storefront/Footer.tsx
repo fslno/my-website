@@ -46,6 +46,8 @@ export function Footer() {
     }, 1000);
   };
 
+  const mapsUrl = config?.googleMapsUrl || (config?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.address)}` : '#');
+
   return (
     <footer className="bg-primary text-primary-foreground py-16 mt-10 border-t border-primary-foreground/10">
       <div className="max-w-[1440px] mx-auto px-4">
@@ -65,20 +67,14 @@ export function Footer() {
                 {config?.address && (
                   <div className="space-y-1">
                     <p className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">The Spot</p>
-                    {config.googleMapsUrl ? (
-                      <a 
-                        href={config.googleMapsUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed hover:opacity-60 transition-opacity flex items-center gap-2 group"
-                      >
-                        {config.address} <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                      </a>
-                    ) : (
-                      <p className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed">
-                        {config.address}
-                      </p>
-                    )}
+                    <a 
+                      href={mapsUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed hover:opacity-60 transition-opacity flex items-center gap-2 group underline decoration-primary-foreground/20 underline-offset-4"
+                    >
+                      {config.address} <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform opacity-50 group-hover:opacity-100" />
+                    </a>
                   </div>
                 )}
                 {config?.openingHours && (
