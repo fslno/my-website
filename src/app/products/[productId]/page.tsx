@@ -54,16 +54,13 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProductDetailPage({ 
-  params,
-  searchParams 
-}: { 
+export default function ProductDetailPage(props: { 
   params: Promise<{ productId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { productId } = use(params);
-  // Authoritatively unwrap searchParams to comply with Next.js 15 proxy protocols
-  use(searchParams);
+  const params = use(props.params);
+  const searchParams = use(props.searchParams);
+  const productId = params.productId;
   
   const db = useFirestore();
   const router = useRouter();
@@ -374,7 +371,7 @@ export default function ProductDetailPage({
               )}
 
               <div className="flex items-center gap-4 pt-2">
-                <p className="text-lg font-bold text-primary">C${formatCurrency(totalPrice)}</p>
+                <p className="text-lg font-bold text-primary">C$${formatCurrency(totalPrice)}</p>
               </div>
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">

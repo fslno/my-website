@@ -80,16 +80,13 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-export default function OrderDetailPage({ 
-  params,
-  searchParams 
-}: { 
+export default function OrderDetailPage(props: { 
   params: Promise<{ orderId: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { orderId } = use(params);
-  // Authoritatively unwrap searchParams to comply with Next.js 15 proxy protocols
-  use(searchParams);
+  const params = use(props.params);
+  const searchParams = use(props.searchParams);
+  const orderId = params.orderId;
   
   const db = useFirestore();
   const { toast } = useToast();
@@ -420,8 +417,8 @@ export default function OrderDetailPage({
                         </div>
                       </TableCell>
                       <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
-                      <TableCell className="text-right text-xs">C${formatCurrency(Number(item.price) || 0)}</TableCell>
-                      <TableCell className="text-right text-xs font-bold">C${formatCurrency((Number(item.price) || 0) * item.quantity)}</TableCell>
+                      <TableCell className="text-right text-xs">C$${formatCurrency(Number(item.price) || 0)}</TableCell>
+                      <TableCell className="text-right text-xs font-bold">C$${formatCurrency((Number(item.price) || 0) * item.quantity)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -437,12 +434,12 @@ export default function OrderDetailPage({
               <CardContent className="p-6 space-y-3">
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Subtotal</span>
-                  <span className="text-black">C${formatCurrency(Number(order.subtotal) || 0)}</span>
+                  <span className="text-black">C$${formatCurrency(Number(order.subtotal) || 0)}</span>
                 </div>
                 {Number(order.discountTotal) > 0 && (
                   <div className="flex justify-between text-[11px] font-bold text-red-600 uppercase">
                     <span>Discounts</span>
-                    <span>-C${formatCurrency(Number(order.discountTotal) || 0)}</span>
+                    <span>-C$${formatCurrency(Number(order.discountTotal) || 0)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
@@ -451,12 +448,12 @@ export default function OrderDetailPage({
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
                   <span>Sales Tax</span>
-                  <span className="text-black">C${formatCurrency(Number(order.tax) || 0)}</span>
+                  <span className="text-black">C$${formatCurrency(Number(order.tax) || 0)}</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[13px] font-bold uppercase tracking-[0.1em]">Total</span>
-                  <span className="text-xl font-bold font-headline">C${formatCurrency(Number(order.total) || 0)}</span>
+                  <span className="text-xl font-bold font-headline">C$${formatCurrency(Number(order.total) || 0)}</span>
                 </div>
               </CardContent>
             </Card>
