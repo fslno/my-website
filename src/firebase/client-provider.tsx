@@ -25,25 +25,22 @@ function ConfigGate({ children }: { children: ReactNode }) {
   const storeRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeData, isLoading: storeLoading } = useDoc(storeRef);
 
+  // Authoritatively set the curated brand asset as the fallback for the loading screen
+  const fallbackLogo = "https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png";
+
   if (themeLoading || storeLoading) {
     return (
       <div className="fixed inset-0 bg-white z-[1000] flex items-center justify-center">
         <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
-          {storeData?.logoUrl ? (
-            <div className="relative w-16 h-16">
-              <Image 
-                src={storeData.logoUrl} 
-                alt="Loading" 
-                fill 
-                className="object-contain"
-                priority 
-              />
-            </div>
-          ) : (
-            <div className="w-12 h-12 bg-black rounded-sm flex items-center justify-center text-white font-headline font-bold text-xl">
-              F
-            </div>
-          )}
+          <div className="relative w-20 h-20">
+            <Image 
+              src={storeData?.logoUrl || fallbackLogo} 
+              alt="FSLNO Loading" 
+              fill 
+              className="object-contain"
+              priority 
+            />
+          </div>
           <Loader2 className="h-5 w-5 animate-spin text-black/20" />
         </div>
       </div>
