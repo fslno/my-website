@@ -139,6 +139,29 @@ export default function ProductsPage() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [features, setFeatures] = useState('');
 
+  // Drag and Drop State
+  const [draggedMediaIndex, setDraggedMediaIndex] = useState<number | null>(null);
+
+  const handleDragStartMedia = (index: number) => {
+    setDraggedMediaIndex(index);
+  };
+
+  const handleDragOverMedia = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedMediaIndex === null || draggedMediaIndex === index) return;
+    
+    const newMedia = [...media];
+    const draggedItem = newMedia[draggedMediaIndex];
+    newMedia.splice(draggedMediaIndex, 1);
+    newMedia.splice(index, 0, draggedItem);
+    setDraggedMediaIndex(index);
+    setMedia(newMedia);
+  };
+
+  const handleDragEndMedia = () => {
+    setDraggedMediaIndex(null);
+  };
+
   const getMillis = (date: any) => {
     if (!date) return 0;
     if (date.toMillis) return date.toMillis();
@@ -589,7 +612,17 @@ export default function ProductsPage() {
                 <TabsContent value="general" className="p-4 sm:p-8 m-0 space-y-8 sm:space-y-12 max-w-5xl mx-auto">
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                     {media.map((item, index) => (
-                      <div key={index} className="relative aspect-square bg-gray-100 border rounded-lg overflow-hidden group shadow-sm">
+                      <div 
+                        key={index} 
+                        draggable
+                        onDragStart={() => handleDragStartMedia(index)}
+                        onDragOver={(e) => handleDragOverMedia(e, index)}
+                        onDragEnd={handleDragEndMedia}
+                        className={cn(
+                          "relative aspect-square bg-gray-100 border rounded-lg overflow-hidden group shadow-sm cursor-move touch-none transition-all duration-300",
+                          draggedMediaIndex === index && "opacity-50 border-black ring-2 ring-black/5 scale-95"
+                        )}
+                      >
                         {item.type === 'video' ? <video src={item.url} className="absolute inset-0 w-full h-full object-cover" muted loop /> : <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />}
                         <button onClick={() => setMedia(media.filter((_, i) => i !== index))} className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
                       </div>

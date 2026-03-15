@@ -9,39 +9,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Monitor, 
   Sparkles, 
-  ShoppingBag, 
-  Layers, 
   Save, 
   Loader2, 
   Image as ImageIcon,
   Trash2,
   Plus,
   ArrowRight,
-  ExternalLink,
   Smartphone,
   Eye,
   Settings2,
   Layout,
-  CheckCircle2,
   Globe,
   FileText,
   Terminal,
-  AlignLeft,
-  ChevronRight
+  AlignLeft
 } from 'lucide-react';
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, setDoc, serverTimestamp, collection, deleteDoc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
-import Link from 'next/link';
 
 export default function StorefrontAdminPage() {
   const db = useFirestore();
@@ -52,9 +45,6 @@ export default function StorefrontAdminPage() {
 
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme, isLoading: themeLoading } = useDoc(themeRef);
-
-  const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
-  const { data: categories } = useCollection(categoriesQuery);
 
   const [heroImageUrl, setHeroImageUrl] = useState('');
   const [heroHeadline, setHeroHeadline] = useState('');
@@ -89,20 +79,6 @@ export default function StorefrontAdminPage() {
       reader.onloadend = () => setHeroImageUrl(reader.result as string);
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleDeleteCategory = async (id: string) => {
-    if (!db || !confirm("Authoritatively delete this category from the archive?")) return;
-    deleteDoc(doc(db, 'categories', id))
-      .then(() => {
-        toast({ title: "Deleted", description: "Category removed." });
-      })
-      .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: `categories/${id}`,
-          operation: 'delete'
-        }));
-      });
   };
 
   const handleSave = async () => {
@@ -169,9 +145,6 @@ export default function StorefrontAdminPage() {
             <TabsList className="w-full bg-white border h-auto xl:h-14 p-1 flex flex-wrap xl:flex-nowrap justify-start rounded-none mb-8 overflow-hidden">
               <TabsTrigger value="general" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-12 xl:h-full">
                 <FileText className="h-3.5 w-3.5" /> General Info
-              </TabsTrigger>
-              <TabsTrigger value="featured" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-12 xl:h-full">
-                <ShoppingBag className="h-3.5 w-3.5" /> Category Products
               </TabsTrigger>
               <TabsTrigger value="seo" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white rounded-none h-12 xl:h-full">
                 <Globe className="h-3.5 w-3.5" /> Home SEO
@@ -271,50 +244,6 @@ export default function StorefrontAdminPage() {
                       className="min-h-[150px] resize-none uppercase text-xs font-medium leading-relaxed"
                     />
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="featured" className="m-0 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="border-b bg-gray-50/30 p-4 sm:p-6">
-                  <div className="flex items-center gap-2">
-                    <ShoppingBag className="h-5 w-5 text-orange-500" />
-                    <CardTitle className="text-lg uppercase tracking-tight">Featured Selection</CardTitle>
-                  </div>
-                  <CardDescription className="text-xs font-bold uppercase tracking-tight text-muted-foreground">Manage which collections appear in the primary navigation and spotlight sections.</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-auto max-h-[600px]">
-                    <div className="divide-y">
-                      {categories?.map((cat: any) => (
-                        <div key={cat.id} className="flex items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-16 bg-gray-100 rounded-sm overflow-hidden border shadow-sm relative shrink-0">
-                              {cat.imageUrl && <Image src={cat.imageUrl} alt={cat.name} fill className="object-cover" />}
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold uppercase tracking-tight">{cat.name}</p>
-                              <p className="text-[10px] text-gray-400 uppercase font-medium mt-0.5">Order: {cat.order + 1}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" asChild className="text-[9px] font-bold uppercase tracking-widest hover:underline h-8">
-                              <Link href="/admin/categories">Edit Metadata <ArrowRight className="ml-2 h-3 w-3" /></Link>
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-destructive hover:bg-red-50"
-                              onClick={() => handleDeleteCategory(cat.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
                 </CardContent>
               </Card>
             </TabsContent>
