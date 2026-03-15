@@ -45,7 +45,8 @@ import {
   Scale,
   RefreshCw,
   DollarSign,
-  Trophy
+  Trophy,
+  Edit2
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch } from 'firebase/firestore';
@@ -63,6 +64,7 @@ export default function ShippingPage() {
   const { toast } = useToast();
 
   const [isAddCarrierOpen, setIsAddCarrierOpen] = useState(false);
+  const [editingCarrierIdx, setEditingCarrierIdx] = useState<number | null>(null);
   const [newCarrierName, setNewCarrierName] = useState('');
   const [newCarrierApiKey, setNewCarrierApiKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -268,28 +270,50 @@ export default function ShippingPage() {
     }
   };
 
-  const handleAddCarrier = () => {
+  const handleSaveCarrier = () => {
     if (!newCarrierName || !config) return;
-    const currentCarriers = Array.isArray(config.carriers) ? config.carriers : [];
-    const exists = currentCarriers.some((c: any) => 
-      (typeof c === 'string' ? c === newCarrierName : c.name === newCarrierName)
-    );
+    const currentCarriers = Array.isArray(config.carriers) ? [...config.carriers] : [];
+    
+    if (editingCarrierIdx !== null) {
+      const existing = currentCarriers[editingCarrierIdx];
+      currentCarriers[editingCarrierIdx] = { 
+        ...existing,
+        name: newCarrierName, 
+        apiKey: newCarrierApiKey || existing.apiKey 
+      };
+      handleUpdate({ carriers: currentCarriers });
+      toast({ title: "Carrier Updated", description: `${newCarrierName} protocol synchronized.` });
+    } else {
+      const exists = currentCarriers.some((c: any) => 
+        (typeof c === 'string' ? c === newCarrierName : c.name === newCarrierName)
+      );
 
-    if (exists) {
-      toast({ variant: "destructive", title: "Already Added", description: "This carrier is already in your list." });
-      return;
+      if (exists) {
+        toast({ variant: "destructive", title: "Already Added", description: "This carrier is already in your manifest." });
+        return;
+      }
+
+      const updatedCarriers = [
+        ...currentCarriers,
+        { name: newCarrierName, active: true, apiKey: newCarrierApiKey || 'pending' }
+      ];
+      handleUpdate({ carriers: updatedCarriers });
+      toast({ title: "Success", description: `${newCarrierName} has been added.` });
     }
 
-    const updatedCarriers = [
-      ...currentCarriers,
-      { name: newCarrierName, active: true, apiKey: newCarrierApiKey || 'pending' }
-    ];
-
-    handleUpdate({ carriers: updatedCarriers });
     setNewCarrierName('');
     setNewCarrierApiKey('');
+    setEditingCarrierIdx(null);
     setIsAddCarrierOpen(false);
-    toast({ title: "Success", description: `${newCarrierName} has been added.` });
+  };
+
+  const handleOpenEdit = (carrier: any, idx: number) => {
+    const name = typeof carrier === 'string' ? carrier : carrier.name;
+    const apiKey = typeof carrier === 'string' ? '' : carrier.apiKey;
+    setNewCarrierName(name);
+    setNewCarrierApiKey(apiKey === 'pending' ? '' : apiKey);
+    setEditingCarrierIdx(idx);
+    setIsAddCarrierOpen(true);
   };
 
   const handleRemoveCarrier = (name: string) => {
@@ -311,17 +335,6 @@ export default function ShippingPage() {
     handleUpdate({ carriers: updatedCarriers });
   };
 
-  const handleSaveAll = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast({ 
-        title: "Success", 
-        description: "All shipping and pickup settings have been saved." 
-      });
-    }, 1000);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -340,8 +353,6 @@ export default function ShippingPage() {
       </div>
     );
   }
-
-  const enabledCarriers = config.carriers?.filter((c: any) => typeof c === 'string' ? true : c.active) || [];
 
   return (
     <div className="space-y-8 min-w-0 pb-12">
@@ -515,7 +526,7 @@ export default function ShippingPage() {
                 </div>
                 <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-muted-foreground">Integrate with carriers for live rates.</CardDescription>
               </div>
-              <Dialog open={isAddCarrierOpen} onOpenChange={setIsAddCarrierOpen}>
+              <Dialog open={isAddCarrierOpen} onOpenChange={(open) => { setIsAddCarrierOpen(open); if(!open) { setEditingCarrierIdx(null); setNewCarrierName(''); setNewCarrierApiKey(''); } }}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black hover:bg-black hover:text-white transition-all w-full sm:w-auto">
                     <Plus className="h-3.5 w-3.5" /> Add Carrier
@@ -523,8 +534,12 @@ export default function ShippingPage() {
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
                   <DialogHeader className="pt-8">
-                    <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Add Carrier</DialogTitle>
-                    <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Connect a new carrier to your store.</DialogDescription>
+                    <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">
+                      {editingCarrierIdx !== null ? 'Edit Carrier' : 'Add Carrier'}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                      {editingCarrierIdx !== null ? 'Update carrier credentials.' : 'Connect a new carrier to your store.'}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-6 py-6">
                     <div className="space-y-2">
@@ -542,7 +557,7 @@ export default function ShippingPage() {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
                           type="password"
-                          placeholder="••••••••••••••••" 
+                          placeholder={editingCarrierIdx !== null ? "••••••••••••••••" : "ENTER API KEY"} 
                           value={newCarrierApiKey} 
                           onChange={(e) => setNewCarrierApiKey(e.target.value)}
                           className="pl-10 h-12 font-mono text-xs"
@@ -551,8 +566,8 @@ export default function ShippingPage() {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleAddCarrier} disabled={!newCarrierName} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]">
-                      Connect Carrier
+                    <Button onClick={handleSaveCarrier} disabled={!newCarrierName} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]">
+                      {editingCarrierIdx !== null ? 'Update Protocol' : 'Connect Carrier'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -581,12 +596,22 @@ export default function ShippingPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest sm:hidden">Active</span>
-                          <Switch 
-                            checked={active} 
-                            onCheckedChange={(checked) => handleToggleCarrier(name, checked)}
-                          />
+                        <div className="flex items-center gap-3">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleOpenEdit(carrier, idx)}
+                            className="h-9 w-9 text-gray-400 hover:text-black hover:bg-gray-100 transition-colors"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest sm:hidden">Active</span>
+                            <Switch 
+                              checked={active} 
+                              onCheckedChange={(checked) => handleToggleCarrier(name, checked)}
+                            />
+                          </div>
                         </div>
                         <Button 
                           variant="ghost" 
