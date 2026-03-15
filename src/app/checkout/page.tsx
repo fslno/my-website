@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect, use } from 'react';
@@ -60,6 +61,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PayPalPayment } from '@/components/storefront/PayPalPayment';
+import { StallionRates } from '@/components/storefront/StallionRates';
 
 type DeliveryMethod = 'shipping' | 'pickup';
 
@@ -101,6 +103,7 @@ export default function CheckoutPage() {
   const [selectedPayment, setSelectedPayment] = useState<string>('');
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
   const [shippingRate, setShippingRate] = useState<number>(0);
+  const [stallionRateId, setStallionRateId] = useState<string>('');
   const [couponInput, setCouponInput] = useState('');
   const [orderNote, setOrderNote] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
@@ -120,12 +123,12 @@ export default function CheckoutPage() {
     city: '',
     postalCode: '',
     province: '',
-    country: '',
+    country: 'Canada',
     billingAddress: '',
     billingCity: '',
     billingPostalCode: '',
     billingProvince: '',
-    billingCountry: '',
+    billingCountry: 'Canada',
     courier: '', 
     referral: '',
     pickupDate: '',
@@ -135,23 +138,22 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showErrorBanner, setShowErrors] = useState(false);
 
-  const enabledCarriers = useMemo(() => {
-    return shippingConfig?.carriers?.filter((c: any) => typeof c === 'string' ? true : c.active) || [];
-  }, [shippingConfig]);
-
   const isFreeShippingEligible = useMemo(() => {
     if (!shippingConfig?.freeShippingEnabled) return false;
     const threshold = Number(shippingConfig.freeShippingThreshold) || 500;
     return cartSubtotal >= threshold;
   }, [shippingConfig, cartSubtotal]);
 
-  useEffect(() => {
-    if (deliveryMethod === 'shipping' && isFreeShippingEligible && !formData.courier && enabledCarriers.length > 0) {
-      const firstCarrier = typeof enabledCarriers[0] === 'string' ? enabledCarriers[0] : enabledCarriers[0].name;
-      setFormData(prev => ({ ...prev, courier: firstCarrier }));
+  // Handle Stallion Rate Selection
+  const handleRateSelect = (rate: any) => {
+    if (isFreeShippingEligible) {
       setShippingRate(0);
+    } else {
+      setShippingRate(rate.totalCost);
     }
-  }, [isFreeShippingEligible, enabledCarriers, deliveryMethod, formData.courier]);
+    setStallionRateId(rate.id);
+    setFormData(prev => ({ ...prev, courier: rate.service }));
+  };
 
   const isTaxReady = useMemo(() => {
     if (deliveryMethod === 'shipping') {
@@ -182,7 +184,6 @@ export default function CheckoutPage() {
     return totalBeforeTax + calculatedTax + shippingRate;
   }, [totalBeforeTax, calculatedTax, shippingRate]);
 
-  // Construct current order data manifest for the payment gateway
   const currentOrderData = useMemo(() => ({
     userId: user?.uid || 'guest',
     email: formData.email,
@@ -212,13 +213,14 @@ export default function CheckoutPage() {
     shipping: shippingRate,
     total: finalTotal,
     deliveryMethod,
-    courier: formData.courier || (isFreeShippingEligible ? "FREE SHIPPING" : ""),
+    courier: formData.courier,
+    stallionRateId: stallionRateId,
     paymentMethod: selectedPayment,
     referral: formData.referral,
     note: orderNote,
     pickupDate: deliveryMethod === 'pickup' ? formData.pickupDate : null,
     pickupTime: deliveryMethod === 'pickup' ? formData.pickupTime : null,
-  }), [user, formData, deliveryMethod, cart, cartSubtotal, discountTotal, appliedCoupon, calculatedTax, shippingRate, finalTotal, selectedPayment, orderNote, billingSameAsShipping, isFreeShippingEligible]);
+  }), [user, formData, deliveryMethod, cart, cartSubtotal, discountTotal, appliedCoupon, calculatedTax, shippingRate, finalTotal, selectedPayment, orderNote, billingSameAsShipping, stallionRateId]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -248,7 +250,6 @@ export default function CheckoutPage() {
       if (!formData.city) newErrors.city = true;
       if (!formData.postalCode) newErrors.postalCode = true;
       if (!formData.province) newErrors.province = true;
-      if (!formData.country) newErrors.country = true;
       
       if (!formData.courier && !isFreeShippingEligible) newErrors.courier = true;
 
@@ -257,14 +258,12 @@ export default function CheckoutPage() {
         if (!formData.billingCity) newErrors.billingCity = true;
         if (!formData.billingPostalCode) newErrors.billingPostalCode = true;
         if (!formData.billingProvince) newErrors.billingProvince = true;
-        if (!formData.billingCountry) newErrors.billingCountry = true;
       }
     } else {
       if (!formData.billingAddress) newErrors.billingAddress = true;
       if (!formData.billingCity) newErrors.billingCity = true;
       if (!formData.billingPostalCode) newErrors.billingPostalCode = true;
       if (!formData.billingProvince) newErrors.billingProvince = true;
-      if (!formData.billingCountry) newErrors.billingCountry = true;
       if (!formData.pickupDate) newErrors.pickupDate = true;
       if (!formData.pickupTime) newErrors.pickupTime = true;
     }
@@ -343,7 +342,7 @@ export default function CheckoutPage() {
     const orderData = {
       ...currentOrderData,
       status: 'awaiting_processing',
-      paymentStatus: 'paid', // Simulated success for manual "Place Order" button
+      paymentStatus: 'paid', 
       createdAt: serverTimestamp()
     };
 
@@ -461,8 +460,16 @@ export default function CheckoutPage() {
                         <Input id="shipping-state" name="shipping-state" type="text" autoComplete="shipping address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="shipping-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.country ? "text-destructive" : "text-muted-foreground")}>Country {errors.country && "* REQUIRED"}</Label>
-                        <Input id="shipping-country" name="shipping-country" type="text" autoComplete="shipping country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.country} onChange={(e) => handleUppercaseInput('country', e.target.value)} />
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Country</Label>
+                        <Select value={formData.country} onValueChange={(val) => handleInputChange('country', val)}>
+                          <SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Canada" className="text-[10px] font-bold uppercase">Canada</SelectItem>
+                            <SelectItem value="United States" className="text-[10px] font-bold uppercase">United States</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
@@ -506,8 +513,16 @@ export default function CheckoutPage() {
                             <Input id="billing-state" name="billing address-level1" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="billing-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "* REQUIRED"}</Label>
-                            <Input id="billing-country" name="billing country-name" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                            <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Country</Label>
+                            <Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}>
+                              <SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Canada" className="text-[10px] font-bold uppercase">Canada</SelectItem>
+                                <SelectItem value="United States" className="text-[10px] font-bold uppercase">United States</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                       </div>
@@ -527,41 +542,18 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   
-                  {shippingLoading ? (
-                    <div className="flex justify-center py-4">
-                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : (
-                    <RadioGroup value={formData.courier} onValueChange={(val) => { 
-                      if (isFreeShippingEligible) {
-                        setShippingRate(0);
-                      } else {
-                        const isExpress = ['FEDEX', 'DHL', 'UPS'].some(e => val.toUpperCase().includes(e));
-                        const standardRate = Number(shippingConfig?.standardRate) || 0;
-                        const expressRate = Number(shippingConfig?.expressRate) || 25;
-                        setShippingRate(isExpress ? expressRate : standardRate);
-                      }
-                      handleInputChange('courier', val); 
-                    }} className="grid grid-cols-1 gap-2">
-                      {enabledCarriers.map((carrier: any) => {
-                        const name = typeof carrier === 'string' ? carrier : carrier.name;
-                        const isExpress = ['FEDEX', 'DHL', 'UPS'].some(e => name.toUpperCase().includes(e));
-                        const cost = isFreeShippingEligible ? 0 : (isExpress ? (Number(shippingConfig?.expressRate) || 25) : (Number(shippingConfig?.standardRate) || 0));
-                        
-                        return (
-                          <div key={name} className={cn("flex items-center justify-between p-4 border rounded-none cursor-pointer transition-all hover:bg-secondary", formData.courier === name ? "bg-white border-primary ring-1 ring-primary" : "bg-gray-50/50")}>
-                            <div className="flex items-center space-x-3">
-                              <RadioGroupItem value={name} id={name} className="border-primary text-primary" />
-                              <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-widest cursor-pointer text-primary">{name} {isExpress ? 'Express' : 'Standard'}</Label>
-                            </div>
-                            <span className={cn("text-[11px] font-bold", isFreeShippingEligible ? "text-emerald-600" : "text-primary")}>
-                              {cost === 0 ? 'FREE' : `C$${formatCurrency(cost)}`}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </RadioGroup>
-                  )}
+                  {/* Stallion Express Live Rates Orchestration */}
+                  <StallionRates 
+                    address={{
+                      city: formData.city,
+                      postalCode: formData.postalCode,
+                      province: formData.province,
+                      country: formData.country
+                    }}
+                    cartItems={cart}
+                    onRateSelect={handleRateSelect}
+                    selectedRateId={stallionRateId}
+                  />
                 </div>
               </div>
             ) : (
@@ -591,8 +583,16 @@ export default function CheckoutPage() {
                         <Input id="billing-state-pickup" name="billing address-level1" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="billing-country-pickup" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "* REQUIRED"}</Label>
-                        <Input id="billing-country-pickup" name="billing country-name" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Country</Label>
+                        <Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}>
+                          <SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Canada" className="text-[10px] font-bold uppercase">Canada</SelectItem>
+                            <SelectItem value="United States" className="text-[10px] font-bold uppercase">United States</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
