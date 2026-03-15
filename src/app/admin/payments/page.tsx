@@ -80,14 +80,14 @@ export default function PaymentsPage() {
     const initialData = {
       stripeEnabled: true,
       stripeMode: 'test',
-      stripePublishableKey: 'pk_test_fslno_sample_key',
-      stripeSecretKey: 'sk_test_fslno_sample_key',
+      stripePublishableKey: '',
+      stripeSecretKey: '',
       stripeDescription: 'Secure Credit Card Checkout',
       stripeFee: '2.9% + 30¢',
       paypalEnabled: true,
       paypalMode: 'sandbox',
-      paypalClientId: 'fslno_sandbox_client_id',
-      paypalSecretKey: 'fslno_sandbox_secret_key',
+      paypalClientId: '',
+      paypalSecretKey: '',
       paypalDescription: 'Global Digital Wallet',
       paypalFee: '3.49% + 49¢',
       paypalPayLaterEnabled: true,
@@ -339,8 +339,8 @@ export default function PaymentsPage() {
 
                   <Separator />
 
-                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
-                    <div className="flex-1 space-y-3">
+                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
+                    <div className="space-y-3">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
                       <div className="flex gap-2">
                         <Button 
@@ -361,30 +361,30 @@ export default function PaymentsPage() {
                         </Button>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          value={config.stripePublishableKey || ''} 
-                          onChange={(e) => handleUpdate({ stripePublishableKey: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                    <div className="grid gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key</Label>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            value={config.stripePublishableKey || ''} 
+                            onChange={(e) => handleUpdate({ stripePublishableKey: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          type="password"
-                          value={config.stripeSecretKey || ''} 
-                          onChange={(e) => handleUpdate({ stripeSecretKey: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            type="password"
+                            value={config.stripeSecretKey || ''} 
+                            onChange={(e) => handleUpdate({ stripeSecretKey: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -436,8 +436,8 @@ export default function PaymentsPage() {
 
                   <Separator />
 
-                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
-                    <div className="flex-1 space-y-3">
+                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
+                    <div className="space-y-3">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
                       <div className="flex gap-2">
                         <Button 
@@ -458,30 +458,30 @@ export default function PaymentsPage() {
                         </Button>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          value={config.paypalClientId || ''} 
-                          onChange={(e) => handleUpdate({ paypalClientId: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                    <div className="grid gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            value={config.paypalClientId || ''} 
+                            onChange={(e) => handleUpdate({ paypalClientId: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          type="password"
-                          value={config.paypalSecretKey || ''} 
-                          onChange={(e) => handleUpdate({ paypalSecretKey: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            type="password"
+                            value={config.paypalSecretKey || ''} 
+                            onChange={(e) => handleUpdate({ paypalSecretKey: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -533,8 +533,8 @@ export default function PaymentsPage() {
 
                   <Separator />
 
-                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
-                    <div className="flex-1 space-y-3">
+                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
+                    <div className="space-y-3">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
                       <div className="flex gap-2">
                         <Button 
@@ -555,30 +555,30 @@ export default function PaymentsPage() {
                         </Button>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          value={config.klarnaClientId || ''} 
-                          onChange={(e) => handleUpdate({ klarnaClientId: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                    <div className="grid gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            value={config.klarnaClientId || ''} 
+                            onChange={(e) => handleUpdate({ klarnaClientId: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          type="password"
-                          value={config.klarnaClientSecret || ''} 
-                          onChange={(e) => handleUpdate({ klarnaClientSecret: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            type="password"
+                            value={config.klarnaClientSecret || ''} 
+                            onChange={(e) => handleUpdate({ klarnaClientSecret: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -630,8 +630,8 @@ export default function PaymentsPage() {
 
                   <Separator />
 
-                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
-                    <div className="flex-1 space-y-3">
+                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
+                    <div className="space-y-3">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
                       <div className="flex gap-2">
                         <Button 
@@ -652,30 +652,30 @@ export default function PaymentsPage() {
                         </Button>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant ID)</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          value={config.afterpayMerchantId || ''} 
-                          onChange={(e) => handleUpdate({ afterpayMerchantId: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                    <div className="grid gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant ID)</Label>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            value={config.afterpayMerchantId || ''} 
+                            onChange={(e) => handleUpdate({ afterpayMerchantId: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          type="password"
-                          value={config.afterpaySecretKey || ''} 
-                          onChange={(e) => handleUpdate({ afterpaySecretKey: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            type="password"
+                            value={config.afterpaySecretKey || ''} 
+                            onChange={(e) => handleUpdate({ afterpaySecretKey: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -701,16 +701,12 @@ export default function PaymentsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Account</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            value={config.adyenMerchantAccount || ''} 
-                            onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
-                            placeholder="FSLNO_STUDIO_ECOM"
-                            className="pl-10 h-11 text-xs font-bold uppercase" 
-                          />
-                        </div>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                        <Input 
+                          value={config.adyenDescription || 'Global merchant payments'} 
+                          onChange={(e) => handleUpdate({ adyenDescription: e.target.value })}
+                          className="h-11 text-xs font-bold uppercase" 
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
@@ -731,8 +727,8 @@ export default function PaymentsPage() {
 
                   <Separator />
 
-                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
-                    <div className="flex-1 space-y-3">
+                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
+                    <div className="space-y-3">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
                       <div className="flex gap-2">
                         <Button 
@@ -753,30 +749,30 @@ export default function PaymentsPage() {
                         </Button>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Account ID)</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          value={config.adyenMerchantAccount || ''} 
-                          onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                    <div className="grid gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant Account)</Label>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            value={config.adyenMerchantAccount || ''} 
+                            onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID (API Key)</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          type="password"
-                          value={config.adyenApiKey || ''} 
-                          onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
-                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                        />
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID (API Key)</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            type="password"
+                            value={config.adyenApiKey || ''} 
+                            onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
+                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
