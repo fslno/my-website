@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef, useMemo, useEffect } from 'react';
@@ -386,9 +385,6 @@ export default function ProductsPage() {
     reader.readAsText(file);
   };
 
-  /**
-   * Generates a 6-character alphanumeric SKU based on product name and random numbers.
-   */
   const generateSku = (productName: string) => {
     if (!productName) return '';
     const namePart = productName.replace(/[^A-Z0-9]/gi, '').substring(0, 3).toUpperCase().padEnd(3, 'X');
@@ -443,7 +439,6 @@ export default function ProductsPage() {
     if (!files || files.length === 0) return;
     const fileArray = Array.from(files);
     
-    // Authoritatively process media in selection order
     const newMediaPromises = fileArray.map(file => {
       return new Promise<MediaItem>((resolve) => {
         const type = file.type.startsWith('video/') ? 'video' : 'image';
@@ -455,7 +450,6 @@ export default function ProductsPage() {
 
     try {
       const results = await Promise.all(newMediaPromises);
-      // Append to maintain chronological rank (selected first = lower index)
       setMedia(prev => [...prev, ...results]);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
@@ -674,7 +668,6 @@ export default function ProductsPage() {
                         {item.type === 'video' ? <video src={item.url} className="absolute inset-0 w-full h-full object-cover" muted loop /> : <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />}
                         <button onClick={() => setMedia(media.filter((_, i) => i !== index))} className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
                         
-                        {/* Chronological Rank Indicator */}
                         <div className="absolute top-2 left-2 flex gap-1">
                           <Badge className={cn(
                             "text-[8px] font-bold uppercase tracking-widest h-5 px-1.5 border-none shadow-md",
