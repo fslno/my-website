@@ -92,16 +92,19 @@ export default function PaymentsPage() {
       paypalFee: '3.49% + 49¢',
       paypalPayLaterEnabled: true,
       klarnaEnabled: false,
+      klarnaMode: 'test',
       klarnaClientId: '',
       klarnaClientSecret: '',
       klarnaDescription: 'Interest-free installments',
       klarnaFee: '5.99% + 30¢',
       afterpayEnabled: false,
+      afterpayMode: 'sandbox',
       afterpayMerchantId: '',
       afterpaySecretKey: '',
       afterpayDescription: 'Buy now, pay later',
       afterpayFee: '6% + 30¢',
       adyenEnabled: false,
+      adyenMode: 'test',
       adyenMerchantAccount: '',
       adyenApiKey: '',
       adyenDescription: 'Global merchant payments',
@@ -433,6 +436,30 @@ export default function PaymentsPage() {
 
                   <Separator />
 
+                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
+                    <div className="flex-1 space-y-3">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant={config.paypalMode === 'sandbox' ? 'default' : 'outline'}
+                          size="sm"
+                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.paypalMode === 'sandbox' ? 'bg-orange-500 hover:bg-orange-600' : '')}
+                          onClick={() => handleUpdate({ paypalMode: 'sandbox' })}
+                        >
+                          Sandbox
+                        </Button>
+                        <Button 
+                          variant={config.paypalMode === 'live' ? 'default' : 'outline'}
+                          size="sm"
+                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.paypalMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
+                          onClick={() => handleUpdate({ paypalMode: 'live' })}
+                        >
+                          Production
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid gap-6">
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
@@ -506,6 +533,30 @@ export default function PaymentsPage() {
 
                   <Separator />
 
+                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
+                    <div className="flex-1 space-y-3">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant={config.klarnaMode === 'test' ? 'default' : 'outline'}
+                          size="sm"
+                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.klarnaMode === 'test' ? 'bg-orange-500 hover:bg-orange-600' : '')}
+                          onClick={() => handleUpdate({ klarnaMode: 'test' })}
+                        >
+                          Sandbox
+                        </Button>
+                        <Button 
+                          variant={config.klarnaMode === 'live' ? 'default' : 'outline'}
+                          size="sm"
+                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.klarnaMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
+                          onClick={() => handleUpdate({ klarnaMode: 'live' })}
+                        >
+                          Production
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid gap-6">
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
@@ -578,6 +629,30 @@ export default function PaymentsPage() {
                   </div>
 
                   <Separator />
+
+                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
+                    <div className="flex-1 space-y-3">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant={config.afterpayMode === 'sandbox' ? 'default' : 'outline'}
+                          size="sm"
+                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.afterpayMode === 'sandbox' ? 'bg-orange-500 hover:bg-orange-600' : '')}
+                          onClick={() => handleUpdate({ afterpayMode: 'sandbox' })}
+                        >
+                          Sandbox
+                        </Button>
+                        <Button 
+                          variant={config.afterpayMode === 'live' ? 'default' : 'outline'}
+                          size="sm"
+                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.afterpayMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
+                          onClick={() => handleUpdate({ afterpayMode: 'live' })}
+                        >
+                          Production
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="grid gap-6">
                     <div className="space-y-2">
@@ -655,6 +730,30 @@ export default function PaymentsPage() {
                   </div>
 
                   <Separator />
+
+                  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 border border-dashed rounded-sm">
+                    <div className="flex-1 space-y-3">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant={config.adyenMode === 'test' ? 'default' : 'outline'}
+                          size="sm"
+                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.adyenMode === 'test' ? 'bg-orange-500 hover:bg-orange-600' : '')}
+                          onClick={() => handleUpdate({ adyenMode: 'test' })}
+                        >
+                          Sandbox
+                        </Button>
+                        <Button 
+                          variant={config.adyenMode === 'live' ? 'default' : 'outline'}
+                          size="sm"
+                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.adyenMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
+                          onClick={() => handleUpdate({ adyenMode: 'live' })}
+                        >
+                          Production
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="grid gap-6">
                     <div className="space-y-2">
