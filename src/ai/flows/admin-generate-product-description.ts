@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for generating product descriptions for administrators.
+ * @fileOverview A Genkit flow for generating product content for administrators.
  *
- * - adminGenerateProductDescription - A function that generates product descriptions using AI with retry logic.
+ * - adminGenerateProductDescription - A function that generates product descriptions and SEO metadata using AI.
  * - AdminGenerateProductDescriptionInput - The input type for the adminGenerateProductDescription function.
  * - AdminGenerateProductDescriptionOutput - The return type for the adminGenerateProductDescription function.
  */
@@ -27,6 +27,8 @@ export type AdminGenerateProductDescriptionInput = z.infer<
 
 const AdminGenerateProductDescriptionOutputSchema = z.object({
   description: z.string().describe('The generated product description.'),
+  metaTitle: z.string().describe('An SEO-optimized meta title.'),
+  metaDescription: z.string().describe('An SEO-optimized meta description.'),
 });
 export type AdminGenerateProductDescriptionOutput = z.infer<
   typeof AdminGenerateProductDescriptionOutputSchema
@@ -78,8 +80,8 @@ const productDescriptionPrompt = ai.definePrompt({
   name: 'productDescriptionPrompt',
   input: {schema: AdminGenerateProductDescriptionInputSchema},
   output: {schema: AdminGenerateProductDescriptionOutputSchema},
-  prompt: `You are an expert marketing copywriter for a luxury e-commerce store.
-Your task is to create a compelling, high-quality product description based on the provided details.
+  prompt: `You are an expert marketing copywriter and SEO specialist for a luxury e-commerce store called FSLNO Studio.
+Your task is to create a compelling, high-quality product description and SEO metadata based on the provided details.
 
 Product Name: "{{{productName}}}"
 
@@ -94,6 +96,8 @@ Target Audience: "{{{targetAudience}}}"
 
 {{#if tone}}
 Desired Tone: "{{{tone}}}"
+{{else}}
+Desired Tone: "luxurious and minimalist"
 {{/if}}
 
 {{#if keywords.length}}
@@ -103,7 +107,10 @@ Keywords to include:
 {{/each}}
 {{/if}}
 
-Craft a detailed and engaging product description that highlights the product's benefits and appeals to the target audience, maintaining the specified tone. Ensure the description is sophisticated and emphasizes the luxury aspect of the brand.`,
+Task:
+1. Craft a detailed and engaging product description that highlights the product's benefits and appeals to the target audience, maintaining the specified tone. Ensure the description is sophisticated and emphasizes the luxury aspect of the brand.
+2. Create an SEO-optimized Meta Title (under 60 characters) that includes the product name and brand.
+3. Create an SEO-optimized Meta Description (under 160 characters) that summarizes the product's value proposition and includes a call to action.`,
 });
 
 const generateProductDescriptionFlow = ai.defineFlow(

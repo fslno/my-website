@@ -38,7 +38,7 @@ import {
   Clock,
   Scale,
   Maximize2,
-  MoreHorizontal
+  Sparkles
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -62,6 +62,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
 
 interface MediaItem {
   url: string;
@@ -93,6 +94,7 @@ export default function ProductsPage() {
   const { data: categories, loading: categoriesLoading } = useCollection(categoriesQuery);
   
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
@@ -452,6 +454,31 @@ export default function ProductsPage() {
     }
   };
 
+  const handleAiGenerate = async () => {
+    if (!name) {
+      toast({ variant: "destructive", title: "Missing Name", description: "Provide a product name for the AI to analyze." });
+      return;
+    }
+    setIsGeneratingAi(true);
+    try {
+      const result = await adminGenerateProductDescription({
+        productName: name,
+        features: features.split(',').map(f => f.trim()).filter(Boolean),
+        tone: 'luxurious'
+      });
+      
+      setDescription(result.description);
+      setSeoTitle(result.metaTitle);
+      setSeoDescription(result.metaDescription);
+      
+      toast({ title: "AI Synthesis Complete", description: "Description and metadata manifested." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "AI Error", description: "Synthesis protocol failed. Check your API limit." });
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
+
   const handleSaveProduct = async () => {
     if (!db || !name || !price || !categoryId) return;
     setIsSaving(true);
@@ -471,7 +498,7 @@ export default function ProductsPage() {
       preorderEnabled,
       variants,
       media,
-      features: features.split(',').map(f => f.trim()),
+      features: features.split(',').map(f => f.trim()).filter(Boolean),
       seo: {
         title: seoTitle || name,
         description: seoDescription || description,
@@ -672,7 +699,22 @@ export default function ProductsPage() {
                           </Select>
                         </div>
                       </div>
-                      <div className="space-y-4 pt-4 border-t"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Description</Label><Textarea className="min-h-[150px] resize-none bg-white p-4 text-sm" placeholder="Describe this product..." value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+                      <div className="space-y-4 pt-4 border-t">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Description</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={handleAiGenerate}
+                            disabled={isGeneratingAi || !name}
+                            className="h-8 gap-2 font-bold uppercase tracking-widest text-[9px] text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          >
+                            {isGeneratingAi ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                            Generate with AI
+                          </Button>
+                        </div>
+                        <Textarea className="min-h-[150px] resize-none bg-white p-4 text-sm" placeholder="Describe this product..." value={description} onChange={(e) => setDescription(e.target.value)} />
+                      </div>
                     </div>
                   </section>
                   <section className="bg-blue-50/30 p-4 sm:p-8 rounded-xl border border-blue-100 space-y-6">
@@ -724,7 +766,36 @@ export default function ProductsPage() {
                   </div>
                 </TabsContent>
                 <TabsContent value="seo" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                  <div className="space-y-6"><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Meta Title</Label><Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className="h-12 bg-white" /></div><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Meta Description</Label><Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} className="min-h-[120px] bg-white resize-none" /></div><div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">URL Handle</Label><div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50"><span className="text-[10px] text-gray-400 hidden sm:inline">fslno.ca/products/</span><Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0 h-12 flex-1" /></div></div></div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-gray-400" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Metadata Ingestion</h3></div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleAiGenerate}
+                      disabled={isGeneratingAi || !name}
+                      className="h-8 gap-2 font-bold uppercase tracking-widest text-[9px] text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                    >
+                      {isGeneratingAi ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                      Sync Metadata with AI
+                    </Button>
+                  </div>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Meta Title</Label>
+                      <Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className="h-12 bg-white" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Meta Description</Label>
+                      <Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} className="min-h-[120px] bg-white resize-none" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">URL Handle</Label>
+                      <div className="flex items-center gap-2 border rounded-md px-3 bg-gray-50">
+                        <span className="text-[10px] text-gray-400 hidden sm:inline">fslno.ca/products/</span>
+                        <Input value={seoHandle} onChange={(e) => setSeoHandle(e.target.value)} className="border-none bg-transparent shadow-none px-0 h-12 flex-1" />
+                      </div>
+                    </div>
+                  </div>
                 </TabsContent>
                 <TabsContent value="logistics" className="p-4 sm:p-8 m-0 space-y-12 max-w-5xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
