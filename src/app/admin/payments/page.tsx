@@ -22,20 +22,16 @@ import {
   Banknote,
   Activity,
   Terminal,
-  ArrowRight,
   CheckCircle2,
   AlertCircle,
-  Hash,
   Scale,
-  Percent,
-  MessageSquare,
   Save,
   Plus,
   Trash2,
   Key,
   Shield,
-  Download,
-  Smartphone
+  Smartphone,
+  ChevronRight
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -518,7 +514,7 @@ export default function PaymentsPage() {
                       </div>
                       <div className="grid gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key</Label>
                           <div className="relative">
                             <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input 
@@ -621,7 +617,7 @@ export default function PaymentsPage() {
                       </div>
                       <div className="grid gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key</Label>
                           <div className="relative">
                             <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input 
@@ -724,7 +720,7 @@ export default function PaymentsPage() {
                       </div>
                       <div className="grid gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant ID)</Label>
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key</Label>
                           <div className="relative">
                             <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input 
@@ -827,7 +823,7 @@ export default function PaymentsPage() {
                       </div>
                       <div className="grid gap-6">
                         <div className="space-y-2">
-                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant Account)</Label>
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key</Label>
                           <div className="relative">
                             <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input 
@@ -838,7 +834,7 @@ export default function PaymentsPage() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Secret ID (API Key)</Label>
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input 
