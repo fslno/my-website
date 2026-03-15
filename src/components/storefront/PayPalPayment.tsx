@@ -12,24 +12,26 @@ interface PayPalPaymentProps {
   orderData: any;
   onSuccess: (orderId: string) => void;
   validate: () => boolean;
+  clientId?: string;
 }
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+const ENV_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
 /**
  * Official PayPal Orchestration Component.
  * Manifests high-fidelity payment buttons with archival synchronization.
  */
-export function PayPalPayment({ amount, orderData, onSuccess, validate }: PayPalPaymentProps) {
+export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId }: PayPalPaymentProps) {
   const db = useFirestore();
   const { toast } = useToast();
 
+  const activeClientId = clientId || ENV_CLIENT_ID;
+
   // Logical Gate: Verification state before manifestation
-  if (!CLIENT_ID) {
+  if (!activeClientId || activeClientId === 'pending' || activeClientId === 'fslno_sample_key') {
     return (
       <div className="p-8 border-2 border-dashed border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-3">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Validating security keys...</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Payment system offline.</p>
       </div>
     );
   }
@@ -37,11 +39,11 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate }: PayPal
   return (
     <PayPalScriptProvider 
       options={{ 
-        clientId: CLIENT_ID, 
+        clientId: activeClientId, 
         currency: "CAD",
         intent: "capture",
         components: "buttons",
-        "enable-funding": "card"
+        "enable-funding": "paylater,card"
       }}
     >
       <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -51,10 +53,10 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate }: PayPal
             shape: 'rect',
             color: 'gold',
             label: 'paypal',
-            height: 55
+            height: 50
           }}
           disabled={false}
-          forceReRender={[amount]}
+          forceReRender={[amount, activeClientId]}
           onClick={(data, actions) => {
             if (!validate()) {
               toast({
@@ -71,7 +73,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate }: PayPal
               // 1. Construct the pending manifest
               const payload = {
                 ...orderData,
-                status: 'awaiting_processing',
+                status: 'pending',
                 paymentStatus: 'pending',
                 createdAt: serverTimestamp()
               };
