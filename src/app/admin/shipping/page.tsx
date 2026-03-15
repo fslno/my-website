@@ -580,7 +580,11 @@ export default function ShippingPage() {
                   const active = typeof carrier === 'string' ? true : carrier.active;
                   
                   return (
-                    <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors group gap-4">
+                    <div 
+                      key={idx} 
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors group gap-4 cursor-pointer"
+                      onClick={() => handleOpenEdit(carrier, idx)}
+                    >
                       <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded border flex items-center justify-center font-bold text-xs sm:text-sm transition-all shrink-0", active ? 'bg-black text-white border-black' : 'bg-white text-gray-300 border-gray-200')}>
                           {name.substring(0, 2)}
@@ -595,7 +599,10 @@ export default function ShippingPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0">
+                      <div 
+                        className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="flex items-center gap-3">
                           <Button 
                             variant="ghost" 
