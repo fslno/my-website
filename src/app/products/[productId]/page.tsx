@@ -191,6 +191,7 @@ export default function ProductDetailPage(props: PageProps) {
       image: product.media?.[0]?.url || '',
       size: selectedSize,
       categoryId: product.categoryId,
+      logistics: product.logistics || {}, // Ingest logistics for Stallion Express API
     };
 
     if (wantsCustomization) {
@@ -291,7 +292,7 @@ export default function ProductDetailPage(props: PageProps) {
           
           <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-4">
-              {/* Vertical Thumbnails on Desktop, Hidden on Mobile (Using Dots) */}
+              {/* Vertical Thumbnails on Desktop */}
               {media.length > 1 && (
                 <div className="hidden lg:flex lg:flex-col gap-2 overflow-y-auto scrollbar-hide lg:w-20 shrink-0">
                   {media.map((item: any, idx: number) => (
@@ -334,7 +335,7 @@ export default function ProductDetailPage(props: PageProps) {
                   </CarouselContent>
                 </Carousel>
 
-                {/* Mobile Siding Indicators (Dots) */}
+                {/* Mobile Dots */}
                 {media.length > 1 && (
                   <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 lg:hidden z-10">
                     {media.map((_: any, idx: number) => (
@@ -512,7 +513,7 @@ export default function ProductDetailPage(props: PageProps) {
                       No
                     </button>
                     <button
-                      onClick={() => setWantsCustomization(true)}
+                      onClick={() => wantsCustomization === true ? setWantsCustomization(false) : setWantsCustomization(true)}
                       className={cn(
                         "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
                         wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"

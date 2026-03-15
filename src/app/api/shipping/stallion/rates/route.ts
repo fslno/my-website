@@ -4,38 +4,22 @@ import * as admin from 'firebase-admin';
 
 /**
  * @fileOverview Stallion Express Rate Discovery API
- * Authoritatively calculates shipping costs using credentials from Firestore or environment variables.
+ * Authoritatively calculates shipping costs using credentials from Firestore.
  */
 
-// Authoritatively initialize the Admin SDK for backend operations if not already active
 if (!admin.apps.length) {
   admin.initializeApp();
 }
 
 const STALLION_BASE_URL = 'https://api.stallionexpress.ca/v1';
 
-/**
- * Key Verification Protocol:
- * Logs critical warnings if required environment variables are not Manifested.
- */
-function verifyEnvironmentKeys() {
-  if (!process.env.STALLION_API_KEY) {
-    console.warn("CRITICAL: STALLION_API_KEY Key Missing.");
-  }
-  if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) {
-    console.warn("CRITICAL: NEXT_PUBLIC_PAYPAL_CLIENT_ID Key Missing.");
-  }
-}
-
 export async function POST(request: Request) {
   try {
-    verifyEnvironmentKeys();
-    
     const db = getFirestore();
     const body = await request.json();
     const { to_address, parcel } = body;
 
-    // 1. Authoritative Credential Retrieval
+    // 1. Authoritative Configuration Check
     const shippingConfigDoc = await db.collection('config').doc('shipping').get();
     const shippingConfig = shippingConfigDoc.data();
     const carriers = shippingConfig?.carriers || [];
@@ -44,13 +28,15 @@ export async function POST(request: Request) {
       (typeof c === 'string' ? c === 'STALLION EXPRESS' : c.name === 'STALLION EXPRESS')
     );
 
-    const stallionApiToken = stallionCarrier?.apiKey || process.env.STALLION_API_KEY;
+    // 2. Security Gate: Verify active status and token manifest
+    const stallionApiToken = stallionCarrier?.apiKey;
+    const isActive = stallionCarrier?.active !== false;
 
-    if (!stallionApiToken || stallionApiToken === 'pending' || stallionApiToken === 'fslno_sample_key') {
-      return NextResponse.json({ error: 'Stallion API protocol not configured in Admin UI.' }, { status: 500 });
+    if (!isActive || !stallionApiToken || stallionApiToken === 'pending' || stallionApiToken === 'fslno_sample_key') {
+      return NextResponse.json({ error: 'Stallion API protocol offline or unconfigured.' }, { status: 503 });
     }
 
-    // 2. Stallion Express Rate Protocol Handshake
+    // 3. Stallion Express API Handshake
     const response = await fetch(`${STALLION_BASE_URL}/rates`, {
       method: 'POST',
       headers: {
@@ -75,11 +61,10 @@ export async function POST(request: Request) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[STALLION] API Error:', data);
       return NextResponse.json({ error: data.message || 'Logistics handshake failed.' }, { status: response.status });
     }
 
-    // 3. Mapped Manifest for Storefront UI
+    // 4. Mapped Manifest for Storefront
     const mappedRates = (data.rates || []).map((rate: any) => {
       let label = 'Standard Shipping';
       let type = 'standard';

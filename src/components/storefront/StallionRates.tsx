@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Loader2, Truck, AlertCircle, CheckCircle2, MapPin } from 'lucide-react';
@@ -22,7 +22,7 @@ interface StallionRatesProps {
 
 /**
  * Stallion Express Dynamic Rates Component.
- * Manifests live shipping options with Authoritative handling fees.
+ * Authoritatively manifests live shipping options with conditional visibility.
  */
 export function StallionRates({ address, cartItems, onRateSelect, selectedRateId }: StallionRatesProps) {
   const db = useFirestore();
@@ -36,9 +36,19 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isStallionEnabled = useMemo(() => {
+    if (!shippingConfig?.carriers) return false;
+    const stallion = shippingConfig.carriers.find((c: any) => 
+      (typeof c === 'string' ? c === 'STALLION EXPRESS' : c.name === 'STALLION EXPRESS')
+    );
+    return stallion && stallion.active !== false && stallion.apiKey && stallion.apiKey !== 'pending';
+  }, [shippingConfig]);
+
   const handlingFee = Number(storeConfig?.handlingFee) || 2.00;
 
   useEffect(() => {
+    if (!isStallionEnabled) return;
+
     const isAddressComplete = address.city && address.postalCode && address.province;
     if (!isAddressComplete) {
       setRates([]);
@@ -82,6 +92,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
         setRates(finalRates);
         
+        // Auto-select the first rate if none selected
         if (finalRates.length > 0 && !selectedRateId) {
           onRateSelect(finalRates[0]);
         }
@@ -93,7 +104,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
     };
 
     fetchRates();
-  }, [address.city, address.postalCode, address.province, cartItems, shippingConfig]);
+  }, [address.city, address.postalCode, address.province, cartItems, shippingConfig, isStallionEnabled]);
+
+  // Authoritative Guard: Hidden if not enabled
+  if (!isStallionEnabled) return null;
 
   if (loading) {
     return (
