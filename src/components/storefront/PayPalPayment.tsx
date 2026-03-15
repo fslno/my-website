@@ -31,7 +31,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
   if (!activeClientId || activeClientId === 'pending' || activeClientId === 'fslno_sample_key') {
     return (
       <div className="p-8 border-2 border-dashed border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Payment system offline.</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Validating security keys...</p>
       </div>
     );
   }
@@ -43,7 +43,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
         currency: "CAD",
         intent: "capture",
         components: "buttons",
-        "enable-funding": "paylater,card"
+        "disable-funding": "paylater" // Authoritatively removed per directive
       }}
     >
       <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
