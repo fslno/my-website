@@ -5,6 +5,7 @@ import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface PayPalPaymentProps {
   amount: number;
@@ -23,11 +24,12 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate }: PayPal
   const db = useFirestore();
   const { toast } = useToast();
 
-  // Logical Gate: Conditional manifestation based on environment config
+  // Logical Gate: Verification state before manifestation
   if (!CLIENT_ID) {
     return (
-      <div className="p-6 border-2 border-dashed border-red-100 bg-red-50 text-red-700 text-[10px] font-bold uppercase tracking-[0.2em] text-center">
-        Payment system offline.
+      <div className="p-8 border-2 border-dashed border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-3">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Validating security keys...</p>
       </div>
     );
   }
@@ -105,7 +107,6 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate }: PayPal
 
               if (firestoreId) {
                 // Synchronize success state back to archival record
-                // This will trigger the 'onOrderPaid' acoustic alarm
                 await updateDoc(doc(db, 'orders', firestoreId), {
                   paymentStatus: 'paid',
                   status: 'processing',

@@ -14,19 +14,32 @@ if (!admin.apps.length) {
 
 const STALLION_BASE_URL = 'https://api.stallionexpress.ca/v1';
 
+/**
+ * Key Verification Protocol:
+ * Logs critical warnings if required environment variables are not Manifested.
+ */
+function verifyEnvironmentKeys() {
+  if (!process.env.STALLION_API_KEY) {
+    console.warn("CRITICAL: STALLION_API_KEY Key Missing.");
+  }
+  if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) {
+    console.warn("CRITICAL: NEXT_PUBLIC_PAYPAL_CLIENT_ID Key Missing.");
+  }
+}
+
 export async function POST(request: Request) {
   try {
+    verifyEnvironmentKeys();
+    
     const db = getFirestore();
     const body = await request.json();
     const { to_address, parcel } = body;
 
     // 1. Authoritative Credential Retrieval
-    // Fetch the shipping manifest from Firestore to find the live API Token
     const shippingConfigDoc = await db.collection('config').doc('shipping').get();
     const shippingConfig = shippingConfigDoc.data();
     const carriers = shippingConfig?.carriers || [];
     
-    // Lookup "STALLION EXPRESS" specifically in the manifest
     const stallionCarrier = carriers.find((c: any) => 
       (typeof c === 'string' ? c === 'STALLION EXPRESS' : c.name === 'STALLION EXPRESS')
     );
@@ -50,9 +63,9 @@ export async function POST(request: Request) {
         to_postal_code: to_address.postal_code,
         to_city: to_address.city,
         to_province: to_address.province,
-        weight: parcel.weight || 0.5, // kg
+        weight: parcel.weight || 0.5,
         weight_unit: 'kg',
-        length: parcel.length || 30, // cm
+        length: parcel.length || 30,
         width: parcel.width || 20,
         height: parcel.height || 10,
         dimension_unit: 'cm'

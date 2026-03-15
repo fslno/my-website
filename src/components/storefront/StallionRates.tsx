@@ -1,10 +1,9 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Loader2, Truck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, Truck, AlertCircle, CheckCircle2, MapPin } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -39,16 +38,18 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
   const handlingFee = Number(storeConfig?.handlingFee) || 2.00;
 
-  // Authoritative Effect: Fetch rates when destination is viable
   useEffect(() => {
     const isAddressComplete = address.city && address.postalCode && address.province;
-    if (!isAddressComplete) return;
+    if (!isAddressComplete) {
+      setRates([]);
+      setError(null);
+      return;
+    }
 
     const fetchRates = async () => {
       setLoading(true);
       setError(null);
 
-      // Aggregate Parcel Metrics
       const parcel = cartItems.reduce((acc, item) => ({
         weight: acc.weight + (Number(item.logistics?.weight || shippingConfig?.defaultWeight || 0.5) * item.quantity),
         length: Math.max(acc.length, Number(item.logistics?.length || shippingConfig?.defaultLength || 30)),
@@ -74,7 +75,6 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
         const data = await response.json();
         if (data.error) throw new Error(data.error);
 
-        // Inject Handling Fee into the manifest
         const finalRates = (data.rates || []).map((r: any) => ({
           ...r,
           totalCost: r.price + handlingFee
@@ -82,7 +82,6 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
         setRates(finalRates);
         
-        // Auto-select first rate if none selected
         if (finalRates.length > 0 && !selectedRateId) {
           onRateSelect(finalRates[0]);
         }
@@ -110,14 +109,23 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
       <div className="p-6 border-2 border-dashed border-red-100 bg-red-50 text-red-700 rounded-none flex items-start gap-3">
         <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest leading-none">Logistics Error</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest leading-none">Logistics Issue</p>
           <p className="text-[9px] uppercase font-medium opacity-80">{error}</p>
         </div>
       </div>
     );
   }
 
-  if (rates.length === 0) return null;
+  const isAddressIncomplete = !address.city || !address.postalCode || !address.province;
+
+  if (isAddressIncomplete || rates.length === 0) {
+    return (
+      <div className="p-8 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-3 bg-gray-50/30">
+        <MapPin className="h-5 w-5 text-gray-300" />
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Enter address for shipping rates.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
