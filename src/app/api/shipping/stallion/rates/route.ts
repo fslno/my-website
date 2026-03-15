@@ -3,7 +3,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 
 /**
- * @fileOverview Stallion Express Rate Discovery API
+ * @fileOverview Stallion Express Rate Discovery API (Backend Layer)
  * Authoritatively calculates shipping costs using credentials from Firestore.
  * Implements a 15-second timeout and multi-service mapping protocol.
  */
@@ -78,6 +78,7 @@ export async function POST(request: Request) {
     }
 
     // 4. Multi-Service Mapped Manifest
+    // Ensure we return ALL available rates to the frontend
     const mappedRates = (data.rates || []).map((rate: any) => {
       let label = 'Standard Shipping';
       let type = 'standard';
@@ -94,7 +95,6 @@ export async function POST(request: Request) {
         label = 'Standard Shipping';
         type = 'standard';
       } else {
-        // Fallback to the specific carrier name if mapping is ambiguous
         label = rate.service_name;
       }
 

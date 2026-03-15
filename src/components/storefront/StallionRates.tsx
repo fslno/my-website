@@ -107,10 +107,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
         console.warn('[LOGISTICS] API Failure, activating fallback protocol:', err.message);
         setUseFallback(true);
         
-        // Only use fallback if API truly fails
+        // Strictly use fallback only if API fails or times out
         const fallbackRate = {
           id: 'fallback-std',
-          service: 'Standard Courier',
+          service: 'Standard Courier (Fallback)',
           label: 'Standard Shipping',
           totalCost: Number(shippingConfig?.standardRate || 0) + handlingFee,
           days: '4-7',
@@ -124,7 +124,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
     };
 
     fetchRates();
-  }, [address.city, address.postalCode, address.province, cartItems, shippingConfig, isStallionEnabled, handlingFee]);
+  }, [address.city, address.postalCode, address.province, cartItems, shippingConfig, isStallionEnabled, handlingFee, address.country, onRateSelect, selectedRateId]);
 
   if (!isStallionEnabled) return null;
 
