@@ -34,7 +34,8 @@ import {
   Trash2,
   Key,
   Shield,
-  Download
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -738,7 +739,7 @@ export default function PaymentsPage() {
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input 
-                              type="password"
+                              type="password" 
                               value={config.afterpaySecretKey || ''} 
                               onChange={(e) => handleUpdate({ afterpaySecretKey: e.target.value })}
                               className="pl-10 h-11 font-mono text-xs" 
@@ -1054,7 +1055,7 @@ export default function PaymentsPage() {
                       className={cn(
                         "flex-1 py-2 text-[8px] font-bold border transition-all",
                         (config.fraudGuardLevel || 'HIGH') === level 
-                          ? "bg-red-500 border-red-500 text-white" 
+                          ? "bg-red-50 border-red-500 text-white" 
                           : "border-white/10 text-gray-500 hover:border-white/30"
                       )}
                     >
