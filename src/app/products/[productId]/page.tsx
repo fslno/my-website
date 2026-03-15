@@ -58,12 +58,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default function ProductDetailPage(props: PageProps) {
-  const params = use(props.params);
-  const productId = params.productId;
+  const { productId } = use(props.params);
   
   const db = useFirestore();
   const router = useRouter();

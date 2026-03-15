@@ -83,12 +83,10 @@ import { cn } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ orderId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default function OrderDetailPage(props: PageProps) {
-  const params = use(props.params);
-  const orderId = params.orderId;
+  const { orderId } = use(props.params);
   
   const db = useFirestore();
   const { toast } = useToast();
@@ -250,7 +248,7 @@ export default function OrderDetailPage(props: PageProps) {
       case 'canceled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
       case 'confirmed':
-        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
+        return <Badge className="bg-blue-50 text-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
       default:
         return <Badge className="bg-gray-50 text-gray-700 border-gray-100 uppercase text-[10px] font-bold">{status?.replace('_', ' ')}</Badge>;
     }

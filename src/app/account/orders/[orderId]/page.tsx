@@ -15,12 +15,10 @@ import { Button } from '@/components/ui/button';
 
 interface PageProps {
   params: Promise<{ orderId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default function OrderDetailPage(props: PageProps) {
-  const params = use(props.params);
-  const orderId = params.orderId;
+  const { orderId } = use(props.params);
   
   const { user, isUserLoading } = useUser();
   const db = useFirestore();

@@ -13,12 +13,10 @@ import { ChevronLeft, Loader2 } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ categoryId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default function CollectionPage(props: PageProps) {
-  const params = use(props.params);
-  const categoryId = params.categoryId;
+  const { categoryId } = use(props.params);
   
   const db = useFirestore();
 
