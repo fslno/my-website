@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useMemo, useEffect } from 'react';
@@ -441,6 +442,8 @@ export default function ProductsPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     const fileArray = Array.from(files);
+    
+    // Authoritatively process media in selection order
     const newMediaPromises = fileArray.map(file => {
       return new Promise<MediaItem>((resolve) => {
         const type = file.type.startsWith('video/') ? 'video' : 'image';
@@ -449,8 +452,10 @@ export default function ProductsPage() {
         reader.readAsDataURL(file);
       });
     });
+
     try {
       const results = await Promise.all(newMediaPromises);
+      // Append to maintain chronological rank (selected first = lower index)
       setMedia(prev => [...prev, ...results]);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
@@ -668,6 +673,16 @@ export default function ProductsPage() {
                       >
                         {item.type === 'video' ? <video src={item.url} className="absolute inset-0 w-full h-full object-cover" muted loop /> : <Image src={item.url} alt={`Media ${index}`} fill className="object-cover" />}
                         <button onClick={() => setMedia(media.filter((_, i) => i !== index))} className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
+                        
+                        {/* Chronological Rank Indicator */}
+                        <div className="absolute top-2 left-2 flex gap-1">
+                          <Badge className={cn(
+                            "text-[8px] font-bold uppercase tracking-widest h-5 px-1.5 border-none shadow-md",
+                            index === 0 ? "bg-black text-white" : "bg-white/80 text-black backdrop-blur-sm"
+                          )}>
+                            {index === 0 ? 'Primary' : (index + 1).toString().padStart(2, '0')}
+                          </Badge>
+                        </div>
                       </div>
                     ))}
                     <button onClick={() => fileInputRef.current?.click()} className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group">
@@ -819,70 +834,32 @@ export default function ProductsPage() {
       </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
-        <div className="p-4 border-b bg-gray-50/50 flex flex-col gap-4">
-          <div className={cn("flex flex-wrap items-center gap-3 transition-all duration-300", selectedIds.length > 0 ? "justify-between" : "justify-end")}>
-            {selectedIds.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
-                <Button variant="outline" size="sm" onClick={handleBulkDuplicate} className="h-9 border-[#babfc3] text-[9px] font-bold uppercase tracking-widest gap-2 bg-white">
-                  <Copy className="h-3.5 w-3.5" /> Duplicate ({selectedIds.length})
-                </Button>
-                <Dialog open={isBulkEditDialogOpen} onOpenChange={setIsBulkEditDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-9 border-[#babfc3] text-[9px] font-bold uppercase tracking-widest gap-2 bg-white">
-                      <Edit2 className="h-3.5 w-3.5" /> Bulk Edit ({selectedIds.length})
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
-                    <DialogHeader className="pt-6">
-                      <DialogTitle className="text-sm font-bold uppercase tracking-widest">Bulk Edit</DialogTitle>
-                      <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Update {selectedIds.length} products at once.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-6 py-6">
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-500">Move to Category</Label><Select value={bulkCategoryId} onValueChange={setBulkCategoryId}><SelectTrigger className="h-11"><SelectValue placeholder="Select category..." /></SelectTrigger><SelectContent>{categories?.map((cat: any) => (<SelectItem key={cat.id} value={cat.id} className="text-[10px] uppercase font-bold">{cat.name}</SelectItem>))}</SelectContent></Select></div>
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-500">Update Status</Label><Select value={bulkStatus} onValueChange={setBulkStatus}><SelectTrigger className="h-11"><SelectValue placeholder="Select status..." /></SelectTrigger><SelectContent><SelectItem value="active" className="text-[10px] uppercase font-bold">Active (Visible)</SelectItem><SelectItem value="draft" className="text-[10px] uppercase font-bold">Draft (Hidden)</SelectItem><SelectItem value="archived" className="text-[10px] uppercase font-bold">Archived</SelectItem></SelectContent></Select></div>
-                    </div>
-                    <DialogFooter>
-                      <Button onClick={handleBulkUpdate} disabled={isSaving} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[9px]">
-                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}Apply Changes
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-                <Button variant="destructive" size="sm" onClick={handleBulkDelete} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2">
-                  {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}Delete ({selectedIds.length})
-                </Button>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <input type="file" ref={csvImportRef} className="hidden" accept=".csv" onChange={handleImportCSV} />
-              <Button variant="ghost" size="sm" onClick={() => csvImportRef.current?.click()} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2">
-                <Upload className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Import CSV</span>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleExportCSV} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2">
-                <Download className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Export CSV</span>
-              </Button>
-            </div>
-          </div>
-          <Separator />
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="relative w-full md:flex-1 md:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" /><Input placeholder="Search products..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <Select value={sortBy} onValueChange={(v: string) => setSortBy(v)}>
-                <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><ArrowUpDown className="h-3 w-3 mr-2" /><span className="truncate">Sort By</span></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest" className="text-[10px] uppercase font-bold">Newest First</SelectItem>
-                  <SelectItem value="oldest" className="text-[10px] uppercase font-bold">Oldest First</SelectItem>
-                  <SelectItem value="name-asc" className="text-[10px] uppercase font-bold">Name: A - Z</SelectItem>
-                  <SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Name: Z - A</SelectItem>
-                  <SelectItem value="price-high" className="text-[10px] uppercase font-bold">Price: High to Low</SelectItem>
-                  <SelectItem value="price-low" className="text-[10px] uppercase font-bold">Price: Low to High</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><Filter className="h-3 w-3 mr-2" /><span className="truncate">{categoryFilter === 'all' ? 'All Categories' : categories?.find(c => c.id === categoryFilter)?.name}</span></SelectTrigger>
-                <SelectContent><SelectItem value="all" className="text-[10px] uppercase font-bold">All Categories</SelectItem>{categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}</SelectContent>
-              </Select>
-            </div>
+        <div className="p-4 border-b bg-gray-50/50 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="relative w-full md:flex-1 md:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" /><Input placeholder="Search products..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <input type="file" ref={csvImportRef} className="hidden" accept=".csv" onChange={handleImportCSV} />
+            <Button variant="ghost" size="sm" onClick={() => csvImportRef.current?.click()} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2">
+              <Upload className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Import CSV</span>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleExportCSV} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2">
+              <Download className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Export CSV</span>
+            </Button>
+            <Separator orientation="vertical" className="h-6 mx-2 hidden md:block" />
+            <Select value={sortBy} onValueChange={(v: string) => setSortBy(v)}>
+              <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><ArrowUpDown className="h-3 w-3 mr-2" /><span className="truncate">Sort By</span></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest" className="text-[10px] uppercase font-bold">Newest First</SelectItem>
+                <SelectItem value="oldest" className="text-[10px] uppercase font-bold">Oldest First</SelectItem>
+                <SelectItem value="name-asc" className="text-[10px] uppercase font-bold">Name: A - Z</SelectItem>
+                <SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Name: Z - A</SelectItem>
+                <SelectItem value="price-high" className="text-[10px] uppercase font-bold">Price: High to Low</SelectItem>
+                <SelectItem value="price-low" className="text-[10px] uppercase font-bold">Price: Low to High</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><Filter className="h-3 w-3 mr-2" /><span className="truncate">{categoryFilter === 'all' ? 'All Categories' : categories?.find(c => c.id === categoryFilter)?.name}</span></SelectTrigger>
+              <SelectContent><SelectItem value="all" className="text-[10px] uppercase font-bold">All Categories</SelectItem>{categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}</SelectContent>
+            </Select>
           </div>
         </div>
 
