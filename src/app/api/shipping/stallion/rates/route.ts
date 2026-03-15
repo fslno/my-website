@@ -5,6 +5,7 @@ import * as admin from 'firebase-admin';
 /**
  * @fileOverview Stallion Express Rate Discovery API
  * Authoritatively calculates shipping costs using credentials from Firestore.
+ * Implements a 15-second timeout and multi-service mapping protocol.
  */
 
 if (!admin.apps.length) {
@@ -14,6 +15,9 @@ if (!admin.apps.length) {
 const STALLION_BASE_URL = 'https://api.stallionexpress.ca/v1';
 
 export async function POST(request: Request) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout protocol
+
   try {
     const db = getFirestore();
     const body = await request.json();
@@ -33,6 +37,7 @@ export async function POST(request: Request) {
     const isActive = stallionCarrier?.active !== false;
 
     if (!isActive) {
+      console.warn('CRITICAL: [Stallion Express] Protocol deactivated by administrator.');
       return NextResponse.json({ error: 'Stallion Express is currently deactivated.' }, { status: 503 });
     }
 
@@ -41,7 +46,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Logistics provider configuration incomplete.' }, { status: 503 });
     }
 
-    // 3. Stallion Express API Handshake
+    // 3. Stallion Express API Handshake with Timeout
     const response = await fetch(`${STALLION_BASE_URL}/rates`, {
       method: 'POST',
       headers: {
@@ -60,9 +65,11 @@ export async function POST(request: Request) {
         width: parcel.width || 25,
         height: parcel.height || 10,
         dimension_unit: 'cm'
-      })
+      }),
+      signal: controller.signal
     });
 
+    clearTimeout(timeoutId);
     const data = await response.json();
 
     if (!response.ok) {
@@ -70,18 +77,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: data.message || 'Carrier service unavailable.' }, { status: response.status });
     }
 
-    // 4. Mapped Manifest for Storefront
+    // 4. Multi-Service Mapped Manifest
     const mappedRates = (data.rates || []).map((rate: any) => {
       let label = 'Standard Shipping';
       let type = 'standard';
 
       const name = rate.service_name.toLowerCase();
-      if (name.includes('express') || name.includes('fedex') || name.includes('ups')) {
+      // Precise mapping based on service identity
+      if (name.includes('express') || name.includes('fedex') || name.includes('ups') || name.includes('priority')) {
         label = 'Express Delivery';
         type = 'express';
-      } else if (name.includes('postnl') || name.includes('apc') || name.includes('economy')) {
+      } else if (name.includes('postnl') || name.includes('apc') || name.includes('economy') || name.includes('packet')) {
         label = 'Economy Tracked';
         type = 'economy';
+      } else if (name.includes('usps') || name.includes('usa tracked')) {
+        label = 'Standard Shipping';
+        type = 'standard';
+      } else {
+        // Fallback to the specific carrier name if mapping is ambiguous
+        label = rate.service_name;
       }
 
       return {
@@ -96,7 +110,12 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ rates: mappedRates });
-  } catch (error) {
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      console.error('[STALLION] API Handshake timed out after 15 seconds.');
+      return NextResponse.json({ error: 'Logistics discovery timeout.' }, { status: 504 });
+    }
     console.error('[STALLION] Internal Protocol Error:', error);
     return NextResponse.json({ error: 'Internal logistics dispatch error.' }, { status: 500 });
   }

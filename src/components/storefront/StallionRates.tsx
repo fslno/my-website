@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Loader2, Truck, AlertCircle, CheckCircle2, MapPin, Zap } from 'lucide-react';
+import { Loader2, Truck, AlertCircle, CheckCircle2, MapPin, Zap, ChevronRight } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -22,7 +22,8 @@ interface StallionRatesProps {
 
 /**
  * Stallion Express Dynamic Rates Component.
- * Authoritatively manifests live shipping options with fallback protocols.
+ * Authoritatively manifests multiple live shipping options.
+ * Fallback protocol is isolated to absolute API failure.
  */
 export function StallionRates({ address, cartItems, onRateSelect, selectedRateId }: StallionRatesProps) {
   const db = useFirestore();
@@ -86,7 +87,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
         });
 
         const data = await response.json();
-        if (data.error) throw new Error(data.error);
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Carrier discovery failed.');
+        }
 
         const finalRates = (data.rates || []).map((r: any) => ({
           ...r,
@@ -94,13 +98,16 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
         }));
 
         setRates(finalRates);
+        
+        // Auto-select first rate if nothing selected
         if (finalRates.length > 0 && !selectedRateId) {
           onRateSelect(finalRates[0]);
         }
       } catch (err: any) {
         console.warn('[LOGISTICS] API Failure, activating fallback protocol:', err.message);
         setUseFallback(true);
-        // Create a fallback rate from config
+        
+        // Only use fallback if API truly fails
         const fallbackRate = {
           id: 'fallback-std',
           service: 'Standard Courier',
@@ -117,7 +124,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
     };
 
     fetchRates();
-  }, [address.city, address.postalCode, address.province, cartItems, shippingConfig, isStallionEnabled]);
+  }, [address.city, address.postalCode, address.province, cartItems, shippingConfig, isStallionEnabled, handlingFee]);
 
   if (!isStallionEnabled) return null;
 
@@ -148,37 +155,49 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
           <Zap className="h-3 w-3" /> API Latency detected. Using studio fallback rates.
         </div>
       )}
-      <RadioGroup 
-        value={selectedRateId} 
-        onValueChange={(id) => {
-          const rate = rates.find(r => r.id === id);
-          if (rate) onRateSelect(rate);
-        }}
-        className="grid grid-cols-1 gap-2"
-      >
-        {rates.map((rate) => (
-          <div 
-            key={rate.id} 
-            className={cn(
-              "flex items-center justify-between p-4 border-2 transition-all cursor-pointer hover:bg-secondary rounded-none",
-              selectedRateId === rate.id ? "border-primary bg-white shadow-md" : "bg-gray-50/50 border-transparent"
-            )}
-          >
-            <div className="flex items-center space-x-3">
-              <RadioGroupItem value={rate.id} id={rate.id} className="border-primary text-primary" />
-              <Label htmlFor={rate.id} className="cursor-pointer">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{rate.label}</span>
-                  <span className="text-[9px] text-muted-foreground uppercase font-bold">{rate.days} Days • {rate.service}</span>
-                </div>
-              </Label>
+      
+      {rates.length > 0 ? (
+        <RadioGroup 
+          value={selectedRateId} 
+          onValueChange={(id) => {
+            const rate = rates.find(r => r.id === id);
+            if (rate) onRateSelect(rate);
+          }}
+          className="grid grid-cols-1 gap-2"
+        >
+          {rates.map((rate) => (
+            <div 
+              key={rate.id} 
+              className={cn(
+                "flex items-center justify-between p-4 border-2 transition-all cursor-pointer hover:bg-secondary rounded-none",
+                selectedRateId === rate.id ? "border-primary bg-white shadow-md" : "bg-gray-50/50 border-transparent"
+              )}
+            >
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value={rate.id} id={rate.id} className="border-primary text-primary" />
+                <Label htmlFor={rate.id} className="cursor-pointer flex-1">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{rate.label}</span>
+                    <span className="text-[9px] text-muted-foreground uppercase font-bold">
+                      {rate.days} Days • {rate.service}
+                    </span>
+                  </div>
+                </Label>
+              </div>
+              <div className="text-right flex items-center gap-3">
+                <span className="text-[11px] font-bold text-primary">C${rate.totalCost.toFixed(2)}</span>
+                <ChevronRight className="h-3 w-3 text-muted-foreground opacity-20" />
+              </div>
             </div>
-            <div className="text-right">
-              <span className="text-[11px] font-bold text-primary">C${rate.totalCost.toFixed(2)}</span>
-            </div>
-          </div>
-        ))}
-      </RadioGroup>
+          ))}
+        </RadioGroup>
+      ) : (
+        <div className="p-8 border-2 border-dashed rounded-none text-center bg-gray-50/30">
+          <AlertCircle className="h-5 w-5 text-gray-300 mx-auto mb-2" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No services available for this destination.</p>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 text-[8px] font-bold text-muted-foreground uppercase tracking-widest px-1">
         <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" /> Logistics Protocol Active
       </div>
