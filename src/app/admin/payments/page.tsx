@@ -20,8 +20,6 @@ import {
   Coins,
   History,
   Banknote,
-  Smartphone,
-  ShieldAlert,
   Activity,
   Terminal,
   ArrowRight,
@@ -35,7 +33,8 @@ import {
   Plus,
   Trash2,
   Key,
-  Shield
+  Shield,
+  Download
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -79,12 +78,14 @@ export default function PaymentsPage() {
     if (!configRef) return;
     const initialData = {
       stripeEnabled: true,
+      stripeDeleted: false,
       stripeMode: 'test',
       stripePublishableKey: '',
       stripeSecretKey: '',
       stripeDescription: 'Secure Credit Card Checkout',
       stripeFee: '2.9% + 30¢',
       paypalEnabled: true,
+      paypalDeleted: false,
       paypalMode: 'sandbox',
       paypalClientId: '',
       paypalSecretKey: '',
@@ -92,18 +93,21 @@ export default function PaymentsPage() {
       paypalFee: '3.49% + 49¢',
       paypalPayLaterEnabled: true,
       klarnaEnabled: false,
+      klarnaDeleted: false,
       klarnaMode: 'test',
       klarnaClientId: '',
       klarnaClientSecret: '',
       klarnaDescription: 'Interest-free installments',
       klarnaFee: '5.99% + 30¢',
       afterpayEnabled: false,
+      afterpayDeleted: false,
       afterpayMode: 'sandbox',
       afterpayMerchantId: '',
       afterpaySecretKey: '',
       afterpayDescription: 'Buy now, pay later',
       afterpayFee: '6% + 30¢',
       adyenEnabled: false,
+      adyenDeleted: false,
       adyenMode: 'test',
       adyenMerchantAccount: '',
       adyenApiKey: '',
@@ -138,6 +142,23 @@ export default function PaymentsPage() {
         requestResourceData: updates
       }));
     });
+  };
+
+  const handleDeleteProtocol = (gateway: string) => {
+    if (!config) return;
+    if (!confirm(`Authoritatively remove ${gateway.toUpperCase()} from the active manifest? This will hide the tab and deactivate the gateway.`)) return;
+    
+    const updates: any = {
+      [`${gateway}Deleted`]: true,
+      [`${gateway}Enabled`]: false
+    };
+    handleUpdate(updates);
+    toast({ title: "Protocol Removed", description: `${gateway.toUpperCase()} has been de-indexed.` });
+  };
+
+  const handleInstallNative = (gateway: string) => {
+    handleUpdate({ [`${gateway}Deleted`]: false });
+    toast({ title: "Protocol Restored", description: `${gateway.toUpperCase()} is now visible.` });
   };
 
   const handleAddGateway = () => {
@@ -188,6 +209,16 @@ export default function PaymentsPage() {
     );
   }
 
+  const nativeGateways = [
+    { id: 'stripe', label: 'Stripe', icon: Zap, color: '#635BFF' },
+    { id: 'paypal', label: 'PayPal', icon: Globe, color: '#0070BA' },
+    { id: 'klarna', label: 'Klarna', icon: Coins, color: '#FFB3C7' },
+    { id: 'afterpay', label: 'Afterpay', icon: History, color: '#B2FCE4' },
+    { id: 'adyen', label: 'Adyen', icon: Banknote, color: '#00FF66' }
+  ];
+
+  const deletedNative = nativeGateways.filter(g => config[`${g.id}Deleted`]);
+
   return (
     <div className="space-y-8 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
@@ -202,52 +233,62 @@ export default function PaymentsPage() {
                 <Plus className="h-4 w-4" /> Add Gateway
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+            <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl overflow-y-auto max-h-[90vh]">
               <DialogHeader className="pt-6">
-                <DialogTitle className="text-xl font-bold uppercase tracking-tight">Manual Gateway Ingestion</DialogTitle>
-                <DialogDescription className="text-xs font-bold uppercase text-muted-foreground mt-1">Connect an external provider via high-fidelity API credentials.</DialogDescription>
+                <DialogTitle className="text-xl font-bold uppercase tracking-tight">Gateway Ingestion</DialogTitle>
+                <DialogDescription className="text-xs font-bold uppercase text-muted-foreground mt-1">Install native providers or connect a custom tool.</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-6 py-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Provider Name</Label>
-                  <Input 
-                    placeholder="e.g. Coinbase Commerce" 
-                    value={newGateway.name}
-                    onChange={(e) => setNewGateway({...newGateway, name: e.target.value.toUpperCase()})}
-                    className="h-12 font-bold uppercase"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Publishable Key</Label>
-                  <div className="relative">
-                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input 
-                      placeholder="ENTER PUBLIC API KEY" 
-                      value={newGateway.apiKey}
-                      onChange={(e) => setNewGateway({...newGateway, apiKey: e.target.value})}
-                      className="pl-10 h-12 font-mono text-xs"
-                    />
+              
+              <div className="space-y-8 py-6">
+                {deletedNative.length > 0 && (
+                  <div className="space-y-4">
+                    <Label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Install Native Providers</Label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {deletedNative.map(g => (
+                        <Button 
+                          key={g.id} 
+                          variant="outline" 
+                          className="h-12 justify-between px-4 border-black/10 hover:border-black rounded-none group"
+                          onClick={() => handleInstallNative(g.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <g.icon className="h-4 w-4" style={{ color: g.color }} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{g.label}</span>
+                          </div>
+                          <Plus className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Secret ID</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input 
-                      type="password"
-                      placeholder="••••••••••••••••" 
-                      value={newGateway.secretKey}
-                      onChange={(e) => setNewGateway({...newGateway, secretKey: e.target.value})}
-                      className="pl-10 h-12 font-mono text-xs"
-                    />
+                )}
+
+                <div className="space-y-4">
+                  <Label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Manual API Ingestion</Label>
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">Provider Name</Label>
+                      <Input 
+                        placeholder="e.g. Coinbase Commerce" 
+                        value={newGateway.name}
+                        onChange={(e) => setNewGateway({...newGateway, name: e.target.value.toUpperCase()})}
+                        className="h-11 font-bold uppercase"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">Publishable Key</Label>
+                      <Input 
+                        placeholder="ENTER PUBLIC API KEY" 
+                        value={newGateway.apiKey}
+                        onChange={(e) => setNewGateway({...newGateway, apiKey: e.target.value})}
+                        className="h-11 font-mono text-[10px]"
+                      />
+                    </div>
+                    <Button onClick={handleAddGateway} disabled={!newGateway.name || !newGateway.apiKey} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[9px]">
+                      Ingest Protocol
+                    </Button>
                   </div>
                 </div>
               </div>
-              <DialogFooter>
-                <Button onClick={handleAddGateway} disabled={!newGateway.name || !newGateway.apiKey} className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]">
-                  Ingest Provider
-                </Button>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
 
@@ -262,21 +303,31 @@ export default function PaymentsPage() {
           <Tabs defaultValue="stripe" className="w-full">
             <div className="overflow-hidden">
               <TabsList className="bg-white border w-full h-auto flex-wrap xl:flex-nowrap justify-start p-1 gap-2 rounded-none mb-6">
-                <TabsTrigger value="stripe" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-black data-[state=active]:text-white">
-                  <Zap className="h-3.5 w-3.5" /> Stripe
-                </TabsTrigger>
-                <TabsTrigger value="paypal" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#0070BA] data-[state=active]:text-white">
-                  <Globe className="h-3.5 w-3.5" /> PayPal
-                </TabsTrigger>
-                <TabsTrigger value="klarna" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#FFB3C7] data-[state=active]:text-black">
-                  <Coins className="h-3.5 w-3.5" /> Klarna
-                </TabsTrigger>
-                <TabsTrigger value="afterpay" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#B2FCE4] data-[state=active]:text-black">
-                  <History className="h-3.5 w-3.5" /> Afterpay
-                </TabsTrigger>
-                <TabsTrigger value="adyen" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#00FF66] data-[state=active]:text-black">
-                  <Banknote className="h-3.5 w-3.5" /> Adyen
-                </TabsTrigger>
+                {!config.stripeDeleted && (
+                  <TabsTrigger value="stripe" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-black data-[state=active]:text-white">
+                    <Zap className="h-3.5 w-3.5" /> Stripe
+                  </TabsTrigger>
+                )}
+                {!config.paypalDeleted && (
+                  <TabsTrigger value="paypal" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#0070BA] data-[state=active]:text-white">
+                    <Globe className="h-3.5 w-3.5" /> PayPal
+                  </TabsTrigger>
+                )}
+                {!config.klarnaDeleted && (
+                  <TabsTrigger value="klarna" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#FFB3C7] data-[state=active]:text-black">
+                    <Coins className="h-3.5 w-3.5" /> Klarna
+                  </TabsTrigger>
+                )}
+                {!config.afterpayDeleted && (
+                  <TabsTrigger value="afterpay" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#B2FCE4] data-[state=active]:text-black">
+                    <History className="h-3.5 w-3.5" /> Afterpay
+                  </TabsTrigger>
+                )}
+                {!config.adyenDeleted && (
+                  <TabsTrigger value="adyen" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#00FF66] data-[state=active]:text-black">
+                    <Banknote className="h-3.5 w-3.5" /> Adyen
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="vault" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
                   <Shield className="h-3.5 w-3.5" /> API Vault
                 </TabsTrigger>
@@ -289,496 +340,520 @@ export default function PaymentsPage() {
               </TabsList>
             </div>
 
-            <TabsContent value="stripe" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Zap className="h-5 w-5 text-[#635BFF]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Stripe Connect (v3)</CardTitle>
+            {/* STRIPE CONTENT */}
+            {!config.stripeDeleted && (
+              <TabsContent value="stripe" className="m-0 space-y-6 animate-in fade-in duration-300">
+                <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                  <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Zap className="h-5 w-5 text-[#635BFF]" />
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Stripe Connect (v3)</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Switch 
+                          checked={config.stripeEnabled} 
+                          onCheckedChange={(checked) => handleUpdate({ stripeEnabled: checked })}
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
+                          onClick={() => handleDeleteProtocol('stripe')}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <Switch 
-                      checked={config.stripeEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ stripeEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
-                        <div className="relative">
-                          <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  </CardHeader>
+                  <CardContent className="pt-6 p-4 sm:p-6 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
                           <Input 
                             value={config.stripeDescription || ''} 
                             onChange={(e) => handleUpdate({ stripeDescription: e.target.value })}
-                            className="pl-10 h-11 text-xs font-bold uppercase" 
+                            className="h-11 text-xs font-bold uppercase" 
                           />
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                        <div className="relative">
-                          <Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
                           <Input 
                             value={config.stripeFee || ''} 
                             onChange={(e) => handleUpdate({ stripeFee: e.target.value })}
-                            className="pl-10 h-11 text-xs font-mono" 
+                            className="h-11 text-xs font-mono" 
                           />
                         </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col justify-end p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-blue-800 uppercase tracking-widest mb-1">Fee Transparency</p>
-                      <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">
-                        Standard Stripe fees typically range from 2.9% + 30¢. This is tracked for margin analysis.
-                      </p>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant={config.stripeMode === 'test' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.stripeMode === 'test' ? 'bg-orange-500 hover:bg-orange-600' : '')}
-                          onClick={() => handleUpdate({ stripeMode: 'test' })}
-                        >
-                          Sandbox
-                        </Button>
-                        <Button 
-                          variant={config.stripeMode === 'live' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.stripeMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
-                          onClick={() => handleUpdate({ stripeMode: 'live' })}
-                        >
-                          Production
-                        </Button>
+                      <div className="flex flex-col justify-end p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
+                        <p className="text-[9px] font-bold text-blue-800 uppercase tracking-widest mb-1">Fee Transparency</p>
+                        <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">Standard Stripe fees typically range from 2.9% + 30¢. This is tracked for margin analysis.</p>
                       </div>
                     </div>
 
-                    <div className="grid gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key</Label>
-                        <div className="relative">
-                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            value={config.stripePublishableKey || ''} 
-                            onChange={(e) => handleUpdate({ stripePublishableKey: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                          />
+                    <div className="p-6 bg-gray-50 border-2 border-dashed rounded-none space-y-8">
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-primary">Operation Mode</Label>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant={config.stripeMode === 'test' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.stripeMode === 'test' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-white')}
+                            onClick={() => handleUpdate({ stripeMode: 'test' })}
+                          >
+                            Sandbox
+                          </Button>
+                          <Button 
+                            variant={config.stripeMode === 'live' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.stripeMode === 'live' ? 'bg-green-600 hover:bg-green-700' : 'bg-white')}
+                            onClick={() => handleUpdate({ stripeMode: 'live' })}
+                          >
+                            Production
+                          </Button>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password"
-                            value={config.stripeSecretKey || ''} 
-                            onChange={(e) => handleUpdate({ stripeSecretKey: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                          />
+                      <div className="grid gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key</Label>
+                          <div className="relative">
+                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              value={config.stripePublishableKey || ''} 
+                              onChange={(e) => handleUpdate({ stripePublishableKey: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              type="password"
+                              value={config.stripeSecretKey || ''} 
+                              onChange={(e) => handleUpdate({ stripeSecretKey: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
-            <TabsContent value="paypal" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Globe className="h-5 w-5 text-[#0070BA]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">PayPal Express Checkout</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.paypalEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ paypalEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
-                        <Input 
-                          value={config.paypalDescription || ''} 
-                          onChange={(e) => handleUpdate({ paypalDescription: e.target.value })}
-                          className="h-11 text-xs font-bold uppercase" 
+            {/* PAYPAL CONTENT */}
+            {!config.paypalDeleted && (
+              <TabsContent value="paypal" className="m-0 space-y-6 animate-in fade-in duration-300">
+                <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                  <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-[#0070BA]" />
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">PayPal Express Checkout</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Switch 
+                          checked={config.paypalEnabled} 
+                          onCheckedChange={(checked) => handleUpdate({ paypalEnabled: checked })}
                         />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
+                          onClick={() => handleDeleteProtocol('paypal')}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                        <Input 
-                          value={config.paypalFee || ''} 
-                          onChange={(e) => handleUpdate({ paypalFee: e.target.value })}
-                          className="h-11 text-xs font-mono" 
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6 p-4 sm:p-6 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                          <Input 
+                            value={config.paypalDescription || ''} 
+                            onChange={(e) => handleUpdate({ paypalDescription: e.target.value })}
+                            className="h-11 text-xs font-bold uppercase" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                          <Input 
+                            value={config.paypalFee || ''} 
+                            onChange={(e) => handleUpdate({ paypalFee: e.target.value })}
+                            className="h-11 text-xs font-mono" 
+                          />
+                        </div>
+                      </div>
+                      <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
+                        <p className="text-[9px] font-bold text-blue-800 uppercase mb-1">Gateway Insights</p>
+                        <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">PayPal typically applies a 3.49% + 49¢ fee structure for high-fidelity transactions.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-gray-50 border-2 border-dashed rounded-none space-y-8">
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-primary">Operation Mode</Label>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant={config.paypalMode === 'sandbox' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.paypalMode === 'sandbox' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-white')}
+                            onClick={() => handleUpdate({ paypalMode: 'sandbox' })}
+                          >
+                            Sandbox
+                          </Button>
+                          <Button 
+                            variant={config.paypalMode === 'live' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.paypalMode === 'live' ? 'bg-green-600 hover:bg-green-700' : 'bg-white')}
+                            onClick={() => handleUpdate({ paypalMode: 'live' })}
+                          >
+                            Production
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
+                          <div className="relative">
+                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              value={config.paypalClientId || ''} 
+                              onChange={(e) => handleUpdate({ paypalClientId: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              type="password"
+                              value={config.paypalSecretKey || ''} 
+                              onChange={(e) => handleUpdate({ paypalSecretKey: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+
+            {/* KLARNA CONTENT */}
+            {!config.klarnaDeleted && (
+              <TabsContent value="klarna" className="m-0 space-y-6 animate-in fade-in duration-300">
+                <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                  <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Coins className="h-5 w-5 text-[#FFB3C7]" />
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Klarna BNPL (v2)</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Switch 
+                          checked={config.klarnaEnabled} 
+                          onCheckedChange={(checked) => handleUpdate({ klarnaEnabled: checked })}
                         />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-blue-800 uppercase mb-1">Gateway Insights</p>
-                      <p className="text-[10px] text-blue-700 leading-relaxed uppercase tracking-tight font-medium">
-                        PayPal typically applies a 3.49% + 49¢ fee structure for high-fidelity transactions.
-                      </p>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
-                      <div className="flex gap-2">
                         <Button 
-                          variant={config.paypalMode === 'sandbox' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.paypalMode === 'sandbox' ? 'bg-orange-500 hover:bg-orange-600' : '')}
-                          onClick={() => handleUpdate({ paypalMode: 'sandbox' })}
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
+                          onClick={() => handleDeleteProtocol('klarna')}
                         >
-                          Sandbox
-                        </Button>
-                        <Button 
-                          variant={config.paypalMode === 'live' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.paypalMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
-                          onClick={() => handleUpdate({ paypalMode: 'live' })}
-                        >
-                          Production
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-
-                    <div className="grid gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
-                        <div className="relative">
-                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  </CardHeader>
+                  <CardContent className="pt-6 p-4 sm:p-6 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
                           <Input 
-                            value={config.paypalClientId || ''} 
-                            onChange={(e) => handleUpdate({ paypalClientId: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                            value={config.klarnaDescription || ''} 
+                            onChange={(e) => handleUpdate({ klarnaDescription: e.target.value })}
+                            className="h-11 text-xs font-bold uppercase" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                          <Input 
+                            value={config.klarnaFee || ''} 
+                            onChange={(e) => handleUpdate({ klarnaFee: e.target.value })}
+                            className="h-11 text-xs font-mono" 
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password"
-                            value={config.paypalSecretKey || ''} 
-                            onChange={(e) => handleUpdate({ paypalSecretKey: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                          />
+                      <div className="p-4 bg-pink-50/50 border border-pink-100 rounded-sm">
+                        <p className="text-[9px] font-bold text-pink-800 uppercase mb-1">BNPL Protocol</p>
+                        <p className="text-[10px] text-pink-700 leading-relaxed uppercase font-medium">BNPL fees are generally higher (~5.99%) due to credit risk handling by Klarna.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-gray-50 border-2 border-dashed rounded-none space-y-8">
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-primary">Operation Mode</Label>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant={config.klarnaMode === 'test' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.klarnaMode === 'test' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-white')}
+                            onClick={() => handleUpdate({ klarnaMode: 'test' })}
+                          >
+                            Sandbox
+                          </Button>
+                          <Button 
+                            variant={config.klarnaMode === 'live' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.klarnaMode === 'live' ? 'bg-green-600 hover:bg-green-700' : 'bg-white')}
+                            onClick={() => handleUpdate({ klarnaMode: 'live' })}
+                          >
+                            Production
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
+                          <div className="relative">
+                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              value={config.klarnaClientId || ''} 
+                              onChange={(e) => handleUpdate({ klarnaClientId: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              type="password"
+                              value={config.klarnaClientSecret || ''} 
+                              onChange={(e) => handleUpdate({ klarnaClientSecret: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
-            <TabsContent value="klarna" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Coins className="h-5 w-5 text-[#FFB3C7]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Klarna BNPL (v2)</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.klarnaEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ klarnaEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
-                        <Input 
-                          value={config.klarnaDescription || ''} 
-                          onChange={(e) => handleUpdate({ klarnaDescription: e.target.value })}
-                          className="h-11 text-xs font-bold uppercase" 
+            {/* AFTERPAY CONTENT */}
+            {!config.afterpayDeleted && (
+              <TabsContent value="afterpay" className="m-0 space-y-6 animate-in fade-in duration-300">
+                <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                  <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <History className="h-5 w-5 text-[#B2FCE4]" />
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Afterpay Installments</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Switch 
+                          checked={config.afterpayEnabled} 
+                          onCheckedChange={(checked) => handleUpdate({ afterpayEnabled: checked })}
                         />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
+                          onClick={() => handleDeleteProtocol('afterpay')}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                        <Input 
-                          value={config.klarnaFee || ''} 
-                          onChange={(e) => handleUpdate({ klarnaFee: e.target.value })}
-                          className="h-11 text-xs font-mono" 
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6 p-4 sm:p-6 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                          <Input 
+                            value={config.afterpayDescription || ''} 
+                            onChange={(e) => handleUpdate({ afterpayDescription: e.target.value })}
+                            className="h-11 text-xs font-bold uppercase" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                          <Input 
+                            value={config.afterpayFee || ''} 
+                            onChange={(e) => handleUpdate({ afterpayFee: e.target.value })}
+                            className="h-11 text-xs font-mono" 
+                          />
+                        </div>
+                      </div>
+                      <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
+                        <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Split Payment Margin</p>
+                        <p className="text-[10px] text-emerald-700 leading-relaxed uppercase font-medium">Afterpay applies ~6.0% commission for split-payment orchestration.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-gray-50 border-2 border-dashed rounded-none space-y-8">
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-primary">Operation Mode</Label>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant={config.afterpayMode === 'sandbox' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.afterpayMode === 'sandbox' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-white')}
+                            onClick={() => handleUpdate({ afterpayMode: 'sandbox' })}
+                          >
+                            Sandbox
+                          </Button>
+                          <Button 
+                            variant={config.afterpayMode === 'live' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.afterpayMode === 'live' ? 'bg-green-600 hover:bg-green-700' : 'bg-white')}
+                            onClick={() => handleUpdate({ afterpayMode: 'live' })}
+                          >
+                            Production
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant ID)</Label>
+                          <div className="relative">
+                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              value={config.afterpayMerchantId || ''} 
+                              onChange={(e) => handleUpdate({ afterpayMerchantId: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              type="password"
+                              value={config.afterpaySecretKey || ''} 
+                              onChange={(e) => handleUpdate({ afterpaySecretKey: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+
+            {/* ADYEN CONTENT */}
+            {!config.adyenDeleted && (
+              <TabsContent value="adyen" className="m-0 space-y-6 animate-in fade-in duration-300">
+                <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                  <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Banknote className="h-5 w-5 text-[#00FF66]" />
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Adyen Global Payments</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Switch 
+                          checked={config.adyenEnabled} 
+                          onCheckedChange={(checked) => handleUpdate({ adyenEnabled: checked })}
                         />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-pink-50/50 border border-pink-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-pink-800 uppercase mb-1">BNPL Protocol</p>
-                      <p className="text-[10px] text-pink-700 leading-relaxed uppercase tracking-tight font-medium">
-                        BNPL fees are generally higher (~5.99%) due to credit risk handling by Klarna.
-                      </p>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
-                      <div className="flex gap-2">
                         <Button 
-                          variant={config.klarnaMode === 'test' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.klarnaMode === 'test' ? 'bg-orange-500 hover:bg-orange-600' : '')}
-                          onClick={() => handleUpdate({ klarnaMode: 'test' })}
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
+                          onClick={() => handleDeleteProtocol('adyen')}
                         >
-                          Sandbox
-                        </Button>
-                        <Button 
-                          variant={config.klarnaMode === 'live' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.klarnaMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
-                          onClick={() => handleUpdate({ klarnaMode: 'live' })}
-                        >
-                          Production
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-
-                    <div className="grid gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
-                        <div className="relative">
-                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  </CardHeader>
+                  <CardContent className="pt-6 p-4 sm:p-6 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
                           <Input 
-                            value={config.klarnaClientId || ''} 
-                            onChange={(e) => handleUpdate({ klarnaClientId: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                            value={config.adyenDescription || ''} 
+                            onChange={(e) => handleUpdate({ adyenDescription: e.target.value })}
+                            className="h-11 text-xs font-bold uppercase" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                          <Input 
+                            value={config.adyenFee || ''} 
+                            onChange={(e) => handleUpdate({ adyenFee: e.target.value })}
+                            className="h-11 text-xs font-mono" 
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password"
-                            value={config.klarnaClientSecret || ''} 
-                            onChange={(e) => handleUpdate({ klarnaClientSecret: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                          />
+                      <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
+                        <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Enterprise Protocol</p>
+                        <p className="text-[10px] text-emerald-700 leading-relaxed uppercase font-medium">Adyen facilitates multi-currency settlement and local payment method mapping.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-gray-50 border-2 border-dashed rounded-none space-y-8">
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-primary">Operation Mode</Label>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant={config.adyenMode === 'test' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.adyenMode === 'test' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-white')}
+                            onClick={() => handleUpdate({ adyenMode: 'test' })}
+                          >
+                            Sandbox
+                          </Button>
+                          <Button 
+                            variant={config.adyenMode === 'live' ? 'default' : 'outline'}
+                            className={cn("flex-1 h-11 text-[9px] font-bold uppercase tracking-widest", config.adyenMode === 'live' ? 'bg-green-600 hover:bg-green-700' : 'bg-white')}
+                            onClick={() => handleUpdate({ adyenMode: 'live' })}
+                          >
+                            Production
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant Account)</Label>
+                          <div className="relative">
+                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              value={config.adyenMerchantAccount || ''} 
+                              onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Secret ID (API Key)</Label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input 
+                              type="password"
+                              value={config.adyenApiKey || ''} 
+                              onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
+                              className="pl-10 h-11 font-mono text-xs" 
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="afterpay" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <History className="h-5 w-5 text-[#B2FCE4]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Afterpay Installments</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.afterpayEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ afterpayEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
-                        <Input 
-                          value={config.afterpayDescription || ''} 
-                          onChange={(e) => handleUpdate({ afterpayDescription: e.target.value })}
-                          className="h-11 text-xs font-bold uppercase" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                        <Input 
-                          value={config.afterpayFee || ''} 
-                          onChange={(e) => handleUpdate({ afterpayFee: e.target.value })}
-                          className="h-11 text-xs font-mono" 
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Split Payment Margin</p>
-                      <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight font-medium">
-                        Afterpay applies ~6.0% commission for split-payment orchestration.
-                      </p>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant={config.afterpayMode === 'sandbox' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.afterpayMode === 'sandbox' ? 'bg-orange-500 hover:bg-orange-600' : '')}
-                          onClick={() => handleUpdate({ afterpayMode: 'sandbox' })}
-                        >
-                          Sandbox
-                        </Button>
-                        <Button 
-                          variant={config.afterpayMode === 'live' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.afterpayMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
-                          onClick={() => handleUpdate({ afterpayMode: 'live' })}
-                        >
-                          Production
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant ID)</Label>
-                        <div className="relative">
-                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            value={config.afterpayMerchantId || ''} 
-                            onChange={(e) => handleUpdate({ afterpayMerchantId: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password"
-                            value={config.afterpaySecretKey || ''} 
-                            onChange={(e) => handleUpdate({ afterpaySecretKey: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="adyen" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Banknote className="h-5 w-5 text-[#00FF66]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Adyen Global Payments</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.adyenEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ adyenEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
-                        <Input 
-                          value={config.adyenDescription || 'Global merchant payments'} 
-                          onChange={(e) => handleUpdate({ adyenDescription: e.target.value })}
-                          className="h-11 text-xs font-bold uppercase" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                        <Input 
-                          value={config.adyenFee || '2.1% + 12¢'} 
-                          onChange={(e) => handleUpdate({ adyenFee: e.target.value })}
-                          className="h-11 text-xs font-mono" 
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Enterprise Protocol</p>
-                      <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight font-medium">
-                        Adyen facilitates multi-currency settlement and local payment method mapping.
-                      </p>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="p-6 bg-gray-50 border border-dashed rounded-sm space-y-8">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Operation Mode</Label>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant={config.adyenMode === 'test' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.adyenMode === 'test' ? 'bg-orange-500 hover:bg-orange-600' : '')}
-                          onClick={() => handleUpdate({ adyenMode: 'test' })}
-                        >
-                          Sandbox
-                        </Button>
-                        <Button 
-                          variant={config.adyenMode === 'live' ? 'default' : 'outline'}
-                          size="sm"
-                          className={cn("flex-1 text-[9px] font-bold uppercase tracking-widest h-10 px-4", config.adyenMode === 'live' ? 'bg-green-600 hover:bg-green-700' : '')}
-                          onClick={() => handleUpdate({ adyenMode: 'live' })}
-                        >
-                          Production
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant Account)</Label>
-                        <div className="relative">
-                          <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            value={config.adyenMerchantAccount || ''} 
-                            onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID (API Key)</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password"
-                            value={config.adyenApiKey || ''} 
-                            onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
-                            className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
             <TabsContent value="vault" className="m-0 space-y-6 animate-in fade-in duration-300">
               <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
@@ -883,7 +958,7 @@ export default function PaymentsPage() {
                   <div className="flex items-center justify-between p-4 bg-red-50 border border-red-100 rounded-sm">
                     <div className="space-y-1">
                       <p className="text-[11px] font-bold text-red-800 uppercase flex items-center gap-2">
-                        <ShieldAlert className="h-3.5 w-3.5" /> High-Risk Geo Blocking
+                        <AlertCircle className="h-3.5 w-3.5" /> High-Risk Geo Blocking
                       </p>
                       <p className="text-[10px] text-red-700 uppercase tracking-tight opacity-70 font-medium">Block transactions from sanctioned or high-risk architectural zones.</p>
                     </div>
@@ -960,7 +1035,7 @@ export default function PaymentsPage() {
             <CardHeader className="border-b border-white/10 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
-                  <ShieldAlert className="h-3.5 w-3.5 text-red-400" /> AI Fraud Guard
+                  <ShieldCheck className="h-3.5 w-3.5 text-red-400" /> AI Fraud Guard
                 </CardTitle>
                 <Badge variant="outline" className="text-red-400 border-red-400/20 bg-red-400/10 uppercase text-[8px] font-bold">Shield Active</Badge>
               </div>
@@ -1040,7 +1115,7 @@ export default function PaymentsPage() {
             <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-primary">
               <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Operational Integrity
             </h3>
-            <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight font-bold opacity-70">
+            <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-bold opacity-70">
               Payment protocol changes apply to the live production manifest. Ensure all keys are validated before finalizing.
             </p>
           </div>
