@@ -138,7 +138,7 @@ export default function PaymentsPage() {
   };
 
   const handleAddGateway = () => {
-    if (!newGateway.name || !configRef) return;
+    if (!newGateway.name || !newGateway.apiKey || !configRef) return;
     const currentCustom = config.customGateways || [];
     const updated = [...currentCustom, { ...newGateway, id: Math.random().toString(36).substr(2, 9) }];
     
@@ -161,7 +161,7 @@ export default function PaymentsPage() {
       setIsSaving(false);
       toast({ 
         title: "Checkout Finalized", 
-        description: "Global payment orchestration has been Authoritatively synchronized." 
+        description: "Global payment orchestration has been synchronized." 
       });
     }, 1000);
   };
@@ -179,7 +179,7 @@ export default function PaymentsPage() {
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
         <CreditCard className="h-12 w-12 text-gray-300" />
         <h2 className="text-xl font-bold text-gray-900">Payments Not Initialized</h2>
-        <p className="text-gray-500 max-w-sm">Configure your global gateways to start accepting luxury payments across the archive.</p>
+        <p className="text-gray-500 max-w-sm">Configure your global gateways to start accepting payments across the archive.</p>
         <Button onClick={handleInitialize} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest text-[10px]">Initialize Payment Core</Button>
       </div>
     );
@@ -215,7 +215,7 @@ export default function PaymentsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">API Key</Label>
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Publishable Key</Label>
                   <div className="relative">
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input 
@@ -227,7 +227,7 @@ export default function PaymentsPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Secret Key (Optional)</Label>
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Secret ID</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input 
@@ -329,7 +329,7 @@ export default function PaymentsPage() {
                     <div className="flex flex-col justify-end p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
                       <p className="text-[9px] font-bold text-blue-800 uppercase tracking-widest mb-1">Fee Transparency</p>
                       <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">
-                        Standard Stripe fees typically range from 2.9% + 30¢. This is Authoritatively tracked for archival margin analysis.
+                        Standard Stripe fees typically range from 2.9% + 30¢. This is tracked for margin analysis.
                       </p>
                     </div>
                   </div>
@@ -373,7 +373,7 @@ export default function PaymentsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret Key</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -426,7 +426,7 @@ export default function PaymentsPage() {
                     <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
                       <p className="text-[9px] font-bold text-blue-800 uppercase mb-1">Gateway Insights</p>
                       <p className="text-[10px] text-blue-700 leading-relaxed uppercase tracking-tight font-medium">
-                        PayPal typically applies a 3.49% + 49¢ fee structure for high-fidelity archival transactions.
+                        PayPal typically applies a 3.49% + 49¢ fee structure for high-fidelity transactions.
                       </p>
                     </div>
                   </div>
@@ -435,7 +435,7 @@ export default function PaymentsPage() {
 
                   <div className="grid gap-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Client ID</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -446,7 +446,7 @@ export default function PaymentsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret Key</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -499,7 +499,7 @@ export default function PaymentsPage() {
                     <div className="p-4 bg-pink-50/50 border border-pink-100 rounded-sm">
                       <p className="text-[9px] font-bold text-pink-800 uppercase mb-1">BNPL Protocol</p>
                       <p className="text-[10px] text-pink-700 leading-relaxed uppercase tracking-tight font-medium">
-                        BNPL fees are generally higher (~5.99%) due to Authoritative credit risk handling by Klarna.
+                        BNPL fees are generally higher (~5.99%) due to credit risk handling by Klarna.
                       </p>
                     </div>
                   </div>
@@ -508,7 +508,7 @@ export default function PaymentsPage() {
 
                   <div className="grid gap-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Client ID</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Client ID)</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -519,7 +519,7 @@ export default function PaymentsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Client Secret</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -572,7 +572,7 @@ export default function PaymentsPage() {
                     <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
                       <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Split Payment Margin</p>
                       <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight font-medium">
-                        Afterpay applies ~6.0% commission for high-fidelity split-payment orchestration.
+                        Afterpay applies ~6.0% commission for split-payment orchestration.
                       </p>
                     </div>
                   </div>
@@ -581,7 +581,7 @@ export default function PaymentsPage() {
 
                   <div className="grid gap-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant ID</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Merchant ID)</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -592,7 +592,7 @@ export default function PaymentsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret Key</Label>
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
@@ -638,24 +638,47 @@ export default function PaymentsPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-gray-500">API Key</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password"
-                            value={config.adyenApiKey || ''} 
-                            onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
-                            placeholder="AQE..."
-                            className="pl-10 h-11 text-xs font-mono" 
-                          />
-                        </div>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                        <Input 
+                          value={config.adyenFee || '2.1% + 12¢'} 
+                          onChange={(e) => handleUpdate({ adyenFee: e.target.value })}
+                          className="h-11 text-xs font-mono" 
+                        />
                       </div>
                     </div>
                     <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
                       <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Enterprise Protocol</p>
                       <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight font-medium">
-                        Adyen facilitates high-fidelity multi-currency settlement and local payment method mapping.
+                        Adyen facilitates multi-currency settlement and local payment method mapping.
                       </p>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Publishable Key (Account ID)</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          value={config.adyenMerchantAccount || ''} 
+                          onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
+                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret ID (API Key)</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          type="password"
+                          value={config.adyenApiKey || ''} 
+                          onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
+                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -767,7 +790,7 @@ export default function PaymentsPage() {
                       <p className="text-[11px] font-bold text-red-800 uppercase flex items-center gap-2">
                         <ShieldAlert className="h-3.5 w-3.5" /> High-Risk Geo Blocking
                       </p>
-                      <p className="text-[10px] text-red-700 uppercase tracking-tight opacity-70 font-medium">Authoritatively block transactions from sanctioned or high-risk architectural zones.</p>
+                      <p className="text-[10px] text-red-700 uppercase tracking-tight opacity-70 font-medium">Block transactions from sanctioned or high-risk architectural zones.</p>
                     </div>
                     <Switch 
                       checked={config.geoBlockingEnabled} 
@@ -808,7 +831,7 @@ export default function PaymentsPage() {
                   </CardHeader>
                   <CardContent className="pt-6 p-4 sm:p-6">
                     <p className="text-[11px] text-[#5c5f62] leading-relaxed uppercase font-bold tracking-tight">
-                      Frictionless biometric checkout. Requires Authoritative domain validation via Stripe or Adyen.
+                      Frictionless biometric checkout. Requires domain validation via Stripe or Adyen.
                     </p>
                   </CardContent>
                 </Card>
@@ -828,7 +851,7 @@ export default function PaymentsPage() {
                   </CardHeader>
                   <CardContent className="pt-6 p-4 sm:p-6">
                     <p className="text-[11px] text-[#5c5f62] leading-relaxed uppercase font-bold tracking-tight">
-                      Express checkout for Android and Chrome. One-tap payment using stored high-fidelity archival data.
+                      Express checkout for Android and Chrome. One-tap payment using stored archival data.
                     </p>
                   </CardContent>
                 </Card>
@@ -923,7 +946,7 @@ export default function PaymentsPage() {
               <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Operational Integrity
             </h3>
             <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-tight font-bold opacity-70">
-              Payment protocol changes apply Authoritatively to the live production manifest. Ensure all API keys are validated in your respective merchant dashboards before finalizing.
+              Payment protocol changes apply to the live production manifest. Ensure all keys are validated before finalizing.
             </p>
           </div>
         </div>
