@@ -47,7 +47,7 @@ import {
   DollarSign,
   Trophy
 } from 'lucide-react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -244,18 +244,15 @@ export default function ShippingPage() {
         const p = docSnap.data();
         const l = p.logistics || {};
         
-        const needsUpdate = !l.weight || !l.length || !l.width || !l.height;
-        
-        if (needsUpdate) {
-          batch.update(docSnap.ref, {
-            'logistics.weight': parseFloat(l.weight) || parseFloat(defaultWeight) || 0,
-            'logistics.length': parseFloat(l.length) || parseFloat(defaultLength) || 0,
-            'logistics.width': parseFloat(l.width) || parseFloat(defaultWidth) || 0,
-            'logistics.height': parseFloat(l.height) || parseFloat(defaultHeight) || 0,
-            'updatedAt': serverTimestamp()
-          });
-          updatedCount++;
-        }
+        // Push the global default weight and dimensions to all products that need it
+        batch.update(docSnap.ref, {
+          'logistics.weight': parseFloat(l.weight) || parseFloat(defaultWeight) || 0,
+          'logistics.length': parseFloat(l.length) || parseFloat(defaultLength) || 0,
+          'logistics.width': parseFloat(l.width) || parseFloat(defaultWidth) || 0,
+          'logistics.height': parseFloat(l.height) || parseFloat(defaultHeight) || 0,
+          'updatedAt': serverTimestamp()
+        });
+        updatedCount++;
       });
 
       if (updatedCount > 0) {
@@ -376,18 +373,18 @@ export default function ShippingPage() {
                     variant="outline"
                     className="h-9 px-4 border-blue-200 text-blue-700 bg-white hover:bg-blue-50 font-bold uppercase tracking-widest text-[9px] gap-2 w-full sm:w-auto"
                   >
-                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} <span className="truncate">Update All Products</span>
+                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} <span className="truncate">Apply to All Products</span>
                   </Button>
                   <Button 
                     onClick={handleSaveGlobalLogistics} 
                     disabled={isSaving}
                     className="h-9 px-6 bg-blue-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto"
                   >
-                    {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save
+                    {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save Defaults
                   </Button>
                 </div>
               </div>
-              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-blue-800/60 mt-1">Used for products that don't have their own dimensions.</CardDescription>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-blue-800/60 mt-1">Used as fallback for all products and new archival selections.</CardDescription>
             </CardHeader>
             <CardContent className="pt-6 px-4 sm:px-6 space-y-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
