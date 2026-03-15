@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
+import { MetaTagInjector } from '@/components/storefront/MetaTagInjector';
 import { PushNotificationManager } from '@/components/storefront/PushNotificationManager';
 import { Chatbot } from '@/components/storefront/Chatbot';
 
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background text-foreground">
         <FirebaseClientProvider>
           <ThemeStyleInjector />
+          <MetaTagInjector />
           <PushNotificationManager />
           <WishlistProvider>
             <CartProvider>

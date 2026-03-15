@@ -260,7 +260,7 @@ export default function DomainPage() {
                   />
                 </div>
                 <Button 
-                  onClick={handleConnectDomain}
+                  onClick={handleConnectDomain} 
                   disabled={isConnecting || (domain === config.primaryDomain && config.status === 'connected')}
                   className="bg-black text-white h-12 font-bold px-8 uppercase tracking-widest text-[10px] w-full sm:w-auto"
                 >
@@ -334,7 +334,7 @@ export default function DomainPage() {
                       <Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label>
                       <Input 
                         placeholder="e.g. Analytics App" 
-                        value={newTokenName}
+                        value={newTokenName} 
                         onChange={(e) => setNewTokenName(e.target.value)}
                         className="h-12 uppercase font-bold"
                       />
@@ -377,7 +377,7 @@ export default function DomainPage() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={() => handleDeleteToken(token.id)}
+                      onClick={() => handleDeleteToken(token.id)} 
                       className="text-red-500 hover:bg-red-50 self-end sm:self-center h-10 w-10"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -398,10 +398,10 @@ export default function DomainPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-purple-500" />
-                  <CardTitle className="text-lg uppercase tracking-tight">SEO Verification Tags</CardTitle>
+                  <CardTitle className="text-lg uppercase tracking-tight">Header Meta Tags & Site Verification</CardTitle>
                 </div>
                 <CardDescription className="text-xs font-medium uppercase tracking-tight mt-1">
-                  Add verification tags for Google, Pinterest, etc.
+                  Add verification tags for Google, Pinterest, etc. These will be Authoritatively injected into the storefront header.
                 </CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={addMetaTag} className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white w-full sm:w-auto">
@@ -433,7 +433,7 @@ export default function DomainPage() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={() => removeMetaTag(tag.id)}
+                      onClick={() => removeMetaTag(tag.id)} 
                       className="h-11 w-full sm:w-11 text-red-500 hover:bg-red-50 border sm:border-none"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -462,7 +462,7 @@ export default function DomainPage() {
             <CardContent className="pt-6">
               <Textarea 
                 value={robotsTxt} 
-                onChange={(e) => setRobotsTxt(e.target.value)}
+                onChange={(e) => setRobotsTxt(e.target.value)} 
                 placeholder="User-agent: *\nDisallow: /_next/\nAllow: /"
                 className="min-h-[150px] font-mono text-xs p-4 bg-gray-50 resize-none border-primary/10 rounded-none"
               />
