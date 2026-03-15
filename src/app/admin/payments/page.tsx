@@ -37,7 +37,7 @@ import {
   Key,
   Shield
 } from 'lucide-react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -87,6 +87,7 @@ export default function PaymentsPage() {
       paypalEnabled: true,
       paypalMode: 'sandbox',
       paypalClientId: 'fslno_sandbox_client_id',
+      paypalSecretKey: 'fslno_sandbox_secret_key',
       paypalDescription: 'Global Digital Wallet',
       paypalFee: '3.49% + 49¢',
       paypalPayLaterEnabled: true,
@@ -388,6 +389,279 @@ export default function PaymentsPage() {
               </Card>
             </TabsContent>
 
+            <TabsContent value="paypal" className="m-0 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-5 w-5 text-[#0070BA]" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">PayPal Express Checkout</CardTitle>
+                    </div>
+                    <Switch 
+                      checked={config.paypalEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ paypalEnabled: checked })}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                        <Input 
+                          value={config.paypalDescription || ''} 
+                          onChange={(e) => handleUpdate({ paypalDescription: e.target.value })}
+                          className="h-11 text-xs font-bold uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                        <Input 
+                          value={config.paypalFee || ''} 
+                          onChange={(e) => handleUpdate({ paypalFee: e.target.value })}
+                          className="h-11 text-xs font-mono" 
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-blue-800 uppercase mb-1">Gateway Insights</p>
+                      <p className="text-[10px] text-blue-700 leading-relaxed uppercase tracking-tight font-medium">
+                        PayPal typically applies a 3.49% + 49¢ fee structure for high-fidelity archival transactions.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Client ID</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          value={config.paypalClientId || ''} 
+                          onChange={(e) => handleUpdate({ paypalClientId: e.target.value })}
+                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret Key</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          type="password"
+                          value={config.paypalSecretKey || ''} 
+                          onChange={(e) => handleUpdate({ paypalSecretKey: e.target.value })}
+                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="klarna" className="m-0 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Coins className="h-5 w-5 text-[#FFB3C7]" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Klarna BNPL (v2)</CardTitle>
+                    </div>
+                    <Switch 
+                      checked={config.klarnaEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ klarnaEnabled: checked })}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                        <Input 
+                          value={config.klarnaDescription || ''} 
+                          onChange={(e) => handleUpdate({ klarnaDescription: e.target.value })}
+                          className="h-11 text-xs font-bold uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                        <Input 
+                          value={config.klarnaFee || ''} 
+                          onChange={(e) => handleUpdate({ klarnaFee: e.target.value })}
+                          className="h-11 text-xs font-mono" 
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-pink-50/50 border border-pink-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-pink-800 uppercase mb-1">BNPL Protocol</p>
+                      <p className="text-[10px] text-pink-700 leading-relaxed uppercase tracking-tight font-medium">
+                        BNPL fees are generally higher (~5.99%) due to Authoritative credit risk handling by Klarna.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Client ID</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          value={config.klarnaClientId || ''} 
+                          onChange={(e) => handleUpdate({ klarnaClientId: e.target.value })}
+                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Client Secret</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          type="password"
+                          value={config.klarnaClientSecret || ''} 
+                          onChange={(e) => handleUpdate({ klarnaClientSecret: e.target.value })}
+                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="afterpay" className="m-0 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <History className="h-5 w-5 text-[#B2FCE4]" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Afterpay Installments</CardTitle>
+                    </div>
+                    <Switch 
+                      checked={config.afterpayEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ afterpayEnabled: checked })}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
+                        <Input 
+                          value={config.afterpayDescription || ''} 
+                          onChange={(e) => handleUpdate({ afterpayDescription: e.target.value })}
+                          className="h-11 text-xs font-bold uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
+                        <Input 
+                          value={config.afterpayFee || ''} 
+                          onChange={(e) => handleUpdate({ afterpayFee: e.target.value })}
+                          className="h-11 text-xs font-mono" 
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Split Payment Margin</p>
+                      <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight font-medium">
+                        Afterpay applies ~6.0% commission for high-fidelity split-payment orchestration.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant ID</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          value={config.afterpayMerchantId || ''} 
+                          onChange={(e) => handleUpdate({ afterpayMerchantId: e.target.value })}
+                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Secret Key</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          type="password"
+                          value={config.afterpaySecretKey || ''} 
+                          onChange={(e) => handleUpdate({ afterpaySecretKey: e.target.value })}
+                          className="pl-10 font-mono text-[10px] sm:text-xs h-11" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="adyen" className="m-0 space-y-6 animate-in fade-in duration-300">
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Banknote className="h-5 w-5 text-[#00FF66]" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Adyen Global Payments</CardTitle>
+                    </div>
+                    <Switch 
+                      checked={config.adyenEnabled} 
+                      onCheckedChange={(checked) => handleUpdate({ adyenEnabled: checked })}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Account</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            value={config.adyenMerchantAccount || ''} 
+                            onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
+                            placeholder="FSLNO_STUDIO_ECOM"
+                            className="pl-10 h-11 text-xs font-bold uppercase" 
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">API Key</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input 
+                            type="password"
+                            value={config.adyenApiKey || ''} 
+                            onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
+                            placeholder="AQE..."
+                            className="pl-10 h-11 text-xs font-mono" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
+                      <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Enterprise Protocol</p>
+                      <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight font-medium">
+                        Adyen facilitates high-fidelity multi-currency settlement and local payment method mapping.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="vault" className="m-0 space-y-6 animate-in fade-in duration-300">
               <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
                 <CardHeader className="bg-zinc-900 text-white border-b p-4 sm:p-6">
@@ -446,189 +720,6 @@ export default function PaymentsPage() {
                         <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">No custom gateways in the vault.</p>
                       </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="paypal" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Globe className="h-5 w-5 text-[#0070BA]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">PayPal Express Checkout</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.paypalEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ paypalEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
-                        <Input 
-                          value={config.paypalDescription || ''} 
-                          onChange={(e) => handleUpdate({ paypalDescription: e.target.value })}
-                          className="h-11 text-xs font-bold uppercase" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                        <Input 
-                          value={config.paypalFee || ''} 
-                          onChange={(e) => handleUpdate({ paypalFee: e.target.value })}
-                          className="h-11 text-xs font-mono" 
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-blue-800 uppercase mb-1">Gateway Insights</p>
-                      <p className="text-[10px] text-blue-700 leading-relaxed uppercase tracking-tight font-medium">
-                        PayPal typically applies a 3.49% + 49¢ fee structure for high-fidelity archival transactions.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="klarna" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Coins className="h-5 w-5 text-[#FFB3C7]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Klarna BNPL (v2)</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.klarnaEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ klarnaEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
-                        <Input 
-                          value={config.klarnaDescription || ''} 
-                          onChange={(e) => handleUpdate({ klarnaDescription: e.target.value })}
-                          className="h-11 text-xs font-bold uppercase" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                        <Input 
-                          value={config.klarnaFee || ''} 
-                          onChange={(e) => handleUpdate({ klarnaFee: e.target.value })}
-                          className="h-11 text-xs font-mono" 
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-pink-50/50 border border-pink-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-pink-800 uppercase mb-1">BNPL Protocol</p>
-                      <p className="text-[10px] text-pink-700 leading-relaxed uppercase tracking-tight font-medium">
-                        BNPL fees are generally higher (~5.99%) due to Authoritative credit risk handling by Klarna.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="afterpay" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <History className="h-5 w-5 text-[#B2FCE4]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Afterpay Installments</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.afterpayEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ afterpayEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Checkout Descriptor</Label>
-                        <Input 
-                          value={config.afterpayDescription || ''} 
-                          onChange={(e) => handleUpdate({ afterpayDescription: e.target.value })}
-                          className="h-11 text-xs font-bold uppercase" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                        <Input 
-                          value={config.afterpayFee || ''} 
-                          onChange={(e) => handleUpdate({ afterpayFee: e.target.value })}
-                          className="h-11 text-xs font-mono" 
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Split Payment Margin</p>
-                      <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight font-medium">
-                        Afterpay applies ~6.0% commission for high-fidelity split-payment orchestration.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="adyen" className="m-0 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Banknote className="h-5 w-5 text-[#00FF66]" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Adyen Global Payments</CardTitle>
-                    </div>
-                    <Switch 
-                      checked={config.adyenEnabled} 
-                      onCheckedChange={(checked) => handleUpdate({ adyenEnabled: checked })}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Merchant Account</Label>
-                        <Input 
-                          value={config.adyenMerchantAccount || ''} 
-                          onChange={(e) => handleUpdate({ adyenMerchantAccount: e.target.value })}
-                          placeholder="FSLNO_STUDIO_ECOM"
-                          className="h-11 text-xs font-bold uppercase" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-gray-500">API Key</Label>
-                        <Input 
-                          type="password"
-                          value={config.adyenApiKey || ''} 
-                          onChange={(e) => handleUpdate({ adyenApiKey: e.target.value })}
-                          placeholder="AQE..."
-                          className="h-11 text-xs font-mono" 
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
-                      <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Enterprise Protocol</p>
-                      <p className="text-[10px] text-emerald-700 leading-relaxed uppercase tracking-tight font-medium">
-                        Adyen facilitates high-fidelity multi-currency settlement and local payment method mapping.
-                      </p>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -814,12 +905,12 @@ export default function PaymentsPage() {
                     { event: 'GEO_BLOCK_SHIELD', time: '22m ago', val: 'IP_BLOCKED', color: 'text-red-400' },
                     { event: 'STRIPE_AUTH_SUCCESS', time: '35m ago', val: '$420.00', color: 'text-green-400' },
                   ].map((log, i) => (
-                    <div key={i} className="flex items-start justify-between border-b border-white/5 pb-3 last:border-0">
-                      <div className="space-y-1">
+                    <div key={i} className="flex items-start justify-between border-b border-white/5 pb-3 last:border-0 gap-4">
+                      <div className="space-y-1 min-w-0">
                         <p className={cn("text-[9px] font-mono font-bold uppercase", log.color)}>{log.event}</p>
-                        <p className="text-[8px] text-gray-500 font-mono">{log.val}</p>
+                        <p className="text-[8px] text-gray-500 font-mono truncate">{log.val}</p>
                       </div>
-                      <span className="text-[8px] text-gray-600 font-bold uppercase ml-4">{log.time}</span>
+                      <span className="text-[8px] text-gray-600 font-bold uppercase shrink-0">{log.time}</span>
                     </div>
                   ))}
                 </div>
