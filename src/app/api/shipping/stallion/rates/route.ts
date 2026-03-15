@@ -32,8 +32,13 @@ export async function POST(request: Request) {
     const stallionApiToken = stallionCarrier?.apiKey;
     const isActive = stallionCarrier?.active !== false;
 
-    if (!isActive || !stallionApiToken || stallionApiToken === 'pending' || stallionApiToken === 'fslno_sample_key') {
-      return NextResponse.json({ error: 'Stallion API protocol offline or unconfigured.' }, { status: 503 });
+    if (!isActive) {
+      return NextResponse.json({ error: 'Stallion Express is currently deactivated.' }, { status: 503 });
+    }
+
+    if (!stallionApiToken || stallionApiToken === 'pending' || stallionApiToken === 'fslno_sample_key') {
+      console.warn('CRITICAL: [Stallion Express] API Key Missing in Firestore Manifest.');
+      return NextResponse.json({ error: 'Logistics provider configuration incomplete.' }, { status: 503 });
     }
 
     // 3. Stallion Express API Handshake
@@ -49,10 +54,10 @@ export async function POST(request: Request) {
         to_postal_code: to_address.postal_code,
         to_city: to_address.city,
         to_province: to_address.province,
-        weight: parcel.weight || 0.5,
+        weight: parcel.weight || 0.6,
         weight_unit: 'kg',
-        length: parcel.length || 30,
-        width: parcel.width || 20,
+        length: parcel.length || 35,
+        width: parcel.width || 25,
         height: parcel.height || 10,
         dimension_unit: 'cm'
       })
@@ -61,7 +66,8 @@ export async function POST(request: Request) {
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json({ error: data.message || 'Logistics handshake failed.' }, { status: response.status });
+      console.error('[STALLION] API Error Response:', data);
+      return NextResponse.json({ error: data.message || 'Carrier service unavailable.' }, { status: response.status });
     }
 
     // 4. Mapped Manifest for Storefront
@@ -92,6 +98,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ rates: mappedRates });
   } catch (error) {
     console.error('[STALLION] Internal Protocol Error:', error);
-    return NextResponse.json({ error: 'Internal logistics error.' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal logistics dispatch error.' }, { status: 500 });
   }
 }
