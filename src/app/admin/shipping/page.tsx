@@ -110,6 +110,7 @@ export default function ShippingPage() {
     if (!configRef) return;
     const initialData = {
       carriers: [
+        { name: 'STALLION EXPRESS', active: true, apiKey: 'pending' },
         { name: 'USPS', active: true, apiKey: 'fslno_sample_key' },
         { name: 'UPS', active: true, apiKey: 'fslno_sample_key' },
         { name: 'FedEx', active: true, apiKey: 'fslno_sample_key' },
@@ -129,9 +130,9 @@ export default function ShippingPage() {
       pickupHours: 'Mon-Fri: 10AM - 6PM\nSat: 11AM - 4PM',
       pickupInstructions: 'Please show your order confirmation ID and a ID upon arrival.',
       pickupLocationUrl: '',
-      defaultWeight: 0.5,
-      defaultLength: 30,
-      defaultWidth: 20,
+      defaultWeight: 0.6,
+      defaultLength: 35,
+      defaultWidth: 25,
       defaultHeight: 10,
       freeShippingEnabled: true,
       freeShippingThreshold: 500,
@@ -213,10 +214,10 @@ export default function ShippingPage() {
     if (!configRef) return;
     setIsSaving(true);
     const updates = {
-      defaultWeight: parseFloat(defaultWeight) || 0,
-      defaultLength: parseFloat(defaultLength) || 0,
-      defaultWidth: parseFloat(defaultWidth) || 0,
-      defaultHeight: parseFloat(defaultHeight) || 0,
+      defaultWeight: parseFloat(defaultWeight) || 0.6,
+      defaultLength: parseFloat(defaultLength) || 35,
+      defaultWidth: parseFloat(defaultWidth) || 25,
+      defaultHeight: parseFloat(defaultHeight) || 10,
       updatedAt: serverTimestamp()
     };
     updateDoc(configRef, updates)
@@ -250,10 +251,10 @@ export default function ShippingPage() {
         const l = p.logistics || {};
         
         batch.update(docSnap.ref, {
-          'logistics.weight': parseFloat(l.weight) || parseFloat(defaultWeight) || 0,
-          'logistics.length': parseFloat(l.length) || parseFloat(defaultLength) || 0,
-          'logistics.width': parseFloat(l.width) || parseFloat(defaultWidth) || 0,
-          'logistics.height': parseFloat(l.height) || parseFloat(defaultHeight) || 0,
+          'logistics.weight': parseFloat(defaultWeight) || 0.6,
+          'logistics.length': parseFloat(defaultLength) || 35,
+          'logistics.width': parseFloat(defaultWidth) || 25,
+          'logistics.height': parseFloat(defaultHeight) || 10,
           'updatedAt': serverTimestamp()
         });
         updatedCount++;
@@ -420,7 +421,7 @@ export default function ShippingPage() {
                   </Label>
                   <Input 
                     type="number"
-                    placeholder="0.5" 
+                    placeholder="0.6" 
                     value={defaultWeight} 
                     onChange={(e) => setDefaultWeight(e.target.value)}
                     className="h-11 sm:h-12 font-mono bg-white"
@@ -430,7 +431,7 @@ export default function ShippingPage() {
                   <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Length (cm)</Label>
                   <Input 
                     type="number"
-                    placeholder="30" 
+                    placeholder="35" 
                     value={defaultLength} 
                     onChange={(e) => setDefaultLength(e.target.value)}
                     className="h-11 sm:h-12 font-mono bg-white"
@@ -440,7 +441,7 @@ export default function ShippingPage() {
                   <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Width (cm)</Label>
                   <Input 
                     type="number"
-                    placeholder="20" 
+                    placeholder="25" 
                     value={defaultWidth} 
                     onChange={(e) => setDefaultWidth(e.target.value)}
                     className="h-11 sm:h-12 font-mono bg-white"
