@@ -26,7 +26,10 @@ import {
   Truck,
   MapPin,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Trash2,
+  Edit,
+  X
 } from 'lucide-react';
 import {
   Select,
@@ -38,12 +41,26 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 export default function OrdersPage() {
   const db = useFirestore();
   const router = useRouter();
   const { user } = useUser();
+  const { toast } = useToast();
 
   const isAdmin = useMemo(() => {
     if (!user) return false;
@@ -65,6 +82,10 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkStatusOpen, setIsBulkStatusOpen] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -121,6 +142,72 @@ export default function OrdersPage() {
     return { total, pending, revenue, returned };
   }, [orders]);
 
+  const handleSelectAll = (checked: boolean | "indeterminate") => {
+    if (checked === true) {
+      const currentFilteredIds = filteredOrders.map(o => o.id);
+      setSelectedIds(prev => Array.from(new Set([...prev, ...currentFilteredIds])));
+    } else {
+      const currentFilteredIds = new Set(filteredOrders.map(o => o.id));
+      setSelectedIds(prev => prev.filter(id => !currentFilteredIds.has(id)));
+    }
+  };
+
+  const handleToggleSelect = (id: string, checked: boolean | "indeterminate") => {
+    if (checked === true) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(item => item !== id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!db || selectedIds.length === 0) return;
+    if (!confirm(`Authoritatively delete ${selectedIds.length} order documents? This action is forensicly irreversible.`)) return;
+
+    setIsProcessing(true);
+    const batch = writeBatch(db);
+    selectedIds.forEach(id => {
+      batch.delete(doc(db, 'orders', id));
+    });
+
+    batch.commit()
+      .then(() => {
+        setSelectedIds([]);
+        toast({ title: "Purge Complete", description: `${selectedIds.length} orders removed from archive.` });
+      })
+      .finally(() => setIsProcessing(false));
+  };
+
+  const handleBulkStatusUpdate = async () => {
+    if (!db || selectedIds.length === 0 || !bulkStatus) return;
+    setIsProcessing(true);
+
+    const batch = writeBatch(db);
+    selectedIds.forEach(id => {
+      batch.update(doc(db, 'orders', id), {
+        status: bulkStatus,
+        updatedAt: serverTimestamp()
+      });
+    });
+
+    batch.commit()
+      .then(() => {
+        setSelectedIds([]);
+        setIsBulkStatusOpen(false);
+        setBulkStatus('');
+        toast({ title: "Protocol Sync", description: `Updated ${selectedIds.length} orders successfully.` });
+      })
+      .finally(() => setIsProcessing(false));
+  };
+
+  const isAllFilteredSelected = useMemo(() => {
+    return filteredOrders.length > 0 && filteredOrders.every(o => selectedIds.includes(o.id));
+  }, [filteredOrders, selectedIds]);
+
+  const isSomeFilteredSelected = useMemo(() => {
+    return filteredOrders.some(o => selectedIds.includes(o.id)) && !isAllFilteredSelected;
+  }, [filteredOrders, selectedIds, isAllFilteredSelected]);
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return '';
     const date = timestamp?.toDate
@@ -159,7 +246,7 @@ export default function OrdersPage() {
       case 'canceled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[9px] font-bold">Canceled</Badge>;
       case 'confirmed':
-        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 uppercase text-[9px] font-bold">Confirmed</Badge>;
+        return <Badge className="bg-blue-50 text-blue-100 uppercase text-[9px] font-bold">Confirmed</Badge>;
       default:
         return <Badge className="bg-gray-50 text-gray-700 border-gray-100 uppercase text-[9px] font-bold">{status?.replace('_', ' ')}</Badge>;
     }
@@ -189,7 +276,34 @@ export default function OrdersPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Orders</h1>
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">View and manage your store's orders.</p>
         </div>
-        <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto">Export CSV</Button>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-300">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsBulkStatusOpen(true)}
+                className="h-10 border-black font-bold uppercase tracking-widest text-[9px] gap-2 bg-white"
+              >
+                <Edit className="h-3.5 w-3.5" /> Edit Status ({selectedIds.length})
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleBulkDelete}
+                disabled={isProcessing}
+                className="h-10 border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase tracking-widest text-[9px] gap-2"
+              >
+                {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Purge
+              </Button>
+              <Separator orientation="vertical" className="h-8 mx-1" />
+              <Button variant="ghost" size="icon" onClick={() => setSelectedIds([])} className="h-10 w-10">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto">Export CSV</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
@@ -281,11 +395,17 @@ export default function OrdersPage() {
           </Select>
         </div>
 
-        {/* Desktop Table View - Now showing all forensic details */}
+        {/* Desktop Table View */}
         <div className="hidden lg:block">
           <Table>
             <TableHeader className="bg-[#f6f6f7]">
-              <TableRow className="border-[#e1e3e5]">
+              <TableRow className="border-[#e1e3e5] hover:bg-transparent">
+                <TableHead className="w-[40px] px-4">
+                  <Checkbox 
+                    checked={isAllFilteredSelected ? true : isSomeFilteredSelected ? "indeterminate" : false} 
+                    onCheckedChange={handleSelectAll} 
+                  />
+                </TableHead>
                 <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] py-4 w-[35%]">Archival Selection (Manifest)</TableHead>
                 <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Transaction ID</TableHead>
                 <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Participant</TableHead>
@@ -297,25 +417,35 @@ export default function OrdersPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-20">
+                  <TableCell colSpan={7} className="text-center py-20">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300"/>
                   </TableCell>
                 </TableRow>
               ) : filteredOrders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-20 text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+                  <TableCell colSpan={7} className="text-center py-20 text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
                     No orders found.
                   </TableCell>
                 </TableRow>
               ) : filteredOrders.map((order: any) => {
                 const totalUnits = order.items?.reduce((acc: number, item: any) => acc + (item.quantity || 0), 0) || 0;
+                const isSelected = selectedIds.includes(order.id);
 
                 return (
                   <TableRow
                     key={order.id}
-                    className="cursor-pointer hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group"
+                    className={cn(
+                      "cursor-pointer border-[#e1e3e5] group transition-colors",
+                      isSelected ? "bg-blue-50/30" : "hover:bg-[#f6f6f7]/50"
+                    )}
                     onClick={() => router.push(`/admin/orders/${order.id}`)}
                   >
+                    <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox 
+                        checked={isSelected} 
+                        onCheckedChange={(checked) => handleToggleSelect(order.id, checked)} 
+                      />
+                    </TableCell>
                     <TableCell className="align-top py-6">
                       <div className="space-y-4">
                         <div className="flex items-center gap-2">
@@ -415,91 +545,145 @@ export default function OrdersPage() {
             <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-300"/></div>
           ) : filteredOrders.length === 0 ? (
             <div className="py-20 text-center text-gray-400 uppercase text-[10px] font-bold tracking-widest">No orders manifesting.</div>
-          ) : filteredOrders.map((order: any) => (
-            <div 
-              key={order.id} 
-              className="p-4 space-y-4 hover:bg-gray-50 transition-colors cursor-pointer"
-              onClick={() => router.push(`/admin/orders/${order.id}`)}
-            >
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <div className="text-[10px] font-mono font-bold text-primary uppercase">#{order.id.substring(0,8)}</div>
-                  <p className="text-[9px] text-gray-400 font-bold uppercase">{formatDate(order.createdAt)}</p>
+          ) : filteredOrders.map((order: any) => {
+            const isSelected = selectedIds.includes(order.id);
+            return (
+              <div 
+                key={order.id} 
+                className={cn(
+                  "p-4 space-y-4 transition-colors cursor-pointer relative",
+                  isSelected ? "bg-blue-50/30" : "hover:bg-gray-50"
+                )}
+                onClick={() => router.push(`/admin/orders/${order.id}`)}
+              >
+                <div className="absolute left-2 top-4 z-10" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox 
+                    checked={isSelected} 
+                    onCheckedChange={(checked) => handleToggleSelect(order.id, checked)} 
+                  />
                 </div>
-                {getStatusBadge(order.status)}
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex -space-x-3">
-                    {(order.items || []).slice(0,3).map((item:any, i:number) => (
-                      <div key={i} className="w-10 h-14 bg-gray-100 border-2 border-white rounded-sm overflow-hidden shadow-sm relative">
-                        {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                <div className="pl-8">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-mono font-bold text-primary uppercase">#{order.id.substring(0,8)}</div>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase">{formatDate(order.createdAt)}</p>
+                    </div>
+                    {getStatusBadge(order.status)}
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex -space-x-3">
+                        {(order.items || []).slice(0,3).map((item:any, i:number) => (
+                          <div key={i} className="w-10 h-14 bg-gray-100 border-2 border-white rounded-sm overflow-hidden shadow-sm relative">
+                            {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-bold uppercase truncate max-w-[120px]">{order.customer?.name || 'Guest Piece'}</p>
+                        <p className="text-[9px] text-gray-400 font-bold uppercase">{(order.items || []).length} ARCHIVE ITEMS</p>
+                      </div>
+                    </div>
+                    <div className="text-right space-y-1">
+                      <div className="text-sm font-bold text-primary">{`C$${formatCurrency(Number(order.total) || 0)}`}</div>
+                      {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+                    </div>
+                  </div>
+
+                  {/* Item Manifest with Customizations */}
+                  <div className="space-y-3 pt-3 border-t border-dashed mt-4">
+                    {(order.items || []).map((item: any, i: number) => (
+                      <div key={i} className="flex justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <p className="text-[10px] font-bold uppercase leading-tight">{item.name} ({item.size})</p>
+                          {(item.customName || item.customNumber || item.specialNote) && (
+                            <div className="flex flex-col gap-1 mt-1.5 pl-2 border-l-2 border-blue-100">
+                              {(item.customName || item.customNumber) && (
+                                <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
+                                  <Sparkles className="h-2.5 w-2.5" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                </p>
+                              )}
+                              {item.specialNote && (
+                                <p className="text-[9px] text-gray-500 italic leading-snug">"{item.specialNote}"</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[10px] font-bold text-gray-400 shrink-0">QTY: {item.quantity}</p>
                       </div>
                     ))}
                   </div>
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-bold uppercase truncate max-w-[120px]">{order.customer?.name || 'Guest Piece'}</p>
-                    <p className="text-[9px] text-gray-400 font-bold uppercase">{(order.items || []).length} ARCHIVE ITEMS</p>
-                  </div>
-                </div>
-                <div className="text-right space-y-1">
-                  <div className="text-sm font-bold text-primary">{`C$${formatCurrency(Number(order.total) || 0)}`}</div>
-                  {getPaymentStatusBadge(order.paymentStatus || 'pending')}
-                </div>
-              </div>
 
-              {/* Item Manifest with Customizations */}
-              <div className="space-y-3 pt-3 border-t border-dashed">
-                {(order.items || []).map((item: any, i: number) => (
-                  <div key={i} className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <p className="text-[10px] font-bold uppercase leading-tight">{item.name} ({item.size})</p>
-                      {(item.customName || item.customNumber || item.specialNote) && (
-                        <div className="flex flex-col gap-1 mt-1.5 pl-2 border-l-2 border-blue-100">
-                          {(item.customName || item.customNumber) && (
-                            <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
-                              <Sparkles className="h-2.5 w-2.5" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
-                            </p>
-                          )}
-                          {item.specialNote && (
-                            <p className="text-[9px] text-gray-500 italic leading-snug">"{item.specialNote}"</p>
-                          )}
-                        </div>
-                      )}
+                  {/* Forensic Details Manifest */}
+                  <div className="flex flex-col gap-2 border-t pt-3 mt-4">
+                    <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                      <Mail className="h-3 w-3" /> {order.email}
                     </div>
-                    <p className="text-[10px] font-bold text-gray-400 shrink-0">QTY: {item.quantity}</p>
+                    <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                      <Phone className="h-3 w-3" /> {order.customer?.phone || 'NO PHONE'}
+                    </div>
+                    <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                      {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
+                      {order.deliveryMethod?.toUpperCase()} {order.courier ? `• ${order.courier.toUpperCase()}` : ''}
+                    </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Forensic Details Manifest */}
-              <div className="flex flex-col gap-2 border-t pt-3">
-                <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                  <Mail className="h-3 w-3" /> {order.email}
-                </div>
-                <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                  <Phone className="h-3 w-3" /> {order.customer?.phone || 'NO PHONE'}
-                </div>
-                <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                  {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
-                  {order.deliveryMethod?.toUpperCase()} {order.courier ? `• ${order.courier.toUpperCase()}` : ''}
+                  {/* Special Request Prompt */}
+                  {order.note && (
+                    <div className="p-3 bg-amber-50 border border-amber-100 mt-2 rounded-none">
+                      <p className="text-[8px] font-bold uppercase text-amber-800 mb-1 flex items-center gap-1.5">
+                        <MessageSquare className="h-2.5 w-2.5" /> Special Request
+                      </p>
+                      <p className="text-[10px] text-amber-900 font-medium italic">"{order.note}"</p>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Special Request Prompt */}
-              {order.note && (
-                <div className="p-3 bg-amber-50 border border-amber-100 mt-2 rounded-none">
-                  <p className="text-[8px] font-bold uppercase text-amber-800 mb-1 flex items-center gap-1.5">
-                    <MessageSquare className="h-2.5 w-2.5" /> Special Request
-                  </p>
-                  <p className="text-[10px] text-amber-900 font-medium italic">"{order.note}"</p>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
+
+      <Dialog open={isBulkStatusOpen} onOpenChange={setIsBulkStatusOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+          <DialogHeader className="pt-6">
+            <DialogTitle className="text-xl font-bold uppercase tracking-tight">Bulk Status Protocol</DialogTitle>
+            <DialogDescription className="text-xs uppercase font-bold text-muted-foreground mt-1">
+              Synchronize {selectedIds.length} orders to a new fulfillment state.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-gray-500">New Status</Label>
+              <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                <SelectTrigger className="h-12 uppercase font-bold text-[10px]">
+                  <SelectValue placeholder="SELECT STATUS" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="awaiting_processing" className="uppercase text-[10px] font-bold">Awaiting</SelectItem>
+                  <SelectItem value="processing" className="uppercase text-[10px] font-bold">Processing</SelectItem>
+                  <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Ready for Pickup</SelectItem>
+                  <SelectItem value="shipped" className="uppercase text-[10px] font-bold">Shipped</SelectItem>
+                  <SelectItem value="delivered" className="uppercase text-[10px] font-bold">Delivered</SelectItem>
+                  <SelectItem value="returned" className="uppercase text-[10px] font-bold">Returned</SelectItem>
+                  <SelectItem value="canceled" className="uppercase text-[10px] font-bold">Canceled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={handleBulkStatusUpdate} 
+              disabled={isProcessing || !bulkStatus} 
+              className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]"
+            >
+              {isProcessing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Synchronize {selectedIds.length} Orders
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
