@@ -579,11 +579,21 @@ export default function ProductsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
             <DialogHeader className="p-4 sm:p-6 border-b shrink-0 flex flex-row items-center justify-between">
-              <DialogTitle className="text-lg sm:text-xl font-headline font-bold uppercase tracking-tight truncate max-w-[60%]">
-                {editingId ? `Edit: ${name}` : 'New Product'}
-              </DialogTitle>
+              <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setIsDialogOpen(false)} 
+                  className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] hidden xs:flex items-center text-muted-foreground hover:text-black transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to Previous</span>
+                </Button>
+                <DialogTitle className="text-lg sm:text-xl font-headline font-bold uppercase tracking-tight truncate">
+                  {editingId ? `Edit: ${name}` : 'New Product'}
+                </DialogTitle>
+              </div>
               
-              <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                 {editingId && (
                   <div className="flex items-center gap-1 border-r pr-2 sm:pr-4 sm:mr-2">
                     <Button variant="ghost" size="sm" onClick={handlePreviousProduct} disabled={currentIndex <= 0} className="h-8 gap-1 font-bold uppercase tracking-widest text-[8px] sm:text-[9px]">
