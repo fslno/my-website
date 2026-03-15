@@ -170,12 +170,15 @@ export default function OrdersPage() {
       batch.delete(doc(db, 'orders', id));
     });
 
-    batch.commit()
-      .then(() => {
-        setSelectedIds([]);
-        toast({ title: "Purge Complete", description: `${selectedIds.length} orders removed from archive.` });
-      })
-      .finally(() => setIsProcessing(false));
+    try {
+      await batch.commit();
+      setSelectedIds([]);
+      toast({ title: "Purge Complete", description: `${selectedIds.length} orders removed from archive.` });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Protocol Failure", description: "Batch deletion failed." });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleBulkStatusUpdate = async () => {
@@ -190,14 +193,17 @@ export default function OrdersPage() {
       });
     });
 
-    batch.commit()
-      .then(() => {
-        setSelectedIds([]);
-        setIsBulkStatusOpen(false);
-        setBulkStatus('');
-        toast({ title: "Protocol Sync", description: `Updated ${selectedIds.length} orders successfully.` });
-      })
-      .finally(() => setIsProcessing(false));
+    try {
+      await batch.commit();
+      setSelectedIds([]);
+      setIsBulkStatusOpen(false);
+      setBulkStatus('');
+      toast({ title: "Protocol Sync", description: `Updated ${selectedIds.length} orders successfully.` });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Sync Error", description: "Failed to update status." });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const isAllFilteredSelected = useMemo(() => {
@@ -244,7 +250,7 @@ export default function OrdersPage() {
       case 'returned':
         return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[9px] font-bold">Returned</Badge>;
       case 'canceled':
-        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[9px] font-bold">Canceled</Badge>;
+        return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
       case 'confirmed':
         return <Badge className="bg-blue-50 text-blue-100 uppercase text-[9px] font-bold">Confirmed</Badge>;
       default:
@@ -277,31 +283,6 @@ export default function OrdersPage() {
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">View and manage your store's orders.</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          {selectedIds.length > 0 && (
-            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-300">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setIsBulkStatusOpen(true)}
-                className="h-10 border-black font-bold uppercase tracking-widest text-[9px] gap-2 bg-white"
-              >
-                <Edit className="h-3.5 w-3.5" /> Edit Status ({selectedIds.length})
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleBulkDelete}
-                disabled={isProcessing}
-                className="h-10 border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase tracking-widest text-[9px] gap-2"
-              >
-                {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Purge
-              </Button>
-              <Separator orientation="vertical" className="h-8 mx-1" />
-              <Button variant="ghost" size="icon" onClick={() => setSelectedIds([])} className="h-10 w-10">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
           <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto">Export CSV</Button>
         </div>
       </div>
@@ -365,6 +346,39 @@ export default function OrdersPage() {
       </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
+        {selectedIds.length > 0 && (
+          <div className="p-4 border-b bg-blue-50/20 flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5">Selection Manifest</Badge>
+                <span className="text-[10px] font-bold uppercase text-blue-700">{selectedIds.length} Orders Selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsBulkStatusOpen(true)}
+                  className="h-9 border-blue-200 text-blue-700 font-bold uppercase tracking-widest text-[9px] gap-2 bg-white hover:bg-blue-50"
+                >
+                  <Edit className="h-3.5 w-3.5" /> Edit Status
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleBulkDelete}
+                  disabled={isProcessing}
+                  className="h-9 border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase tracking-widest text-[9px] gap-2"
+                >
+                  {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Purge
+                </Button>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedIds([])} className="h-9 w-9 text-blue-400 hover:text-blue-700">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]"/>
