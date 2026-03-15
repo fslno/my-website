@@ -46,7 +46,9 @@ import {
   RefreshCw,
   DollarSign,
   Trophy,
-  Edit2
+  Edit2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch } from 'firebase/firestore';
@@ -67,6 +69,7 @@ export default function ShippingPage() {
   const [editingCarrierIdx, setEditingCarrierIdx] = useState<number | null>(null);
   const [newCarrierName, setNewCarrierName] = useState('');
   const [newCarrierApiKey, setNewCarrierApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [pickupAddress, setPickupAddress] = useState('');
@@ -278,7 +281,7 @@ export default function ShippingPage() {
       currentCarriers[editingCarrierIdx] = { 
         ...existing,
         name: newCarrierName, 
-        apiKey: newCarrierApiKey || existing.apiKey 
+        apiKey: newCarrierApiKey || existing.apiKey || 'pending'
       };
       handleUpdate({ carriers: currentCarriers });
       toast({ title: "Carrier Updated", description: `${newCarrierName} protocol synchronized.` });
@@ -304,15 +307,17 @@ export default function ShippingPage() {
     setNewCarrierApiKey('');
     setEditingCarrierIdx(null);
     setIsAddCarrierOpen(false);
+    setShowApiKey(false);
   };
 
   const handleOpenEdit = (carrier: any, idx: number) => {
     const name = typeof carrier === 'string' ? carrier : carrier.name;
-    const apiKey = typeof carrier === 'string' ? '' : carrier.apiKey;
+    const apiKey = typeof carrier === 'string' ? '' : (carrier.apiKey || '');
     setNewCarrierName(name);
     setNewCarrierApiKey(apiKey === 'pending' ? '' : apiKey);
     setEditingCarrierIdx(idx);
     setIsAddCarrierOpen(true);
+    setShowApiKey(false);
   };
 
   const handleRemoveCarrier = (name: string) => {
@@ -536,7 +541,7 @@ export default function ShippingPage() {
                 </div>
                 <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-muted-foreground">Integrate with carriers for live rates.</CardDescription>
               </div>
-              <Dialog open={isAddCarrierOpen} onOpenChange={(open) => { setIsAddCarrierOpen(open); if(!open) { setEditingCarrierIdx(null); setNewCarrierName(''); setNewCarrierApiKey(''); } }}>
+              <Dialog open={isAddCarrierOpen} onOpenChange={(open) => { setIsAddCarrierOpen(open); if(!open) { setEditingCarrierIdx(null); setNewCarrierName(''); setNewCarrierApiKey(''); setShowApiKey(false); } }}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black hover:bg-black hover:text-white transition-all w-full sm:w-auto">
                     <Plus className="h-3.5 w-3.5" /> Add Carrier
@@ -555,23 +560,30 @@ export default function ShippingPage() {
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-gray-500">Carrier Name</Label>
                       <Input 
-                        placeholder="e.g. DHL Express" 
+                        placeholder="e.g. STALLION EXPRESS" 
                         value={newCarrierName} 
                         onChange={(e) => setNewCarrierName(e.target.value.toUpperCase())}
                         className="h-12 uppercase font-bold"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500">API Key</Label>
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">API Token</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
-                          type="password"
-                          placeholder={editingCarrierIdx !== null ? "••••••••••••••••" : "ENTER API KEY"} 
+                          type={showApiKey ? "text" : "password"}
+                          placeholder={editingCarrierIdx !== null ? "••••••••••••••••" : "ENTER API TOKEN"} 
                           value={newCarrierApiKey} 
                           onChange={(e) => setNewCarrierApiKey(e.target.value)}
-                          className="pl-10 h-12 font-mono text-xs"
+                          className="pl-10 pr-10 h-12 font-mono text-xs"
                         />
+                        <button 
+                          type="button"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                        >
+                          {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
                       </div>
                     </div>
                   </div>

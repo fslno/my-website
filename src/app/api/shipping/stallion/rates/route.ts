@@ -1,28 +1,47 @@
-
 import { NextResponse } from 'next/server';
+import { getFirestore } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
 
 /**
  * @fileOverview Stallion Express Rate Discovery API
- * Authoritatively calculates shipping costs based on parcel metrics and destination.
+ * Authoritatively calculates shipping costs using credentials from Firestore or environment variables.
  */
 
-const STALLION_API_KEY = process.env.STALLION_API_KEY;
+// Authoritatively initialize the Admin SDK for backend operations if not already active
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 const STALLION_BASE_URL = 'https://api.stallionexpress.ca/v1';
 
 export async function POST(request: Request) {
-  if (!STALLION_API_KEY) {
-    return NextResponse.json({ error: 'Stallion API protocol not configured.' }, { status: 500 });
-  }
-
   try {
+    const db = getFirestore();
     const body = await request.json();
-    const { to_address, parcel, from_address } = body;
+    const { to_address, parcel } = body;
 
-    // Stallion Express Rate Protocol Handshake
+    // 1. Authoritative Credential Retrieval
+    // Fetch the shipping manifest from Firestore to find the live API Token
+    const shippingConfigDoc = await db.collection('config').doc('shipping').get();
+    const shippingConfig = shippingConfigDoc.data();
+    const carriers = shippingConfig?.carriers || [];
+    
+    // Lookup "STALLION EXPRESS" specifically in the manifest
+    const stallionCarrier = carriers.find((c: any) => 
+      (typeof c === 'string' ? c === 'STALLION EXPRESS' : c.name === 'STALLION EXPRESS')
+    );
+
+    const stallionApiToken = stallionCarrier?.apiKey || process.env.STALLION_API_KEY;
+
+    if (!stallionApiToken || stallionApiToken === 'pending' || stallionApiToken === 'fslno_sample_key') {
+      return NextResponse.json({ error: 'Stallion API protocol not configured in Admin UI.' }, { status: 500 });
+    }
+
+    // 2. Stallion Express Rate Protocol Handshake
     const response = await fetch(`${STALLION_BASE_URL}/rates`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${STALLION_API_KEY}`,
+        'Authorization': `Bearer ${stallionApiToken}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
@@ -47,8 +66,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: data.message || 'Logistics handshake failed.' }, { status: response.status });
     }
 
-    // Filter and Label for High-Fidelity Storefront UI
-    const mappedRates = data.rates.map((rate: any) => {
+    // 3. Mapped Manifest for Storefront UI
+    const mappedRates = (data.rates || []).map((rate: any) => {
       let label = 'Standard Shipping';
       let type = 'standard';
 
@@ -59,9 +78,6 @@ export async function POST(request: Request) {
       } else if (name.includes('postnl') || name.includes('apc') || name.includes('economy')) {
         label = 'Economy Tracked';
         type = 'economy';
-      } else if (name.includes('stallion u.s. tracked')) {
-        label = 'Standard Shipping';
-        type = 'standard';
       }
 
       return {
