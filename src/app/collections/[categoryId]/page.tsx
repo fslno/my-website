@@ -136,6 +136,7 @@ export default function CollectionPage(props: PageProps) {
                     id={product.id}
                     name={product.name}
                     price={`C$${formatCurrency(Number(product.price))}`}
+                    comparedPrice={product.comparedPrice}
                     image={product.media?.[0]?.url || ''}
                     hoverImage={product.media?.[1]?.url}
                     category={productCategory}

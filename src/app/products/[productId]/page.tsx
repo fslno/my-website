@@ -127,6 +127,9 @@ export default function ProductDetailPage(props: PageProps) {
     return base + fee;
   }, [product, wantsCustomization]);
 
+  const hasDiscount = product?.comparedPrice && product.comparedPrice > (product.price || 0);
+  const discountPercent = hasDiscount ? Math.round(((product.comparedPrice! - product.price!) / product.comparedPrice!) * 100) : 0;
+
   const formatCurrency = (val: number) => {
     return val.toLocaleString(undefined, { 
       minimumFractionDigits: 2, 
@@ -397,6 +400,12 @@ export default function ProductDetailPage(props: PageProps) {
 
               <div className="flex items-center gap-4 pt-2">
                 <p className="text-lg font-bold text-primary">{`C$${formatCurrency(totalPrice)}`}</p>
+                {hasDiscount && (
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground line-through decoration-muted-foreground/50 font-medium">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
+                    <Badge className="bg-emerald-50 text-emerald-700 border-none uppercase text-[8px] font-bold tracking-widest">{discountPercent}% OFF</Badge>
+                  </div>
+                )}
               </div>
               <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">

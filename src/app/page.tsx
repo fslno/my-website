@@ -222,6 +222,7 @@ export default function Home() {
                       id={product.id}
                       name={product.name}
                       price={`C$${(Number(product.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                      comparedPrice={product.comparedPrice}
                       image={product.media?.[0]?.url || ''}
                       hoverImage={product.media?.[1]?.url}
                       category={productCategory}

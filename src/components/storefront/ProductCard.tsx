@@ -10,6 +10,7 @@ interface ProductCardProps {
   id: string;
   name: string;
   price: string; // Already formatted string from parent
+  comparedPrice?: number;
   image: string;
   hoverImage?: string;
   category: string;
@@ -18,7 +19,11 @@ interface ProductCardProps {
   isSoldOut?: boolean;
 }
 
-export function ProductCard({ id, name, price, image, hoverImage, category, rating, reviewCount, isSoldOut }: ProductCardProps) {
+export function ProductCard({ id, name, price, comparedPrice, image, hoverImage, category, rating, reviewCount, isSoldOut }: ProductCardProps) {
+  const currentPriceNum = parseFloat(price.replace(/[^0-9.]/g, ''));
+  const hasDiscount = comparedPrice && comparedPrice > currentPriceNum;
+  const discountPercent = hasDiscount ? Math.round(((comparedPrice! - currentPriceNum) / comparedPrice!) * 100) : 0;
+
   return (
     <div className="group flex flex-col gap-3 product-text-align">
       <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
@@ -53,15 +58,30 @@ export function ProductCard({ id, name, price, image, hoverImage, category, rati
             </span>
           </div>
         )}
+
+        {!isSoldOut && hasDiscount && (
+          <div className="absolute top-0 left-0 z-10 p-1.5 sm:p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
+            <span className="bg-white text-black text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-2 py-1 sm:px-3 sm:py-1.5 shadow-xl border border-black/5">
+              {discountPercent}% OFF
+            </span>
+          </div>
+        )}
       </Link>
       
       <div className="flex flex-col gap-2 py-1 product-flex-align">
         <p className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-bold leading-none">
           {category}
         </p>
-        <p className="product-price-size product-price-color font-bold leading-none">
-          {price}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="product-price-size product-price-color font-bold leading-none">
+            {price}
+          </p>
+          {hasDiscount && (
+            <p className="text-[10px] text-muted-foreground line-through decoration-muted-foreground/50 font-medium">
+              C${comparedPrice?.toFixed(2)}
+            </p>
+          )}
+        </div>
         <Link 
           href={`/products/${id}`} 
           className="product-title-size product-title-color font-medium line-clamp-1 group-hover:underline leading-none tracking-tight min-h-0"
