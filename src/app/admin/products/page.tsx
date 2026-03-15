@@ -385,12 +385,14 @@ export default function ProductsPage() {
     reader.readAsText(file);
   };
 
+  /**
+   * Generates a 6-character alphanumeric SKU based on product name and random numbers.
+   */
   const generateSku = (productName: string) => {
     if (!productName) return '';
-    const prefix = 'FSL';
-    const namePart = productName.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
-    const randomPart = Math.floor(1000 + Math.random() * 9000);
-    return `${prefix}-${namePart}-${randomPart}`;
+    const namePart = productName.replace(/[^A-Z0-9]/gi, '').substring(0, 3).toUpperCase().padEnd(3, 'X');
+    const randomPart = Math.floor(100 + Math.random() * 900);
+    return `${namePart}${randomPart}`;
   };
 
   useEffect(() => {
