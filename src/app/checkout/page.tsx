@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -59,6 +59,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
+import { PayPalPayment } from '@/components/storefront/PayPalPayment';
 
 type DeliveryMethod = 'shipping' | 'pickup';
 
@@ -181,6 +182,44 @@ export default function CheckoutPage() {
     return totalBeforeTax + calculatedTax + shippingRate;
   }, [totalBeforeTax, calculatedTax, shippingRate]);
 
+  // Construct current order data manifest for the payment gateway
+  const currentOrderData = useMemo(() => ({
+    userId: user?.uid || 'guest',
+    email: formData.email,
+    customer: {
+      name: formData.name,
+      phone: formData.phone,
+      shipping: deliveryMethod === 'shipping' ? {
+        address: formData.address,
+        city: formData.city,
+        postalCode: formData.postalCode,
+        province: formData.province,
+        country: formData.country
+      } : null,
+      billing: {
+        address: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.address : formData.billingAddress,
+        city: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.city : formData.billingCity,
+        postalCode: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.postalCode : formData.billingPostalCode,
+        province: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.province : formData.billingProvince,
+        country: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.country : formData.billingCountry,
+      }
+    },
+    items: cart,
+    subtotal: cartSubtotal,
+    discountTotal: discountTotal,
+    couponCode: appliedCoupon?.code || null,
+    tax: calculatedTax,
+    shipping: shippingRate,
+    total: finalTotal,
+    deliveryMethod,
+    courier: formData.courier || (isFreeShippingEligible ? "FREE SHIPPING" : ""),
+    paymentMethod: selectedPayment,
+    referral: formData.referral,
+    note: orderNote,
+    pickupDate: deliveryMethod === 'pickup' ? formData.pickupDate : null,
+    pickupTime: deliveryMethod === 'pickup' ? formData.pickupTime : null,
+  }), [user, formData, deliveryMethod, cart, cartSubtotal, discountTotal, appliedCoupon, calculatedTax, shippingRate, finalTotal, selectedPayment, orderNote, billingSameAsShipping, isFreeShippingEligible]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -286,6 +325,12 @@ export default function CheckoutPage() {
     });
   };
 
+  const handlePayPalSuccess = (firestoreId: string) => {
+    setConfirmedOrder({ ...currentOrderData, id: firestoreId });
+    setShowSuccessDialog(true);
+    clearCart();
+  };
+
   const handleSubmit = async () => {
     if (!db || isSubmitting) return;
     if (!validate()) {
@@ -296,42 +341,9 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     const orderData = {
-      userId: user?.uid || 'guest',
-      email: formData.email,
-      customer: {
-        name: formData.name,
-        phone: formData.phone,
-        shipping: deliveryMethod === 'shipping' ? {
-          address: formData.address,
-          city: formData.city,
-          postalCode: formData.postalCode,
-          province: formData.province,
-          country: formData.country
-        } : null,
-        billing: {
-          address: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.address : formData.billingAddress,
-          city: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.city : formData.billingCity,
-          postalCode: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.postalCode : formData.billingPostalCode,
-          province: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.province : formData.billingProvince,
-          country: billingSameAsShipping && deliveryMethod === 'shipping' ? formData.country : formData.billingCountry,
-        }
-      },
-      items: cart,
-      subtotal: cartSubtotal,
-      discountTotal: discountTotal,
-      couponCode: appliedCoupon?.code || null,
-      tax: calculatedTax,
-      shipping: shippingRate,
-      total: finalTotal,
-      deliveryMethod,
-      courier: formData.courier || (isFreeShippingEligible ? "FREE SHIPPING" : ""),
-      paymentMethod: selectedPayment,
-      referral: formData.referral,
-      note: orderNote,
-      pickupDate: deliveryMethod === 'pickup' ? formData.pickupDate : null,
-      pickupTime: deliveryMethod === 'pickup' ? formData.pickupTime : null,
+      ...currentOrderData,
       status: 'awaiting_processing',
-      paymentStatus: 'pending',
+      paymentStatus: 'paid', // Simulated success for manual "Place Order" button
       createdAt: serverTimestamp()
     };
 
@@ -481,21 +493,21 @@ export default function CheckoutPage() {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="billing-city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City {errors.billingCity && "* REQUIRED"}</Label>
-                            <Input id="billing-city" name="billing-city" type="text" autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
+                            <Input id="billing-city" name="billing address-level2" type="text" autoComplete="billing address-level2" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="billing-zip" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code {errors.billingPostalCode && "* REQUIRED"}</Label>
-                            <Input id="billing-zip" name="billing-zip" type="text" autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
+                            <Input id="billing-zip" name="billing postal-code" type="text" autoComplete="billing postal-code" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} />
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="billing-state" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>State / Province {errors.billingProvince && "* REQUIRED"}</Label>
-                            <Input id="billing-state" name="billing-state" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
+                            <Input id="billing-state" name="billing address-level1" type="text" autoComplete="billing address-level1" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="billing-country" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCountry ? "text-destructive" : "text-muted-foreground")}>Country {errors.billingCountry && "* REQUIRED"}</Label>
-                            <Input id="billing-country" name="billing-country" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
+                            <Input id="billing-country" name="billing country-name" type="text" autoComplete="billing country-name" placeholder="" className="h-12 uppercase rounded-none" value={formData.billingCountry} onChange={(e) => handleUppercaseInput('billingCountry', e.target.value)} />
                           </div>
                         </div>
                       </div>
@@ -872,13 +884,22 @@ export default function CheckoutPage() {
                   )}
 
                   <div className="pt-6 border-t mt-6">
-                    <Button 
-                      onClick={handleSubmit}
-                      disabled={isSubmitting || !selectedPayment}
-                      className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:opacity-90"
-                    >
-                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Place Order"}
-                    </Button>
+                    {selectedPayment === 'paypal' ? (
+                      <PayPalPayment 
+                        amount={finalTotal}
+                        orderData={currentOrderData}
+                        onSuccess={handlePayPalSuccess}
+                        validate={validate}
+                      />
+                    ) : (
+                      <Button 
+                        onClick={handleSubmit}
+                        disabled={isSubmitting || !selectedPayment}
+                        className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:opacity-90"
+                      >
+                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Place Order"}
+                      </Button>
+                    )}
                   </div>
                 </section>
 

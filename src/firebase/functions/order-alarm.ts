@@ -2,7 +2,7 @@
  * @fileOverview Firebase Cloud Function for Order Alarms.
  */
 
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -24,7 +24,7 @@ export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event
   const payload = {
     notification: {
       title: `New Order - ${formattedTotal}`,
-      body: `Order received.`,
+      body: `Order received. Status: ${data.status || 'pending'}`,
       sound: "alarm.mp3",
     },
     data: {
@@ -42,6 +42,44 @@ export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event
     });
   } catch (error) {
     console.error("[ALARM] Notification failed:", error);
+  }
+});
+
+/**
+ * Dispatches an alarm when an order is paid.
+ */
+export const onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) => {
+  const beforeData = event.data?.before.data();
+  const afterData = event.data?.after.data();
+
+  if (!beforeData || !afterData) return;
+
+  // Authoritative Check: Detect transition to 'paid' status
+  if (beforeData.paymentStatus !== 'paid' && afterData.paymentStatus === 'paid') {
+    const orderId = event.params.orderId;
+    const total = afterData.total || 0;
+    const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(total);
+
+    const payload = {
+      notification: {
+        title: `Payment Received - ${formattedTotal}`,
+        body: `Order #${orderId.substring(0, 6)} has been paid.`,
+        sound: "alarm.mp3",
+      },
+      data: {
+        orderId: orderId,
+        type: "PAID_ALARM",
+        click_action: `/admin/orders/${orderId}`
+      }
+    };
+
+    try {
+      await admin.messaging().sendToTopic("admin_orders", payload, {
+        priority: "high"
+      });
+    } catch (error) {
+      console.error("[ALARM] Paid notification failed:", error);
+    }
   }
 });
 
