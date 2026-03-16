@@ -17,7 +17,9 @@ import {
   Youtube, 
   Linkedin, 
   Music, 
-  Globe 
+  Globe,
+  MapPin,
+  Clock
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -62,32 +64,27 @@ export function Footer() {
               <p className="max-w-sm text-sm leading-relaxed uppercase tracking-tight opacity-80">
                 {config?.footerDescription || "High-end archive storefront. Shop curated apparel."}
               </p>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {config?.address && (
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">Location</p>
+                  <div className="flex items-start gap-3 group">
+                    <MapPin className="h-4 w-4 shrink-0 mt-0.5 opacity-40 group-hover:opacity-100 transition-opacity" />
                     <a 
                       href={mapsUrl} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed hover:opacity-60 transition-opacity flex items-center gap-2 group underline decoration-primary-foreground/20 underline-offset-4"
+                      className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed hover:opacity-60 transition-opacity underline decoration-primary-foreground/20 underline-offset-4"
                     >
-                      {config.address} <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform opacity-50 group-hover:opacity-100" />
+                      {config.address}
                     </a>
                   </div>
                 )}
                 {config?.openingHours && (
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">Hours</p>
-                    <p className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed italic">
+                  <div className="flex items-start gap-3 group">
+                    <Clock className="h-4 w-4 shrink-0 mt-0.5 opacity-40 group-hover:opacity-100 transition-opacity" />
+                    <p className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed italic opacity-80">
                       {config.openingHours}
                     </p>
                   </div>
-                )}
-                {config?.phone && (
-                  <p className="text-[11px] uppercase font-bold tracking-widest">
-                    {config.phone}
-                  </p>
                 )}
               </div>
             </div>
