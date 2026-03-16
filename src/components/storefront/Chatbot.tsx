@@ -36,7 +36,8 @@ export function Chatbot() {
   if (pathname?.startsWith('/admin')) return null;
 
   const phoneNumbers = config?.phoneNumbers || (config?.phone ? [{ label: 'Voice', value: config.phone }] : []);
-  const emailAddresses = config?.emailAddresses || (config?.email ? [{ label: 'Dispatch', value: config.email }] : []);
+  // Authoritative Restriction: Strictly suppress config.email from Chatbot display as it is for internal logistics only.
+  const emailAddresses = config?.emailAddresses || [];
   const socialChannels = config?.socialChannels || [];
 
   const contactMethods: any[] = [];

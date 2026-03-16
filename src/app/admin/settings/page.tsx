@@ -19,8 +19,7 @@ import {
   Tabs, 
   TabsContent, 
   TabsList, 
-  TabsTrigger 
-} from '@/components/ui/tabs';
+  TabsTrigger } from '@/components/ui/tabs';
 import { 
   Select, 
   SelectContent, 
@@ -68,7 +67,7 @@ import {
   MoreHorizontal,
   Clock
 } from 'lucide-react';
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -108,6 +107,7 @@ export default function SettingsPage() {
   const [address, setAddress] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [phone, setPhone] = useState('');
+  const [businessEmail, setBusinessEmail] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
 
   const [phoneNumbers, setPhoneNumbers] = useState<ContactItem[]>([]);
@@ -136,6 +136,7 @@ export default function SettingsPage() {
       setAddress(storeConfig.address || '');
       setGoogleMapsUrl(storeConfig.googleMapsUrl || '');
       setPhone(storeConfig.phone || '');
+      setBusinessEmail(storeConfig.email || '');
       setLogoUrl(storeConfig.logoUrl || '');
       setPhoneNumbers(storeConfig.phoneNumbers || []);
       setEmailAddresses(storeConfig.emailAddresses || []);
@@ -169,6 +170,7 @@ export default function SettingsPage() {
       address, 
       googleMapsUrl,
       phone, 
+      email: businessEmail,
       logoUrl,
       phoneNumbers,
       emailAddresses,
@@ -335,6 +337,13 @@ export default function SettingsPage() {
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input placeholder="+1 (555) 000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10 h-11" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500 text-blue-600">Business Email (Internal Logistics)</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input placeholder="admin@fslno.ca" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -717,7 +726,7 @@ export default function SettingsPage() {
                   <Mail className="h-3.5 w-3.5" /> Support Emails
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={addEmailAddress} className="h-8 text-[8px] font-bold uppercase tracking-widest px-2">
-                  <Plus className="h-3.5 w-3.5" /> Add
+                  <Plus className="h-3 w-3 mr-1" /> Add
                 </Button>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
