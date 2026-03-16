@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * @fileOverview Environment Protocol (Reverted).
+ * @fileOverview Environment Protocol (Restored).
  * The isolation protocol has been Authoritatively neutralized.
- * All environments now target the root collection manifest.
+ * All environments now target the root collection manifest for immediate manifestation.
  */
 
 export const LIVE_DOMAIN = 'fslno.ca';
@@ -19,6 +19,6 @@ export const isLiveEnvironment = () => {
 
 /**
  * Returns the path as-is (Pass-through Protocol).
- * Direct mapping to root collections.
+ * Direct mapping to root collections ensures Studio edits show on domain immediately.
  */
 export const getLivePath = (path: string) => path;

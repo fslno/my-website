@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * FSLNO STUDIO SECURITY RULES - UNIFIED ARCHIVE
+     * FSLNO STUDIO SECURITY RULES - UNIFIED RESTORATION
      * 
      * Core Philosophy:
      * 1. Public can read products, categories, config, and reviews.

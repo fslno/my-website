@@ -7,7 +7,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
-// Unified Initialization Protocol
+// Unified Initialization Protocol (Restored)
 export function initializeFirebase() {
   if (!getApps().length) {
     let firebaseApp;
