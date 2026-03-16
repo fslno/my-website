@@ -1,34 +1,16 @@
 'use client';
 
 import React from 'react';
-import { BentoHero } from '@/components/storefront/BentoHero';
 import { CategorySection } from '@/components/storefront/CategorySection';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative Unified Home Page.
- * Orchestrates the full Studio experience from Hero to Catalog.
+ * Orchestrates the full Studio experience from Collections to Featured Products.
  */
 export default function Home() {
-  const db = useFirestore();
-  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
-  const { data: theme, isLoading: themeLoading } = useDoc(themeRef);
-
   return (
     <div className="flex flex-col">
-      <BentoHero 
-        isLoading={themeLoading}
-        heroImages={theme?.heroImages}
-        headline={theme?.heroHeadline}
-        subheadline={theme?.heroSubheadline}
-        buttonText={theme?.heroButtonText}
-        textAlign={theme?.heroTextAlign}
-        verticalAlign={theme?.heroVerticalAlign}
-      />
-      
       <CategorySection />
       
       <div className="bg-white border-t">
