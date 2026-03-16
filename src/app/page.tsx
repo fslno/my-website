@@ -29,15 +29,6 @@ export default function Home() {
   const pageSize = 60;
 
   const [classicApi, setClassicApi] = useState<CarouselApi>();
-  const [classicCurrent, setClassicCurrent] = useState(0);
-
-  useEffect(() => {
-    if (!classicApi) return;
-    setClassicCurrent(classicApi.selectedScrollSnap());
-    classicApi.on("select", () => {
-      setClassicCurrent(classicApi.selectedScrollSnap());
-    });
-  }, [classicApi]);
 
   const classicAutoplay = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
@@ -186,22 +177,6 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
-
-              {/* Dot Indicators */}
-              {heroImages.length > 1 && (
-                <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-30">
-                  {heroImages.map((_: any, i: number) => (
-                    <button
-                      key={i}
-                      onClick={() => classicApi?.scrollTo(i)}
-                      className={cn(
-                        "h-1 transition-all duration-500 rounded-none",
-                        classicCurrent === i ? "bg-white w-8" : "bg-white/30 w-4 hover:bg-white/50"
-                      )}
-                    />
-                  ))}
-                </div>
-              )}
             </Carousel>
           </div>
         </section>

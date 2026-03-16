@@ -37,18 +37,6 @@ export function BentoHero({
   verticalAlign = 'center'
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!api) return;
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap());
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap());
-    });
-  }, [api]);
 
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
@@ -117,22 +105,6 @@ export function BentoHero({
               </Link>
             </div>
           </div>
-
-          {/* Dot Indicators */}
-          {images.length > 1 && (
-            <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-30">
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => api?.scrollTo(i)}
-                  className={cn(
-                    "h-1 transition-all duration-500 rounded-none",
-                    current === i ? "bg-white w-8" : "bg-white/30 w-4 hover:bg-white/50"
-                  )}
-                />
-              ))}
-            </div>
-          )}
         </Carousel>
       </div>
     </section>
