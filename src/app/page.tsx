@@ -20,8 +20,18 @@ export default function Home() {
   const pageSize = 60;
 
   useEffect(() => {
-    // Authoritatively reset scroll position to the top on mount
+    // Authoritatively reset scroll position to the top on mount (including "back" navigation)
     window.scrollTo(0, 0);
+    
+    // Disable browser's automatic scroll restoration to ensure we always start at the Hero
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      const originalRestoration = window.history.scrollRestoration;
+      window.history.scrollRestoration = 'manual';
+      
+      return () => {
+        window.history.scrollRestoration = originalRestoration;
+      };
+    }
   }, []);
 
   // Fetch top categories for the collection grid

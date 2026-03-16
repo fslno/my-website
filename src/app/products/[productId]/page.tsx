@@ -61,6 +61,19 @@ interface PageProps {
   params: Promise<{ productId: string }>;
 }
 
+const DEFAULT_SIZE_CHART = {
+  name: "Standard Sizing Guide",
+  unit: "cm",
+  columns: ["Chest", "Length", "Shoulder"],
+  rows: [
+    { label: "S", values: ["50", "70", "44"] },
+    { label: "M", values: ["52", "72", "46"] },
+    { label: "L", values: ["54", "74", "48"] },
+    { label: "XL", values: ["56", "76", "50"] },
+    { label: "2XL", values: ["58", "78", "52"] }
+  ]
+};
+
 export default function ProductDetailPage(props: PageProps) {
   const { productId } = use(props.params);
   
@@ -279,6 +292,7 @@ export default function ProductDetailPage(props: PageProps) {
 
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
+  const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
 
   return (
     <main className="min-h-screen bg-white">
@@ -421,63 +435,57 @@ export default function ProductDetailPage(props: PageProps) {
               <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
                 <span>Select Size</span>
                 
-                {sizeChart ? (
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 ease-in-out text-[13px] font-bold p-1 rounded">
-                        <Ruler className="h-5 w-5" /> Size Guide
-                      </button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 flex flex-col">
-                      <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                        <div className="flex items-center gap-3 text-primary mb-2">
-                          <Ruler className="h-5 w-5" />
-                          <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Size Guide</SheetTitle>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 ease-in-out text-[13px] font-bold p-1 rounded">
+                      <Ruler className="h-5 w-5" /> {sizeChart ? 'Size Guide' : 'Standard Guide'}
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 flex flex-col">
+                    <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
+                      <div className="flex items-center gap-3 text-primary mb-2">
+                        <Ruler className="h-5 w-5" />
+                        <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Size Guide</SheetTitle>
+                      </div>
+                      <p className="text-sm text-muted-foreground font-medium">Measurements for: <span className="text-primary font-bold">{effectiveChart.name}</span></p>
+                    </SheetHeader>
+                    
+                    <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Ruler className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Dimensions</span>
                         </div>
-                        <p className="text-sm text-muted-foreground font-medium">Measurements for: <span className="text-primary font-bold">{sizeChart.name}</span></p>
-                      </SheetHeader>
-                      
-                      <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Ruler className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Dimensions</span>
-                          </div>
-                          <span className="text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded tracking-widest">
-                            Unit: {sizeChart.unit}
-                          </span>
-                        </div>
+                        <span className="text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded tracking-widest">
+                          Unit: {effectiveChart.unit}
+                        </span>
+                      </div>
 
-                        <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
-                          <Table>
-                            <TableHeader className="bg-gray-50/50">
-                              <TableRow>
-                                <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
-                                {sizeChart.columns?.map((col: string, idx: number) => (
-                                  <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
+                      <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
+                        <Table>
+                          <TableHeader className="bg-gray-50/50">
+                            <TableRow>
+                              <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
+                              {effectiveChart.columns?.map((col: string, idx: number) => (
+                                <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
+                              ))}
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {effectiveChart.rows?.map((row: any, rowIdx: number) => (
+                              <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
+                                <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
+                                {row.values?.map((val: string, colIdx: number) => (
+                                  <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
                                 ))}
                               </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {sizeChart.rows?.map((row: any, rowIdx: number) => (
-                                <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
-                                  <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
-                                  {row.values?.map((val: string, colIdx: number) => (
-                                    <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
-                                  ))}
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
+                            ))}
+                          </TableBody>
+                        </Table>
                       </div>
-                    </SheetContent>
-                  </Sheet>
-                ) : (
-                  <button className="flex items-center gap-2 text-muted-foreground text-[11px] uppercase font-bold hover:text-primary transition-colors">
-                    <Ruler className="h-4 w-4" /> Standard Guide
-                  </button>
-                )}
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
               <div className="flex flex-wrap gap-2">
                 {(product.variants || []).map((v: any) => (
