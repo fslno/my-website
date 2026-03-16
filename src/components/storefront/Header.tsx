@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ShoppingBag, 
@@ -21,7 +21,8 @@ import {
   User as UserIcon,
   LogOut,
   Package,
-  Edit2
+  Edit2,
+  ChevronLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,8 @@ export function Header() {
   const { user } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
+  const pathname = usePathname();
+  const router = useRouter();
   
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
@@ -84,6 +87,8 @@ export function Header() {
 
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   const [editFields, setEditFields] = useState({ name: '', number: '', note: '' });
+
+  const isCheckoutPage = pathname === '/checkout';
 
   const filteredProducts = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
@@ -614,9 +619,19 @@ export function Header() {
                           Tax and shipping at checkout.
                         </p>
                       </div>
-                      <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-xl">
-                        <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout <ArrowRight className="h-4 w-4" /></Link>
-                      </Button>
+                      
+                      {isCheckoutPage ? (
+                        <Button 
+                          onClick={() => setIsCartOpen(false)}
+                          className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-xl"
+                        >
+                          <ChevronLeft className="h-4 w-4" /> Return to Checkout
+                        </Button>
+                      ) : (
+                        <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-xl">
+                          <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout <ArrowRight className="h-4 w-4" /></Link>
+                        </Button>
+                      )}
                     </SheetFooter>
                   )}
                 </SheetContent>

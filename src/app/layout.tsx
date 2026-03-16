@@ -17,7 +17,7 @@ import { usePathname } from 'next/navigation';
 
 /**
  * Authoritative Boot Overlay Component.
- * Managing its own lifecycle ensures initial HTML consistency.
+ * Managing its own lifecycle ensures initial HTML consistency and prevents hydration mismatch.
  */
 function BootOverlay() {
   const [mounted, setMounted] = useState(false);

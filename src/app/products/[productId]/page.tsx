@@ -152,6 +152,7 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
+  // SAFE PROPERTY DECLARATIONS
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
   const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
@@ -168,7 +169,6 @@ export default function ProductDetailPage(props: PageProps) {
     return { avg: sum / pReviews.length, count: pReviews.length };
   })();
 
-  // DERIVED CONSTANTS: Strictly placed AFTER the existence gate
   const totalPrice = (() => {
     const base = Number(product.price) || 0;
     const fee = wantsCustomization ? (Number(product.customizationFee) || 10) : 0;
