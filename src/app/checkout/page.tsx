@@ -19,7 +19,8 @@ import {
   MessageSquare,
   Globe,
   ShieldCheck,
-  MapPin
+  MapPin,
+  Search
 } from 'lucide-react';
 import { useCart, type Coupon } from '@/context/CartContext';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -231,8 +232,6 @@ export default function CheckoutPage() {
             <div className="md:col-span-2 space-y-2"><Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name</Label><Input id="name" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} /></div>
           </div>
 
-          <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>How did you hear about us?</Label><Input value={formData.referral} onChange={(e) => handleUppercaseInput('referral', e.target.value)} className="h-12 bg-[#F9F9F9] uppercase rounded-none" placeholder="E.G. INSTAGRAM, FRIEND, ETC." /></div>
-
           {deliveryMethod === 'shipping' ? (
             <div className="space-y-10 pt-4 border-t">
               <div className="grid gap-4">
@@ -299,8 +298,11 @@ export default function CheckoutPage() {
           )}
 
           <div className="space-y-4 pt-10 border-t">
-            <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><MessageSquare className="h-3.5 w-3.5" /> Order Notes (Optional)</h3>
-            <Textarea value={orderNote} onChange={(e) => setOrderNote(e.target.value.toUpperCase())} placeholder="ANY SPECIAL REQUESTS OR INSTRUCTIONS..." className="min-h-[100px] resize-none uppercase text-xs rounded-none border-gray-200" />
+            <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Search className="h-3.5 w-3.5" /> Discovery Protocol</h3>
+            <div className="space-y-2">
+              <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>How did you hear about us?</Label>
+              <Input value={formData.referral} onChange={(e) => handleUppercaseInput('referral', e.target.value)} className="h-12 bg-[#F9F9F9] uppercase rounded-none" placeholder="E.G. INSTAGRAM, FRIEND, ETC." />
+            </div>
           </div>
         </section>
       </div>
@@ -325,6 +327,11 @@ export default function CheckoutPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="space-y-4 pt-6 border-t">
+          <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><MessageSquare className="h-3.5 w-3.5" /> Order Notes (Optional)</h3>
+          <Textarea value={orderNote} onChange={(e) => setOrderNote(e.target.value.toUpperCase())} placeholder="ANY SPECIAL REQUESTS OR INSTRUCTIONS..." className="min-h-[100px] resize-none uppercase text-xs rounded-none border-gray-200" />
         </div>
 
         <div className="space-y-4">
