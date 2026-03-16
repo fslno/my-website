@@ -5,7 +5,6 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@
 import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { BentoHero } from '@/components/storefront/BentoHero';
-import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Loader2, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
@@ -36,21 +35,12 @@ export default function Home() {
   );
 
   useEffect(() => {
-    // Authoritatively reset scroll position to the top on mount (including "back" navigation)
     window.scrollTo(0, 0);
-    
-    // Disable browser's automatic scroll restoration to ensure we always start at the Hero
     if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
-      const originalRestoration = window.history.scrollRestoration;
       window.history.scrollRestoration = 'manual';
-      
-      return () => {
-        window.history.scrollRestoration = originalRestoration;
-      };
     }
   }, []);
 
-  // Fetch top categories for the collection grid
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, getLivePath('categories')), orderBy('order', 'asc'), limit(12));
@@ -58,7 +48,6 @@ export default function Home() {
 
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
 
-  // Fetch products for "Featured Selection" - Increased limit to support pagination
   const featuredQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, getLivePath('products')), orderBy('createdAt', 'desc'), limit(300));
@@ -66,11 +55,9 @@ export default function Home() {
 
   const { data: featuredProducts, isLoading: productsLoading } = useCollection(featuredQuery);
 
-  // Global Review Config
   const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
   const { data: reviewConfig } = useDoc(reviewConfigRef);
 
-  // Fetch all reviews for global rating aggregation (Reviews are shared across envs)
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'reviews'));
@@ -91,7 +78,6 @@ export default function Home() {
     return map;
   }, [allReviews]);
 
-  // Pagination Logic
   const paginatedProducts = useMemo(() => {
     if (!featuredProducts) return [];
     const start = (currentPage - 1) * pageSize;
@@ -102,14 +88,12 @@ export default function Home() {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    // Smooth scroll back to the products section header
     const element = document.getElementById('featured-products-section');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  // Fetch theme for layout decisions
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
@@ -127,7 +111,6 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <Header />
       
-      {/* Hero Selection based on Theme Config */}
       {theme?.homepageLayout === 'classic' ? (
         <section className="pt-28 sm:pt-36">
           <div className="w-full overflow-hidden bg-primary shadow-2xl group border-b relative">
@@ -156,7 +139,6 @@ export default function Home() {
                 )}
               </CarouselContent>
 
-              {/* Interaction-Triggered Navigation Arrows */}
               {heroImages.length > 1 && (
                 <div className="absolute inset-0 z-20 pointer-events-none group-hover:pointer-events-auto">
                   <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-none border-none bg-black/20 text-white hover:bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-auto" />
@@ -164,7 +146,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Static Content Overlay */}
               <div className={cn(
                 "absolute inset-0 flex flex-col text-primary-foreground p-6 sm:p-12 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-vertical-align z-10 pointer-events-none"
               )}>
@@ -193,7 +174,6 @@ export default function Home() {
         />
       )}
 
-      {/* Categories Selection */}
       <section className="pt-24 pb-12 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col mb-16 gap-6 category-text-align">
@@ -243,7 +223,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Products Selection with Pagination */}
       <section id="featured-products-section" className="pt-12 pb-24 bg-background">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col mb-16 gap-6 featured-text-align">
@@ -288,7 +267,6 @@ export default function Home() {
                 })}
               </div>
 
-              {/* High-Fidelity Pagination Controls */}
               {totalPages > 1 && (
                 <div className="mt-20 flex flex-col sm:flex-row justify-center items-center gap-8">
                   <div className="flex items-center gap-4">
@@ -338,8 +316,19 @@ export default function Home() {
       </section>
 
       <TestimonialSection />
-
-      <Footer />
+      
+      <div className="py-12 bg-black text-white text-center border-t border-white/10">
+        <div className="max-w-[1440px] mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-8">
+          <p className="text-[9px] uppercase tracking-[0.3em] font-bold opacity-40">
+            © {new Date().getFullYear()} FSLNO STUDIO. ALL RIGHTS RESERVED.
+          </p>
+          <div className="flex gap-8 text-[9px] font-bold uppercase tracking-[0.2em]">
+            <Link href="/shipping" className="hover:opacity-60 transition-opacity">Shipping</Link>
+            <Link href="/terms" className="hover:opacity-60 transition-opacity">Terms</Link>
+            <Link href="/privacy" className="hover:opacity-60 transition-opacity">Privacy</Link>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
