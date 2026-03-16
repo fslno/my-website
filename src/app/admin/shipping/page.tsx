@@ -88,6 +88,13 @@ export default function ShippingPage() {
   const [standardRate, setStandardRate] = useState('');
   const [expressRate, setExpressRate] = useState('');
 
+  // Manual Province Rates State
+  const [provinceRates, setProvinceRates] = useState<any[]>([]);
+  const [newProvName, setNewProvName] = useState('');
+  const [newProvStandard, setNewProvStandard] = useState('');
+  const [newProvExpress, setNewProvExpress] = useState('');
+  const [isProvDialogOpen, setIsProvDialogOpen] = useState(false);
+
   useEffect(() => {
     if (config) {
       setPickupAddress(config.pickupAddress || '');
@@ -103,6 +110,8 @@ export default function ShippingPage() {
       setFreeShippingThreshold(String(config.freeShippingThreshold ?? '500'));
       setStandardRate(String(config.standardRate ?? '0'));
       setExpressRate(String(config.expressRate ?? '25'));
+
+      setProvinceRates(config.provinceRates || []);
     }
   }, [config]);
 
@@ -116,6 +125,7 @@ export default function ShippingPage() {
         { name: 'FedEx', active: true, apiKey: 'fslno_sample_key' },
         { name: 'DHL', active: true, apiKey: 'fslno_sample_key' }
       ],
+      provinceRates: [],
       goGreenPlus: true,
       localPickup: true,
       lockerIntegration: false,
@@ -185,6 +195,21 @@ export default function ShippingPage() {
       });
   };
 
+  const handleSaveProvinceRate = () => {
+    if (!newProvName || !configRef) return;
+    const updated = [...provinceRates, { 
+      province: newProvName.toUpperCase().trim(), 
+      standard: parseFloat(newProvStandard) || 0, 
+      express: parseFloat(newProvExpress) || 0 
+    }];
+    handleUpdate({ provinceRates: updated });
+    setNewProvName('');
+    setNewProvStandard('');
+    setNewProvExpress('');
+    setIsProvDialogOpen(false);
+    toast({ title: "Region Ingested", description: `${newProvName.toUpperCase()} rates added.` });
+  };
+
   const handleSavePickupDetails = () => {
     if (!configRef) return;
     setIsSaving(true);
@@ -247,9 +272,6 @@ export default function ShippingPage() {
       let updatedCount = 0;
 
       snapshot.docs.forEach(docSnap => {
-        const p = docSnap.data();
-        const l = p.logistics || {};
-        
         batch.update(docSnap.ref, {
           'logistics.weight': parseFloat(defaultWeight) || 0.6,
           'logistics.length': parseFloat(defaultLength) || 35,
@@ -529,6 +551,87 @@ export default function ShippingPage() {
                     />
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#e1e3e5] shadow-none rounded-none border-purple-100 bg-purple-50/5">
+            <CardHeader className="border-b bg-purple-50/30 px-4 sm:px-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-purple-600" />
+                  <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Regional Manual Rates</CardTitle>
+                </div>
+                <Dialog open={isProvDialogOpen} onOpenChange={setIsProvDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white w-full sm:w-auto">
+                      <Plus className="h-3.5 w-3.5" /> Add Region
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+                    <DialogHeader className="pt-8">
+                      <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Regional Rate Protocol</DialogTitle>
+                      <DialogDescription className="text-xs uppercase font-bold text-muted-foreground mt-1">Define static rates for specific provinces or states.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-6 py-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Province/State Code</Label>
+                        <Input placeholder="e.g. ON, QC, NY" value={newProvName} onChange={(e) => setNewProvName(e.target.value.toUpperCase())} className="h-12 uppercase font-bold" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Standard ($)</Label>
+                          <Input type="number" placeholder="0" value={newProvStandard} onChange={(e) => setNewProvStandard(e.target.value)} className="h-12 font-mono" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Express ($)</Label>
+                          <Input type="number" placeholder="25" value={newProvExpress} onChange={(e) => setNewProvExpress(e.target.value)} className="h-12 font-mono" />
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={handleSaveProvinceRate} disabled={!newProvName} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]">
+                        Ingest Region
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-purple-800/60 mt-1">Override global rates for specific geographic zones.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {provinceRates.map((rate, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors group gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded border bg-black text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">{rate.province}</div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Manual Override</p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                          <span className="text-[11px] font-bold uppercase">Standard: ${rate.standard}</span>
+                          <span className="text-[11px] font-bold uppercase text-blue-600">Express: ${rate.express}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => {
+                        const updated = provinceRates.filter((_, i) => i !== idx);
+                        handleUpdate({ provinceRates: updated });
+                        toast({ title: "Removed", description: "Regional override de-indexed." });
+                      }} 
+                      className="h-9 w-9 text-gray-300 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                {provinceRates.length === 0 && (
+                  <div className="py-12 text-center bg-gray-50/30">
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-gray-400 italic">No regional overrides manifested.</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

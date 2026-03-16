@@ -18,14 +18,15 @@ interface StallionRatesProps {
   cartItems: any[];
   onRateSelect: (rate: any) => void;
   selectedRateId?: string;
+  manualRates?: any[];
 }
 
 /**
- * Stallion Express Dynamic Rates Component.
- * Authoritatively manifests multiple live shipping options.
- * Fallback protocol is isolated to absolute API failure.
+ * Enhanced Logistics Discovery Engine.
+ * Authoritatively manifests live API rates and Regional Manual Overrides.
+ * Fallback protocol triggers only on absolute API handshake failure.
  */
-export function StallionRates({ address, cartItems, onRateSelect, selectedRateId }: StallionRatesProps) {
+export function StallionRates({ address, cartItems, onRateSelect, selectedRateId, manualRates }: StallionRatesProps) {
   const db = useFirestore();
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const shippingConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
@@ -49,8 +50,6 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
   const handlingFee = Number(storeConfig?.handlingFee) || 2.00;
 
   useEffect(() => {
-    if (!isStallionEnabled) return;
-
     const isAddressComplete = address.city && address.postalCode && address.province;
     if (!isAddressComplete) {
       setRates([]);
@@ -63,70 +62,104 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
       setLoading(true);
       setError(null);
       setUseFallback(false);
+      
+      let fetchedRates: any[] = [];
 
-      const parcel = cartItems.reduce((acc, item) => ({
-        weight: acc.weight + (Number(item.logistics?.weight || shippingConfig?.defaultWeight || 0.6) * item.quantity),
-        length: Math.max(acc.length, Number(item.logistics?.length || shippingConfig?.defaultLength || 35)),
-        width: Math.max(acc.width, Number(item.logistics?.width || shippingConfig?.defaultWidth || 25)),
-        height: acc.height + (Number(item.logistics?.height || shippingConfig?.defaultHeight || 10) * item.quantity)
-      }), { weight: 0, length: 0, width: 0, height: 0 });
+      // 1. Authoritative API Discovery (Stallion)
+      if (isStallionEnabled) {
+        const parcel = cartItems.reduce((acc, item) => ({
+          weight: acc.weight + (Number(item.logistics?.weight || shippingConfig?.defaultWeight || 0.6) * item.quantity),
+          length: Math.max(acc.length, Number(item.logistics?.length || shippingConfig?.defaultLength || 35)),
+          width: Math.max(acc.width, Number(item.logistics?.width || shippingConfig?.defaultWidth || 25)),
+          height: acc.height + (Number(item.logistics?.height || shippingConfig?.defaultHeight || 10) * item.quantity)
+        }), { weight: 0, length: 0, width: 0, height: 0 });
 
-      try {
-        const response = await fetch('/api/shipping/stallion/rates', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to_address: {
-              city: address.city,
-              postal_code: address.postalCode,
-              province: address.province,
-              country_code: address.country === 'Canada' ? 'CA' : 'US'
-            },
-            parcel
-          })
-        });
+        try {
+          const response = await fetch('/api/shipping/stallion/rates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to_address: {
+                city: address.city,
+                postal_code: address.postalCode,
+                province: address.province,
+                country_code: address.country === 'Canada' ? 'CA' : 'US'
+              },
+              parcel
+            })
+          });
 
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Carrier discovery failed.');
+          const data = await response.json();
+          if (response.ok) {
+            fetchedRates = (data.rates || []).map((r: any) => ({
+              ...r,
+              totalCost: r.price + handlingFee
+            }));
+          } else {
+            throw new Error(data.error);
+          }
+        } catch (err: any) {
+          console.warn('[LOGISTICS] API Failure, checking for manual or fallback:', err.message);
+          setUseFallback(true);
         }
+      }
 
-        const finalRates = (data.rates || []).map((r: any) => ({
-          ...r,
-          totalCost: r.price + handlingFee
-        }));
-
-        setRates(finalRates);
-        
-        // Auto-select first rate if nothing selected
-        if (finalRates.length > 0 && !selectedRateId) {
-          onRateSelect(finalRates[0]);
+      // 2. Ingest Regional Manual Rates (Province Overrides)
+      if (manualRates && address.province) {
+        const matched = manualRates.find((r: any) => r.province.toUpperCase() === address.province.toUpperCase());
+        if (matched) {
+          fetchedRates.push({
+            id: `manual-std-${matched.province}`,
+            service: 'Regional Logistics',
+            label: 'Standard Shipping',
+            totalCost: Number(matched.standard) + handlingFee,
+            days: '3-5',
+            type: 'standard'
+          });
+          if (Number(matched.express) > 0) {
+            fetchedRates.push({
+              id: `manual-exp-${matched.province}`,
+              service: 'Regional Logistics',
+              label: 'Express Delivery',
+              totalCost: Number(matched.express) + handlingFee,
+              days: '1-2',
+              type: 'express'
+            });
+          }
         }
-      } catch (err: any) {
-        console.warn('[LOGISTICS] API Failure, activating fallback protocol:', err.message);
-        setUseFallback(true);
-        
-        // Strictly use fallback only if API fails or times out
-        const fallbackRate = {
+      }
+
+      // 3. Fallback Protocol: If no rates found after API/Manual attempts
+      if (fetchedRates.length === 0 && (isStallionEnabled || useFallback)) {
+        fetchedRates.push({
           id: 'fallback-std',
-          service: 'Standard Courier (Fallback)',
+          service: 'Standard Courier',
           label: 'Standard Shipping',
           totalCost: Number(shippingConfig?.standardRate || 0) + handlingFee,
           days: '4-7',
           type: 'standard'
-        };
-        setRates([fallbackRate]);
-        if (!selectedRateId) onRateSelect(fallbackRate);
-      } finally {
-        setLoading(false);
+        });
       }
+
+      setRates(fetchedRates);
+      
+      // Auto-select first rate if nothing selected or current selection missing
+      if (fetchedRates.length > 0 && (!selectedRateId || !fetchedRates.some(r => r.id === selectedRateId))) {
+        onRateSelect(fetchedRates[0]);
+      }
+      setLoading(false);
     };
 
     fetchRates();
-  }, [address.city, address.postalCode, address.province, cartItems, shippingConfig, isStallionEnabled, handlingFee, address.country, onRateSelect, selectedRateId]);
+  }, [address.city, address.postalCode, address.province, cartItems, shippingConfig, isStallionEnabled, handlingFee, address.country, onRateSelect, selectedRateId, manualRates]);
 
-  if (!isStallionEnabled) return null;
+  if (!isStallionEnabled && !(manualRates && manualRates.length > 0)) {
+    return (
+      <div className="p-8 border-2 border-dashed rounded-none text-center bg-gray-50/30">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Logistics protocol inactive.</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -150,7 +183,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
-      {useFallback && (
+      {useFallback && rates.some(r => r.id === 'fallback-std') && (
         <div className="p-3 bg-amber-50 border border-amber-100 text-[9px] font-bold uppercase text-amber-700 flex items-center gap-2">
           <Zap className="h-3 w-3" /> API Latency detected. Using studio fallback rates.
         </div>
