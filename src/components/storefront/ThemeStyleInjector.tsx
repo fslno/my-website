@@ -80,10 +80,14 @@ export function ThemeStyleInjector() {
     const heroHeadlineColor = theme.heroHeadlineColor || theme.primaryColor || '#000000';
     const heroSubheadlineColor = theme.heroSubheadlineColor || '#8c9196';
 
-    const categoryTextAlign = theme.categoryTextAlign || 'center';
+    const categoryTextAlign = theme.categoryTextAlign || 'left';
     const categoryVerticalAlign = theme.categoryVerticalAlign || 'center';
     const categoryTitleSize = theme.categoryTitleSize || 40;
     const categoryTitleColor = theme.categoryTitleColor || theme.primaryColor || '#000000';
+
+    const archiveTextAlign = theme.archiveTextAlign || 'left';
+    const archiveTitleSize = theme.archiveTitleSize || 40;
+    const archiveTitleColor = theme.archiveTitleColor || theme.primaryColor || '#000000';
 
     const featuredTextAlign = theme.featuredTextAlign || 'left';
     const featuredTitleSize = theme.featuredTitleSize || 40;
@@ -116,6 +120,11 @@ export function ThemeStyleInjector() {
         --category-flex-align: ${getFlexAlign(categoryTextAlign)};
         --category-title-size: ${categoryTitleSize}px;
         --category-title-color: ${categoryTitleColor};
+
+        --archive-text-align: ${archiveTextAlign};
+        --archive-flex-align: ${getFlexAlign(archiveTextAlign)};
+        --archive-title-size: ${archiveTitleSize}px;
+        --archive-title-color: ${archiveTitleColor};
         
         --featured-text-align: ${featuredTextAlign};
         --featured-title-size: ${featuredTitleSize}px;
@@ -190,6 +199,9 @@ export function ThemeStyleInjector() {
       .category-title-size {
         font-size: clamp(calc(var(--category-title-size) * 0.6), 6vw, var(--category-title-size)) !important;
       }
+      .archive-title-size {
+        font-size: clamp(calc(var(--archive-title-size) * 0.6), 6vw, var(--archive-title-size)) !important;
+      }
       .featured-title-size {
         font-size: clamp(calc(var(--featured-title-size) * 0.6), 6vw, var(--featured-title-size)) !important;
       }
@@ -205,6 +217,12 @@ export function ThemeStyleInjector() {
         display: flex !important;
         flex-direction: column !important;
         align-items: var(--category-flex-align) !important;
+      }
+      .archive-text-align {
+        text-align: var(--archive-text-align) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: var(--archive-flex-align) !important;
       }
       .featured-text-align {
         text-align: var(--featured-text-align) !important;
@@ -222,6 +240,7 @@ export function ThemeStyleInjector() {
       }
       
       .category-title-color { color: var(--category-title-color) !important; }
+      .archive-title-color { color: var(--archive-title-color) !important; }
       .featured-title-color { color: var(--featured-title-color) !important; }
       .product-title-color { color: var(--product-title-color) !important; }
       .product-price-color { color: var(--product-price-color) !important; }

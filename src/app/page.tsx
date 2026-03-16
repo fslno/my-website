@@ -7,11 +7,12 @@ import { ProductGrid } from '@/components/storefront/ProductGrid';
 import { CategorySection } from '@/components/storefront/CategorySection';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { getLivePath } from '@/lib/deployment';
+import { cn } from '@/lib/utils';
 
 /**
  * Authoritative Unified Home Page.
  * Synchronized to manifest the Admin-Controlled Hero and Category Selection.
- * Section labels are forensicly controlled via the Admin Theme Engine.
+ * Section labels and styles are forensicly controlled via the Admin Theme Engine.
  */
 export default function Home() {
   const db = useFirestore();
@@ -34,13 +35,19 @@ export default function Home() {
       
       <div className="bg-white">
         <div className="max-w-[1440px] mx-auto px-4 pt-12">
-          <div className="space-y-2 mb-6">
-            <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">
-              {theme?.archiveSectionSubtitle || 'The Archive'}
-            </span>
-            <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">
-              {theme?.archiveSectionTitle || 'All Studio Pieces'}
-            </h2>
+          <div className={cn(
+            "mb-6 archive-text-align",
+            theme?.archiveTextAlign === 'center' ? 'mx-auto items-center' : 
+            theme?.archiveTextAlign === 'right' ? 'ml-auto items-end' : 'items-start'
+          )}>
+            <div className="space-y-2">
+              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground block">
+                {theme?.archiveSectionSubtitle || 'The Archive'}
+              </span>
+              <h2 className="font-headline font-bold uppercase tracking-tight archive-title-size archive-title-color leading-tight">
+                {theme?.archiveSectionTitle || 'All Studio Pieces'}
+              </h2>
+            </div>
           </div>
         </div>
         <ProductGrid />

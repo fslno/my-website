@@ -7,11 +7,12 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { getLivePath } from '@/lib/deployment';
+import { cn } from '@/lib/utils';
 
 /**
  * Authoritative Category Selection segment.
  * Manifests ALL archival collections from the admin manifest in a 1:1 grid.
- * Labels are controlled strictly from the Admin Theme Engine.
+ * Labels and styling are controlled strictly from the Admin Theme Engine.
  */
 export function CategorySection() {
   const db = useFirestore();
@@ -39,18 +40,29 @@ export function CategorySection() {
   return (
     <section className="py-12 bg-white border-b">
       <div className="max-w-[1440px] mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-6">
-          <div className="space-y-2">
+        <div className={cn(
+          "flex flex-col md:flex-row justify-between gap-6 mb-6",
+          theme?.categoryTextAlign === 'center' ? 'items-center text-center' : 
+          theme?.categoryTextAlign === 'right' ? 'items-end text-right' : 'items-end text-left'
+        )}>
+          <div className={cn(
+            "space-y-2 category-text-align",
+            theme?.categoryTextAlign === 'center' ? 'mx-auto' : 
+            theme?.categoryTextAlign === 'right' ? 'ml-auto' : ''
+          )}>
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">
               {theme?.categorySectionSubtitle || 'The Collections'}
             </span>
-            <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight text-primary">
+            <h2 className="font-headline font-bold uppercase tracking-tight category-title-size category-title-color">
               {theme?.categorySectionTitle || 'Shop by Drop'}
             </h2>
           </div>
           <Link 
             href="/collections/all" 
-            className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-60 transition-opacity flex items-center gap-2 group"
+            className={cn(
+              "text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-60 transition-opacity flex items-center gap-2 group",
+              theme?.categoryTextAlign === 'center' && 'md:absolute md:right-4'
+            )}
           >
             Explore All <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
           </Link>

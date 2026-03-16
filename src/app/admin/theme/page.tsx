@@ -66,10 +66,13 @@ const DEFAULT_THEME = {
   bannerFont: 'Inter',
   bannerFontSize: '10',
   homepageLayout: 'bento',
-  categoryTextAlign: 'center',
+  categoryTextAlign: 'left',
   categoryVerticalAlign: 'center',
   categoryTitleSize: '40',
   categoryTitleColor: '#000000',
+  archiveTextAlign: 'left',
+  archiveTitleSize: '40',
+  archiveTitleColor: '#000000',
   featuredTextAlign: 'left',
   featuredTitleSize: '40',
   featuredTitleColor: '#000000',
@@ -116,6 +119,10 @@ export default function ThemeEnginePage() {
   const [categoryVerticalAlign, setCategoryVerticalAlign] = useState(DEFAULT_THEME.categoryVerticalAlign);
   const [categoryTitleSize, setCategoryTitleSize] = useState(DEFAULT_THEME.categoryTitleSize);
   const [categoryTitleColor, setCategoryTitleColor] = useState(DEFAULT_THEME.categoryTitleColor);
+
+  const [archiveTextAlign, setArchiveTextAlign] = useState(DEFAULT_THEME.archiveTextAlign);
+  const [archiveTitleSize, setArchiveTitleSize] = useState(DEFAULT_THEME.archiveTitleSize);
+  const [archiveTitleColor, setArchiveTitleColor] = useState(DEFAULT_THEME.archiveTitleColor);
   
   const [featuredTextAlign, setFeaturedTextAlign] = useState(DEFAULT_THEME.featuredTextAlign);
   const [featuredTitleSize, setFeaturedTitleSize] = useState(DEFAULT_THEME.featuredTitleSize);
@@ -158,6 +165,9 @@ export default function ThemeEnginePage() {
       setCategoryVerticalAlign(themeData.categoryVerticalAlign || DEFAULT_THEME.categoryVerticalAlign);
       setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
       setCategoryTitleColor(themeData.categoryTitleColor || DEFAULT_THEME.categoryTitleColor);
+      setArchiveTextAlign(themeData.archiveTextAlign || DEFAULT_THEME.archiveTextAlign);
+      setArchiveTitleSize(themeData.archiveTitleSize?.toString() || DEFAULT_THEME.archiveTitleSize);
+      setArchiveTitleColor(themeData.archiveTitleColor || DEFAULT_THEME.archiveTitleColor);
       setFeaturedTextAlign(themeData.featuredTextAlign || DEFAULT_THEME.featuredTextAlign);
       setFeaturedTitleSize(themeData.featuredTitleSize?.toString() || DEFAULT_THEME.featuredTitleSize);
       setFeaturedTitleColor(themeData.featuredTitleColor || DEFAULT_THEME.featuredTitleColor);
@@ -201,6 +211,9 @@ export default function ThemeEnginePage() {
       categoryVerticalAlign,
       categoryTitleSize: Number(categoryTitleSize),
       categoryTitleColor,
+      archiveTextAlign,
+      archiveTitleSize: Number(archiveTitleSize),
+      archiveTitleColor,
       featuredTextAlign,
       featuredTitleSize: Number(featuredTitleSize),
       featuredTitleColor,
@@ -259,6 +272,9 @@ export default function ThemeEnginePage() {
           --preview-cat-vertical: ${categoryVerticalAlign === 'bottom' ? 'flex-end' : categoryVerticalAlign === 'top' ? 'flex-start' : 'center'};
           --preview-cat-size: ${categoryTitleSize}px;
           --preview-cat-color: ${categoryTitleColor};
+          --preview-archive-align: ${archiveTextAlign};
+          --preview-archive-size: ${archiveTitleSize}px;
+          --preview-archive-color: ${archiveTitleColor};
           --preview-feat-align: ${featuredTextAlign};
           --preview-feat-size: ${featuredTitleSize}px;
           --preview-feat-color: ${featuredTitleColor};
@@ -282,6 +298,11 @@ export default function ThemeEnginePage() {
           text-align: var(--preview-cat-align) !important;
           font-size: var(--preview-cat-size) !important;
           color: var(--preview-cat-color) !important;
+        }
+        #theme-preview-root .preview-archive-title {
+          text-align: var(--preview-archive-align) !important;
+          font-size: var(--preview-archive-size) !important;
+          color: var(--preview-archive-color) !important;
         }
         #theme-preview-root .preview-feat-title {
           text-align: var(--preview-feat-align) !important;
@@ -540,6 +561,40 @@ export default function ThemeEnginePage() {
                         <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} />
                       </div>
                       <Input value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Archive Heading Protocol</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Heading Scale</Label>
+                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{archiveTitleSize}PX</Badge>
+                      </div>
+                      <input type="range" min="12" max="120" value={archiveTitleSize} onChange={(e) => setArchiveTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase font-bold text-gray-400">Alignment</Label>
+                      <div className="flex border p-1 rounded-sm bg-gray-50">
+                        <Button variant={archiveTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setArchiveTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
+                        <Button variant={archiveTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setArchiveTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
+                        <Button variant={archiveTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setArchiveTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 max-w-sm">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Heading Color</Label>
+                    <div className="flex gap-2">
+                      <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} />
+                      </div>
+                      <Input value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
                     </div>
                   </div>
                 </CardContent>
