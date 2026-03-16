@@ -973,7 +973,7 @@ export default function ProductsPage() {
                   return (
                     <TableRow key={product.id} onClick={() => openEdit(product)} className={`transition-colors border-[#e1e3e5] group cursor-pointer ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}>
                       <TableCell className="px-4" onClick={(e) => e.stopPropagation()}><Checkbox checked={isSelected} onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} /></TableCell>
-                      <TableCell><div className="w-12 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{product.media?.[0]?.url ? <img src={product.media[0].url} alt={product.name} className="object-cover w-full h-full" /> : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
+                      <TableCell><div className="w-16 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{product.media?.[0]?.url ? <img src={product.media[0].url} alt={product.name} className="object-cover w-full h-full" /> : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
                       <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span></div></TableCell>
                       <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'None'}</div></TableCell>
                       <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>

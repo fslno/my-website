@@ -454,7 +454,7 @@ export default function OrderDetailPage(props: PageProps) {
                       <TableRow key={i} className="border-b last:border-0">
                         <TableCell>
                           <div className="flex gap-3">
-                            <div className="w-12 h-16 bg-gray-100 rounded border shrink-0 overflow-hidden relative">
+                            <div className="w-16 h-16 bg-gray-100 rounded border shrink-0 overflow-hidden relative">
                               {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                             </div>
                             <div className="flex flex-col justify-center">
@@ -489,7 +489,7 @@ export default function OrderDetailPage(props: PageProps) {
                 {(order.items || []).map((item: any, i: number) => (
                   <div key={i} className="p-4 space-y-3">
                     <div className="flex gap-4">
-                      <div className="w-16 h-20 bg-gray-100 rounded border shrink-0 overflow-hidden relative">
+                      <div className="w-16 h-16 bg-gray-100 rounded border shrink-0 overflow-hidden relative">
                         {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                       </div>
                       <div className="flex-1 flex flex-col justify-center min-w-0">
@@ -897,3 +897,4 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
     </Dialog>
   );
 }
+

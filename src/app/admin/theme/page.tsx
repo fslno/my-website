@@ -712,7 +712,7 @@ export default function ThemeEnginePage() {
                     <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-gray-400">{categorySectionSubtitle}</p>
                     <h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">{categorySectionTitle}</h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none">Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div>
+                  <div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-square bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none">Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div>
                 </div>
               </div>
             </div>

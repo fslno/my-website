@@ -350,7 +350,7 @@ export default function OrdersPage() {
           <div className="p-4 border-b bg-blue-50/20 flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5">Selection Manifest</Badge>
+                <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5 border-none">Selection Manifest</Badge>
                 <span className="text-[10px] font-bold uppercase text-blue-700">{selectedIds.length} Orders Selected</span>
               </div>
               <div className="flex items-center gap-2">
@@ -469,7 +469,7 @@ export default function OrdersPage() {
                         <div className="space-y-3">
                           {order.items?.map((item: any, i: number) => (
                             <div key={i} className="flex gap-3">
-                              <div className="w-10 h-14 bg-gray-100 rounded-none border overflow-hidden shrink-0 relative">
+                              <div className="w-14 h-14 bg-gray-100 rounded-none border overflow-hidden shrink-0 relative">
                                 {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                               </div>
                               <div className="min-w-0">
@@ -589,7 +589,7 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex -space-x-3">
                         {(order.items || []).slice(0,3).map((item:any, i:number) => (
-                          <div key={i} className="w-10 h-14 bg-gray-100 border-2 border-white rounded-sm overflow-hidden shadow-sm relative">
+                          <div key={i} className="w-14 h-14 bg-gray-100 border-2 border-white rounded-sm overflow-hidden shadow-sm relative">
                             {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                           </div>
                         ))}
