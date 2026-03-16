@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { getLivePath } from '@/lib/deployment';
 import { cn } from '@/lib/utils';
 
@@ -57,15 +57,6 @@ export function CategorySection() {
               {theme?.categorySectionTitle || 'Shop by Drop'}
             </h2>
           </div>
-          <Link 
-            href="/collections/all" 
-            className={cn(
-              "text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-60 transition-opacity flex items-center gap-2 group",
-              theme?.categoryTextAlign === 'center' && 'md:absolute md:right-4'
-            )}
-          >
-            Explore All <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-          </Link>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
