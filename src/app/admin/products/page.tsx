@@ -827,6 +827,98 @@ export default function ProductsPage() {
       </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
+        {selectedIds.length > 0 && (
+          <div className="p-4 border-b bg-blue-50/20 flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5 border-none">Selection Manifest</Badge>
+                <span className="text-[10px] font-bold uppercase text-blue-700 tracking-widest">{selectedIds.length} Products Selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Dialog open={isBulkEditDialogOpen} onOpenChange={setIsBulkEditDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-9 border-blue-200 text-blue-700 font-bold uppercase tracking-widest text-[9px] gap-2 bg-white hover:bg-blue-50"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" /> Bulk Edit
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+                    <DialogHeader className="pt-6">
+                      <DialogTitle className="text-xl font-bold uppercase tracking-tight">Bulk Protocol Update</DialogTitle>
+                      <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Update global parameters for {selectedIds.length} pieces.</DialogDescription>
+                    </DialogHeader>
+                    <div className="py-6 space-y-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Category</Label>
+                        <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
+                          <SelectTrigger className="h-12 uppercase font-bold text-[10px]">
+                            <SelectValue placeholder="SELECT CATEGORY" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="keep" className="uppercase font-bold text-[10px]">Keep Current</SelectItem>
+                            {categories?.map((cat: any) => (
+                              <SelectItem key={cat.id} value={cat.id} className="uppercase font-bold text-[10px]">{cat.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Status</Label>
+                        <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                          <SelectTrigger className="h-12 uppercase font-bold text-[10px]">
+                            <SelectValue placeholder="SELECT STATUS" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="keep" className="uppercase font-bold text-[10px]">Keep Current</SelectItem>
+                            <SelectItem value="active" className="uppercase font-bold text-[10px]">Active</SelectItem>
+                            <SelectItem value="draft" className="uppercase font-bold text-[10px]">Draft</SelectItem>
+                            <SelectItem value="archived" className="uppercase font-bold text-[10px]">Archived</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button 
+                        onClick={handleBulkUpdate} 
+                        disabled={isSaving || (!bulkCategoryId && !bulkStatus)} 
+                        className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]"
+                      >
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        Synchronize {selectedIds.length} Products
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleBulkDuplicate}
+                  className="h-9 border-blue-200 text-blue-700 font-bold uppercase tracking-widest text-[9px] gap-2 bg-white hover:bg-blue-50"
+                >
+                  <Copy className="h-3.5 w-3.5" /> Duplicate
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleBulkDelete}
+                  disabled={isSaving}
+                  className="h-9 border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase tracking-widest text-[9px] gap-2"
+                >
+                  {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Purge
+                </Button>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedIds([])} className="h-9 w-9 text-blue-400 hover:text-blue-700">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         <div className="p-4 border-b bg-gray-50/50 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="relative w-full md:flex-1 md:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" /><Input placeholder="Search products..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
           <div className="flex items-center gap-2 w-full md:w-auto">
