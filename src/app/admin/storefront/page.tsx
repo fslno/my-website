@@ -22,7 +22,8 @@ import {
   Globe,
   FileText,
   Terminal,
-  AlignLeft
+  AlignLeft,
+  CheckCircle2
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
