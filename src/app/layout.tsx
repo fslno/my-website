@@ -16,6 +16,32 @@ import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
 /**
+ * Authoritative Boot Overlay Component.
+ * Managing its own lifecycle ensures initial HTML consistency.
+ */
+function BootOverlay() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <div 
+      className={cn(
+        "fixed inset-0 z-[9999] bg-black flex items-center justify-center pointer-events-none transition-opacity duration-500",
+        mounted ? "opacity-0 invisible" : "opacity-100"
+      )}
+      suppressHydrationWarning
+    >
+      <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">
+        FSLNO_ARCHIVE
+      </p>
+    </div>
+  );
+}
+
+/**
  * Authoritative Velocity Boot Layout.
  * Implements a parallel initialization protocol: Firebase initializes in the background
  * while a high-priority CSS overlay maintains the brand narrative.
@@ -25,13 +51,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const isAdmin = pathname?.startsWith('/admin');
 
   return (
@@ -48,28 +68,15 @@ export default function RootLayout({
           <PushNotificationManager />
           <WishlistProvider>
             <CartProvider>
-              <div className={cn(
-                "transition-opacity duration-700 ease-in-out",
-                !mounted ? "opacity-0" : "opacity-100"
-              )}>
-                {!isAdmin && <Header />}
-                <main className={cn("min-h-screen", !isAdmin && "pt-0")}>
-                  {children}
-                </main>
-                {!isAdmin && <Footer />}
-                <Chatbot />
-                <Toaster />
-              </div>
-
-              {/* AUTHORITATIVE BOOT OVERLAY: ALWAYS RENDERED TO PREVENT HYDRATION MISMATCH */}
-              <div className={cn(
-                "fixed inset-0 z-[9999] bg-black flex items-center justify-center pointer-events-none transition-opacity duration-500",
-                mounted ? "opacity-0 invisible" : "opacity-100"
-              )}>
-                <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">
-                  FSLNO_ARCHIVE
-                </p>
-              </div>
+              {!isAdmin && <Header />}
+              <main className={cn("min-h-screen", !isAdmin && "pt-0")}>
+                {children}
+              </main>
+              {!isAdmin && <Footer />}
+              <Chatbot />
+              <Toaster />
+              
+              <BootOverlay />
             </CartProvider>
           </WishlistProvider>
         </FirebaseClientProvider>

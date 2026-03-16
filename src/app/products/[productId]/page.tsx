@@ -168,6 +168,7 @@ export default function ProductDetailPage(props: PageProps) {
     return { avg: sum / pReviews.length, count: pReviews.length };
   })();
 
+  // DERIVED CONSTANTS: Strictly placed AFTER the existence gate
   const totalPrice = (() => {
     const base = Number(product.price) || 0;
     const fee = wantsCustomization ? (Number(product.customizationFee) || 10) : 0;
@@ -340,46 +341,9 @@ export default function ProductDetailPage(props: PageProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
               <span>Select Size</span>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 text-[11px] font-bold">
-                    <Ruler className="h-5 w-5" /> Size Guide
-                  </button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 flex flex-col">
-                  <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                    <div className="flex items-center gap-3 text-primary mb-2">
-                      <Ruler className="h-5 w-5" />
-                      <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Size Guide</SheetTitle>
-                    </div>
-                    <p className="text-sm text-muted-foreground font-medium">Measurements for: <span className="text-primary font-bold">{effectiveChart.name}</span></p>
-                  </SheetHeader>
-                  <div className="flex-1 overflow-y-auto p-8">
-                    <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
-                      <Table>
-                        <TableHeader className="bg-gray-50/50">
-                          <TableRow>
-                            <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
-                            {effectiveChart.columns?.map((col: string, idx: number) => (
-                              <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
-                            ))}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {effectiveChart.rows?.map((row: any, rowIdx: number) => (
-                            <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
-                              <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
-                              {row.values?.map((val: string, colIdx: number) => (
-                                <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+              <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 text-[11px] font-bold">
+                <Ruler className="h-5 w-5" /> Size Guide
+              </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {(product.variants || []).map((v: any) => (
