@@ -170,12 +170,14 @@ export default function CheckoutPage() {
     if (!formData.phone) newErrors.phone = true;
     if (!formData.name) newErrors.name = true;
     if (!formData.referral) newErrors.referral = true;
+    
     if (deliveryMethod === 'shipping') {
       if (!formData.address) newErrors.address = true;
       if (!formData.city) newErrors.city = true;
       if (!formData.postalCode) newErrors.postalCode = true;
       if (!formData.province) newErrors.province = true;
       if (!formData.courier && !isFreeShippingEligible) newErrors.courier = true;
+      
       if (!billingSameAsShipping) {
         if (!formData.billingAddress) newErrors.billingAddress = true;
         if (!formData.billingCity) newErrors.billingCity = true;
@@ -183,6 +185,7 @@ export default function CheckoutPage() {
         if (!formData.billingProvince) newErrors.billingProvince = true;
       }
     } else {
+      // Pickup Mode Validation
       if (!formData.billingAddress) newErrors.billingAddress = true;
       if (!formData.billingCity) newErrors.billingCity = true;
       if (!formData.billingPostalCode) newErrors.billingPostalCode = true;
@@ -190,6 +193,7 @@ export default function CheckoutPage() {
       if (!formData.pickupDate) newErrors.pickupDate = true;
       if (!formData.pickupTime) newErrors.pickupTime = true;
     }
+    
     setErrors(newErrors);
     const hasErrors = Object.keys(newErrors).length > 0;
     setShowErrors(hasErrors);
@@ -251,6 +255,7 @@ export default function CheckoutPage() {
             </button>
           </div>
         </section>
+        
         <section className="space-y-8 bg-white p-8 border shadow-sm rounded-none">
           <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -258,33 +263,343 @@ export default function CheckoutPage() {
             <div className="space-y-2"><Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone</Label><Input id="tel" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} /></div>
             <div className="md:col-span-2 space-y-2"><Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name</Label><Input id="name" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} /></div>
           </div>
+
+          <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>How did you hear about us?</Label><Input value={formData.referral} onChange={(e) => handleUppercaseInput('referral', e.target.value)} className="h-12 bg-[#F9F9F9] uppercase rounded-none" placeholder="E.G. INSTAGRAM, FRIEND, ETC." /></div>
+
           {deliveryMethod === 'shipping' ? (
             <div className="space-y-10 pt-4 border-t">
               <div className="grid gap-4">
-                <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Address</Label><Input value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Shipping Address</Label><Input value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} className="h-12 uppercase rounded-none" /></div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">City</Label><Input value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                  <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Postal Code</Label><Input value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City</Label><Input value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} className="h-12 uppercase rounded-none" /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Province</Label><Input value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} className="h-12 uppercase rounded-none" /></div>
                   <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.country} onValueChange={(val) => handleInputChange('country', val)}><SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
                 </div>
               </div>
+
+              {/* Billing Toggle for Shipping */}
+              <div className="flex items-center space-x-2 pt-6">
+                <Checkbox 
+                  id="billing-same" 
+                  checked={billingSameAsShipping} 
+                  onCheckedChange={(checked) => setBillingSameAsShipping(checked === true)} 
+                />
+                <Label htmlFor="billing-same" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer">
+                  Billing same as shipping
+                </Label>
+              </div>
+
+              {!billingSameAsShipping && (
+                <div className="space-y-6 pt-10 border-t mt-10 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2">
+                    <CreditCard className="h-3.5 w-3.5" /> Billing Address
+                  </h3>
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label>
+                      <Input value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-12 uppercase rounded-none" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City</Label>
+                        <Input value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} className="h-12 uppercase rounded-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label>
+                        <Input value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} className="h-12 uppercase rounded-none" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label>
+                        <Input value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-12 uppercase rounded-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label>
+                        <Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}>
+                          <SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Canada">Canada</SelectItem>
+                            <SelectItem value="United States">United States</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-4 pt-6 border-t"><StallionRates address={{ city: formData.city, postalCode: formData.postalCode, province: formData.province, country: formData.country }} cartItems={cart} onRateSelect={handleRateSelect} selectedRateId={stallionRateId} manualRates={shippingConfig?.provinceRates} /></div>
             </div>
           ) : (
-            <div className="space-y-6 pt-4 border-t"><h3 className="text-[10px] uppercase font-bold">Pickup Schedule</h3><div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label className="text-[9px] uppercase font-bold">Date</Label><Input type="date" className="h-12 rounded-none" value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div><div className="space-y-2"><Label className="text-[9px] uppercase font-bold">Time</Label><Input type="time" className="h-12 rounded-none" value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div></div></div>
+            <div className="space-y-10 pt-4 border-t">
+              <div className="space-y-6">
+                <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2">
+                  <Calendar className="h-3.5 w-3.5" /> Pickup Schedule
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupDate ? "text-destructive" : "")}>Date</Label><Input type="date" className="h-12 rounded-none" value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div>
+                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupTime ? "text-destructive" : "")}>Time</Label><Input type="time" className="h-12 rounded-none" value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div>
+                </div>
+              </div>
+
+              {/* Mandatory Billing for Pickup */}
+              <div className="space-y-6 pt-10 border-t mt-10">
+                <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2">
+                  <CreditCard className="h-3.5 w-3.5" /> Billing Address
+                </h3>
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label>
+                    <Input value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-12 uppercase rounded-none" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City</Label>
+                      <Input value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} className="h-12 uppercase rounded-none" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label>
+                      <Input value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} className="h-12 uppercase rounded-none" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label>
+                      <Input value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-12 uppercase rounded-none" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label>
+                      <Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}>
+                        <SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Canada">Canada</SelectItem>
+                          <SelectItem value="United States">United States</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
+
+          <div className="space-y-4 pt-10 border-t">
+            <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2">
+              <MessageSquare className="h-3.5 w-3.5" /> Order Notes (Optional)
+            </h3>
+            <Textarea 
+              value={orderNote}
+              onChange={(e) => setOrderNote(e.target.value.toUpperCase())}
+              placeholder="ANY SPECIAL REQUESTS OR INSTRUCTIONS..."
+              className="min-h-[100px] resize-none uppercase text-xs rounded-none border-gray-200"
+            />
+          </div>
         </section>
       </div>
+
       <div className="lg:col-span-5 bg-white border-l p-8 space-y-8">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4 text-primary">Summary ({cartCount})</h2>
-        <div className="space-y-6">{cart.map((item) => (<div key={item.variantId} className="flex gap-4"><div className="w-20 h-20 relative bg-gray-50 border shrink-0"><Image src={item.image} alt={item.name} fill className="object-cover" /></div><div className="flex-1 flex flex-col justify-between py-0.5"><div className="space-y-1"><div className="flex justify-between"><h3 className="text-[10px] font-bold uppercase tracking-tight text-primary">{item.name}</h3><p className="text-[11px] font-bold text-primary">{`C$${formatCurrency(item.price * item.quantity)}`}</p></div><div className="text-[9px] text-muted-foreground font-bold uppercase">Size: {item.size} • Qty: {item.quantity}</div></div></div></div>))}</div>
-        <div className="pt-8 border-t space-y-3"><div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>Subtotal</span><span className="text-primary">{`C$${formatCurrency(cartSubtotal)}`}</span></div>{discountTotal > 0 && (<div className="flex justify-between text-[10px] font-bold uppercase text-destructive"><span>Discount</span><span className="text-destructive">{`-C$${formatCurrency(discountTotal)}`}</span></div>)}<div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pickup'}</span><span className="text-primary">{isShippingReady ? (shippingRate > 0 ? `C$${formatCurrency(shippingRate)}` : 'FREE') : '--'}</span></div><div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>Tax</span><span className="text-primary">{isTaxReady ? `C$${formatCurrency(calculatedTax)}` : '--'}</span></div><Separator /><div className="flex justify-between items-end pt-2"><span className="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">Total</span><p className="text-2xl font-bold font-headline tracking-tighter text-primary">{isSummaryReady ? `C$${formatCurrency(finalTotal)}` : '--'}</p></div></div>
-        <div className="pt-8 space-y-4">{paymentConfig?.paypalEnabled && (<PayPalPayment amount={finalTotal} orderData={currentOrderData} onSuccess={handlePayPalSuccess} validate={validate} clientId={paymentConfig.paypalClientId} />)}{selectedPayment === 'stripe' && (<Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl">{isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Place Order"}</Button>)}</div>
+        <div className="space-y-6">
+          {cart.map((item) => (
+            <div key={item.variantId} className="flex gap-4">
+              <div className="w-20 h-20 relative bg-gray-50 border shrink-0">
+                <Image src={item.image} alt={item.name} fill className="object-cover" />
+              </div>
+              <div className="flex-1 flex flex-col justify-between py-0.5">
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <h3 className="text-[10px] font-bold uppercase tracking-tight text-primary">{item.name}</h3>
+                    <p className="text-[11px] font-bold text-primary">{`C$${formatCurrency(item.price * item.quantity)}`}</p>
+                  </div>
+                  <div className="text-[9px] text-muted-foreground font-bold uppercase">Size: {item.size} • Qty: {item.quantity}</div>
+                  {(item.customName || item.customNumber || item.specialNote) && (
+                    <div className="pt-1.5 space-y-0.5 border-t border-dashed border-gray-100 mt-1.5">
+                      {(item.customName || item.customNumber) && (
+                        <p className="text-[8px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                          <Sparkles className="h-2 w-2" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                        </p>
+                      )}
+                      {item.specialNote && (
+                        <p className="text-[8px] text-gray-400 italic">"{item.specialNote}"</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Discount Code</Label>
+          <div className="flex gap-2">
+            <Input 
+              value={couponInput}
+              onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+              placeholder="COUPON"
+              className="h-12 bg-gray-50 uppercase font-bold text-xs rounded-none border-gray-200"
+            />
+            <Button 
+              onClick={handleValidateCoupon}
+              disabled={!couponInput || isValidatingCoupon}
+              variant="outline"
+              className="h-12 px-6 border-black font-bold uppercase tracking-widest text-[10px] rounded-none"
+            >
+              {isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+            </Button>
+          </div>
+          {appliedCoupon && (
+            <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-100 rounded-none animate-in fade-in slide-in-from-top-1">
+              <span className="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-2">
+                <Tag className="h-3 w-3" /> {appliedCoupon.code}
+              </span>
+              <button onClick={() => applyCoupon(null)} className="text-emerald-700 hover:text-emerald-900">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="pt-8 border-t space-y-3">
+          <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
+            <span>Subtotal</span>
+            <span className="text-primary">{`C$${formatCurrency(cartSubtotal)}`}</span>
+          </div>
+          {discountTotal > 0 && (
+            <div className="flex justify-between text-[10px] font-bold uppercase text-destructive">
+              <span>Discount</span>
+              <span className="text-destructive">{`-C$${formatCurrency(discountTotal)}`}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
+            <span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pickup'}</span>
+            <span className="text-primary">{isShippingReady ? (shippingRate > 0 ? `C$${formatCurrency(shippingRate)}` : 'FREE') : '--'}</span>
+          </div>
+          <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground">
+            <span>Tax</span>
+            <span className="text-primary">{isTaxReady ? `C$${formatCurrency(calculatedTax)}` : '--'}</span>
+          </div>
+          <Separator />
+          <div className="flex justify-between items-end pt-2">
+            <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">Total</span>
+            <p className="text-2xl font-bold font-headline tracking-tighter text-primary">
+              {isSummaryReady ? `C$${formatCurrency(finalTotal)}` : '--'}
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-8 space-y-4">
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Payment Orchestration</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <button 
+                onClick={() => setSelectedPayment('paypal')}
+                className={cn(
+                  "flex items-center justify-between p-4 border-2 transition-all rounded-none text-left",
+                  selectedPayment === 'paypal' ? "border-primary bg-white shadow-md" : "bg-gray-50/50 border-transparent hover:bg-gray-100"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Globe className={cn("h-5 w-5", selectedPayment === 'paypal' ? "text-[#0070BA]" : "text-gray-400")} />
+                  <span className="text-[11px] font-bold uppercase tracking-widest">PayPal / Digital Wallet</span>
+                </div>
+                {selectedPayment === 'paypal' && <CheckCircle2 className="h-4 w-4 text-primary" />}
+              </button>
+              
+              <button 
+                onClick={() => setSelectedPayment('stripe')}
+                className={cn(
+                  "flex items-center justify-between p-4 border-2 transition-all rounded-none text-left opacity-50 cursor-not-allowed",
+                  selectedPayment === 'stripe' ? "border-primary bg-white shadow-md" : "bg-gray-50/50 border-transparent"
+                )}
+                disabled
+              >
+                <div className="flex items-center gap-3">
+                  <CreditCard className="h-5 w-5 text-gray-400" />
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Credit / Debit Card</span>
+                    <span className="text-[8px] font-bold uppercase text-gray-400">Direct Ingestion (Locked)</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-4">
+            {paymentConfig?.paypalEnabled && selectedPayment === 'paypal' && (
+              <PayPalPayment 
+                amount={finalTotal} 
+                orderData={currentOrderData} 
+                onSuccess={handlePayPalSuccess}
+                validate={validate}
+                clientId={paymentConfig.paypalClientId}
+              />
+            )}
+
+            {selectedPayment === 'stripe' && (
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isSubmitting}
+                className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[12px] rounded-none shadow-xl hover:opacity-90 transition-all"
+              >
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Place Order"}
+              </Button>
+            )}
+          </div>
+
+          <div className="flex flex-col items-center gap-4 pt-6">
+            <div className="flex items-center gap-6 grayscale opacity-40">
+              <ShieldCheck className="h-5 w-5" />
+              <div className="h-4 w-px bg-gray-200" />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-5 bg-gray-200 rounded-sm" />
+                <div className="w-8 h-5 bg-gray-200 rounded-sm" />
+                <div className="w-8 h-5 bg-gray-200 rounded-sm" />
+              </div>
+            </div>
+            <p className="text-[8px] text-center text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">
+              Forensic Transaction Protocol Active.<br />Secure 256-bit Archival Encryption.
+            </p>
+          </div>
+        </div>
       </div>
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}><DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-12 text-center"><CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto mb-4" /><DialogHeader><DialogTitle className="text-3xl font-headline font-bold uppercase tracking-tight text-primary text-center">Order confirmed</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground uppercase tracking-[0.2em] mb-8">Order placed successfully.</p><Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-none"><Link href="/">Back to Shop</Link></Button></DialogContent></Dialog>
+
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-12 text-center shadow-2xl">
+          <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
+            <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+          </div>
+          <DialogHeader className="space-y-4">
+            <DialogTitle className="text-3xl font-headline font-bold uppercase tracking-tight text-primary text-center">Order Confirmed</DialogTitle>
+            <p className="text-sm text-muted-foreground uppercase tracking-[0.2em] font-medium">
+              Transaction ID: #{confirmedOrder?.id?.substring(0, 8).toUpperCase()}
+            </p>
+          </DialogHeader>
+          <div className="py-10 space-y-6">
+            <div className="p-6 bg-gray-50 border rounded-none text-left space-y-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Logistics Manifest</p>
+              <div className="space-y-2">
+                <p className="text-xs font-bold uppercase">Recipient: {confirmedOrder?.customer?.name}</p>
+                <p className="text-xs font-bold uppercase">Destination: {confirmedOrder?.deliveryMethod}</p>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">
+              A forensic confirmation manifest has been dispatched to {confirmedOrder?.email}.
+            </p>
+          </div>
+          <Button asChild className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[11px] rounded-none shadow-xl">
+            <Link href="/">Return to Studio</Link>
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
