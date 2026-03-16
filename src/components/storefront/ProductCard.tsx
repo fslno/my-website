@@ -84,7 +84,7 @@ export function ProductCard({ id, name, price, comparedPrice, image, hoverImage,
         </div>
         <Link 
           href={`/products/${id}`} 
-          className="product-title-size product-title-color font-medium line-clamp-1 group-hover:underline leading-none tracking-tight min-h-0"
+          className="product-title-size product-title-color font-medium line-clamp-2 group-hover:underline leading-snug tracking-tight min-h-0"
         >
           {name}
         </Link>

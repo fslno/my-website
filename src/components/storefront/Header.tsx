@@ -333,7 +333,7 @@ export function Header() {
                             </div>
                             <div className="flex-1 flex flex-col justify-center gap-0.5 overflow-hidden">
                               <p className="text-[8px] uppercase tracking-widest font-bold text-muted-foreground truncate">{product.brand || 'FSLNO Studio'}</p>
-                              <h3 className="text-xs font-headline font-bold uppercase tracking-tight truncate text-primary group-hover:underline">{product.name}</h3>
+                              <h3 className="text-xs font-headline font-bold uppercase tracking-tight line-clamp-2 text-primary group-hover:underline leading-tight">{product.name}</h3>
                               <p className="text-[10px] font-bold text-primary">{`C$${formatCurrency(Number(product.price))}`}</p>
                             </div>
                             <div className="flex items-center text-muted-foreground group-hover:text-primary transition-colors">
