@@ -253,7 +253,6 @@ export default function StorefrontAdminPage() {
                     </div>
                   </div>
 
-                  {/* Hero Styling - Migrated and Expanded */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t">
                     <div className="space-y-6">
                       <div className="flex items-center gap-2">
@@ -447,7 +446,6 @@ export default function StorefrontAdminPage() {
           </Tabs>
         </div>
 
-        {/* Sidebar / Preview Column */}
         <div className="xl:col-span-4 space-y-6">
           <Card className="border-[#e1e3e5] shadow-none rounded-none bg-zinc-900 text-white overflow-hidden sticky top-24">
             <CardHeader className="border-b border-white/10">

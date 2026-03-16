@@ -26,17 +26,11 @@ import {
   Loader2,
   MousePointer2,
   ChevronRight,
-  Search as SearchIcon,
-  ImageIcon,
-  Upload,
-  Trash2,
-  Sparkles,
-  AlignCenter,
   AlignLeft,
+  AlignCenter,
   AlignRight,
   Layers,
   Settings2,
-  MessageSquareMore,
   ShoppingBag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,7 +40,6 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
 
 const sportsFonts = [
   "Anton", "Bebas Neue", "Oswald", "Teko", "Kanit", 
@@ -70,16 +63,6 @@ const DEFAULT_THEME = {
   bannerFont: 'Inter',
   bannerFontSize: '10',
   homepageLayout: 'bento',
-  heroImageUrl: '',
-  heroHeadline: 'The Archive Selection',
-  heroSubheadline: 'Modern Silhouettes',
-  heroButtonText: 'Shop the Drops',
-  heroButtonBgColor: '#FFFFFF',
-  heroButtonTextColor: '#000000',
-  heroTextAlign: 'center',
-  heroVerticalAlign: 'center',
-  heroHeadlineSize: '72',
-  heroHeadlineColor: '#000000',
   categoryTextAlign: 'center',
   categoryVerticalAlign: 'center',
   categoryTitleSize: '40',
@@ -97,19 +80,12 @@ const DEFAULT_THEME = {
   adminAccentColor: '#f6f6f7',
   adminHeadlineFont: 'Inter',
   adminBodyFont: 'Inter',
-  adminHeaderHeight: '64',
-  chatbotEnabled: true,
-  chatbotPosition: 'right',
-  chatbotColor: '#000000',
-  chatbotSize: 60,
-  chatbotEffect: 'pulsate',
-  chatbotDuration: 3
+  adminHeaderHeight: '64'
 };
 
 export default function ThemeEnginePage() {
   const db = useFirestore();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -128,19 +104,6 @@ export default function ThemeEnginePage() {
   const [bannerFont, setBannerFont] = useState(DEFAULT_THEME.bannerFont);
   const [bannerFontSize, setBannerFontSize] = useState(DEFAULT_THEME.bannerFontSize);
   const [homepageLayout, setHomepageLayout] = useState(DEFAULT_THEME.homepageLayout);
-  
-  // Hero values are now mostly managed in Storefront Command, 
-  // but we keep them here if the theme doc is shared.
-  const [heroImageUrl, setHeroImageUrl] = useState(DEFAULT_THEME.heroImageUrl);
-  const [heroHeadline, setHeroHeadline] = useState(DEFAULT_THEME.heroHeadline);
-  const [heroSubheadline, setHeroSubheadline] = useState(DEFAULT_THEME.heroSubheadline);
-  const [heroButtonText, setHeroButtonText] = useState(DEFAULT_THEME.heroButtonText);
-  const [heroButtonBgColor, setHeroButtonBgColor] = useState(DEFAULT_THEME.heroButtonBgColor);
-  const [heroButtonTextColor, setHeroButtonTextColor] = useState(DEFAULT_THEME.heroButtonTextColor);
-  const [heroTextAlign, setHeroTextAlign] = useState(DEFAULT_THEME.heroTextAlign);
-  const [heroVerticalAlign, setHeroVerticalAlign] = useState(DEFAULT_THEME.heroVerticalAlign);
-  const [heroHeadlineSize, setHeroHeadlineSize] = useState(DEFAULT_THEME.heroHeadlineSize);
-  const [heroHeadlineColor, setHeroHeadlineColor] = useState(DEFAULT_THEME.heroHeadlineColor);
   
   const [categoryTextAlign, setCategoryTextAlign] = useState(DEFAULT_THEME.categoryTextAlign);
   const [categoryVerticalAlign, setCategoryVerticalAlign] = useState(DEFAULT_THEME.categoryVerticalAlign);
@@ -165,14 +128,6 @@ export default function ThemeEnginePage() {
   const [adminBodyFont, setAdminBodyFont] = useState(DEFAULT_THEME.adminBodyFont);
   const [adminHeaderHeight, setAdminHeaderHeight] = useState(DEFAULT_THEME.adminHeaderHeight);
 
-  // Chatbot state
-  const [chatbotEnabled, setChatbotEnabled] = useState(DEFAULT_THEME.chatbotEnabled);
-  const [chatbotPosition, setChatbotPosition] = useState(DEFAULT_THEME.chatbotPosition);
-  const [chatbotColor, setChatbotColor] = useState(DEFAULT_THEME.chatbotColor);
-  const [chatbotSize, setChatbotSize] = useState(DEFAULT_THEME.chatbotSize);
-  const [chatbotEffect, setChatbotEffect] = useState(DEFAULT_THEME.chatbotEffect);
-  const [chatbotDuration, setChatbotDuration] = useState(DEFAULT_THEME.chatbotDuration);
-
   useEffect(() => {
     if (themeData) {
       setPrimaryColor(themeData.primaryColor || DEFAULT_THEME.primaryColor);
@@ -186,16 +141,6 @@ export default function ThemeEnginePage() {
       setBannerFont(themeData.bannerFont || DEFAULT_THEME.bannerFont);
       setBannerFontSize(themeData.bannerFontSize?.toString() || DEFAULT_THEME.bannerFontSize);
       setHomepageLayout(themeData.homepageLayout || DEFAULT_THEME.homepageLayout);
-      setHeroImageUrl(themeData.heroImageUrl || DEFAULT_THEME.heroImageUrl);
-      setHeroHeadline(themeData.heroHeadline || DEFAULT_THEME.heroHeadline);
-      setHeroSubheadline(themeData.heroSubheadline || DEFAULT_THEME.heroSubheadline);
-      setHeroButtonText(themeData.heroButtonText || DEFAULT_THEME.heroButtonText);
-      setHeroButtonBgColor(themeData.heroButtonBgColor || DEFAULT_THEME.heroButtonBgColor);
-      setHeroButtonTextColor(themeData.heroButtonTextColor || DEFAULT_THEME.heroButtonTextColor);
-      setHeroTextAlign(themeData.heroTextAlign || DEFAULT_THEME.heroTextAlign);
-      setHeroVerticalAlign(themeData.heroVerticalAlign || DEFAULT_THEME.heroVerticalAlign);
-      setHeroHeadlineSize(themeData.heroHeadlineSize?.toString() || DEFAULT_THEME.heroHeadlineSize);
-      setHeroHeadlineColor(themeData.heroHeadlineColor || DEFAULT_THEME.heroHeadlineColor);
       setCategoryTextAlign(themeData.categoryTextAlign || DEFAULT_THEME.categoryTextAlign);
       setCategoryVerticalAlign(themeData.categoryVerticalAlign || DEFAULT_THEME.categoryVerticalAlign);
       setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
@@ -214,12 +159,6 @@ export default function ThemeEnginePage() {
       setAdminHeadlineFont(themeData.adminHeadlineFont || DEFAULT_THEME.adminHeadlineFont);
       setAdminBodyFont(themeData.adminBodyFont || DEFAULT_THEME.adminBodyFont);
       setAdminHeaderHeight(themeData.adminHeaderHeight?.toString() || DEFAULT_THEME.adminHeaderHeight);
-      setChatbotEnabled(themeData.chatbotEnabled ?? DEFAULT_THEME.chatbotEnabled);
-      setChatbotPosition(themeData.chatbotPosition || DEFAULT_THEME.chatbotPosition);
-      setChatbotColor(themeData.chatbotColor || DEFAULT_THEME.chatbotColor);
-      setChatbotSize(themeData.chatbotSize || DEFAULT_THEME.chatbotSize);
-      setChatbotEffect(themeData.chatbotEffect || DEFAULT_THEME.chatbotEffect);
-      setChatbotDuration(themeData.chatbotDuration || DEFAULT_THEME.chatbotDuration);
     }
   }, [themeData]);
 
@@ -239,16 +178,6 @@ export default function ThemeEnginePage() {
       bannerFont,
       bannerFontSize: Number(bannerFontSize),
       homepageLayout,
-      heroImageUrl,
-      heroHeadline,
-      heroSubheadline,
-      heroButtonText,
-      heroButtonBgColor,
-      heroButtonTextColor,
-      heroTextAlign,
-      heroVerticalAlign,
-      heroHeadlineSize: Number(heroHeadlineSize),
-      heroHeadlineColor,
       categoryTextAlign,
       categoryVerticalAlign,
       categoryTitleSize: Number(categoryTitleSize),
@@ -267,12 +196,6 @@ export default function ThemeEnginePage() {
       adminHeadlineFont,
       adminBodyFont,
       adminHeaderHeight: Number(adminHeaderHeight),
-      chatbotEnabled,
-      chatbotPosition,
-      chatbotColor,
-      chatbotSize: Number(chatbotSize),
-      chatbotEffect,
-      chatbotDuration: Number(chatbotDuration),
       updatedAt: new Date().toISOString()
     };
 
@@ -309,10 +232,6 @@ export default function ThemeEnginePage() {
           --preview-body: "${bodyFont}", sans-serif;
           --preview-banner-font: "${bannerFont}", sans-serif;
           --preview-banner-font-size: ${bannerFontSize}px;
-          --preview-hero-align: ${heroTextAlign};
-          --preview-hero-vertical: ${heroVerticalAlign === 'bottom' ? 'flex-end' : heroVerticalAlign === 'top' ? 'flex-start' : 'center'};
-          --preview-hero-size: ${heroHeadlineSize}px;
-          --preview-hero-color: ${heroHeadlineColor};
           --preview-cat-align: ${categoryTextAlign};
           --preview-cat-vertical: ${categoryVerticalAlign === 'bottom' ? 'flex-end' : categoryVerticalAlign === 'top' ? 'flex-start' : 'center'};
           --preview-cat-size: ${categoryTitleSize}px;
@@ -325,8 +244,6 @@ export default function ThemeEnginePage() {
           --preview-prod-color: ${productTitleColor};
           --preview-price-size: ${productPriceSize}px;
           --preview-price-color: ${productPriceColor};
-          --preview-hero-button-bg: ${heroButtonBgColor};
-          --preview-hero-button-text: ${heroButtonTextColor};
         }
         #theme-preview-root .font-headline {
           font-family: var(--preview-headline) !important;
@@ -337,11 +254,6 @@ export default function ThemeEnginePage() {
         #theme-preview-root .preview-banner {
           font-family: var(--preview-banner-font) !important;
           font-size: var(--preview-banner-font-size) !important;
-        }
-        #theme-preview-root .preview-hero-headline {
-          text-align: var(--preview-hero-align) !important;
-          font-size: var(--preview-hero-size) !important;
-          color: var(--preview-hero-color) !important;
         }
         #theme-preview-root .preview-cat-title {
           text-align: var(--preview-cat-align) !important;
@@ -364,10 +276,6 @@ export default function ThemeEnginePage() {
           font-size: var(--preview-price-size) !important;
           color: var(--preview-price-color) !important;
         }
-        #theme-preview-root .hero-button-preview {
-          background-color: var(--preview-hero-button-bg) !important;
-          color: var(--preview-hero-button-text) !important;
-        }
       `}</style>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -382,7 +290,6 @@ export default function ThemeEnginePage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 xl:h-[calc(100vh-250px)] h-auto">
-        {/* Configuration Column */}
         <div className="xl:col-span-4 xl:overflow-y-auto pr-0 xl:pr-4 space-y-6 scrollbar-hide h-full">
           <Tabs defaultValue="styles" className="w-full">
             <TabsList className="w-full bg-white border border-[#e1e3e5] h-auto xl:h-14 p-1 flex flex-wrap xl:flex-nowrap justify-start xl:justify-between rounded-none overflow-hidden">
@@ -523,7 +430,6 @@ export default function ThemeEnginePage() {
             </TabsContent>
 
             <TabsContent value="layout" className="mt-6 space-y-6 animate-in fade-in duration-300">
-              {/* Homepage Architecture */}
               <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Homepage Architecture</CardTitle>
@@ -536,7 +442,6 @@ export default function ThemeEnginePage() {
                 </CardContent>
               </Card>
 
-              {/* Category Selection Protocol */}
               <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Selection Protocol</CardTitle>
@@ -571,7 +476,6 @@ export default function ThemeEnginePage() {
                 </CardContent>
               </Card>
 
-              {/* Featured Selection Protocol */}
               <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Featured Selection Protocol</CardTitle>
@@ -606,7 +510,6 @@ export default function ThemeEnginePage() {
                 </CardContent>
               </Card>
 
-              {/* Product Card Protocol */}
               <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
@@ -711,9 +614,8 @@ export default function ThemeEnginePage() {
               {bannerEnabled && (<div className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white shrink-0 px-4 text-center" style={{ backgroundColor: bannerBgColor }}>{bannerText}</div>)}
               <div className="h-16 bg-white border-b flex items-center justify-between px-6 sm:px-8 shrink-0"><span className="font-bold text-lg sm:text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span><div className="flex items-center gap-3"><SearchIcon className="h-4 w-4 text-gray-200" /><ShoppingBag className="h-4 w-4 text-gray-200" /><div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-200" /></div></div></div>
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-12 font-body">
-                <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', textAlign: heroTextAlign as any }}>
-                  {heroImageUrl ? <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" /> : <div className="absolute inset-0 bg-gray-100" />}
-                  <div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">{heroSubheadline}</span><h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: heroHeadlineColor }}>{heroHeadline}</h2><div className="mt-6 sm:mt-8 flex" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}><div className="hero-button-preview px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">{heroButtonText}</div></div></div>
+                <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: 'center', textAlign: 'center' }}>
+                  <div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">MODERN SILHOUETTES</span><h2 className="font-bold uppercase tracking-tight leading-none font-headline text-3xl">THE ARCHIVE SELECTION</h2><div className="mt-6 sm:mt-8 flex justify-center"><div className="bg-black text-white px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">SHOP NOW</div></div></div>
                 </div>
                 <div className="space-y-8"><h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">Catalog Selection</h3><div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none">Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div></div>
               </div>
