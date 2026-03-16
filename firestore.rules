@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * FSLNO E-COMMERCE SECURITY RULES - UNIFIED V1
+     * FSLNO STUDIO SECURITY RULES - UNIFIED ARCHIVE
      * 
      * Core Philosophy:
      * 1. Public can read products, categories, config, and reviews.
@@ -28,14 +28,14 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Public Catalog Rules ---
+    // --- Public Catalog Rules (Explicit Protocol) ---
 
-    match /products/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /categories/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /config/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /testimonials/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /sizeCharts/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /coupons/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /products/{id} { allow get, list: if true; allow write: if isAdmin(); }
+    match /categories/{id} { allow get, list: if true; allow write: if isAdmin(); }
+    match /config/{id} { allow get, list: if true; allow write: if isAdmin(); }
+    match /testimonials/{id} { allow get, list: if true; allow write: if isAdmin(); }
+    match /sizeCharts/{id} { allow get, list: if true; allow write: if isAdmin(); }
+    match /coupons/{id} { allow get, list: if true; allow write: if isAdmin(); }
 
     // --- Transactional Rules ---
 

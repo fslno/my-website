@@ -1,8 +1,9 @@
 'use client';
 
 /**
- * @fileOverview Environment Protocol (Legacy/Pass-through).
- * Reverted to a unified state where all environments use the root manifest.
+ * @fileOverview Environment Protocol (Reverted).
+ * The isolation protocol has been Authoritatively neutralized.
+ * All environments now target the root collection manifest.
  */
 
 export const LIVE_DOMAIN = 'fslno.ca';
@@ -13,10 +14,11 @@ export const LIVE_DOMAIN = 'fslno.ca';
 export const isLiveEnvironment = () => {
   if (typeof window === 'undefined') return false;
   const host = window.location.hostname;
-  return host === LIVE_DOMAIN || host.endsWith('.' + LIVE_DOMAIN);
+  return host.includes(LIVE_DOMAIN);
 };
 
 /**
- * Returns the path as-is (Isolation Protocol Reverted).
+ * Returns the path as-is (Pass-through Protocol).
+ * Direct mapping to root collections.
  */
 export const getLivePath = (path: string) => path;
