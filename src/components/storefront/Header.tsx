@@ -489,7 +489,7 @@ export function Header() {
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div className="space-y-1">
                                 <div className="flex justify-between items-start">
-                                  <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px] text-primary">{item.name}</h3>
+                                  <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px] text-primary line-clamp-2">{item.name}</h3>
                                   <p className="text-sm font-bold text-primary">
                                     {item.price === 0 ? 'FREE' : `C$${formatCurrency(item.price * item.quantity)}`}
                                   </p>

@@ -122,7 +122,7 @@ export default function OrderHistoryPage() {
                             {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                           </div>
                           <div className="flex flex-col justify-center">
-                            <p className="text-xs font-bold uppercase line-clamp-1">{item.name}</p>
+                            <p className="text-xs font-bold uppercase line-clamp-2">{item.name}</p>
                             <p className="text-[10px] text-gray-400 uppercase font-bold">Size: {item.size} • Qty: {item.quantity}</p>
                           </div>
                         </div>

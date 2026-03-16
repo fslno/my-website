@@ -473,7 +473,7 @@ export default function OrdersPage() {
                                 {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                               </div>
                               <div className="min-w-0">
-                                <p className="text-[10px] font-bold uppercase truncate">{item.name}</p>
+                                <p className="text-[10px] font-bold uppercase line-clamp-2 leading-tight">{item.name}</p>
                                 <p className="text-[9px] text-gray-400 uppercase font-bold">SIZE: {item.size} • QTY: {item.quantity}</p>
                                 {(item.customName || item.customNumber || item.specialNote) && (
                                   <div className="mt-1 pl-2 border-l-2 border-blue-100 space-y-0.5">
@@ -610,7 +610,7 @@ export default function OrdersPage() {
                     {(order.items || []).map((item: any, i: number) => (
                       <div key={i} className="flex justify-between items-start gap-4">
                         <div className="flex-1">
-                          <p className="text-[10px] font-bold uppercase leading-tight">{item.name} ({item.size})</p>
+                          <p className="text-[10px] font-bold uppercase leading-tight line-clamp-2">{item.name} ({item.size})</p>
                           {(item.customName || item.customNumber || item.specialNote) && (
                             <div className="flex flex-col gap-1 mt-1.5 pl-2 border-l-2 border-blue-100">
                               {(item.customName || item.customNumber) && (
