@@ -10,7 +10,7 @@ import {
   useMemoFirebase,
   useCollection
 } from '@/firebase';
-import { doc, collection, query, orderBy } from 'firebase/firestore';
+import { doc, collection, query, orderBy, where } from 'firebase/firestore';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
@@ -94,19 +94,13 @@ export default function ProductDetailPage(props: PageProps) {
   const reviewConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
   const { data: reviewConfig } = useDoc(reviewConfigRef);
 
-  // Fetch Category to get Size Guide ID
-  const categoryRef = useMemoFirebase(() => 
-    db && product?.categoryId ? doc(db, 'categories', product.categoryId) : null,
-    [db, product?.categoryId]
-  );
-  const { data: category } = useDoc(categoryRef);
+  // Fetch Size Charts assigned to this category
+  const sizeChartsQuery = useMemoFirebase(() => {
+    if (!db || !product?.categoryId) return null;
+    return query(collection(db, 'sizeCharts'), where('category', '==', product.categoryId));
+  }, [db, product?.categoryId]);
 
-  // Fetch Size Guide
-  const sizeChartRef = useMemoFirebase(() => 
-    db && category?.sizeChartId ? doc(db, 'sizeCharts', category.sizeChartId) : null,
-    [db, category?.sizeChartId]
-  );
-  const { data: sizeChart } = useDoc(sizeChartRef);
+  const { data: categoryCharts, isLoading: chartsLoading } = useCollection(sizeChartsQuery);
 
   // Fetch Reviews for Rating Aggregation
   const reviewsQuery = useMemoFirebase(() => {
@@ -208,7 +202,7 @@ export default function ProductDetailPage(props: PageProps) {
       image: product.media?.[0]?.url || '',
       size: selectedSize,
       categoryId: product.categoryId,
-      logistics: product.logistics || {}, // Ingest logistics for Stallion Express API
+      logistics: product.logistics || {}, 
     };
 
     if (wantsCustomization) {
@@ -292,6 +286,7 @@ export default function ProductDetailPage(props: PageProps) {
 
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
+  const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
   const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
 
   return (
@@ -437,7 +432,7 @@ export default function ProductDetailPage(props: PageProps) {
                 
                 <Sheet>
                   <SheetTrigger asChild>
-                    <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 ease-in-out text-[13px] font-bold p-1 rounded">
+                    <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 ease-in-out text-[11px] font-bold p-1 rounded">
                       <Ruler className="h-5 w-5" /> {sizeChart ? 'Size Guide' : 'Standard Guide'}
                     </button>
                   </SheetTrigger>
@@ -451,38 +446,44 @@ export default function ProductDetailPage(props: PageProps) {
                     </SheetHeader>
                     
                     <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Ruler className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Dimensions</span>
-                        </div>
-                        <span className="text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded tracking-widest">
-                          Unit: {effectiveChart.unit}
-                        </span>
-                      </div>
+                      {chartsLoading ? (
+                        <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-black/10" /></div>
+                      ) : (
+                        <>
+                          <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Ruler className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Dimensions</span>
+                            </div>
+                            <span className="text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded tracking-widest">
+                              Unit: {effectiveChart.unit}
+                            </span>
+                          </div>
 
-                      <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
-                        <Table>
-                          <TableHeader className="bg-gray-50/50">
-                            <TableRow>
-                              <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
-                              {effectiveChart.columns?.map((col: string, idx: number) => (
-                                <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
-                              ))}
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {effectiveChart.rows?.map((row: any, rowIdx: number) => (
-                              <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
-                                <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
-                                {row.values?.map((val: string, colIdx: number) => (
-                                  <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
+                          <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
+                            <Table>
+                              <TableHeader className="bg-gray-50/50">
+                                <TableRow>
+                                  <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
+                                  {effectiveChart.columns?.map((col: string, idx: number) => (
+                                    <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
+                                  ))}
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {effectiveChart.rows?.map((row: any, rowIdx: number) => (
+                                  <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
+                                    <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
+                                    {row.values?.map((val: string, colIdx: number) => (
+                                      <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
+                                    ))}
+                                  </TableRow>
                                 ))}
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </SheetContent>
                 </Sheet>
