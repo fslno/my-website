@@ -74,7 +74,7 @@ export function Footer() {
                       rel="noopener noreferrer" 
                       className="text-[11px] uppercase font-bold tracking-widest whitespace-pre-wrap leading-relaxed hover:opacity-60 transition-opacity underline decoration-primary-foreground/20 underline-offset-4"
                     >
-                      {config.address}
+                      Get Directions
                     </a>
                   </div>
                 )}
