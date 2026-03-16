@@ -328,7 +328,7 @@ export default function PaymentsPage() {
                 <TabsTrigger value="vault" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
                   <Shield className="h-3.5 w-3.5" /> API Vault
                 </TabsTrigger>
-                <TabsTrigger value="scope" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-primary data-[state=active]:text-white">
+                <TabsTrigger value="scope" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-primary data-[state=white]">
                   <Globe className="h-3.5 w-3.5" /> Global Scope
                 </TabsTrigger>
                 <TabsTrigger value="express" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-black data-[state=active]:text-white">
@@ -1071,40 +1071,6 @@ export default function PaymentsPage() {
                   onCheckedChange={(checked) => handleUpdate({ threeDSecureEnabled: checked })}
                 />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#e1e3e5] shadow-none bg-zinc-900 text-white rounded-none overflow-hidden">
-            <CardHeader className="border-b border-white/10 p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Terminal className="h-3.5 w-3.5 text-blue-400" />
-                  <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Transaction Protocol</CardTitle>
-                </div>
-                <Activity className="h-3 w-3 text-blue-400 animate-pulse" />
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[250px]">
-                <div className="p-4 space-y-4">
-                  {[
-                    { event: 'STRIPE_AUTH_SUCCESS', time: 'Just now', val: '$1,240.00', color: 'text-green-400' },
-                    { event: 'PAYPAL_IPN_SYNC', time: '4m ago', val: 'REF_...A1', color: 'text-blue-400' },
-                    { event: '3DS_VERIFIED', time: '12m ago', val: 'UID_...F9', color: 'text-white' },
-                    { event: 'KLARNA_RESERVE', time: '18m ago', val: '$890.00', color: 'text-pink-400' },
-                    { event: 'GEO_BLOCK_SHIELD', time: '22m ago', val: 'IP_BLOCKED', color: 'text-red-400' },
-                    { event: 'STRIPE_AUTH_SUCCESS', time: '35m ago', val: '$420.00', color: 'text-green-400' },
-                  ].map((log, i) => (
-                    <div key={i} className="flex items-start justify-between border-b border-white/5 pb-3 last:border-0 gap-4">
-                      <div className="space-y-1 min-w-0">
-                        <p className={cn("text-[9px] font-mono font-bold uppercase", log.color)}>{log.event}</p>
-                        <p className="text-[8px] text-gray-500 font-mono truncate">{log.val}</p>
-                      </div>
-                      <span className="text-[8px] text-gray-600 font-bold uppercase shrink-0">{log.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
             </CardContent>
           </Card>
 

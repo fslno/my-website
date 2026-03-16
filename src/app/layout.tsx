@@ -12,6 +12,7 @@ import { PushNotificationManager } from '@/components/storefront/PushNotificatio
 import { Chatbot } from '@/components/storefront/Chatbot';
 import { Header } from '@/components/storefront/Header';
 import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 /**
  * Authoritative Root Layout with Global Mounting Guard.
@@ -23,10 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const isAdmin = pathname?.startsWith('/admin');
 
   return (
     <html lang="en">
@@ -49,7 +53,7 @@ export default function RootLayout({
             <PushNotificationManager />
             <WishlistProvider>
               <CartProvider>
-                <Header />
+                {!isAdmin && <Header />}
                 <main className="min-h-screen">
                   {children}
                 </main>

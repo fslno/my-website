@@ -959,38 +959,6 @@ export default function ShippingPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none bg-zinc-900 text-white rounded-none overflow-hidden">
-            <CardHeader className="border-b border-white/10 p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
-                  <Terminal className="h-3.5 w-3.5" /> Recent Activity
-                </CardTitle>
-                <Activity className="h-3 w-3 text-blue-400 animate-pulse" />
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[250px]">
-                <div className="p-4 space-y-4">
-                  {[
-                    { event: 'LABEL_CREATED', time: 'Just now', val: 'DHL_EXPRESS', color: 'text-green-400' },
-                    { event: 'TRACKING_SYNC', time: '5m ago', val: 'FEDEX_7721', color: 'text-blue-400' },
-                    { event: 'ADDRESS_VERIFIED', time: '12m ago', val: 'LDN_E1_6AN', color: 'text-white' },
-                    { event: 'FEE_CALCULATED', time: '18m ago', val: 'TAX_£142.00', color: 'text-orange-400' },
-                    { event: 'LABEL_CREATED', time: '35m ago', val: 'UPS_GROUND', color: 'text-green-400' },
-                  ].map((log, i) => (
-                    <div key={i} className="flex items-start justify-between border-b border-white/5 pb-3 last:border-0">
-                      <div className="space-y-1">
-                        <p className={cn("text-[9px] font-mono font-bold uppercase", log.color)}>{log.event}</p>
-                        <p className="text-[8px] text-gray-500 font-mono">{log.val}</p>
-                      </div>
-                      <span className="text-[8px] text-gray-600 font-bold uppercase whitespace-nowrap ml-4">{log.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
           <div className="p-6 bg-gray-50 border rounded-sm space-y-4">
             <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
               <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Save Settings
