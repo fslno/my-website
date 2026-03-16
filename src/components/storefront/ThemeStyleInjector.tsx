@@ -76,6 +76,7 @@ export function ThemeStyleInjector() {
     const heroVerticalAlign = theme.heroVerticalAlign || 'center';
     const heroHeadlineSize = theme.heroHeadlineSize || 72;
     const heroHeadlineColor = theme.heroHeadlineColor || theme.primaryColor || '#000000';
+    const heroSubheadlineColor = theme.heroSubheadlineColor || '#8c9196';
 
     const categoryTextAlign = theme.categoryTextAlign || 'center';
     const categoryVerticalAlign = theme.categoryVerticalAlign || 'center';
@@ -127,6 +128,7 @@ export function ThemeStyleInjector() {
         
         --hero-headline-size: ${heroHeadlineSize}px;
         --hero-headline-color: ${heroHeadlineColor};
+        --hero-subheadline-color: ${heroSubheadlineColor};
         --hero-button-bg: ${heroButtonBg};
         --hero-button-text: ${heroButtonText};
       }
@@ -175,6 +177,9 @@ export function ThemeStyleInjector() {
       .hero-headline-size {
         font-size: clamp(calc(var(--hero-headline-size) * 0.5), 8vw, var(--hero-headline-size)) !important;
         color: var(--hero-headline-color) !important;
+      }
+      .hero-subheadline-color {
+        color: var(--hero-subheadline-color) !important;
       }
       .category-title-size {
         font-size: clamp(calc(var(--category-title-size) * 0.6), 6vw, var(--category-title-size)) !important;

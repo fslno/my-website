@@ -61,6 +61,7 @@ export default function StorefrontAdminPage() {
   
   // Hero Styling State
   const [heroHeadlineColor, setHeroHeadlineColor] = useState('#000000');
+  const [heroSubheadlineColor, setHeroSubheadlineColor] = useState('#8c9196');
   const [heroHeadlineSize, setHeroHeadlineSize] = useState('72');
   const [heroTextAlign, setHeroTextAlign] = useState('center');
   const [heroVerticalAlign, setHeroVerticalAlign] = useState('center');
@@ -86,6 +87,7 @@ export default function StorefrontAdminPage() {
       
       // Load styling from theme
       setHeroHeadlineColor(theme.heroHeadlineColor || '#000000');
+      setHeroSubheadlineColor(theme.heroSubheadlineColor || '#8c9196');
       setHeroHeadlineSize(theme.heroHeadlineSize?.toString() || '72');
       setHeroTextAlign(theme.heroTextAlign || 'center');
       setHeroVerticalAlign(theme.heroVerticalAlign || 'center');
@@ -121,6 +123,7 @@ export default function StorefrontAdminPage() {
       },
       // Styling payload
       heroHeadlineColor,
+      heroSubheadlineColor,
       heroHeadlineSize: Number(heroHeadlineSize),
       heroTextAlign,
       heroVerticalAlign,
@@ -267,6 +270,15 @@ export default function StorefrontAdminPage() {
                               <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={heroHeadlineColor} onChange={(e) => setHeroHeadlineColor(e.target.value)} />
                             </div>
                             <Input value={heroHeadlineColor} onChange={(e) => setHeroHeadlineColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Subheadline Color</Label>
+                          <div className="flex gap-2">
+                            <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                              <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={heroSubheadlineColor} onChange={(e) => setHeroSubheadlineColor(e.target.value)} />
+                            </div>
+                            <Input value={heroSubheadlineColor} onChange={(e) => setHeroSubheadlineColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -471,7 +483,7 @@ export default function StorefrontAdminPage() {
                   <div className="absolute inset-0 bg-white/5" />
                 )}
                 <div className="relative z-10 space-y-2 w-full">
-                  <p className="text-[7px] uppercase tracking-[0.4em] text-zinc-500">{heroSubheadline || 'MODERN SILHOUETTES'}</p>
+                  <p className="text-[7px] uppercase tracking-[0.4em]" style={{ color: heroSubheadlineColor }}>{heroSubheadline || 'MODERN SILHOUETTES'}</p>
                   <h3 className="font-headline font-bold uppercase tracking-tight leading-none"
                     style={{
                       color: heroHeadlineColor,

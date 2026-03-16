@@ -52,7 +52,7 @@ export function BentoHero({
           <div className={cn(
             "absolute inset-0 p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent hero-vertical-align"
           )}>
-            <span className="text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <span className="hero-subheadline-color text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {subheadline}
             </span>
             <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none animate-in fade-in slide-in-from-bottom-6 duration-1000 block">
