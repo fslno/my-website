@@ -3,7 +3,6 @@
 import React from 'react';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { CategorySection } from '@/components/storefront/CategorySection';
-import { FeaturedProducts } from '@/components/storefront/FeaturedProducts';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -32,13 +31,11 @@ export default function Home() {
       
       <CategorySection />
       
-      <FeaturedProducts />
-      
       <div className="bg-white border-t">
-        <div className="max-w-[1440px] mx-auto px-4 pt-24">
-          <div className="space-y-3 mb-16">
-            <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Catalog</span>
-            <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">All Studio Pieces</h2>
+        <div className="max-w-[1440px] mx-auto px-4 pt-12">
+          <div className="space-y-2 mb-6">
+            <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Archive</span>
+            <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">Featured Products</h2>
           </div>
         </div>
         <ProductGrid />

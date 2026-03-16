@@ -63,7 +63,7 @@ export function ProductGrid() {
   const reviewsEnabled = reviewConfig?.enabled !== false;
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 pt-32 pb-24">
+    <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
         {products?.map((product: any) => {
           const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
