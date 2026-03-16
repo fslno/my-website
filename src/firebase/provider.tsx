@@ -78,13 +78,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
         },
         (error) => {
-          console.error("FIREBASE_AUTH_CRASH_PREVENTION:", error);
+          console.error("FIREBASE_AUTH_ERROR:", error);
           setUserAuthState({ user: null, isUserLoading: false, userError: error });
         }
       );
       return () => unsubscribe();
     } catch (e) {
-      console.error("CONNECTION_LATENCY: RETRYING...", e);
+      console.error("AUTH_INITIALIZATION_ERROR:", e);
     }
   }, [auth]);
 
@@ -105,11 +105,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   return (
     <FirebaseContext.Provider value={contextValue}>
       <FirebaseErrorListener />
-      {userAuthState.userError && (
-        <div className="fixed top-4 left-4 z-[9999] bg-black text-white p-2 font-mono text-[8px] uppercase tracking-widest border border-white/10">
-          CONNECTION_LATENCY: RETRYING...
-        </div>
-      )}
       {children}
     </FirebaseContext.Provider>
   );

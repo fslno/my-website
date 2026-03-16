@@ -33,6 +33,7 @@ service cloud.firestore {
     match /products/{id} { allow get, list: if true; allow write: if isAdmin(); }
     match /categories/{id} { allow get, list: if true; allow write: if isAdmin(); }
     match /config/{id} { allow get, list: if true; allow write: if isAdmin(); }
+    match /live_config/{id} { allow get, list: if true; allow write: if isAdmin(); }
     match /testimonials/{id} { allow get, list: if true; allow write: if isAdmin(); }
     match /sizeCharts/{id} { allow get, list: if true; allow write: if isAdmin(); }
     match /coupons/{id} { allow get, list: if true; allow write: if isAdmin(); }

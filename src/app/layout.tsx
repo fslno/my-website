@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
@@ -16,28 +16,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 150);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <html lang="en">
-        <head>
-          <title>FSLNO | INITIALIZING</title>
-        </head>
-        <body className="bg-black flex items-center justify-center min-h-screen m-0 p-0 overflow-hidden">
-          <div className="text-white font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
-            fslno_archive_initializing...
-          </div>
-        </body>
-      </html>
-    );
-  }
-
   return (
     <html lang="en">
       <head>
