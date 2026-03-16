@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -25,6 +25,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { getLivePath } from '@/lib/deployment';
 
+/**
+ * Optimized Archival Footer.
+ * Reduced in vertical scale and spatial density by 20%.
+ * Implements a mounted guard to ensure hydration stability.
+ */
 export function Footer() {
   const db = useFirestore();
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
@@ -33,6 +38,11 @@ export function Footer() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubmittingDone] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const currentYear = new Date().getFullYear();
   const defaultCopyright = `© ${currentYear} ${config?.businessName || "FSLNO"}. ALL RIGHTS RESERVED.`;
@@ -50,6 +60,11 @@ export function Footer() {
   };
 
   const mapsUrl = config?.googleMapsUrl || (config?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.address)}` : '#');
+
+  // Authoritative Guard: Only render content on client to prevent hydration mismatch of compact geometry
+  if (!mounted) {
+    return <footer className="bg-primary h-24 mt-8 border-t border-primary-foreground/10" />;
+  }
 
   return (
     <footer className="bg-primary text-primary-foreground py-12 mt-8 border-t border-primary-foreground/10">
