@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, use, useEffect } from 'react';
@@ -131,23 +130,23 @@ export default function ProductDetailPage(props: PageProps) {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center bg-white">
         <Loader2 className="h-10 w-10 animate-spin text-black" />
       </main>
     );
   }
 
   // --- AUTHORITATIVE DATA GATE ---
-  // Strictly do not access product properties until existence is verified.
+  // Strictly prevent any property access until product exists.
   if (!product) {
     return (
-      <main className="min-h-screen pt-32 px-4 text-center">
+      <main className="min-h-screen pt-32 px-4 text-center bg-white">
         <div className="max-w-md mx-auto space-y-6">
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
             <AlertCircle className="h-8 w-8 text-gray-300" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Silhouette Missing</h1>
+            <h1 className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">Silhouette Missing</h1>
             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">
               The requested archival segment is no longer part of the current Studio manifest.
             </p>
@@ -160,8 +159,15 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
-  // Safe Property Access Post-Gate
+  // Safe Property Access: All declarations involving product MUST be below the gate.
   const media = product.media || [];
+  const reviewsEnabled = reviewConfig?.enabled !== false;
+  const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
+  const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
+  
+  const hasDiscount = (Number(product.comparedPrice) || 0) > (Number(product.price) || 0);
+  const discountPercent = hasDiscount ? Math.round(((Number(product.comparedPrice) - Number(product.price)) / Number(product.comparedPrice)) * 100) : 0;
+
   const ratingStats = (() => {
     if (!allReviews || !productId) return { avg: 0, count: 0 };
     const pReviews = allReviews.filter(r => r.productId === productId && r.published === true);
@@ -182,11 +188,6 @@ export default function ProductDetailPage(props: PageProps) {
 
   const selectedVariant = product.variants?.find((v: any) => v.size === selectedSize);
   const hasAnyStock = product.variants?.some((v: any) => (Number(v.stock) || 0) > 0);
-  const reviewsEnabled = reviewConfig?.enabled !== false;
-  const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
-  const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
-  const hasDiscount = product.comparedPrice && product.comparedPrice > (product.price || 0);
-  const discountPercent = hasDiscount ? Math.round(((product.comparedPrice! - product.price!) / product.comparedPrice!) * 100) : 0;
 
   const handleAddToCart = () => {
     if (!product || !selectedSize) return;
@@ -260,7 +261,7 @@ export default function ProductDetailPage(props: PageProps) {
   };
 
   return (
-    <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-24">
+    <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-24 bg-white">
       <button 
         onClick={() => router.back()}
         className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
@@ -415,7 +416,11 @@ export default function ProductDetailPage(props: PageProps) {
                   key={v.size}
                   onClick={() => setSelectedSize(v.size)}
                   disabled={Number(v.stock) === 0}
-                  className={cn("h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm", selectedSize === v.size ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary", Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed")}
+                  className={cn(
+                    "h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm", 
+                    selectedSize === v.size ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary",
+                    Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed"
+                  )}
                 >
                   {v.size}
                 </button>
@@ -427,13 +432,22 @@ export default function ProductDetailPage(props: PageProps) {
             <button 
               onClick={handleAddToCart}
               disabled={!selectedSize}
-              className={cn("w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none transition-all shadow-md", !selectedSize ? "bg-gray-200 text-muted-foreground" : "bg-primary text-primary-foreground hover:opacity-90")}
+              className={cn(
+                "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none transition-all shadow-md", 
+                !selectedSize ? "bg-gray-200 text-muted-foreground" : "bg-primary text-primary-foreground hover:opacity-90"
+              )}
             >
               {!selectedSize ? 'Select Size' : 'Add to Cart'}
             </button>
             <div className="grid grid-cols-2 gap-2">
-              <Button onClick={handleWishlist} variant="outline" className={cn("h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none", isSaved && "bg-red-50 border-red-200 text-destructive")}><Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} /> {isSaved ? 'Saved' : 'Wishlist'}</Button>
-              <Button onClick={handleShare} variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none"><Share2 className="h-3.5 w-3.5" /> Share</Button>
+              <Button onClick={handleWishlist} variant="outline" className={cn("h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none", isSaved && "bg-red-50 border-red-200 text-destructive")}>
+                <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} /> 
+                {isSaved ? 'Saved' : 'Wishlist'}
+              </Button>
+              <Button onClick={handleShare} variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none">
+                <Share2 className="h-3.5 w-3.5" /> 
+                Share
+              </Button>
             </div>
           </div>
         </div>
