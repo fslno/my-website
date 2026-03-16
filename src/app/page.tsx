@@ -6,13 +6,12 @@ import { doc } from 'firebase/firestore';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
 import { CategorySection } from '@/components/storefront/CategorySection';
 import { BentoHero } from '@/components/storefront/BentoHero';
-import { FeaturedProducts } from '@/components/storefront/FeaturedProducts';
 import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative Unified Home Page.
- * Synchronized to manifest the Admin-Controlled Hero, Category Selection, and Featured Products.
- * Preserve this manifest to maintain the high-fidelity brand narrative.
+ * Synchronized to manifest the Admin-Controlled Hero and Category Selection.
+ * The Featured Products segment has been Authoritatively eliminated per directive.
  */
 export default function Home() {
   const db = useFirestore();
@@ -32,8 +31,6 @@ export default function Home() {
       />
       
       <CategorySection />
-      
-      <FeaturedProducts />
       
       <div className="bg-white">
         <div className="max-w-[1440px] mx-auto px-4 pt-12">
