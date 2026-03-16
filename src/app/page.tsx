@@ -125,7 +125,7 @@ export default function Home() {
               <div className={cn(
                 "absolute inset-0 flex flex-col text-primary-foreground p-12 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-vertical-align"
               )}>
-                <span className="hero-subheadline-color text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
+                <span className="hero-subheadline-color hero-subheadline-size text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
                 <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none block">
                   {theme?.heroHeadline || "Modern Silhouettes"}
                 </span>

@@ -75,6 +75,7 @@ export function ThemeStyleInjector() {
     const heroTextAlign = theme.heroTextAlign || 'center';
     const heroVerticalAlign = theme.heroVerticalAlign || 'center';
     const heroHeadlineSize = theme.heroHeadlineSize || 72;
+    const heroSubheadlineSize = theme.heroSubheadlineSize || 10;
     const heroHeadlineColor = theme.heroHeadlineColor || theme.primaryColor || '#000000';
     const heroSubheadlineColor = theme.heroSubheadlineColor || '#8c9196';
 
@@ -127,6 +128,7 @@ export function ThemeStyleInjector() {
         --product-price-color: ${productPriceColor};
         
         --hero-headline-size: ${heroHeadlineSize}px;
+        --hero-subheadline-size: ${heroSubheadlineSize}px;
         --hero-headline-color: ${heroHeadlineColor};
         --hero-subheadline-color: ${heroSubheadlineColor};
         --hero-button-bg: ${heroButtonBg};
@@ -177,6 +179,9 @@ export function ThemeStyleInjector() {
       .hero-headline-size {
         font-size: clamp(calc(var(--hero-headline-size) * 0.5), 8vw, var(--hero-headline-size)) !important;
         color: var(--hero-headline-color) !important;
+      }
+      .hero-subheadline-size {
+        font-size: clamp(calc(var(--hero-subheadline-size) * 0.7), 3vw, var(--hero-subheadline-size)) !important;
       }
       .hero-subheadline-color {
         color: var(--hero-subheadline-color) !important;

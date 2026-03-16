@@ -63,6 +63,7 @@ export default function StorefrontAdminPage() {
   const [heroHeadlineColor, setHeroHeadlineColor] = useState('#000000');
   const [heroSubheadlineColor, setHeroSubheadlineColor] = useState('#8c9196');
   const [heroHeadlineSize, setHeroHeadlineSize] = useState('72');
+  const [heroSubheadlineSize, setHeroSubheadlineSize] = useState('10');
   const [heroTextAlign, setHeroTextAlign] = useState('center');
   const [heroVerticalAlign, setHeroVerticalAlign] = useState('center');
   const [heroButtonBgColor, setHeroButtonBgColor] = useState('#FFFFFF');
@@ -89,6 +90,7 @@ export default function StorefrontAdminPage() {
       setHeroHeadlineColor(theme.heroHeadlineColor || '#000000');
       setHeroSubheadlineColor(theme.heroSubheadlineColor || '#8c9196');
       setHeroHeadlineSize(theme.heroHeadlineSize?.toString() || '72');
+      setHeroSubheadlineSize(theme.heroSubheadlineSize?.toString() || '10');
       setHeroTextAlign(theme.heroTextAlign || 'center');
       setHeroVerticalAlign(theme.heroVerticalAlign || 'center');
       setHeroButtonBgColor(theme.heroButtonBgColor || '#FFFFFF');
@@ -125,6 +127,7 @@ export default function StorefrontAdminPage() {
       heroHeadlineColor,
       heroSubheadlineColor,
       heroHeadlineSize: Number(heroHeadlineSize),
+      heroSubheadlineSize: Number(heroSubheadlineSize),
       heroTextAlign,
       heroVerticalAlign,
       heroButtonBgColor,
@@ -309,12 +312,23 @@ export default function StorefrontAdminPage() {
                       </div>
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Font Scale</Label>
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Headline Scale</Label>
                           <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</Badge>
                         </div>
                         <input 
                           type="range" min="32" max="160" value={heroHeadlineSize} 
                           onChange={(e) => setHeroHeadlineSize(e.target.value)} 
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                        />
+                      </div>
+                      <div className="space-y-4 pt-4 border-t border-dashed">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Subheadline Scale</Label>
+                          <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroSubheadlineSize}PX</Badge>
+                        </div>
+                        <input 
+                          type="range" min="8" max="40" value={heroSubheadlineSize} 
+                          onChange={(e) => setHeroSubheadlineSize(e.target.value)} 
                           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
                         />
                       </div>
@@ -460,7 +474,7 @@ export default function StorefrontAdminPage() {
 
         <div className="xl:col-span-4 space-y-6">
           <Card className="border-[#e1e3e5] shadow-none rounded-none bg-zinc-900 text-white overflow-hidden sticky top-24">
-            <CardHeader className="border-b border-white/10">
+            <CardHeader className="border-b border-white/10 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
                   <Monitor className="h-3.5 w-3.5" /> High Fidelity Preview
@@ -483,7 +497,7 @@ export default function StorefrontAdminPage() {
                   <div className="absolute inset-0 bg-white/5" />
                 )}
                 <div className="relative z-10 space-y-2 w-full">
-                  <p className="text-[7px] uppercase tracking-[0.4em]" style={{ color: heroSubheadlineColor }}>{heroSubheadline || 'MODERN SILHOUETTES'}</p>
+                  <p className="uppercase tracking-[0.4em]" style={{ color: heroSubheadlineColor, fontSize: `${Math.max(6, Number(heroSubheadlineSize) / 4)}px` }}>{heroSubheadline || 'MODERN SILHOUETTES'}</p>
                   <h3 className="font-headline font-bold uppercase tracking-tight leading-none"
                     style={{
                       color: heroHeadlineColor,
