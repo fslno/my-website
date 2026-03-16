@@ -11,8 +11,13 @@ import { getMessaging, isSupported } from 'firebase/messaging';
 export function initializeFirebase() {
   if (!getApps().length) {
     let firebaseApp;
+    
+    // Explicit Validation Loop
+    if (!firebaseConfig.apiKey) {
+      console.error("CRITICAL: [FIREBASE] API Key missing. Verify environment manifest.");
+    }
+
     try {
-      // Attempt to initialize via environment or config manifest
       firebaseApp = initializeApp(firebaseConfig);
     } catch (e) {
       console.error('Firebase initialization failed.', e);

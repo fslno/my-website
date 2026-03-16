@@ -9,7 +9,8 @@ interface FirebaseClientProviderProps {
 }
 
 /**
- * Initializes Firebase on the client and provides it to the application context.
+ * Authoritative Client-Side Provider.
+ * Forensicly simplified to ensure absolute stability and immediate rendering.
  */
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
   const firebaseServices = useMemo(() => {
