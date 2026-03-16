@@ -3,21 +3,24 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative Category Selection segment.
  * Manifests ALL archival collections from the admin manifest in a 1:1 grid.
+ * Labels are controlled strictly from the Admin Theme Engine.
  */
 export function CategorySection() {
   const db = useFirestore();
 
+  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
+  const { data: theme } = useDoc(themeRef);
+
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
-    // Removed limit to manifest all categories as requested
     return query(collection(db, getLivePath('categories')), orderBy('order', 'asc'));
   }, [db]);
 
@@ -38,8 +41,12 @@ export function CategorySection() {
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-6">
           <div className="space-y-2">
-            <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">The Collections</span>
-            <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight text-primary">Shop by Drop</h2>
+            <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">
+              {theme?.categorySectionSubtitle || 'The Collections'}
+            </span>
+            <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight text-primary">
+              {theme?.categorySectionTitle || 'Shop by Drop'}
+            </h2>
           </div>
           <Link 
             href="/collections/all" 

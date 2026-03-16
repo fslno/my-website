@@ -32,7 +32,9 @@ import {
   Layers,
   Settings2,
   ShoppingBag,
-  Search
+  Search,
+  FileText,
+  Type as TypeIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -81,7 +83,11 @@ const DEFAULT_THEME = {
   adminAccentColor: '#f6f6f7',
   adminHeadlineFont: 'Inter',
   adminBodyFont: 'Inter',
-  adminHeaderHeight: '64'
+  adminHeaderHeight: '64',
+  categorySectionTitle: 'Shop by Drop',
+  categorySectionSubtitle: 'The Collections',
+  archiveSectionTitle: 'All Studio Pieces',
+  archiveSectionSubtitle: 'The Archive'
 };
 
 export default function ThemeEnginePage() {
@@ -122,6 +128,12 @@ export default function ThemeEnginePage() {
   const [productTextAlign, setProductTextAlign] = useState(DEFAULT_THEME.productTextAlign);
   const [stickyHeader, setStickyHeader] = useState(DEFAULT_THEME.stickyHeader);
 
+  // Content Labels State
+  const [categorySectionTitle, setCategorySectionTitle] = useState(DEFAULT_THEME.categorySectionTitle);
+  const [categorySectionSubtitle, setCategorySectionSubtitle] = useState(DEFAULT_THEME.categorySectionSubtitle);
+  const [archiveSectionTitle, setArchiveSectionTitle] = useState(DEFAULT_THEME.archiveSectionTitle);
+  const [archiveSectionSubtitle, setArchiveSectionSubtitle] = useState(DEFAULT_THEME.archiveSectionSubtitle);
+
   // Admin Theme State
   const [adminPrimaryColor, setAdminPrimaryColor] = useState(DEFAULT_THEME.adminPrimaryColor);
   const [adminAccentColor, setAdminAccentColor] = useState(DEFAULT_THEME.adminAccentColor);
@@ -155,6 +167,12 @@ export default function ThemeEnginePage() {
       setProductPriceColor(themeData.productPriceColor || DEFAULT_THEME.productPriceColor);
       setProductTextAlign(themeData.productTextAlign || DEFAULT_THEME.productTextAlign);
       setStickyHeader(themeData.stickyHeader ?? DEFAULT_THEME.stickyHeader);
+      
+      setCategorySectionTitle(themeData.categorySectionTitle || DEFAULT_THEME.categorySectionTitle);
+      setCategorySectionSubtitle(themeData.categorySectionSubtitle || DEFAULT_THEME.categorySectionSubtitle);
+      setArchiveSectionTitle(themeData.archiveSectionTitle || DEFAULT_THEME.archiveSectionTitle);
+      setArchiveSectionSubtitle(themeData.archiveSectionSubtitle || DEFAULT_THEME.archiveSectionSubtitle);
+
       setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
       setAdminAccentColor(themeData.adminAccentColor || DEFAULT_THEME.adminAccentColor);
       setAdminHeadlineFont(themeData.adminHeadlineFont || DEFAULT_THEME.adminHeadlineFont);
@@ -192,6 +210,10 @@ export default function ThemeEnginePage() {
       productPriceColor,
       productTextAlign,
       stickyHeader,
+      categorySectionTitle,
+      categorySectionSubtitle,
+      archiveSectionTitle,
+      archiveSectionSubtitle,
       adminPrimaryColor,
       adminAccentColor,
       adminHeadlineFont,
@@ -444,8 +466,54 @@ export default function ThemeEnginePage() {
               </Card>
 
               <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                <CardHeader className="pb-4 border-b bg-gray-50/30">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                    <TypeIcon className="h-3.5 w-3.5" /> Content Orchestration
+                  </CardTitle>
+                  <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Modify storefront section labels.</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-8">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-4 bg-primary" />
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Category Section</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Main Title</Label>
+                        <Input value={categorySectionTitle} onChange={(e) => setCategorySectionTitle(e.target.value)} className="h-11 font-bold uppercase text-[10px]" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Subtitle</Label>
+                        <Input value={categorySectionSubtitle} onChange={(e) => setCategorySectionSubtitle(e.target.value)} className="h-11 uppercase text-[10px] tracking-widest" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-4 bg-primary" />
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Global Archive</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Main Title</Label>
+                        <Input value={archiveSectionTitle} onChange={(e) => setArchiveSectionTitle(e.target.value)} className="h-11 font-bold uppercase text-[10px]" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Subtitle</Label>
+                        <Input value={archiveSectionSubtitle} onChange={(e) => setArchiveSectionSubtitle(e.target.value)} className="h-11 uppercase text-[10px] tracking-widest" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Selection Protocol</CardTitle>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Heading Protocol</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -472,40 +540,6 @@ export default function ThemeEnginePage() {
                         <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} />
                       </div>
                       <Input value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Featured Selection Protocol</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Title Scale</Label>
-                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{featuredTitleSize}PX</Badge>
-                      </div>
-                      <input type="range" min="12" max="120" value={featuredTitleSize} onChange={(e) => setFeaturedTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
-                    </div>
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Alignment</Label>
-                      <div className="flex border p-1 rounded-sm bg-gray-50">
-                        <Button variant={featuredTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setFeaturedTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
-                        <Button variant={featuredTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setFeaturedTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
-                        <Button variant={featuredTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setFeaturedTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid gap-2 max-w-sm">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Title Color</Label>
-                    <div className="flex gap-2">
-                      <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={featuredTitleColor} onChange={(e) => setFeaturedTitleColor(e.target.value)} />
-                      </div>
-                      <Input value={featuredTitleColor} onChange={(e) => setFeaturedTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
                     </div>
                   </div>
                 </CardContent>
@@ -618,7 +652,13 @@ export default function ThemeEnginePage() {
                 <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: 'center', textAlign: 'center' }}>
                   <div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">MODERN SILHOUETTES</span><h2 className="font-bold uppercase tracking-tight leading-none font-headline text-3xl">THE ARCHIVE SELECTION</h2><div className="mt-6 sm:mt-8 flex justify-center"><div className="bg-black text-white px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">SHOP NOW</div></div></div>
                 </div>
-                <div className="space-y-8"><h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">Catalog Selection</h3><div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none">Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div></div>
+                <div className="space-y-8">
+                  <div className="space-y-1">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-gray-400">{categorySectionSubtitle}</p>
+                    <h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">{categorySectionTitle}</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none">Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div>
+                </div>
               </div>
             </div>
           </div>
