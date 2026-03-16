@@ -3,12 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * FSLNO E-COMMERCE SECURITY RULES - V2 (Draft & Publish)
+     * FSLNO E-COMMERCE SECURITY RULES - UNIFIED V1
      * 
      * Core Philosophy:
-     * 1. Public can ONLY read 'live_' collections.
+     * 1. Public can read products, categories, config, and reviews.
      * 2. Admin has full authority over all collections.
-     * 3. Transactional data (orders, users) is shared across environments.
+     * 3. Users can manage their own profiles and carts.
      */
 
     // --- Helper Functions ---
@@ -28,25 +28,16 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Production (Live) Collection Rules ---
-    // Publicly accessible read-only snapshots.
+    // --- Public Catalog Rules ---
 
-    match /live_products/{id} { allow get, list: if true; }
-    match /live_categories/{id} { allow get, list: if true; }
-    match /live_config/{id} { allow get: if true; allow list: if true; }
-    match /live_testimonials/{id} { allow get, list: if true; }
-    match /live_sizeCharts/{id} { allow get, list: if true; }
+    match /products/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /categories/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /config/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /testimonials/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /sizeCharts/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /coupons/{id} { allow read: if true; allow write: if isAdmin(); }
 
-    // --- Staging (Studio) Collection Rules ---
-    // Strictly restricted to administrative authority.
-
-    match /products/{id} { allow read, write: if isAdmin(); }
-    match /categories/{id} { allow read, write: if isAdmin(); }
-    match /config/{id} { allow read, write: if isAdmin(); }
-    match /testimonials/{id} { allow read, write: if isAdmin(); }
-    match /sizeCharts/{id} { allow read, write: if isAdmin(); }
-
-    // --- Shared Transactional Rules ---
+    // --- Transactional Rules ---
 
     match /users/{userId} {
       allow get, list: if isOwner(userId) || isAdmin();
@@ -59,6 +50,7 @@ service cloud.firestore {
     }
 
     match /roles_admin/{userId} { allow read, write: if isAdmin(); }
+    
     match /orders/{orderId} {
       allow create: if true;
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid) || (resource.data.userId == 'guest');
@@ -74,7 +66,6 @@ service cloud.firestore {
     
     match /staff/{id} { allow read, write: if isAdmin(); }
     match /partners/{id} { allow read, write: if isAdmin(); }
-    match /coupons/{id} { allow get: if true; allow list, write: if isAdmin(); }
     match /mail/{id} { allow create: if true; allow read, update, delete: if isAdmin(); }
   }
 }

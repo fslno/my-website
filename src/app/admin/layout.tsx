@@ -29,8 +29,7 @@ import {
   Volume2,
   VolumeX,
   Monitor,
-  Star,
-  CloudUpload
+  Star
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -47,7 +46,7 @@ import {
   SidebarTrigger,
   useSidebar 
 } from '@/components/ui/sidebar';
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -114,16 +113,6 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            {/* Publish Command Center */}
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Publish" onClick={handleNavClick} className="font-admin-body bg-blue-50/50 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
-                <Link href="/admin/publish">
-                  <CloudUpload className="text-blue-600" />
-                  <span className="font-bold uppercase tracking-tight">Publish to Live</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Orders" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/orders">
@@ -487,11 +476,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <header className="admin-header-height bg-white/80 backdrop-blur-md border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30 w-full shrink-0">
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 max-w-xl">
               <SidebarTrigger className="h-9 w-9 shrink-0" />
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 border-blue-100 hidden sm:flex">
-                  Studio Workstation
-                </Badge>
-              </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <button 
