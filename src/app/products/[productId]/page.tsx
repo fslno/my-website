@@ -15,6 +15,7 @@ import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -254,26 +255,6 @@ export default function ProductDetailPage(props: PageProps) {
       });
     }
   };
-
-  if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-10 w-10 animate-spin text-black" />
-      </main>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center p-4 pt-28 sm:pt-36">
-        <h1 className="text-2xl font-headline font-bold mb-4 text-primary">Product Not Found</h1>
-        <p className="text-muted-foreground mb-8">This item may no longer be available.</p>
-        <Button asChild className="bg-primary text-primary-foreground rounded-none h-12 px-8">
-          <Link href="/">Back to Shop</Link>
-        </Button>
-      </div>
-    );
-  }
 
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
