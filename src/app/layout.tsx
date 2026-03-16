@@ -10,12 +10,12 @@ import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
 import { MetaTagInjector } from '@/components/storefront/MetaTagInjector';
 import { PushNotificationManager } from '@/components/storefront/PushNotificationManager';
 import { Chatbot } from '@/components/storefront/Chatbot';
+import { Header } from '@/components/storefront/Header';
 import { cn } from '@/lib/utils';
 
 /**
- * Authoritative Root Layout (Restored).
- * Implements a mounting guard to ensure hydration stability while manifesting
- * the unified Studio and Storefront architecture.
+ * Authoritative Root Layout with Global Mounting Guard.
+ * Implements a black-box boot interface to prevent hydration flashbacks.
  */
 export default function RootLayout({
   children,
@@ -38,8 +38,8 @@ export default function RootLayout({
       <body className={cn("font-body antialiased bg-background text-foreground m-0 p-0")}>
         {!mounted ? (
           <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
-            <p className="text-white font-mono text-[10px] uppercase tracking-[0.2em] animate-pulse">
-              fslno_archive_initializing...
+            <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em]">
+              FSLNO_ARCHIVE
             </p>
           </div>
         ) : (
@@ -49,7 +49,10 @@ export default function RootLayout({
             <PushNotificationManager />
             <WishlistProvider>
               <CartProvider>
-                {children}
+                <Header />
+                <main className="min-h-screen">
+                  {children}
+                </main>
                 <Chatbot />
                 <Toaster />
               </CartProvider>

@@ -11,8 +11,6 @@ import {
   useCollection
 } from '@/firebase';
 import { doc, collection, query, orderBy, where } from 'firebase/firestore';
-import { Header } from '@/components/storefront/Header';
-import { Footer } from '@/components/storefront/Footer';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -91,11 +89,9 @@ export default function ProductDetailPage(props: PageProps) {
   
   const { data: product, isLoading: loading } = useDoc(productRef);
 
-  // Global Review Config
   const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
   const { data: reviewConfig } = useDoc(reviewConfigRef);
 
-  // Fetch Size Charts assigned to this category
   const sizeChartsQuery = useMemoFirebase(() => {
     if (!db || !product?.categoryId) return null;
     return query(collection(db, getLivePath('sizeCharts')), where('category', '==', product.categoryId));
@@ -103,7 +99,6 @@ export default function ProductDetailPage(props: PageProps) {
 
   const { data: categoryCharts, isLoading: chartsLoading } = useCollection(sizeChartsQuery);
 
-  // Fetch Reviews for Rating Aggregation (Reviews are shared)
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
@@ -176,7 +171,6 @@ export default function ProductDetailPage(props: PageProps) {
 
   useEffect(() => {
     if (!api) return;
-    
     api.on("select", () => {
       setActiveImageIndex(api.selectedScrollSnap());
     });
@@ -266,21 +260,8 @@ export default function ProductDetailPage(props: PageProps) {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
+      <main className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin text-black" />
-      </main>
-    );
-  }
-
-  if (!product) {
-    return (
-      <main className="min-h-screen bg-white">
-        <Header />
-        <div className="max-w-[1280px] mx-auto px-4 pt-40 pb-24 text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Archival piece not found.</p>
-          <Link href="/" className="mt-8 inline-block text-[10px] font-bold uppercase underline tracking-widest text-primary hover:opacity-60 transition-opacity">Return to Studio</Link>
-        </div>
-        <Footer />
       </main>
     );
   }
@@ -291,354 +272,240 @@ export default function ProductDetailPage(props: PageProps) {
   const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
 
   return (
-    <main className="min-h-screen bg-white">
-      <Header />
-      
-      <div className="max-w-[1280px] mx-auto px-4 pt-28 sm:pt-36 pb-12">
-        <button 
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
-        >
-          <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-          Back to Previous
-        </button>
+    <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-24">
+      <button 
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
+      >
+        <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
+        Back to Previous
+      </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-24">
-          
-          <div className="space-y-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Vertical Thumbnails on Desktop */}
-              {media.length > 1 && (
-                <div className="hidden lg:flex lg:flex-col gap-2 overflow-y-auto scrollbar-hide lg:w-20 shrink-0">
-                  {media.map((item: any, idx: number) => (
-                    <button 
-                      key={idx}
-                      onClick={() => handleThumbnailClick(idx)}
-                      className={cn(
-                        "w-full aspect-square shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
-                        activeImageIndex === idx ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
-                      )}
-                    >
-                      <Image src={item.url} alt={`View ${idx}`} fill className="object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-              
-              <div className="flex-1 overflow-hidden relative group/carousel">
-                <Carousel setApi={setApi} className="w-full">
-                  <CarouselContent>
-                    {media.length > 0 ? (
-                      media.map((item: any, idx: number) => (
-                        <CarouselItem key={idx}>
-                          <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
-                            <Image 
-                              src={item.url} 
-                              alt={product.name} 
-                              fill 
-                              className="object-cover"
-                              priority={idx === 0}
-                            />
-                          </div>
-                        </CarouselItem>
-                      ))
-                    ) : (
-                      <CarouselItem>
-                        <div className="aspect-square relative bg-gray-200 rounded-sm border" />
-                      </CarouselItem>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-24">
+        <div className="space-y-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {media.length > 1 && (
+              <div className="hidden lg:flex lg:flex-col gap-2 overflow-y-auto scrollbar-hide lg:w-20 shrink-0">
+                {media.map((item: any, idx: number) => (
+                  <button 
+                    key={idx}
+                    onClick={() => handleThumbnailClick(idx)}
+                    className={cn(
+                      "w-full aspect-square shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
+                      activeImageIndex === idx ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
                     )}
-                  </CarouselContent>
-                </Carousel>
-
-                {/* Mobile Dots */}
-                {media.length > 1 && (
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 lg:hidden z-10">
-                    {media.map((_: any, idx: number) => (
-                      <div 
-                        key={idx} 
-                        className={cn(
-                          "w-1.5 h-1.5 rounded-full transition-all duration-500",
-                          activeImageIndex === idx ? "bg-black w-4" : "bg-black/20"
-                        )}
-                      />
-                    ))}
-                  </div>
-                )}
+                  >
+                    <Image src={item.url} alt={`View ${idx}`} fill className="object-cover" />
+                  </button>
+                ))}
               </div>
-            </div>
-
-            <div className="hidden lg:block space-y-4 pt-6 border-t">
-              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Description</h3>
-              <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">
-                {product.description || "No description provided."}
-              </div>
-              
-              {product.features && product.features.length > 0 && (
-                <div className="pt-4">
-                  <h4 className="text-[10px] uppercase tracking-widest font-bold mb-3 text-primary">Key Features</h4>
-                  <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    {product.features.map((feature: string, i: number) => (
-                      <li key={i} className="text-[11px] flex items-start gap-2 text-muted-foreground">
-                        <span className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
+            )}
+            
+            <div className="flex-1 overflow-hidden relative group/carousel">
+              <Carousel setApi={setApi} className="w-full">
+                <CarouselContent>
+                  {media.length > 0 ? (
+                    media.map((item: any, idx: number) => (
+                      <CarouselItem key={idx}>
+                        <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
+                          <Image 
+                            src={item.url} 
+                            alt={product.name} 
+                            fill 
+                            className="object-cover"
+                            priority={idx === 0}
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))
+                  ) : (
+                    <CarouselItem>
+                      <div className="aspect-square relative bg-gray-200 rounded-sm border" />
+                    </CarouselItem>
+                  )}
+                </CarouselContent>
+              </Carousel>
+              {media.length > 1 && (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 lg:hidden z-10">
+                  {media.map((_: any, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className={cn(
+                        "w-1.5 h-1.5 rounded-full transition-all duration-500",
+                        activeImageIndex === idx ? "bg-black w-4" : "bg-black/20"
+                      )}
+                    />
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-headline font-bold tracking-tight text-primary">{product.name}</h1>
-              
-              {(reviewsEnabled && ratingStats.count > 0) && (
-                <div className="flex items-center gap-2 mt-1 mb-2 animate-in fade-in duration-500">
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star 
-                        key={s} 
-                        className={cn(
-                          "h-3 w-3", 
-                          s <= Math.round(ratingStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
-                        )} 
-                      />
-                    ))}
-                  </div>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">({ratingStats.count} Reviews)</span>
-                </div>
-              )}
-
-              <div className="flex items-center gap-4 pt-2">
-                <p className="text-lg font-bold text-primary">{`C$${formatCurrency(totalPrice)}`}</p>
-                {hasDiscount && (
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground line-through decoration-muted-foreground/50 font-medium">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
-                    <Badge className="bg-emerald-50 text-emerald-700 border-none uppercase text-[8px] font-bold tracking-widest">{discountPercent}% OFF</Badge>
-                  </div>
-                )}
-              </div>
-              <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">
-                REF: {displayedSku}
-              </p>
+          <div className="hidden lg:block space-y-4 pt-6 border-t">
+            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Description</h3>
+            <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">
+              {product.description || "No description provided."}
             </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
-                <span>Select Size</span>
-                
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 ease-in-out text-[11px] font-bold p-1 rounded">
-                      <Ruler className="h-5 w-5" /> {sizeChart ? 'Size Guide' : 'Standard Guide'}
-                    </button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 flex flex-col">
-                    <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                      <div className="flex items-center gap-3 text-primary mb-2">
-                        <Ruler className="h-5 w-5" />
-                        <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Size Guide</SheetTitle>
-                      </div>
-                      <p className="text-sm text-muted-foreground font-medium">Measurements for: <span className="text-primary font-bold">{effectiveChart.name}</span></p>
-                    </SheetHeader>
-                    
-                    <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                      {chartsLoading ? (
-                        <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-black/10" /></div>
-                      ) : (
-                        <>
-                          <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Ruler className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Dimensions</span>
-                            </div>
-                            <span className="text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded tracking-widest">
-                              Unit: {effectiveChart.unit}
-                            </span>
-                          </div>
-
-                          <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
-                            <Table>
-                              <TableHeader className="bg-gray-50/50">
-                                <TableRow>
-                                  <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
-                                  {effectiveChart.columns?.map((col: string, idx: number) => (
-                                    <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
-                                  ))}
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {effectiveChart.rows?.map((row: any, rowIdx: number) => (
-                                  <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
-                                    <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
-                                    {row.values?.map((val: string, colIdx: number) => (
-                                      <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
-                                    ))}
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(product.variants || []).map((v: any) => (
-                  <button
-                    key={v.size}
-                    onClick={() => setSelectedSize(v.size)}
-                    disabled={Number(v.stock) === 0}
-                    className={cn(
-                      "h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
-                      selectedSize === v.size 
-                        ? "bg-primary text-primary-foreground border-primary" 
-                        : "bg-white text-primary border-gray-200 hover:bg-secondary",
-                      Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed hover:bg-transparent"
-                    )}
-                  >
-                    {v.size}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[9px] text-muted-foreground">
-                Fit: <span className="text-primary font-bold">{product.sizeFit || 'True to size'}</span>
-              </p>
-            </div>
-
-            {product.customizationEnabled && (
-              <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
-                      Customization
-                    </Label>
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
-                      {`C$${formatCurrency(Number(product.customizationFee) || 10)}`}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setWantsCustomization(false)}
-                      className={cn(
-                        "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
-                        !wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
-                      )}
-                    >
-                      No
-                    </button>
-                    <button
-                      onClick={() => wantsCustomization === true ? setWantsCustomization(false) : setWantsCustomization(true)}
-                      className={cn(
-                        "flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out rounded-sm",
-                        wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary"
-                      )}
-                    >
-                      Yes
-                    </button>
-                  </div>
-                </div>
-
-                {wantsCustomization && (
-                  <div className="space-y-4 animate-in fade-in duration-300">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Name</Label>
-                        <Input 
-                          placeholder="ENTER NAME" 
-                          value={customName}
-                          onChange={(e) => setCustomName(e.target.value.toUpperCase())}
-                          className="bg-white h-9 text-[10px] font-bold"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Number</Label>
-                        <Input 
-                          placeholder="00" 
-                          maxLength={2}
-                          value={customNumber}
-                          onChange={(e) => setCustomNumber(e.target.value)}
-                          className="bg-white h-9 text-[10px] font-bold text-center"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Special Note</Label>
-                      <Input 
-                        placeholder="ADDITIONAL REQUESTS..." 
-                        value={specialRequest}
-                        onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())}
-                        className="bg-white h-9 text-[10px] font-bold"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="space-y-3 pt-4 border-t mt-4">
-              <button 
-                onClick={handleAddToCart}
-                disabled={!selectedSize || isStockReached}
-                className={cn(
-                  "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none transition-all duration-300 ease-in-out shadow-md",
-                  isStockReached 
-                    ? "bg-gray-200 text-muted-foreground cursor-not-allowed" 
-                    : "bg-primary text-primary-foreground hover:opacity-90 active:scale-95"
-                )}
-              >
-                {!selectedSize ? 'Select Size' : isStockReached ? 'Limited Reached' : 'Add to Cart'}
-              </button>
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  onClick={handleWishlist}
-                  variant="outline" 
-                  className={cn(
-                    "h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none",
-                    isSaved && "bg-red-50 border-red-200 text-destructive"
-                  )}
-                >
-                  <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} /> 
-                  {isSaved ? 'Saved' : 'Wishlist'}
-                </Button>
-                <Button 
-                  onClick={handleShare}
-                  variant="outline" 
-                  className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none"
-                >
-                  <Share2 className="h-3.5 w-3.5" /> Share
-                </Button>
-              </div>
-            </div>
-
-            <div className="lg:hidden space-y-4 pt-6 border-t">
-              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Description</h3>
-              <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">
-                {product.description || "No description provided."}
-              </div>
-            </div>
-
-            {hasAnyStock && (
-              <div className="pt-4 space-y-3">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Check className="h-3 w-3 text-emerald-500" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest">Ready to ship</span>
-                </div>
+            {product.features && product.features.length > 0 && (
+              <div className="pt-4">
+                <h4 className="text-[10px] uppercase tracking-widest font-bold mb-3 text-primary">Key Features</h4>
+                <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  {product.features.map((feature: string, i: number) => (
+                    <li key={i} className="text-[11px] flex items-start gap-2 text-muted-foreground">
+                      <span className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
         </div>
+
+        <div className="space-y-6">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-headline font-bold tracking-tight text-primary">{product.name}</h1>
+            {(reviewsEnabled && ratingStats.count > 0) && (
+              <div className="flex items-center gap-2 mt-1 mb-2">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} className={cn("h-3 w-3", s <= Math.round(ratingStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />
+                  ))}
+                </div>
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">({ratingStats.count} Reviews)</span>
+              </div>
+            )}
+            <div className="flex items-center gap-4 pt-2">
+              <p className="text-lg font-bold text-primary">{`C$${formatCurrency(totalPrice)}`}</p>
+              {hasDiscount && (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground line-through decoration-muted-foreground/50 font-medium">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
+                  <Badge className="bg-emerald-50 text-emerald-700 border-none uppercase text-[8px] font-bold tracking-widest">{discountPercent}% OFF</Badge>
+                </div>
+              )}
+            </div>
+            <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">REF: {displayedSku}</p>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
+              <span>Select Size</span>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 text-[11px] font-bold">
+                    <Ruler className="h-5 w-5" /> {sizeChart ? 'Size Guide' : 'Standard Guide'}
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 flex flex-col">
+                  <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
+                    <div className="flex items-center gap-3 text-primary mb-2">
+                      <Ruler className="h-5 w-5" />
+                      <SheetTitle className="text-2xl font-headline font-bold tracking-tight uppercase">Size Guide</SheetTitle>
+                    </div>
+                    <p className="text-sm text-muted-foreground font-medium">Measurements for: <span className="text-primary font-bold">{effectiveChart.name}</span></p>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto p-8">
+                    {chartsLoading ? <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-black/10" /></div> : (
+                      <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
+                        <Table>
+                          <TableHeader className="bg-gray-50/50">
+                            <TableRow>
+                              <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
+                              {effectiveChart.columns?.map((col: string, idx: number) => (
+                                <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
+                              ))}
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {effectiveChart.rows?.map((row: any, rowIdx: number) => (
+                              <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
+                                <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
+                                {row.values?.map((val: string, colIdx: number) => (
+                                  <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
+                                ))}
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(product.variants || []).map((v: any) => (
+                <button
+                  key={v.size}
+                  onClick={() => setSelectedSize(v.size)}
+                  disabled={Number(v.stock) === 0}
+                  className={cn("h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm", selectedSize === v.size ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary", Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed")}
+                >
+                  {v.size}
+                </button>
+              ))}
+            </div>
+            <p className="text-[9px] text-muted-foreground">Fit: <span className="text-primary font-bold">{product.sizeFit || 'True to size'}</span></p>
+          </div>
+
+          {product.customizationEnabled && (
+            <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Customization</Label>
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{`C$${formatCurrency(Number(product.customizationFee) || 10)}`}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm", !wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary")}>No</button>
+                  <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm", wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary")}>Yes</button>
+                </div>
+              </div>
+              {wantsCustomization && (
+                <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Name</Label><Input placeholder="ENTER NAME" value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} className="bg-white h-9 text-[10px] font-bold" /></div>
+                    <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Number</Label><Input placeholder="00" maxLength={2} value={customNumber} onChange={(e) => setCustomNumber(e.target.value)} className="bg-white h-9 text-[10px] font-bold text-center" /></div>
+                  </div>
+                  <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Special Note</Label><Input placeholder="ADDITIONAL REQUESTS..." value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} className="bg-white h-9 text-[10px] font-bold" /></div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-3 pt-4 border-t mt-4">
+            <button 
+              onClick={handleAddToCart}
+              disabled={!selectedSize || isStockReached}
+              className={cn("w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none transition-all shadow-md", isStockReached ? "bg-gray-200 text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:opacity-90 active:scale-95")}
+            >
+              {!selectedSize ? 'Select Size' : isStockReached ? 'Limited Reached' : 'Add to Cart'}
+            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button onClick={handleWishlist} variant="outline" className={cn("h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none", isSaved && "bg-red-50 border-red-200 text-destructive")}><Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} /> {isSaved ? 'Saved' : 'Wishlist'}</Button>
+              <Button onClick={handleShare} variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none"><Share2 className="h-3.5 w-3.5" /> Share</Button>
+            </div>
+          </div>
+
+          <div className="lg:hidden space-y-4 pt-6 border-t">
+            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Description</h3>
+            <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">{product.description || "No description provided."}</div>
+          </div>
+
+          {hasAnyStock && (
+            <div className="pt-4 space-y-3">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Check className="h-3 w-3 text-emerald-500" />
+                <span className="text-[9px] font-bold uppercase tracking-widest">Ready to ship</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <TestimonialSection />
-      <Footer />
     </main>
   );
 }
