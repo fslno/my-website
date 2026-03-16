@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -65,6 +65,8 @@ export default function CheckoutPage() {
   const { cart, cartSubtotal, cartCount, clearCart, updateCartItem, discountTotal, totalBeforeTax, appliedCoupon, applyCoupon } = useCart();
   
   const [mounted, setMounted] = useState(false);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -94,6 +96,14 @@ export default function CheckoutPage() {
   });
 
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  // Auto-expand order note logic
+  useEffect(() => {
+    if (noteRef.current) {
+      noteRef.current.style.height = 'auto';
+      noteRef.current.style.height = noteRef.current.scrollHeight + 'px';
+    }
+  }, [orderNote]);
 
   const isFreeShippingEligible = useMemo(() => {
     if (!shippingConfig?.freeShippingEnabled) return false;
@@ -309,9 +319,9 @@ export default function CheckoutPage() {
         </section>
       </div>
 
-      <div className="lg:col-span-5 bg-white border-l p-8 space-y-8">
+      <div className="lg:col-span-5 bg-white border-l p-6 space-y-6">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4 text-primary">Summary ({cartCount})</h2>
-        <div className="space-y-6">
+        <div className="space-y-4">
           {cart.map((item) => (
             <div key={item.variantId} className="flex gap-4">
               <div className="w-20 h-20 relative bg-gray-50 border shrink-0"><Image src={item.image} alt={item.name} fill className="object-cover" /></div>
@@ -331,7 +341,7 @@ export default function CheckoutPage() {
           ))}
         </div>
 
-        <div className="space-y-4 pt-6 border-t">
+        <div className="space-y-3 pt-4 border-t">
           <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Search className="h-3.5 w-3.5" /> Discovery Protocol</h3>
           <div className="space-y-2">
             <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>How did you hear about us?</Label>
@@ -349,12 +359,18 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="space-y-4 pt-6 border-t">
+        <div className="space-y-3 pt-4 border-t">
           <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><MessageSquare className="h-3.5 w-3.5" /> Order Notes (Optional)</h3>
-          <Textarea value={orderNote} onChange={(e) => setOrderNote(e.target.value.toUpperCase())} placeholder="ANY SPECIAL REQUESTS OR INSTRUCTIONS..." className="min-h-[100px] resize-none uppercase text-xs rounded-none border-gray-200" />
+          <Textarea 
+            ref={noteRef}
+            value={orderNote} 
+            onChange={(e) => setOrderNote(e.target.value.toUpperCase())} 
+            placeholder="ANY SPECIAL REQUESTS..." 
+            className="min-h-[40px] overflow-hidden resize-none uppercase text-xs rounded-none border-gray-200 py-2" 
+          />
         </div>
 
-        <div className="space-y-4 pt-6 border-t">
+        <div className="space-y-3 pt-4 border-t">
           <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Discount Code</Label>
           <div className="flex gap-2">
             <Input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} placeholder="COUPON" className="h-12 bg-gray-50 uppercase font-bold text-xs rounded-none border-gray-200" />
@@ -365,7 +381,7 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        <div className="pt-8 border-t space-y-3">
+        <div className="pt-6 border-t space-y-2">
           <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>Subtotal</span><span className="text-primary">{`C$${formatCurrency(cartSubtotal)}`}</span></div>
           {discountTotal > 0 && (<div className="flex justify-between text-[10px] font-bold uppercase text-destructive"><span>Discount</span><span className="text-destructive">{`-C$${formatCurrency(discountTotal)}`}</span></div>)}
           <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pickup'}</span><span className="text-primary">{isShippingReady ? (shippingRate > 0 ? `C$${formatCurrency(shippingRate)}` : 'FREE') : '--'}</span></div>
@@ -374,7 +390,7 @@ export default function CheckoutPage() {
           <div className="flex justify-between items-end pt-2"><span className="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">Total</span><p className="text-2xl font-bold font-headline tracking-tighter text-primary">{isSummaryReady ? `C$${formatCurrency(finalTotal)}` : '--'}</p></div>
         </div>
 
-        <div className="pt-8 space-y-4">
+        <div className="pt-6 space-y-4 relative z-0 isolate">
           <div className="pt-4 relative z-0 isolate">
             {paymentConfig?.paypalEnabled && selectedPayment === 'paypal' && (
               <PayPalPayment amount={finalTotal} orderData={currentOrderData} onSuccess={handlePayPalSuccess} validate={validate} clientId={paymentConfig.paypalClientId} />
