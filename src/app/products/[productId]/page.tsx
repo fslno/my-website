@@ -25,7 +25,6 @@ import {
   ChevronLeft,
   Loader2,
   Sparkles,
-  MessageSquare,
   Star,
   AlertCircle
 } from 'lucide-react';
@@ -131,16 +130,6 @@ export default function ProductDetailPage(props: PageProps) {
     const fee = wantsCustomization ? (Number(product.customizationFee) || 10) : 0;
     return base + fee;
   }, [product, wantsCustomization]);
-
-  const hasDiscount = product?.comparedPrice && product.comparedPrice > (product.price || 0);
-  const discountPercent = hasDiscount ? Math.round(((product.comparedPrice! - product.price!) / product.comparedPrice!) * 100) : 0;
-
-  const formatCurrency = (val: number) => {
-    return val.toLocaleString(undefined, { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    });
-  };
 
   const displayedSku = useMemo(() => {
     if (!product) return 'N/A';
@@ -292,6 +281,8 @@ export default function ProductDetailPage(props: PageProps) {
   const reviewsEnabled = reviewConfig?.enabled !== false;
   const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
   const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
+  const hasDiscount = product.comparedPrice && product.comparedPrice > (product.price || 0);
+  const discountPercent = hasDiscount ? Math.round(((product.comparedPrice! - product.price!) / product.comparedPrice!) * 100) : 0;
 
   return (
     <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-24">
