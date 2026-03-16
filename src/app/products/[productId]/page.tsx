@@ -12,6 +12,7 @@ import {
 } from '@/firebase';
 import { doc, collection, query, orderBy, where } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
+import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -428,6 +429,72 @@ export default function ProductDetailPage(props: PageProps) {
             </div>
           </div>
 
+          {product.customizationEnabled && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Personalize this piece?</Label>
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold">Add name and number (+C${(Number(product.customizationFee) || 10).toFixed(2)})</p>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setWantsCustomization(false)}
+                    className={cn(
+                      "h-9 px-4 border text-[9px] font-bold uppercase tracking-widest transition-all",
+                      !wantsCustomization ? "bg-black text-white border-black" : "bg-white text-primary border-gray-200"
+                    )}
+                  >
+                    No
+                  </button>
+                  <button 
+                    onClick={() => setWantsCustomization(true)}
+                    className={cn(
+                      "h-9 px-4 border text-[9px] font-bold uppercase tracking-widest transition-all",
+                      wantsCustomization ? "bg-black text-white border-black" : "bg-white text-primary border-gray-200"
+                    )}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+
+              {wantsCustomization && (
+                <div className="grid grid-cols-1 gap-4 pt-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">Name</Label>
+                      <Input 
+                        value={customName} 
+                        onChange={(e) => setCustomName(e.target.value.toUpperCase())}
+                        placeholder="NAME"
+                        className="h-11 text-xs font-bold uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">Number</Label>
+                      <Input 
+                        value={customNumber} 
+                        onChange={(e) => setCustomNumber(e.target.value)}
+                        placeholder="00"
+                        maxLength={2}
+                        className="h-11 text-xs font-bold uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Special Request</Label>
+                    <Input 
+                      value={specialRequest} 
+                      onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())}
+                      placeholder="ADDITIONAL NOTES..."
+                      className="h-11 text-[10px] font-medium uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-3 pt-4 border-t mt-4">
             <button 
               onClick={handleAddToCart}
@@ -453,6 +520,7 @@ export default function ProductDetailPage(props: PageProps) {
         </div>
       </div>
 
+      <ReviewSystem productId={productId} />
       <TestimonialSection />
     </main>
   );
