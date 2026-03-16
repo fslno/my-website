@@ -8,16 +8,40 @@ import { BentoHero } from '@/components/storefront/BentoHero';
 import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 export default function Home() {
   const db = useFirestore();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 60;
+
+  const [classicApi, setClassicApi] = useState<CarouselApi>();
+  const [classicCurrent, setClassicCurrent] = useState(0);
+
+  useEffect(() => {
+    if (!classicApi) return;
+    setClassicCurrent(classicApi.selectedScrollSnap());
+    classicApi.on("select", () => {
+      setClassicCurrent(classicApi.selectedScrollSnap());
+    });
+  }, [classicApi]);
+
+  const classicAutoplay = React.useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: false })
+  );
 
   useEffect(() => {
     // Authoritatively reset scroll position to the top on mount (including "back" navigation)
@@ -100,7 +124,12 @@ export default function Home() {
   const isHeroLoading = categoriesLoading;
   const reviewsEnabled = reviewConfig?.enabled !== false;
 
-  const heroImageSrc = theme?.heroImageUrl || categories?.[0]?.imageUrl || "";
+  const heroImages = useMemo(() => {
+    if (theme?.heroImages && theme.heroImages.length > 0) return theme.heroImages;
+    if (theme?.heroImageUrl) return [theme.heroImageUrl];
+    if (categories?.[0]?.imageUrl) return [categories[0].imageUrl];
+    return [];
+  }, [theme, categories]);
 
   return (
     <main className="min-h-screen bg-background">
@@ -109,41 +138,80 @@ export default function Home() {
       {/* Hero Selection based on Theme Config */}
       {theme?.homepageLayout === 'classic' ? (
         <section className="pt-28 sm:pt-36">
-          <div className="w-full overflow-hidden bg-primary shadow-2xl group border-b">
-            <div className="relative h-[52.5vh] w-full">
-              {heroImageSrc ? (
-                <Image
-                  src={heroImageSrc}
-                  alt="Main Hero"
-                  fill
-                  className="object-cover opacity-80"
-                  priority
-                />
-              ) : (
-                <div className="absolute inset-0 bg-primary opacity-20" />
+          <div className="w-full overflow-hidden bg-primary shadow-2xl group border-b relative">
+            <Carousel 
+              setApi={setClassicApi}
+              plugins={[classicAutoplay.current]}
+              className="w-full h-[52.5vh]"
+              opts={{ loop: true }}
+            >
+              <CarouselContent className="h-full ml-0">
+                {heroImages.map((url: string, idx: number) => (
+                  <CarouselItem key={idx} className="relative h-[52.5vh] w-full pl-0">
+                    <Image
+                      src={url}
+                      alt={`Hero slide ${idx + 1}`}
+                      fill
+                      className="object-cover opacity-80"
+                      priority={idx === 0}
+                    />
+                  </CarouselItem>
+                ))}
+                {heroImages.length === 0 && (
+                  <CarouselItem className="relative h-[52.5vh] w-full pl-0">
+                    <div className="absolute inset-0 bg-primary opacity-20" />
+                  </CarouselItem>
+                )}
+              </CarouselContent>
+
+              {/* Interaction-Triggered Navigation Arrows */}
+              {heroImages.length > 1 && (
+                <div className="absolute inset-0 z-20 pointer-events-none group-hover:pointer-events-auto">
+                  <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-none border-none bg-black/20 text-white hover:bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-auto" />
+                  <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-none border-none bg-black/20 text-white hover:bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-auto" />
+                </div>
               )}
+
+              {/* Static Content Overlay */}
               <div className={cn(
-                "absolute inset-0 flex flex-col text-primary-foreground p-12 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-vertical-align"
+                "absolute inset-0 flex flex-col text-primary-foreground p-6 sm:p-12 bg-gradient-to-t from-black/60 via-transparent to-transparent hero-vertical-align z-10 pointer-events-none"
               )}>
-                <span className="hero-subheadline-color hero-subheadline-size text-[10px] uppercase tracking-[0.5em] font-bold mb-6">{theme?.heroSubheadline || "The Collection"}</span>
-                <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none block">
-                  {theme?.heroHeadline || "Modern Silhouettes"}
-                </span>
-                <Link href="/collections/all" className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95">
-                  {theme?.heroButtonText || "Shop All"}
-                </Link>
+                <div className="pointer-events-auto">
+                  <span className="hero-subheadline-color hero-subheadline-size text-[10px] uppercase tracking-[0.5em] font-bold mb-6 block">{theme?.heroSubheadline || "The Collection"}</span>
+                  <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none block">
+                    {theme?.heroHeadline || "Modern Silhouettes"}
+                  </span>
+                  <Link href="/collections/all" className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95 w-fit mx-auto">
+                    {theme?.heroButtonText || "Shop All"} <ArrowRight className="ml-3 h-4 w-4" />
+                  </Link>
+                </div>
               </div>
-            </div>
+
+              {/* Dot Indicators */}
+              {heroImages.length > 1 && (
+                <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-30">
+                  {heroImages.map((_: any, i: number) => (
+                    <button
+                      key={i}
+                      onClick={() => classicApi?.scrollTo(i)}
+                      className={cn(
+                        "h-1 transition-all duration-500 rounded-none",
+                        classicCurrent === i ? "bg-white w-8" : "bg-white/30 w-4 hover:bg-white/50"
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+            </Carousel>
           </div>
         </section>
       ) : (
         <BentoHero 
           isLoading={isHeroLoading} 
-          heroImageUrl={theme?.heroImageUrl}
+          heroImages={heroImages}
           headline={theme?.heroHeadline}
           subheadline={theme?.heroSubheadline}
           buttonText={theme?.heroButtonText}
-          fallbackImageUrl={categories?.[0]?.imageUrl}
           textAlign={theme?.heroTextAlign}
           verticalAlign={theme?.heroVerticalAlign}
         />

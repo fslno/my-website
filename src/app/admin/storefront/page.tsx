@@ -28,7 +28,9 @@ import {
   CheckCircle2,
   Type,
   Palette,
-  ShoppingBag
+  ShoppingBag,
+  PlusCircle,
+  X
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -52,7 +54,7 @@ export default function StorefrontAdminPage() {
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme, isLoading: themeLoading } = useDoc(themeRef);
 
-  const [heroImageUrl, setHeroImageUrl] = useState('');
+  const [heroImages, setHeroImages] = useState<string[]>([]);
   const [heroHeadline, setHeroHeadline] = useState('');
   const [heroSubheadline, setHeroSubheadline] = useState('');
   const [heroButtonText, setHeroButtonText] = useState('');
@@ -76,7 +78,12 @@ export default function StorefrontAdminPage() {
 
   useEffect(() => {
     if (theme) {
-      setHeroImageUrl(theme.heroImageUrl || '');
+      if (theme.heroImages) {
+        setHeroImages(theme.heroImages);
+      } else if (theme.heroImageUrl) {
+        setHeroImages([theme.heroImageUrl]);
+      }
+      
       setHeroHeadline(theme.heroHeadline || '');
       setHeroSubheadline(theme.heroSubheadline || '');
       setHeroButtonText(theme.heroButtonText || 'Shop the Drops');
@@ -99,12 +106,22 @@ export default function StorefrontAdminPage() {
   }, [theme]);
 
   const handleHeroImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = e.target.files;
+    if (!files) return;
+    
+    Array.from(files).forEach(file => {
       const reader = new FileReader();
-      reader.onloadend = () => setHeroImageUrl(reader.result as string);
+      reader.onloadend = () => {
+        setHeroImages(prev => [...prev, reader.result as string]);
+      };
       reader.readAsDataURL(file);
-    }
+    });
+    
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeHeroImage = (index: number) => {
+    setHeroImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
@@ -112,7 +129,7 @@ export default function StorefrontAdminPage() {
     setIsSaving(true);
 
     const payload = {
-      heroImageUrl,
+      heroImages,
       heroHeadline,
       heroSubheadline,
       heroButtonText,
@@ -199,62 +216,76 @@ export default function StorefrontAdminPage() {
                   <CardDescription className="text-xs font-bold uppercase tracking-tight text-muted-foreground">The primary editorial focus of your storefront.</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6 p-4 sm:p-6 space-y-12">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-gray-500">Main Headline</Label>
-                        <Input 
-                          value={heroHeadline} 
-                          onChange={(e) => setHeroHeadline(e.target.value)}
-                          placeholder="THE ARCHIVE SELECTION"
-                          className="h-12 font-bold uppercase text-xs"
-                        />
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Main Headline</Label>
+                          <Input 
+                            value={heroHeadline} 
+                            onChange={(e) => setHeroHeadline(e.target.value)}
+                            placeholder="THE ARCHIVE SELECTION"
+                            className="h-12 font-bold uppercase text-xs"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Subheadline</Label>
+                          <Input 
+                            value={heroSubheadline} 
+                            onChange={(e) => setHeroSubheadline(e.target.value)}
+                            placeholder="MODERN SILHOUETTES"
+                            className="h-12 uppercase text-[10px] tracking-widest"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Call to Action</Label>
+                          <Input 
+                            value={heroButtonText} 
+                            onChange={(e) => setHeroButtonText(e.target.value)}
+                            placeholder="SHOP ALL"
+                            className="h-12 uppercase text-[10px] font-bold"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-gray-500">Subheadline</Label>
-                        <Input 
-                          value={heroSubheadline} 
-                          onChange={(e) => setHeroSubheadline(e.target.value)}
-                          placeholder="MODERN SILHOUETTES"
-                          className="h-12 uppercase text-[10px] tracking-widest"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-gray-500">Call to Action</Label>
-                        <Input 
-                          value={heroButtonText} 
-                          onChange={(e) => setHeroButtonText(e.target.value)}
-                          placeholder="SHOP ALL"
-                          className="h-12 uppercase text-[10px] font-bold"
-                        />
-                      </div>
-                    </div>
 
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500">Hero Media (High Fidelity)</Label>
-                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
-                      <div 
-                        onClick={() => !heroImageUrl && fileInputRef.current?.click()}
-                        className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-4 bg-gray-50 hover:border-black transition-all cursor-pointer min-h-[200px]"
-                      >
-                        {heroImageUrl ? (
-                          <div className="relative w-full aspect-video rounded-sm overflow-hidden shadow-lg border">
-                            <Image src={heroImageUrl} alt="Hero Preview" fill className="object-cover" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                              <Button variant="destructive" size="icon" onClick={(e) => { e.stopPropagation(); setHeroImageUrl(''); }} className="h-9 w-9">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                              <Button variant="secondary" size="icon" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} className="h-9 w-9">
-                                <Plus className="h-4 w-4" />
-                              </Button>
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Hero Media (High Fidelity)</Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                          {heroImages.map((url, idx) => (
+                            <div key={idx} className="relative aspect-video rounded border overflow-hidden group shadow-sm">
+                              <Image src={url} alt={`Hero ${idx}`} fill className="object-cover" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <Button 
+                                  variant="destructive" 
+                                  size="icon" 
+                                  onClick={() => removeHeroImage(idx)} 
+                                  className="h-8 w-8"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="absolute top-2 left-2 bg-black/60 text-white text-[8px] px-1.5 py-0.5 rounded font-bold uppercase">
+                                {idx === 0 ? 'Primary' : (idx + 1).toString().padStart(2, '0')}
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors"><ImageIcon className="h-6 w-6" /></div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Ingest Primary Visual</p>
-                          </>
-                        )}
+                          ))}
+                          <button 
+                            onClick={() => fileInputRef.current?.click()} 
+                            className="aspect-video border-2 border-dashed rounded flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group"
+                          >
+                            <PlusCircle className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">Add Image</span>
+                          </button>
+                        </div>
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          className="hidden" 
+                          multiple 
+                          accept="image/*" 
+                          onChange={handleHeroImageUpload} 
+                        />
+                        <p className="text-[8px] text-gray-400 uppercase font-bold">Recommended: 16:9 aspect ratio. Multiple images will Authoritatively manifest a slider.</p>
                       </div>
                     </div>
                   </div>
@@ -491,8 +522,8 @@ export default function StorefrontAdminPage() {
                   textAlign: heroTextAlign as any
                 }}
               >
-                {heroImageUrl ? (
-                  <Image src={heroImageUrl} alt="Hero Preview" fill className="object-cover opacity-20" />
+                {heroImages.length > 0 ? (
+                  <Image src={heroImages[0]} alt="Hero Preview" fill className="object-cover opacity-20" />
                 ) : (
                   <div className="absolute inset-0 bg-white/5" />
                 )}
