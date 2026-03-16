@@ -31,7 +31,8 @@ import {
   AlignRight,
   Layers,
   Settings2,
-  ShoppingBag
+  ShoppingBag,
+  Search
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -456,7 +457,7 @@ export default function ThemeEnginePage() {
                       <input type="range" min="12" max="120" value={categoryTitleSize} onChange={(e) => setCategoryTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
                     </div>
                     <div className="space-y-4">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Alignment</Label>
+                      <Label className="text-[10px] uppercase font-bold text-gray-400">Alignment</Label>
                       <div className="flex border p-1 rounded-sm bg-gray-50">
                         <Button variant={categoryTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
                         <Button variant={categoryTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
@@ -612,7 +613,7 @@ export default function ThemeEnginePage() {
               device === 'desktop' ? "w-full max-w-4xl aspect-[16/10]" : "w-[320px] h-[568px] sm:w-[375px] sm:h-[667px]"
             )}>
               {bannerEnabled && (<div className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white shrink-0 px-4 text-center" style={{ backgroundColor: bannerBgColor }}>{bannerText}</div>)}
-              <div className="h-16 bg-white border-b flex items-center justify-between px-6 sm:px-8 shrink-0"><span className="font-bold text-lg sm:text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span><div className="flex items-center gap-3"><SearchIcon className="h-4 w-4 text-gray-200" /><ShoppingBag className="h-4 w-4 text-gray-200" /><div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-200" /></div></div></div>
+              <div className="h-16 bg-white border-b flex items-center justify-between px-6 sm:px-8 shrink-0"><span className="font-bold text-lg sm:text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span><div className="flex items-center gap-3"><Search className="h-4 w-4 text-gray-200" /><ShoppingBag className="h-4 w-4 text-gray-200" /><div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-200" /></div></div></div>
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-12 font-body">
                 <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: 'center', textAlign: 'center' }}>
                   <div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">MODERN SILHOUETTES</span><h2 className="font-bold uppercase tracking-tight leading-none font-headline text-3xl">THE ARCHIVE SELECTION</h2><div className="mt-6 sm:mt-8 flex justify-center"><div className="bg-black text-white px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">SHOP NOW</div></div></div>
