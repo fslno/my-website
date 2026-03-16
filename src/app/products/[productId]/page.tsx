@@ -34,6 +34,22 @@ import {
   CarouselItem,
   type CarouselApi
 } from "@/components/ui/carousel";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
@@ -93,7 +109,6 @@ export default function ProductDetailPage(props: PageProps) {
     });
   }, [api]);
 
-  // CRITICAL: Handle loading state before any property access
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-white">
@@ -102,7 +117,6 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
-  // CRITICAL: Handle missing product before any property access
   if (!product) {
     return (
       <main className="min-h-screen pt-32 px-4 text-center bg-white">
@@ -124,7 +138,6 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
-  // SAFE ACCESS ZONE: Data ingestion confirmed
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
   
@@ -305,9 +318,57 @@ export default function ProductDetailPage(props: PageProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
               <span>Select Size</span>
-              <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 text-[11px] font-bold">
-                <Ruler className="h-5 w-5" /> Size Guide
-              </button>
+              {categoryCharts && categoryCharts.length > 0 && (
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 text-[11px] font-bold">
+                      <Ruler className="h-5 w-5" /> Size Chart
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-full sm:max-w-xl bg-white border-l p-0 flex flex-col">
+                    <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
+                      <div className="flex items-center gap-3 text-primary mb-2">
+                        <Ruler className="h-6 w-6" />
+                        <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Size Chart</SheetTitle>
+                      </div>
+                      <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">
+                        Measurements in {categoryCharts[0].unit === 'cm' ? 'Centimeters' : 'Inches'}
+                      </p>
+                    </SheetHeader>
+                    <ScrollArea className="flex-1">
+                      <div className="p-8 space-y-12">
+                        {categoryCharts.map((chart: any) => (
+                          <div key={chart.id} className="space-y-6">
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary">{chart.name}</h3>
+                            <div className="border rounded-none overflow-hidden">
+                              <Table>
+                                <TableHeader className="bg-gray-50/50">
+                                  <TableRow>
+                                    <TableHead className="text-[9px] font-bold uppercase tracking-widest">Size</TableHead>
+                                    {chart.columns.map((col: string, i: number) => (
+                                      <TableHead key={i} className="text-[9px] font-bold uppercase tracking-widest text-center">{col}</TableHead>
+                                    ))}
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {chart.rows.map((row: any, i: number) => (
+                                    <TableRow key={i}>
+                                      <TableCell className="text-[10px] font-bold uppercase">{row.label}</TableCell>
+                                      {row.values.map((val: string, j: number) => (
+                                        <TableCell key={j} className="text-center font-mono text-[10px]">{val || '-'}</TableCell>
+                                      ))}
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </SheetContent>
+                </Sheet>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               {(product.variants || []).map((v: any) => (
