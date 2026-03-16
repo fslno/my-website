@@ -283,14 +283,6 @@ export default function CheckoutPage() {
           ) : (
             <div className="space-y-10 pt-4 border-t">
               <div className="space-y-6">
-                <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Pickup Schedule</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupDate ? "text-destructive" : "")}>Date</Label><Input type="date" className="h-12 rounded-none" value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div>
-                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupTime ? "text-destructive" : "")}>Time</Label><Input type="time" className="h-12 rounded-none" value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div>
-                </div>
-              </div>
-
-              <div className="space-y-6 pt-10 border-t mt-10">
                 <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><CreditCard className="h-3.5 w-3.5" /> Billing Address</h3>
                 <div className="grid gap-4">
                   <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label><Input value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-12 uppercase rounded-none" /></div>
@@ -302,6 +294,14 @@ export default function CheckoutPage() {
                     <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-12 uppercase rounded-none" /></div>
                     <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}><SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-6 pt-10 border-t mt-10">
+                <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Pickup Schedule</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupDate ? "text-destructive" : "")}>Date</Label><Input type="date" className="h-12 rounded-none" value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div>
+                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupTime ? "text-destructive" : "")}>Time</Label><Input type="time" className="h-12 rounded-none" value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div>
                 </div>
               </div>
             </div>
