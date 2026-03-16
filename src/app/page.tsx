@@ -22,6 +22,7 @@ import {
   type CarouselApi
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { getLivePath } from '@/lib/deployment';
 
 export default function Home() {
   const db = useFirestore();
@@ -52,7 +53,7 @@ export default function Home() {
   // Fetch top categories for the collection grid
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'categories'), orderBy('order', 'asc'), limit(12));
+    return query(collection(db, getLivePath('categories')), orderBy('order', 'asc'), limit(12));
   }, [db]);
 
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
@@ -60,16 +61,16 @@ export default function Home() {
   // Fetch products for "Featured Selection" - Increased limit to support pagination
   const featuredQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(300));
+    return query(collection(db, getLivePath('products')), orderBy('createdAt', 'desc'), limit(300));
   }, [db]);
 
   const { data: featuredProducts, isLoading: productsLoading } = useCollection(featuredQuery);
 
   // Global Review Config
-  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
+  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
   const { data: reviewConfig } = useDoc(reviewConfigRef);
 
-  // Fetch all reviews for global rating aggregation
+  // Fetch all reviews for global rating aggregation (Reviews are shared across envs)
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'reviews'));
@@ -109,7 +110,7 @@ export default function Home() {
   };
 
   // Fetch theme for layout decisions
-  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
+  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
   const isHeroLoading = categoriesLoading;

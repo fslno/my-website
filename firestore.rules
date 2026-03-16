@@ -3,11 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * FSLNO E-COMMERCE SECURITY RULES
+     * FSLNO E-COMMERCE SECURITY RULES - V2 (Draft & Publish)
      * 
      * Core Philosophy:
-     * This ruleset implements a robust, multi-tier security model for an e-commerce platform. 
-     * Evaluation is strictly prioritized for administrative authority.
+     * 1. Public can ONLY read 'live_' collections.
+     * 2. Admin has full authority over all collections.
+     * 3. Transactional data (orders, users) is shared across environments.
      */
 
     // --- Helper Functions ---
@@ -16,10 +17,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    /**
-     * @description Authoritative check for administrative authority.
-     * Evaluates the hardcoded master UID manifest before checking the forensic roles manifest.
-     */
     function isAdmin() {
       return isSignedIn() && (
         request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
@@ -31,75 +28,37 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
+    // --- Production (Live) Collection Rules ---
+    // Publicly accessible read-only snapshots.
 
-    function isExistingAdmin() {
-      return resource != null && isAdmin();
-    }
+    match /live_products/{id} { allow get, list: if true; }
+    match /live_categories/{id} { allow get, list: if true; }
+    match /live_config/{id} { allow get: if true; allow list: if true; }
+    match /live_testimonials/{id} { allow get, list: if true; }
+    match /live_sizeCharts/{id} { allow get, list: if true; }
 
-    // --- Collection Rules ---
+    // --- Staging (Studio) Collection Rules ---
+    // Strictly restricted to administrative authority.
 
-    /**
-     * @description Rules for user profiles.
-     */
+    match /products/{id} { allow read, write: if isAdmin(); }
+    match /categories/{id} { allow read, write: if isAdmin(); }
+    match /config/{id} { allow read, write: if isAdmin(); }
+    match /testimonials/{id} { allow read, write: if isAdmin(); }
+    match /sizeCharts/{id} { allow read, write: if isAdmin(); }
+
+    // --- Shared Transactional Rules ---
+
     match /users/{userId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isExistingOwner(userId) || isExistingAdmin()) && request.resource.data.id == resource.data.id;
-      allow delete: if (isExistingOwner(userId) || isExistingAdmin());
+      allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.id == resource.data.id;
+      allow delete: if isAdmin();
       
-      match /cart/{itemId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-      match /wishlist/{itemId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
+      match /cart/{itemId} { allow read, write: if isOwner(userId) || isAdmin(); }
+      match /wishlist/{itemId} { allow read, write: if isOwner(userId) || isAdmin(); }
     }
 
-    /**
-     * @description high-security collection for administrative role assignment.
-     */
-    match /roles_admin/{userId} {
-      allow read, write: if isAdmin();
-    }
-
-    /**
-     * @description Global storefront settings.
-     */
-    match /config/{configId} {
-      allow get: if true;
-      allow list, write: if isAdmin();
-    }
-
-    /**
-     * @description Product catalog data.
-     */
-    match /products/{productId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-
-    /**
-     * @description Product categories and metadata.
-     */
-    match /categories/{categoryId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-    
-    /**
-     * @description Size guide templates.
-     */
-    match /sizeCharts/{chartId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-    
-    /**
-     * @description High-fidelity transaction manifests.
-     */
+    match /roles_admin/{userId} { allow read, write: if isAdmin(); }
     match /orders/{orderId} {
       allow create: if true;
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid) || (resource.data.userId == 'guest');
@@ -107,51 +66,15 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
     
-    /**
-     * @description Archival feedback manifest.
-     */
     match /reviews/{reviewId} {
       allow get, list: if true;
       allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
     
-    /**
-     * @description Featured customer testimonials.
-     */
-    match /testimonials/{testimonialId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-    
-    /**
-     * @description Internal team access.
-     */
-    match /staff/{staffId} {
-      allow read, write: if isAdmin();
-    }
-    
-    /**
-     * @description Partner connectivity manifest.
-     */
-    match /partners/{partnerId} {
-      allow read, write: if isAdmin();
-    }
-
-    /**
-     * @description Promotional discount tokens.
-     */
-    match /coupons/{couponId} {
-      allow get: if isSignedIn();
-      allow list, write: if isAdmin();
-    }
-
-    /**
-     * @description Automated email dispatch queue.
-     */
-    match /mail/{mailId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
-    }
+    match /staff/{id} { allow read, write: if isAdmin(); }
+    match /partners/{id} { allow read, write: if isAdmin(); }
+    match /coupons/{id} { allow get: if true; allow list, write: if isAdmin(); }
+    match /mail/{id} { allow create: if true; allow read, update, delete: if isAdmin(); }
   }
 }

@@ -47,6 +47,7 @@ import {
 import { AuthDialog } from '@/components/storefront/AuthDialog';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { getLivePath } from '@/lib/deployment';
 
 export function Header() {
   const [mounted, setMounted] = useState(false);
@@ -58,16 +59,16 @@ export function Header() {
   const { toast } = useToast();
   
   const db = useFirestore();
-  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
+  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
-  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
   const { data: storeConfig, isLoading: storeLoading } = useDoc(storeConfigRef);
 
-  const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
+  const categoriesQuery = useMemoFirebase(() => db ? collection(db, getLivePath('categories')) : null, [db]);
   const { data: categories } = useCollection(categoriesQuery);
 
-  const productsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
+  const productsQuery = useMemoFirebase(() => db ? collection(db, getLivePath('products')) : null, [db]);
   const { data: allProducts } = useCollection(productsQuery);
 
   const [searchQuery, setSearchQuery] = useState('');

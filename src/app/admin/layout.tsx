@@ -34,7 +34,8 @@ import {
   Monitor,
   Star,
   MessageSquareQuote,
-  Zap
+  Zap,
+  CloudUpload
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -93,7 +94,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
     <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] admin-sidebar-bg">
       <SidebarHeader className="admin-header-height flex items-center px-6 border-b border-[#e1e3e5] admin-sidebar-bg">
         <Link href="/" className="flex items-center gap-2" onClick={handleNavClick}>
-          <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative">
+          <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative border border-white/10">
             {storeConfig?.logoUrl ? (
               <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
             ) : (
@@ -101,7 +102,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
             )}
           </div>
           <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden font-admin-headline">
-            {storeConfig?.businessName || "FSLNO"} Admin
+            {storeConfig?.businessName || "FSLNO"} Studio
           </span>
         </Link>
       </SidebarHeader>
@@ -116,6 +117,17 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            
+            {/* Publish Command Center */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Publish" onClick={handleNavClick} className="font-admin-body bg-blue-50/50 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
+                <Link href="/admin/publish">
+                  <CloudUpload className="text-blue-600" />
+                  <span className="font-bold uppercase tracking-tight">Publish to Live</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Orders" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/orders">
@@ -479,13 +491,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <header className="admin-header-height bg-white/80 backdrop-blur-md border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30 w-full shrink-0">
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 max-w-xl">
               <SidebarTrigger className="h-9 w-9 shrink-0" />
-              <div className="relative w-full hidden sm:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196] " />
-                <input 
-                  type="text" 
-                  placeholder="Search..." 
-                  className="w-full h-9 pl-10 pr-4 bg-[#f1f2f3] border-none rounded-md text-sm focus:ring-1 focus:ring-black outline-none font-admin-body" 
-                />
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 border-blue-100 hidden sm:flex">
+                  Studio Workstation
+                </Badge>
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">

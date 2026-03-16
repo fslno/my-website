@@ -10,6 +10,7 @@ import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2 } from 'lucide-react';
+import { getLivePath } from '@/lib/deployment';
 
 interface PageProps {
   params: Promise<{ categoryId: string }>;
@@ -21,12 +22,12 @@ export default function CollectionPage(props: PageProps) {
   const db = useFirestore();
 
   // Global Review Config
-  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
+  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
   const { data: reviewConfig } = useDoc(reviewConfigRef);
 
   // Fetch Category Details - skip if 'all'
   const categoryRef = useMemoFirebase(() => 
-    db && categoryId !== 'all' ? doc(db, 'categories', categoryId) : null, 
+    db && categoryId !== 'all' ? doc(db, getLivePath(`categories/${categoryId}`)) : null, 
     [db, categoryId]
   );
   const { data: category, isLoading: categoryLoading } = useDoc(categoryRef);
@@ -34,20 +35,21 @@ export default function CollectionPage(props: PageProps) {
   // If 'all', fetch all categories to map IDs to names for the cards
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return collection(db, 'categories');
+    return collection(db, getLivePath('categories'));
   }, [db]);
   const { data: allCategories } = useCollection(categoriesQuery);
 
   // Fetch Products in this Category
   const productsQuery = useMemoFirebase(() => {
     if (!db || !categoryId) return null;
-    if (categoryId === 'all') return collection(db, 'products');
-    return query(collection(db, 'products'), where('categoryId', '==', categoryId));
+    const path = getLivePath('products');
+    if (categoryId === 'all') return collection(db, path);
+    return query(collection(db, path), where('categoryId', '==', categoryId));
   }, [db, categoryId]);
 
   const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
 
-  // Fetch reviews for rating aggregation
+  // Fetch reviews for rating aggregation (Reviews are global)
   const reviewsQuery = useMemoFirebase(() => db ? collection(db, 'reviews') : null, [db]);
   const { data: allReviews } = useCollection(reviewsQuery);
 

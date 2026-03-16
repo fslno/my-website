@@ -23,10 +23,11 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { getLivePath } from '@/lib/deployment';
 
 export function Footer() {
   const db = useFirestore();
-  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
   const { data: config } = useDoc(storeConfigRef);
 
   const [email, setEmail] = useState('');

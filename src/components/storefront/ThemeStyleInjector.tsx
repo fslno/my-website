@@ -3,6 +3,7 @@
 import { useLayoutEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { getLivePath } from '@/lib/deployment';
 
 /**
  * Listens for global theme configuration from Firestore
@@ -11,7 +12,7 @@ import { doc } from 'firebase/firestore';
  */
 export function ThemeStyleInjector() {
   const db = useFirestore();
-  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
+  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
   useLayoutEffect(() => {

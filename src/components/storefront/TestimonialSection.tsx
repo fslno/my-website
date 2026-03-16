@@ -12,6 +12,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { getLivePath } from '@/lib/deployment';
 
 /**
  * Enhanced Archival Testimonial Section.
@@ -25,7 +26,7 @@ export function TestimonialSection() {
   // Authoritative Query: Simple manifest to avoid index/permission exceptions.
   const testimonialsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'));
+    return query(collection(db, getLivePath('testimonials')), orderBy('createdAt', 'desc'));
   }, [db]);
 
   const { data: allTestimonials, isLoading } = useCollection(testimonialsQuery);

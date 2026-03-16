@@ -6,6 +6,7 @@ import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Phone, Mail, Instagram, Twitter, MessageSquare, X, Globe, Facebook, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getLivePath } from '@/lib/deployment';
 
 /**
  * High-fidelity Floating Dispatch UI.
@@ -21,10 +22,10 @@ export function Chatbot() {
   }, []);
 
   const db = useFirestore();
-  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
+  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme, isLoading: themeLoading } = useDoc(themeRef);
 
-  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
   const { data: config, isLoading: configLoading } = useDoc(storeConfigRef);
 
   const [isOpen, setIsOpen] = useState(false);

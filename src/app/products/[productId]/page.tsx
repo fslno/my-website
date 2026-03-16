@@ -56,6 +56,7 @@ import { cn } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
+import { getLivePath } from '@/lib/deployment';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
@@ -84,25 +85,25 @@ export default function ProductDetailPage(props: PageProps) {
   const { toast } = useToast();
 
   const productRef = useMemoFirebase(() => 
-    db ? doc(db, 'products', productId) : null, 
+    db ? doc(db, getLivePath(`products/${productId}`)) : null, 
     [db, productId]
   );
   
   const { data: product, isLoading: loading } = useDoc(productRef);
 
   // Global Review Config
-  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
+  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
   const { data: reviewConfig } = useDoc(reviewConfigRef);
 
   // Fetch Size Charts assigned to this category
   const sizeChartsQuery = useMemoFirebase(() => {
     if (!db || !product?.categoryId) return null;
-    return query(collection(db, 'sizeCharts'), where('category', '==', product.categoryId));
+    return query(collection(db, getLivePath('sizeCharts')), where('category', '==', product.categoryId));
   }, [db, product?.categoryId]);
 
   const { data: categoryCharts, isLoading: chartsLoading } = useCollection(sizeChartsQuery);
 
-  // Fetch Reviews for Rating Aggregation
+  // Fetch Reviews for Rating Aggregation (Reviews are shared)
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));

@@ -4,6 +4,7 @@ import { useLayoutEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative MetaTag Ingestion Protocol.
@@ -15,11 +16,11 @@ export function MetaTagInjector() {
   const db = useFirestore();
 
   // 1. Domain Manifest (Verification Tags & Indexing)
-  const domainRef = useMemoFirebase(() => db ? doc(db, 'config', 'domain') : null, [db]);
+  const domainRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/domain')) : null, [db]);
   const { data: domain } = useDoc(domainRef);
 
   // 2. Theme Manifest (Home Page SEO)
-  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
+  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
   useLayoutEffect(() => {
