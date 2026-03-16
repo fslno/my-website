@@ -26,6 +26,10 @@ interface BentoHeroProps {
   verticalAlign?: string;
 }
 
+/**
+ * Authoritative Bento Hero Manifest.
+ * Synchronized to reflect Admin Storefront text and styling protocols.
+ */
 export function BentoHero({ 
   isLoading, 
   heroImages = [], 
@@ -86,11 +90,11 @@ export function BentoHero({
             </div>
           )}
 
-          {/* Content Overlay - Centered over all slides */}
+          {/* Content Overlay - Orchestrated via Admin Manifest */}
           <div className={cn(
-            "absolute inset-0 p-6 sm:p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 hero-vertical-align pointer-events-none"
+            "absolute inset-0 p-6 sm:p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 hero-vertical-align hero-text-align pointer-events-none"
           )}>
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto w-full">
               <span className="hero-subheadline-color hero-subheadline-size text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700 block">
                 {subheadline}
               </span>
@@ -99,7 +103,10 @@ export function BentoHero({
               </span>
               <Link 
                 href="/collections/all" 
-                className="hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95 w-fit mx-auto"
+                className={cn(
+                  "hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95 w-fit",
+                  textAlign === 'left' ? 'ml-0 mr-auto' : textAlign === 'right' ? 'ml-auto mr-0' : 'mx-auto'
+                )}
               >
                 {buttonText} <ArrowRight className="ml-3 h-4 w-4" />
               </Link>
