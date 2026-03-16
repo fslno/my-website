@@ -26,7 +26,8 @@ import {
   Loader2,
   Sparkles,
   MessageSquare,
-  Star
+  Star,
+  AlertCircle
 } from 'lucide-react';
 import {
   Sheet,
@@ -262,6 +263,27 @@ export default function ProductDetailPage(props: PageProps) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin text-black" />
+      </main>
+    );
+  }
+
+  if (!product) {
+    return (
+      <main className="min-h-screen pt-32 px-4 text-center">
+        <div className="max-w-md mx-auto space-y-6">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <AlertCircle className="h-8 w-8 text-gray-300" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Silhouette Missing</h1>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">
+              The requested archival segment is no longer part of the current Studio manifest.
+            </p>
+          </div>
+          <Button asChild className="bg-black text-white px-10 h-14 font-bold uppercase tracking-widest text-[10px] rounded-none shadow-xl">
+            <Link href="/">Return to Studio</Link>
+          </Button>
+        </div>
       </main>
     );
   }
