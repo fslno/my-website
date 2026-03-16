@@ -106,14 +106,6 @@ export default function ProductDetailPage(props: PageProps) {
 
   const { data: allReviews } = useCollection(reviewsQuery);
 
-  const ratingStats = useMemo(() => {
-    if (!allReviews || !productId) return { avg: 0, count: 0 };
-    const pReviews = allReviews.filter(r => r.productId === productId && r.published === true);
-    if (pReviews.length === 0) return { avg: 0, count: 0 };
-    const sum = pReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-    return { avg: sum / pReviews.length, count: pReviews.length };
-  }, [allReviews, productId]);
-
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
   const [customName, setCustomName] = useState('');
@@ -123,41 +115,6 @@ export default function ProductDetailPage(props: PageProps) {
   const [api, setApi] = useState<CarouselApi>();
 
   const isSaved = isInWishlist(productId);
-
-  const totalPrice = useMemo(() => {
-    if (!product) return 0;
-    const base = Number(product.price) || 0;
-    const fee = wantsCustomization ? (Number(product.customizationFee) || 10) : 0;
-    return base + fee;
-  }, [product, wantsCustomization]);
-
-  const displayedSku = useMemo(() => {
-    if (!product) return 'N/A';
-    if (selectedSize) {
-      const variant = product.variants?.find((v: any) => v.size === selectedSize);
-      if (variant?.sku) return variant.sku;
-    }
-    return product.sku || 'N/A';
-  }, [product, selectedSize]);
-
-  const selectedVariant = useMemo(() => {
-    return product?.variants?.find((v: any) => v.size === selectedSize);
-  }, [product, selectedSize]);
-
-  const currentQtyInCart = useMemo(() => {
-    const item = cart.find(i => i.id === productId && i.size === selectedSize);
-    return item?.quantity || 0;
-  }, [cart, productId, selectedSize]);
-
-  const isStockReached = useMemo(() => {
-    if (!selectedVariant) return false;
-    return currentQtyInCart >= selectedVariant.stock;
-  }, [selectedVariant, currentQtyInCart]);
-
-  const hasAnyStock = useMemo(() => {
-    if (!product?.variants) return false;
-    return product.variants.some((v: any) => (Number(v.stock) || 0) > 0);
-  }, [product]);
 
   useEffect(() => {
     if (!api) return;
@@ -171,8 +128,67 @@ export default function ProductDetailPage(props: PageProps) {
     api?.scrollTo(index);
   };
 
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      </main>
+    );
+  }
+
+  // --- AUTHORITATIVE DATA GATE ---
+  // Strictly do not access product properties until existence is verified.
+  if (!product) {
+    return (
+      <main className="min-h-screen pt-32 px-4 text-center">
+        <div className="max-w-md mx-auto space-y-6">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <AlertCircle className="h-8 w-8 text-gray-300" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Silhouette Missing</h1>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">
+              The requested archival segment is no longer part of the current Studio manifest.
+            </p>
+          </div>
+          <Button asChild className="bg-black text-white px-10 h-14 font-bold uppercase tracking-widest text-[10px] rounded-none shadow-xl">
+            <Link href="/">Return to Studio</Link>
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
+  // Safe Property Access Post-Gate
+  const media = product.media || [];
+  const ratingStats = (() => {
+    if (!allReviews || !productId) return { avg: 0, count: 0 };
+    const pReviews = allReviews.filter(r => r.productId === productId && r.published === true);
+    if (pReviews.length === 0) return { avg: 0, count: 0 };
+    const sum = pReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    return { avg: sum / pReviews.length, count: pReviews.length };
+  })();
+
+  const totalPrice = (() => {
+    const base = Number(product.price) || 0;
+    const fee = wantsCustomization ? (Number(product.customizationFee) || 10) : 0;
+    return base + fee;
+  })();
+
+  const displayedSku = selectedSize 
+    ? (product.variants?.find((v: any) => v.size === selectedSize)?.sku || product.sku) 
+    : (product.sku || 'N/A');
+
+  const selectedVariant = product.variants?.find((v: any) => v.size === selectedSize);
+  const hasAnyStock = product.variants?.some((v: any) => (Number(v.stock) || 0) > 0);
+  const reviewsEnabled = reviewConfig?.enabled !== false;
+  const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
+  const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
+  const hasDiscount = product.comparedPrice && product.comparedPrice > (product.price || 0);
+  const discountPercent = hasDiscount ? Math.round(((product.comparedPrice! - product.price!) / product.comparedPrice!) * 100) : 0;
+
   const handleAddToCart = () => {
-    if (!product || !selectedSize || isStockReached) return;
+    if (!product || !selectedSize) return;
 
     const uniqueVariantId = wantsCustomization 
       ? `${product.id}-${selectedSize}-${customName}-${customNumber}-${specialRequest.substring(0, 10)}`
@@ -211,7 +227,6 @@ export default function ProductDetailPage(props: PageProps) {
   };
 
   const handleWishlist = () => {
-    if (!product) return;
     toggleWishlist({
       id: product.id,
       name: product.name,
@@ -219,14 +234,9 @@ export default function ProductDetailPage(props: PageProps) {
       image: product.media?.[0]?.url || '',
       brand: product.brand || 'FSLNO Studio'
     });
-    toast({
-      title: isSaved ? "Removed from Wishlist" : "Saved to Wishlist",
-      description: isSaved ? "Item removed from your favorites." : "Item added to your favorites.",
-    });
   };
 
   const handleShare = async () => {
-    if (!product) return;
     const shareData = {
       title: `FSLNO Studio | ${product.name}`,
       text: product.description || `Check out this ${product.name} from FSLNO Studio.`,
@@ -247,42 +257,6 @@ export default function ProductDetailPage(props: PageProps) {
       });
     }
   };
-
-  if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-black" />
-      </main>
-    );
-  }
-
-  if (!product) {
-    return (
-      <main className="min-h-screen pt-32 px-4 text-center">
-        <div className="max-w-md mx-auto space-y-6">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
-            <AlertCircle className="h-8 w-8 text-gray-300" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Silhouette Missing</h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">
-              The requested archival segment is no longer part of the current Studio manifest.
-            </p>
-          </div>
-          <Button asChild className="bg-black text-white px-10 h-14 font-bold uppercase tracking-widest text-[10px] rounded-none shadow-xl">
-            <Link href="/">Return to Studio</Link>
-          </Button>
-        </div>
-      </main>
-    );
-  }
-
-  const media = product.media || [];
-  const reviewsEnabled = reviewConfig?.enabled !== false;
-  const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
-  const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
-  const hasDiscount = product.comparedPrice && product.comparedPrice > (product.price || 0);
-  const discountPercent = hasDiscount ? Math.round(((product.comparedPrice! - product.price!) / product.comparedPrice!) * 100) : 0;
 
   return (
     <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-24">
@@ -359,25 +333,12 @@ export default function ProductDetailPage(props: PageProps) {
             <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">
               {product.description || "No description provided."}
             </div>
-            {product.features && product.features.length > 0 && (
-              <div className="pt-4">
-                <h4 className="text-[10px] uppercase tracking-widest font-bold mb-3 text-primary">Key Features</h4>
-                <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  {product.features.map((feature: string, i: number) => (
-                    <li key={i} className="text-[11px] flex items-start gap-2 text-muted-foreground">
-                      <span className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         </div>
 
         <div className="space-y-6">
           <div className="space-y-1">
-            <h1 className="text-2xl font-headline font-bold tracking-tight text-primary">{product.name}</h1>
+            <h1 className="text-2xl font-headline font-bold tracking-tight text-primary uppercase">{product.name}</h1>
             {(reviewsEnabled && ratingStats.count > 0) && (
               <div className="flex items-center gap-2 mt-1 mb-2">
                 <div className="flex gap-0.5">
@@ -389,7 +350,7 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             )}
             <div className="flex items-center gap-4 pt-2">
-              <p className="text-lg font-bold text-primary">{`C$${formatCurrency(totalPrice)}`}</p>
+              <p className="text-lg font-bold text-primary">{`C$${totalPrice.toFixed(2)}`}</p>
               {hasDiscount && (
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-muted-foreground line-through decoration-muted-foreground/50 font-medium">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
@@ -409,7 +370,7 @@ export default function ProductDetailPage(props: PageProps) {
               <Sheet>
                 <SheetTrigger asChild>
                   <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 text-[11px] font-bold">
-                    <Ruler className="h-5 w-5" /> {sizeChart ? 'Size Guide' : 'Standard Guide'}
+                    <Ruler className="h-5 w-5" /> Size Guide
                   </button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-full sm:max-w-2xl bg-white border-l p-0 flex flex-col">
@@ -421,30 +382,28 @@ export default function ProductDetailPage(props: PageProps) {
                     <p className="text-sm text-muted-foreground font-medium">Measurements for: <span className="text-primary font-bold">{effectiveChart.name}</span></p>
                   </SheetHeader>
                   <div className="flex-1 overflow-y-auto p-8">
-                    {chartsLoading ? <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-black/10" /></div> : (
-                      <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
-                        <Table>
-                          <TableHeader className="bg-gray-50/50">
-                            <TableRow>
-                              <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
-                              {effectiveChart.columns?.map((col: string, idx: number) => (
-                                <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
+                    <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
+                      <Table>
+                        <TableHeader className="bg-gray-50/50">
+                          <TableRow>
+                            <TableHead className="w-[100px] text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Size</TableHead>
+                            {effectiveChart.columns?.map((col: string, idx: number) => (
+                              <TableHead key={idx} className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground py-4">{col}</TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {effectiveChart.rows?.map((row: any, rowIdx: number) => (
+                            <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
+                              <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
+                              {row.values?.map((val: string, colIdx: number) => (
+                                <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
                               ))}
                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {effectiveChart.rows?.map((row: any, rowIdx: number) => (
-                              <TableRow key={rowIdx} className="hover:bg-gray-50/30 transition-colors">
-                                <TableCell className="font-bold text-xs px-6 py-4 border-r bg-gray-50/10 text-primary">{row.label}</TableCell>
-                                {row.values?.map((val: string, colIdx: number) => (
-                                  <TableCell key={colIdx} className="text-center text-sm font-medium text-muted-foreground py-4">{val || '--'}</TableCell>
-                                ))}
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -461,60 +420,21 @@ export default function ProductDetailPage(props: PageProps) {
                 </button>
               ))}
             </div>
-            <p className="text-[9px] text-muted-foreground">Fit: <span className="text-primary font-bold">{product.sizeFit || 'True to size'}</span></p>
           </div>
-
-          {product.customizationEnabled && (
-            <div className="space-y-4 p-4 bg-gray-50 border border-gray-100 rounded-sm">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Customization</Label>
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{`C$${formatCurrency(Number(product.customizationFee) || 10)}`}</span>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm", !wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary")}>No</button>
-                  <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 h-10 border text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm", wantsCustomization ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary")}>Yes</button>
-                </div>
-              </div>
-              {wantsCustomization && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Name</Label><Input placeholder="ENTER NAME" value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} className="bg-white h-9 text-[10px] font-bold" /></div>
-                    <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Number</Label><Input placeholder="00" maxLength={2} value={customNumber} onChange={(e) => setCustomNumber(e.target.value)} className="bg-white h-9 text-[10px] font-bold text-center" /></div>
-                  </div>
-                  <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Special Note</Label><Input placeholder="ADDITIONAL REQUESTS..." value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} className="bg-white h-9 text-[10px] font-bold" /></div>
-                </div>
-              )}
-            </div>
-          )}
 
           <div className="space-y-3 pt-4 border-t mt-4">
             <button 
               onClick={handleAddToCart}
-              disabled={!selectedSize || isStockReached}
-              className={cn("w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none transition-all shadow-md", isStockReached ? "bg-gray-200 text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:opacity-90 active:scale-95")}
+              disabled={!selectedSize}
+              className={cn("w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none transition-all shadow-md", !selectedSize ? "bg-gray-200 text-muted-foreground" : "bg-primary text-primary-foreground hover:opacity-90")}
             >
-              {!selectedSize ? 'Select Size' : isStockReached ? 'Limited Reached' : 'Add to Cart'}
+              {!selectedSize ? 'Select Size' : 'Add to Cart'}
             </button>
             <div className="grid grid-cols-2 gap-2">
               <Button onClick={handleWishlist} variant="outline" className={cn("h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none", isSaved && "bg-red-50 border-red-200 text-destructive")}><Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} /> {isSaved ? 'Saved' : 'Wishlist'}</Button>
               <Button onClick={handleShare} variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none"><Share2 className="h-3.5 w-3.5" /> Share</Button>
             </div>
           </div>
-
-          <div className="lg:hidden space-y-4 pt-6 border-t">
-            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Description</h3>
-            <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">{product.description || "No description provided."}</div>
-          </div>
-
-          {hasAnyStock && (
-            <div className="pt-4 space-y-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Check className="h-3 w-3 text-emerald-500" />
-                <span className="text-[9px] font-bold uppercase tracking-widest">Ready to ship</span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

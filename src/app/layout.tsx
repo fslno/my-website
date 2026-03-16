@@ -35,8 +35,8 @@ export default function RootLayout({
   if (!mounted) {
     return (
       <html lang="en">
-        <body className="bg-black flex items-center justify-center min-h-screen m-0 p-0">
-          <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em]">
+        <body className="bg-black flex items-center justify-center min-h-screen m-0 p-0 overflow-hidden">
+          <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">
             FSLNO_ARCHIVE
           </p>
         </body>
@@ -59,7 +59,7 @@ export default function RootLayout({
           <WishlistProvider>
             <CartProvider>
               {!isAdmin && <Header />}
-              <main className="min-h-screen">
+              <main className={cn("min-h-screen", !isAdmin && "pt-0")}>
                 {children}
               </main>
               <Chatbot />
