@@ -256,6 +256,27 @@ export default function ProductDetailPage(props: PageProps) {
     }
   };
 
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      </main>
+    );
+  }
+
+  if (!product) {
+    return (
+      <main className="min-h-screen bg-white">
+        <Header />
+        <div className="max-w-[1280px] mx-auto px-4 pt-40 pb-24 text-center">
+          <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Archival piece not found.</p>
+          <Link href="/" className="mt-8 inline-block text-[10px] font-bold uppercase underline tracking-widest text-primary hover:opacity-60 transition-opacity">Return to Studio</Link>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
 
