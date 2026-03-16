@@ -50,7 +50,7 @@ export default function RootLayout({
           )}
           suppressHydrationWarning
         >
-          <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em]">
+          <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">
             FSLNO_ARCHIVE
           </p>
         </div>

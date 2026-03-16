@@ -47,8 +47,6 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { PayPalPayment } from '@/components/storefront/PayPalPayment';
 import { StallionRates } from '@/components/storefront/StallionRates';
@@ -66,6 +64,11 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const { cart, cartSubtotal, cartCount, clearCart, updateCartItem, discountTotal, totalBeforeTax, appliedCoupon, applyCoupon } = useCart();
   
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
   const { data: paymentConfig } = useDoc(paymentConfigRef);
 
@@ -81,7 +84,6 @@ export default function CheckoutPage() {
   const [orderNote, setOrderNote] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<any>(null);
 
@@ -206,6 +208,14 @@ export default function CheckoutPage() {
   };
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1440px] mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12 py-12 px-4">

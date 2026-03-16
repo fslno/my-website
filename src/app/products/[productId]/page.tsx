@@ -24,7 +24,9 @@ import {
   ChevronLeft,
   Loader2,
   Star,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import {
   Carousel,
