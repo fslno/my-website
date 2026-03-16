@@ -909,7 +909,7 @@ export default function ProductsPage() {
                     <div onClick={(e) => e.stopPropagation()} className="pt-1"><Checkbox checked={isSelected} onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} /></div>
                     <div className="w-16 h-20 bg-gray-100 relative overflow-hidden border shrink-0 shadow-sm">{product.media?.[0]?.url ? <img src={product.media[0].url} alt={product.name} className="object-cover w-full h-full" /> : <Layers className="h-6 w-6 text-gray-200" />}</div>
                     <div className="flex-1 min-0 space-y-1">
-                      <div className="flex justify-between items-start gap-2"><h3 className="font-bold text-xs uppercase truncate leading-tight">{product.name}</h3><span className="font-bold text-xs shrink-0">C$${formatCurrency(Number(product.price))}</span></div>
+                      <div className="flex justify-between items-start gap-2"><h3 className="font-bold text-xs uppercase line-clamp-2 leading-tight">{product.name}</h3><span className="font-bold text-xs shrink-0">C$${formatCurrency(Number(product.price))}</span></div>
                       <p className="text-[9px] font-mono text-gray-400 uppercase truncate">SKU: {product.sku || 'N/A'}</p>
                       <div className="flex flex-wrap gap-2 pt-1">
                         <Badge variant="outline" className="text-[8px] h-4 font-bold uppercase tracking-tighter border-none bg-gray-100 text-gray-600 px-1.5"><Tag className="h-2 w-2 mr-1" /> {category?.name || 'None'}</Badge>
