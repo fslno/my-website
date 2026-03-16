@@ -4,7 +4,6 @@ import React, { useState, useMemo, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  useUser, 
   useFirestore, 
   useDoc, 
   useMemoFirebase,
@@ -22,28 +21,11 @@ import {
   Heart, 
   Share2, 
   Ruler, 
-  Check,
   ChevronLeft,
   Loader2,
-  Sparkles,
   Star,
   AlertCircle
 } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Carousel,
   CarouselContent,
@@ -130,7 +112,6 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
-  // AUTHORITATIVE GATE: Prevent property access on null manifest
   if (!product) {
     return (
       <main className="min-h-screen pt-32 px-4 text-center bg-white">
@@ -152,11 +133,8 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
-  // SAFE PROPERTY DECLARATIONS
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
-  const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
-  const effectiveChart = sizeChart || DEFAULT_SIZE_CHART;
   
   const hasDiscount = (Number(product.comparedPrice) || 0) > (Number(product.price) || 0);
   const discountPercent = hasDiscount ? Math.round(((Number(product.comparedPrice) - Number(product.price)) / Number(product.comparedPrice)) * 100) : 0;
@@ -282,13 +260,7 @@ export default function ProductDetailPage(props: PageProps) {
                     media.map((item: any, idx: number) => (
                       <CarouselItem key={idx}>
                         <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
-                          <Image 
-                            src={item.url} 
-                            alt={product.name} 
-                            fill 
-                            className="object-cover"
-                            priority={idx === 0}
-                          />
+                          <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
                         </div>
                       </CarouselItem>
                     ))
@@ -377,18 +349,14 @@ export default function ProductDetailPage(props: PageProps) {
                       "h-9 px-4 border text-[9px] font-bold uppercase tracking-widest transition-all",
                       !wantsCustomization ? "bg-black text-white border-black" : "bg-white text-primary border-gray-200"
                     )}
-                  >
-                    No
-                  </button>
+                  >No</button>
                   <button 
                     onClick={() => setWantsCustomization(true)}
                     className={cn(
                       "h-9 px-4 border text-[9px] font-bold uppercase tracking-widest transition-all",
                       wantsCustomization ? "bg-black text-white border-black" : "bg-white text-primary border-gray-200"
                     )}
-                  >
-                    Yes
-                  </button>
+                  >Yes</button>
                 </div>
               </div>
 
@@ -397,32 +365,16 @@ export default function ProductDetailPage(props: PageProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase font-bold text-gray-500">Name</Label>
-                      <Input 
-                        value={customName} 
-                        onChange={(e) => setCustomName(e.target.value.toUpperCase())}
-                        placeholder="NAME"
-                        className="h-11 text-xs font-bold uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black"
-                      />
+                      <Input value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} placeholder="NAME" className="h-11 text-xs font-bold uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black" />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase font-bold text-gray-500">Number</Label>
-                      <Input 
-                        value={customNumber} 
-                        onChange={(e) => setCustomNumber(e.target.value)}
-                        placeholder="00"
-                        maxLength={2}
-                        className="h-11 text-xs font-bold uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black"
-                      />
+                      <Input value={customNumber} onChange={(e) => setCustomNumber(e.target.value)} placeholder="00" maxLength={2} className="h-11 text-xs font-bold uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-bold text-gray-500">Special Request</Label>
-                    <Input 
-                      value={specialRequest} 
-                      onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())}
-                      placeholder="ADDITIONAL NOTES..."
-                      className="h-11 text-[10px] font-medium uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black"
-                    />
+                    <Input value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} placeholder="ADDITIONAL NOTES..." className="h-11 text-[10px] font-medium uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black" />
                   </div>
                 </div>
               )}
@@ -446,8 +398,7 @@ export default function ProductDetailPage(props: PageProps) {
                 {isSaved ? 'Saved' : 'Wishlist'}
               </Button>
               <Button onClick={handleShare} variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none">
-                <Share2 className="h-3.5 w-3.5" /> 
-                Share
+                <Share2 className="h-3.5 w-3.5" /> Share
               </Button>
             </div>
           </div>
