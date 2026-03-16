@@ -3,8 +3,6 @@
 import React, { use } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Header } from '@/components/storefront/Header';
-import { Footer } from '@/components/storefront/Footer';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Loader2, Package, Truck, MapPin, Calendar, CreditCard, ExternalLink, ArrowLeft, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -68,7 +66,7 @@ export default function OrderDetailPage(props: PageProps) {
 
   if (isUserLoading || orderLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-[60vh] flex items-center justify-center bg-white">
         <Loader2 className="h-8 w-8 animate-spin text-black" />
       </div>
     );
@@ -76,41 +74,31 @@ export default function OrderDetailPage(props: PageProps) {
 
   if (!user || (order && order.userId !== user.uid)) {
     return (
-      <main className="min-h-screen bg-background">
-        <Header />
-        <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
-          <div className="bg-red-50 p-8 border border-red-100 max-w-md">
-            <h1 className="text-2xl font-headline font-bold uppercase mb-4">Access Denied</h1>
-            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-8 leading-relaxed">
-              This forensic transaction manifest is restricted. Please verify your credentials.
-            </p>
-            <Button asChild className="bg-black text-white px-10 h-12 rounded-none font-bold uppercase tracking-widest text-[10px]">
-              <Link href="/account/orders">Back to History</Link>
-            </Button>
-          </div>
+      <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
+        <div className="bg-red-50 p-8 border border-red-100 max-w-md">
+          <h1 className="text-2xl font-headline font-bold uppercase mb-4">Access Denied</h1>
+          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-8 leading-relaxed">
+            This forensic transaction manifest is restricted. Please verify your credentials.
+          </p>
+          <Button asChild className="bg-black text-white px-10 h-12 rounded-none font-bold uppercase tracking-widest text-[10px]">
+            <Link href="/account/orders">Back to History</Link>
+          </Button>
         </div>
-        <Footer />
-      </main>
+      </div>
     );
   }
 
   if (!order) {
     return (
-      <main className="min-h-screen bg-background">
-        <Header />
-        <div className="pt-28 sm:pt-40 pb-24 px-4 text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Transaction Not Found.</p>
-          <Link href="/account/orders" className="mt-8 inline-block text-[10px] font-bold uppercase underline tracking-widest">Return to Studio</Link>
-        </div>
-        <Footer />
-      </main>
+      <div className="pt-28 sm:pt-40 pb-24 px-4 text-center">
+        <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Transaction Not Found.</p>
+        <Link href="/account/orders" className="mt-8 inline-block text-[10px] font-bold uppercase underline tracking-widest">Return to Studio</Link>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#F9F9F9]">
-      <Header />
-      
+    <div className="min-h-screen bg-[#F9F9F9]">
       <div className="pt-28 sm:pt-40 pb-24 max-w-[1280px] mx-auto px-4">
         <div className="mb-12">
           <Link href="/account/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors mb-6 group w-fit">
@@ -283,7 +271,6 @@ export default function OrderDetailPage(props: PageProps) {
       </div>
 
       <TestimonialSection />
-      <Footer />
-    </main>
+    </div>
   );
 }

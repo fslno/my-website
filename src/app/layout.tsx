@@ -11,6 +11,7 @@ import { MetaTagInjector } from '@/components/storefront/MetaTagInjector';
 import { PushNotificationManager } from '@/components/storefront/PushNotificationManager';
 import { Chatbot } from '@/components/storefront/Chatbot';
 import { Header } from '@/components/storefront/Header';
+import { Footer } from '@/components/storefront/Footer';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
@@ -57,6 +58,7 @@ export default function RootLayout({
                 <main className="min-h-screen">
                   {children}
                 </main>
+                {!isAdmin && <Footer />}
                 <Chatbot />
                 <Toaster />
               </CartProvider>

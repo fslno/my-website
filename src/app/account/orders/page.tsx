@@ -3,10 +3,8 @@
 import React from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { Header } from '@/components/storefront/Header';
-import { Footer } from '@/components/storefront/Footer';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { Loader2, Package, ChevronRight, ShoppingBag } from 'lucide-react';
+import { Loader2, ShoppingBag, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -51,7 +49,7 @@ export default function OrderHistoryPage() {
 
   if (isUserLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-[60vh] flex items-center justify-center bg-white">
         <Loader2 className="h-8 w-8 animate-spin text-black" />
       </div>
     );
@@ -59,22 +57,16 @@ export default function OrderHistoryPage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-background">
-        <Header />
-        <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
-          <ShoppingBag className="h-12 w-12 text-gray-200 mb-6" />
-          <h1 className="text-3xl font-headline font-bold uppercase mb-4">Account Required</h1>
-          <p className="text-gray-500 max-w-xs mb-8">Please sign in to view your archive order history.</p>
-        </div>
-        <Footer />
-      </main>
+      <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
+        <ShoppingBag className="h-12 w-12 text-gray-200 mb-6" />
+        <h1 className="text-3xl font-headline font-bold uppercase mb-4">Account Required</h1>
+        <p className="text-gray-500 max-w-xs mb-8">Please sign in to view your archive order history.</p>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <Header />
-      
+    <div className="min-h-screen bg-background">
       <div className="pt-28 sm:pt-40 pb-24 max-w-[1440px] mx-auto px-4">
         <div className="mb-12">
           <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Your Account</span>
@@ -142,7 +134,6 @@ export default function OrderHistoryPage() {
       </div>
 
       <TestimonialSection />
-      <Footer />
-    </main>
+    </div>
   );
 }

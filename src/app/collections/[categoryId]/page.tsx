@@ -3,8 +3,6 @@
 import React, { use, useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
-import { Header } from '@/components/storefront/Header';
-import { Footer } from '@/components/storefront/Footer';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import Link from 'next/link';
@@ -78,16 +76,14 @@ export default function CollectionPage(props: PageProps) {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-[60vh] flex items-center justify-center bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-black" />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <Header />
-      
+    <div className="min-h-screen bg-background">
       <div className="pt-28 sm:pt-36 pb-12 border-b bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col gap-6">
@@ -154,8 +150,6 @@ export default function CollectionPage(props: PageProps) {
       </section>
 
       <TestimonialSection />
-
-      <Footer />
-    </main>
+    </div>
   );
 }
