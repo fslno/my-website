@@ -23,7 +23,12 @@ import {
   FileText,
   Terminal,
   AlignLeft,
-  CheckCircle2
+  AlignCenter,
+  AlignRight,
+  CheckCircle2,
+  Type,
+  Palette,
+  ShoppingBag
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -54,6 +59,14 @@ export default function StorefrontAdminPage() {
   const [homepageLayout, setHomepageLayout] = useState('bento');
   const [homepageDescription, setHomepageDescription] = useState('');
   
+  // Hero Styling State
+  const [heroHeadlineColor, setHeroHeadlineColor] = useState('#000000');
+  const [heroHeadlineSize, setHeroHeadlineSize] = useState('72');
+  const [heroTextAlign, setHeroTextAlign] = useState('center');
+  const [heroVerticalAlign, setHeroVerticalAlign] = useState('center');
+  const [heroButtonBgColor, setHeroButtonBgColor] = useState('#FFFFFF');
+  const [heroButtonTextColor, setHeroButtonTextColor] = useState('#000000');
+
   // SEO State
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
@@ -70,6 +83,14 @@ export default function StorefrontAdminPage() {
       setSeoTitle(theme.homepageSeo?.title || '');
       setSeoDescription(theme.homepageSeo?.description || '');
       setSeoHandle(theme.homepageSeo?.handle || '');
+      
+      // Load styling from theme
+      setHeroHeadlineColor(theme.heroHeadlineColor || '#000000');
+      setHeroHeadlineSize(theme.heroHeadlineSize?.toString() || '72');
+      setHeroTextAlign(theme.heroTextAlign || 'center');
+      setHeroVerticalAlign(theme.heroVerticalAlign || 'center');
+      setHeroButtonBgColor(theme.heroButtonBgColor || '#FFFFFF');
+      setHeroButtonTextColor(theme.heroButtonTextColor || '#000000');
     }
   }, [theme]);
 
@@ -98,6 +119,13 @@ export default function StorefrontAdminPage() {
         description: seoDescription,
         handle: seoHandle
       },
+      // Styling payload
+      heroHeadlineColor,
+      heroHeadlineSize: Number(heroHeadlineSize),
+      heroTextAlign,
+      heroVerticalAlign,
+      heroButtonBgColor,
+      heroButtonTextColor,
       updatedAt: serverTimestamp()
     };
 
@@ -164,7 +192,7 @@ export default function StorefrontAdminPage() {
                   </div>
                   <CardDescription className="text-xs font-bold uppercase tracking-tight text-muted-foreground">The primary editorial focus of your storefront.</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-6 p-4 sm:p-6 space-y-8">
+                <CardContent className="pt-6 p-4 sm:p-6 space-y-12">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
                       <div className="space-y-2">
@@ -221,6 +249,88 @@ export default function StorefrontAdminPage() {
                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Ingest Primary Visual</p>
                           </>
                         )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hero Styling - Migrated and Expanded */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t">
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-2">
+                        <Palette className="h-4 w-4 text-gray-400" />
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Color Protocol</h3>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Headline Color</Label>
+                          <div className="flex gap-2">
+                            <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                              <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={heroHeadlineColor} onChange={(e) => setHeroHeadlineColor(e.target.value)} />
+                            </div>
+                            <Input value={heroHeadlineColor} onChange={(e) => setHeroHeadlineColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Button Background</Label>
+                          <div className="flex gap-2">
+                            <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                              <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={heroButtonBgColor} onChange={(e) => setHeroButtonBgColor(e.target.value)} />
+                            </div>
+                            <Input value={heroButtonBgColor} onChange={(e) => setHeroButtonBgColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Button Text Color</Label>
+                          <div className="flex gap-2">
+                            <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                              <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={heroButtonTextColor} onChange={(e) => setHeroButtonTextColor(e.target.value)} />
+                            </div>
+                            <Input value={heroButtonTextColor} onChange={(e) => setHeroButtonTextColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-2">
+                        <Type className="h-4 w-4 text-gray-400" />
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Headline Geometry</h3>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Font Scale</Label>
+                          <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</Badge>
+                        </div>
+                        <input 
+                          type="range" min="32" max="160" value={heroHeadlineSize} 
+                          onChange={(e) => setHeroHeadlineSize(e.target.value)} 
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-8 border-t">
+                    <div className="flex items-center gap-2 mb-4">
+                      <AlignLeft className="h-4 w-4 text-gray-400" />
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Alignment Orchestration</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Horizontal</Label>
+                        <div className="flex border p-1 rounded-sm bg-gray-50">
+                          <Button variant={heroTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
+                          <Button variant={heroTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
+                          <Button variant={heroTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Vertical</Label>
+                        <div className="flex border p-1 rounded-sm bg-gray-50">
+                          <Button variant={heroVerticalAlign === 'top' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('top')} title="Top"><AlignLeft className="h-4 w-4 rotate-90" /></Button>
+                          <Button variant={heroVerticalAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('center')} title="Center"><AlignCenter className="h-4 w-4 rotate-90" /></Button>
+                          <Button variant={heroVerticalAlign === 'bottom' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('bottom')} title="Bottom"><AlignRight className="h-4 w-4 rotate-90" /></Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -349,16 +459,38 @@ export default function StorefrontAdminPage() {
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              <div className="aspect-[16/10] bg-zinc-800 rounded-sm overflow-hidden border border-white/5 relative flex items-center justify-center p-4 text-center">
+              <div 
+                className="aspect-[16/10] bg-zinc-800 rounded-sm overflow-hidden border border-white/5 relative flex p-4 text-center"
+                style={{
+                  alignItems: heroVerticalAlign === 'bottom' ? 'flex-end' : heroVerticalAlign === 'top' ? 'flex-start' : 'center',
+                  justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center',
+                  textAlign: heroTextAlign as any
+                }}
+              >
                 {heroImageUrl ? (
                   <Image src={heroImageUrl} alt="Hero Preview" fill className="object-cover opacity-20" />
                 ) : (
                   <div className="absolute inset-0 bg-white/5" />
                 )}
-                <div className="relative z-10 space-y-2">
+                <div className="relative z-10 space-y-2 w-full">
                   <p className="text-[7px] uppercase tracking-[0.4em] text-zinc-500">{heroSubheadline || 'MODERN SILHOUETTES'}</p>
-                  <h3 className="text-lg font-headline font-bold uppercase tracking-tight leading-none">{heroHeadline || 'THE ARCHIVE SELECTION'}</h3>
-                  <div className="mx-auto w-24 h-7 bg-white/10 border border-white/20 flex items-center justify-center text-[7px] font-bold uppercase tracking-widest mt-4">
+                  <h3 className="font-headline font-bold uppercase tracking-tight leading-none"
+                    style={{
+                      color: heroHeadlineColor,
+                      fontSize: `${Math.max(12, Number(heroHeadlineSize) / 4)}px`
+                    }}
+                  >
+                    {heroHeadline || 'THE ARCHIVE SELECTION'}
+                  </h3>
+                  <div 
+                    className="w-24 h-7 flex items-center justify-center text-[7px] font-bold uppercase tracking-widest mt-4"
+                    style={{
+                      backgroundColor: heroButtonBgColor,
+                      color: heroButtonTextColor,
+                      marginLeft: heroTextAlign === 'left' ? '0' : heroTextAlign === 'right' ? 'auto' : 'auto',
+                      marginRight: heroTextAlign === 'right' ? '0' : heroTextAlign === 'left' ? 'auto' : 'auto',
+                    }}
+                  >
                     {heroButtonText || 'SHOP NOW'}
                   </div>
                 </div>

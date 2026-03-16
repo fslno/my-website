@@ -79,6 +79,7 @@ const DEFAULT_THEME = {
   heroTextAlign: 'center',
   heroVerticalAlign: 'center',
   heroHeadlineSize: '72',
+  heroHeadlineColor: '#000000',
   categoryTextAlign: 'center',
   categoryVerticalAlign: 'center',
   categoryTitleSize: '40',
@@ -127,6 +128,9 @@ export default function ThemeEnginePage() {
   const [bannerFont, setBannerFont] = useState(DEFAULT_THEME.bannerFont);
   const [bannerFontSize, setBannerFontSize] = useState(DEFAULT_THEME.bannerFontSize);
   const [homepageLayout, setHomepageLayout] = useState(DEFAULT_THEME.homepageLayout);
+  
+  // Hero values are now mostly managed in Storefront Command, 
+  // but we keep them here if the theme doc is shared.
   const [heroImageUrl, setHeroImageUrl] = useState(DEFAULT_THEME.heroImageUrl);
   const [heroHeadline, setHeroHeadline] = useState(DEFAULT_THEME.heroHeadline);
   const [heroSubheadline, setHeroSubheadline] = useState(DEFAULT_THEME.heroSubheadline);
@@ -136,6 +140,7 @@ export default function ThemeEnginePage() {
   const [heroTextAlign, setHeroTextAlign] = useState(DEFAULT_THEME.heroTextAlign);
   const [heroVerticalAlign, setHeroVerticalAlign] = useState(DEFAULT_THEME.heroVerticalAlign);
   const [heroHeadlineSize, setHeroHeadlineSize] = useState(DEFAULT_THEME.heroHeadlineSize);
+  const [heroHeadlineColor, setHeroHeadlineColor] = useState(DEFAULT_THEME.heroHeadlineColor);
   
   const [categoryTextAlign, setCategoryTextAlign] = useState(DEFAULT_THEME.categoryTextAlign);
   const [categoryVerticalAlign, setCategoryVerticalAlign] = useState(DEFAULT_THEME.categoryVerticalAlign);
@@ -190,6 +195,7 @@ export default function ThemeEnginePage() {
       setHeroTextAlign(themeData.heroTextAlign || DEFAULT_THEME.heroTextAlign);
       setHeroVerticalAlign(themeData.heroVerticalAlign || DEFAULT_THEME.heroVerticalAlign);
       setHeroHeadlineSize(themeData.heroHeadlineSize?.toString() || DEFAULT_THEME.heroHeadlineSize);
+      setHeroHeadlineColor(themeData.heroHeadlineColor || DEFAULT_THEME.heroHeadlineColor);
       setCategoryTextAlign(themeData.categoryTextAlign || DEFAULT_THEME.categoryTextAlign);
       setCategoryVerticalAlign(themeData.categoryVerticalAlign || DEFAULT_THEME.categoryVerticalAlign);
       setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
@@ -217,15 +223,6 @@ export default function ThemeEnginePage() {
     }
   }, [themeData]);
 
-  const handleHeroImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setHeroImageUrl(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSave = () => {
     if (!themeRef) return;
     setIsSaving(true);
@@ -251,6 +248,7 @@ export default function ThemeEnginePage() {
       heroTextAlign,
       heroVerticalAlign,
       heroHeadlineSize: Number(heroHeadlineSize),
+      heroHeadlineColor,
       categoryTextAlign,
       categoryVerticalAlign,
       categoryTitleSize: Number(categoryTitleSize),
@@ -314,6 +312,7 @@ export default function ThemeEnginePage() {
           --preview-hero-align: ${heroTextAlign};
           --preview-hero-vertical: ${heroVerticalAlign === 'bottom' ? 'flex-end' : heroVerticalAlign === 'top' ? 'flex-start' : 'center'};
           --preview-hero-size: ${heroHeadlineSize}px;
+          --preview-hero-color: ${heroHeadlineColor};
           --preview-cat-align: ${categoryTextAlign};
           --preview-cat-vertical: ${categoryVerticalAlign === 'bottom' ? 'flex-end' : categoryVerticalAlign === 'top' ? 'flex-start' : 'center'};
           --preview-cat-size: ${categoryTitleSize}px;
@@ -342,6 +341,7 @@ export default function ThemeEnginePage() {
         #theme-preview-root .preview-hero-headline {
           text-align: var(--preview-hero-align) !important;
           font-size: var(--preview-hero-size) !important;
+          color: var(--preview-hero-color) !important;
         }
         #theme-preview-root .preview-cat-title {
           text-align: var(--preview-cat-align) !important;
@@ -389,7 +389,6 @@ export default function ThemeEnginePage() {
               {[
                 { id: 'styles', label: 'Styles', icon: Palette },
                 { id: 'catalog', label: 'Nav', icon: Layers },
-                { id: 'hero', label: 'Hero', icon: Sparkles },
                 { id: 'layout', label: 'Layout', icon: Layout },
                 { id: 'admin', label: 'Admin', icon: Settings2 },
               ].map((tab) => (
@@ -517,63 +516,6 @@ export default function ThemeEnginePage() {
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Font Size</Label>
                       <Input type="number" value={bannerFontSize} onChange={(e) => setBannerFontSize(e.target.value)} className="h-10" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="hero" className="mt-6 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Hero Visuals</CardTitle></CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Editorial Cover</Label>
-                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
-                    <div onClick={() => !heroImageUrl && fileInputRef.current?.click()} className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-gray-50 cursor-pointer min-h-[150px] hover:border-black transition-all">
-                      {heroImageUrl ? (
-                        <div className="relative w-full aspect-video rounded-sm overflow-hidden">
-                          <Image src={heroImageUrl} alt="Hero" fill className="object-cover" />
-                          <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 shadow-xl" onClick={(e) => { e.stopPropagation(); setHeroImageUrl(''); }}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <><SearchIcon className="h-6 w-6 text-gray-400" /><p className="text-[10px] font-bold uppercase text-gray-500">Upload visual</p></>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Headline</Label><Input value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} className="h-12" /></div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subheadline</Label><Input value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} className="h-12 uppercase tracking-widest" /></div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-6 pt-4 border-t">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Headline Size</Label>
-                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</Badge>
-                      </div>
-                      <input 
-                        type="range" min="32" max="160" value={heroHeadlineSize} 
-                        onChange={(e) => setHeroHeadlineSize(e.target.value)} 
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                      />
-                    </div>
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Alignment Orchestration</Label>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex border p-1 rounded-sm bg-gray-50 flex-1">
-                          <Button variant={heroTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
-                          <Button variant={heroTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
-                          <Button variant={heroTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
-                        </div>
-                        <div className="flex border p-1 rounded-sm bg-gray-50 flex-1">
-                          <Button variant={heroVerticalAlign === 'top' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('top')} title="Top Alignment"><AlignLeft className="h-4 w-4 rotate-90" /></Button>
-                          <Button variant={heroVerticalAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('center')} title="Center Alignment"><AlignCenter className="h-4 w-4 rotate-90" /></Button>
-                          <Button variant={heroVerticalAlign === 'bottom' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setHeroVerticalAlign('bottom')} title="Bottom Alignment"><AlignRight className="h-4 w-4 rotate-90" /></Button>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -771,7 +713,7 @@ export default function ThemeEnginePage() {
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-12 font-body">
                 <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center', textAlign: heroTextAlign as any }}>
                   {heroImageUrl ? <Image src={heroImageUrl} alt="Hero" fill className="object-cover opacity-20" /> : <div className="absolute inset-0 bg-gray-100" />}
-                  <div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">{heroSubheadline}</span><h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: primaryColor }}>{heroHeadline}</h2><div className="mt-6 sm:mt-8 flex" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}><div className="hero-button-preview px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">{heroButtonText}</div></div></div>
+                  <div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">{heroSubheadline}</span><h2 className="preview-hero-headline font-bold uppercase tracking-tight leading-none font-headline" style={{ color: heroHeadlineColor }}>{heroHeadline}</h2><div className="mt-6 sm:mt-8 flex" style={{ justifyContent: heroTextAlign === 'left' ? 'flex-start' : heroTextAlign === 'right' ? 'flex-end' : 'center' }}><div className="hero-button-preview px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">{heroButtonText}</div></div></div>
                 </div>
                 <div className="space-y-8"><h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">Catalog Selection</h3><div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-[3/4] bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none">Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div></div>
               </div>
