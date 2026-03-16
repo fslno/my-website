@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect } from 'react';
+import { useEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { getLivePath } from '@/lib/deployment';
@@ -15,7 +15,7 @@ export function ThemeStyleInjector() {
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!theme) return;
 
     const root = document.documentElement;
