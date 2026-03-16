@@ -13,14 +13,11 @@ import {
   Truck, 
   CreditCard,
   BarChart3,
-  Search,
   Bell,
   Tag,
   Ruler,
   Globe,
   Share2,
-  RefreshCw,
-  BarChart,
   LogOut,
   Mail,
   Lock,
@@ -33,8 +30,6 @@ import {
   VolumeX,
   Monitor,
   Star,
-  MessageSquareQuote,
-  Zap,
   CloudUpload
 } from 'lucide-react';
 import { 
