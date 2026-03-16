@@ -41,7 +41,7 @@ export function CategorySection() {
     <section className="py-12 bg-white border-b">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className={cn(
-          "flex flex-col md:flex-row justify-between gap-6 mb-6",
+          "flex flex-col md:flex-row justify-between gap-6 mb-12",
           theme?.categoryTextAlign === 'center' ? 'items-center text-center' : 
           theme?.categoryTextAlign === 'right' ? 'items-end text-right' : 'items-end text-left'
         )}>

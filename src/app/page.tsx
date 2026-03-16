@@ -36,7 +36,7 @@ export default function Home() {
       <div className="bg-white">
         <div className="max-w-[1440px] mx-auto px-4 pt-12">
           <div className={cn(
-            "mb-6 archive-text-align",
+            "mb-12 archive-text-align",
             theme?.archiveTextAlign === 'center' ? 'mx-auto items-center' : 
             theme?.archiveTextAlign === 'right' ? 'ml-auto items-end' : 'items-start'
           )}>
