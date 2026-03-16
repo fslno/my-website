@@ -74,6 +74,12 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  
+  // Controlled Sheet States
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
   const searchRef = useRef<HTMLDivElement>(null);
 
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
@@ -174,7 +180,7 @@ export function Header() {
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
-            <Sheet>
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden text-primary h-10 w-10">
                   <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -201,6 +207,7 @@ export function Header() {
                           <Link 
                             key={cat.id} 
                             href={`/collections/${cat.id}`} 
+                            onClick={() => setIsMenuOpen(false)}
                             className="text-lg sm:text-xl font-headline uppercase text-primary hover:opacity-60 transition-opacity"
                           >
                             {cat.name}
@@ -215,17 +222,17 @@ export function Header() {
                         <div className="space-y-4">
                           <p className="text-[10px] font-bold uppercase text-primary truncate">{user.displayName || user.email}</p>
                           <nav className="flex flex-col gap-4">
-                            <Link href="/account/orders" className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                            <Link href="/account/orders" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                               <Package className="h-4 w-4" /> Orders
                             </Link>
-                            <button onClick={handleLogout} className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-destructive">
+                            <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-destructive">
                               <LogOut className="h-4 w-4" /> Sign Out
                             </button>
                           </nav>
                         </div>
                       ) : (
                         <Button 
-                          onClick={() => setIsAuthOpen(true)}
+                          onClick={() => { setIsAuthOpen(true); setIsMenuOpen(false); }}
                           className="w-full h-12 bg-black text-white font-bold uppercase tracking-widest text-[10px] rounded-none"
                         >
                           Sign In
@@ -394,7 +401,7 @@ export function Header() {
                 )}
               </div>
 
-              <Sheet>
+              <Sheet open={isWishlistOpen} onOpenChange={setIsWishlistOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all h-10 w-10">
                     <Heart className="h-5 w-5" />
@@ -419,7 +426,11 @@ export function Header() {
                       <div className="p-6 space-y-8">
                         {wishlist.map((item) => (
                           <div key={item.id} className="flex gap-4">
-                            <Link href={`/products/${item.id}`} className="w-20 h-20 relative bg-gray-100 border shrink-0">
+                            <Link 
+                              href={`/products/${item.id}`} 
+                              onClick={() => setIsWishlistOpen(false)}
+                              className="w-20 h-20 relative bg-gray-100 border shrink-0"
+                            >
                               {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
                             </Link>
                             <div className="flex-1 flex flex-col justify-between py-1">
@@ -442,7 +453,7 @@ export function Header() {
                 </SheetContent>
               </Sheet>
               
-              <Sheet>
+              <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative text-primary hover:bg-secondary transition-all h-10 w-10">
                     <ShoppingBag className="h-5 w-5" />
@@ -477,7 +488,7 @@ export function Header() {
                         <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
                         <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Cart empty.</p>
                         <Button asChild variant="outline" className="mt-6 border-primary text-primary font-bold uppercase tracking-widest text-[10px] h-12 px-8 rounded-none hover:bg-secondary transition-all">
-                          <Link href="/">Shop now</Link>
+                          <Link href="/" onClick={() => setIsCartOpen(false)}>Shop now</Link>
                         </Button>
                       </div>
                     ) : (
@@ -485,12 +496,16 @@ export function Header() {
                         {cart.map((item) => (
                           <div key={item.variantId} className="flex gap-4">
                             <div className="w-24 h-24 relative bg-gray-100 overflow-hidden border shrink-0">
-                              {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+                              <Link href={`/products/${item.id}`} onClick={() => setIsCartOpen(false)}>
+                                {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+                              </Link>
                             </div>
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div className="space-y-1">
                                 <div className="flex justify-between items-start">
-                                  <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px] text-primary line-clamp-2">{item.name}</h3>
+                                  <Link href={`/products/${item.id}`} onClick={() => setIsCartOpen(false)}>
+                                    <h3 className="text-xs font-bold uppercase tracking-tight leading-tight max-w-[180px] text-primary line-clamp-2 hover:underline">{item.name}</h3>
+                                  </Link>
                                   <p className="text-sm font-bold text-primary">
                                     {item.price === 0 ? 'FREE' : `C$${formatCurrency(item.price * item.quantity)}`}
                                   </p>
@@ -560,14 +575,12 @@ export function Header() {
                                         </p>
                                       )}
                                     </div>
-                                    {(item.customName || item.customNumber || item.specialNote) && (
-                                      <button 
-                                        onClick={() => handleStartEdit(item)}
-                                        className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-0 group-hover/custom:opacity-100 transition-opacity"
-                                      >
-                                        Edit
-                                      </button>
-                                    )}
+                                    <button 
+                                      onClick={() => handleStartEdit(item)}
+                                      className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-0 group-hover/custom:opacity-100 transition-opacity"
+                                    >
+                                      Edit
+                                    </button>
                                   </div>
                                 )}
                               </div>
@@ -602,7 +615,7 @@ export function Header() {
                         </p>
                       </div>
                       <Button asChild className="w-full h-16 bg-primary text-primary-foreground font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-xl">
-                        <Link href="/checkout">Checkout <ArrowRight className="h-4 w-4" /></Link>
+                        <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout <ArrowRight className="h-4 w-4" /></Link>
                       </Button>
                     </SheetFooter>
                   )}

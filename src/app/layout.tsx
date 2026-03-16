@@ -61,14 +61,15 @@ export default function RootLayout({
                 <Toaster />
               </div>
 
-              {/* HIGH-VELOCITY BOOT OVERLAY */}
-              {!mounted && (
-                <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center pointer-events-none">
-                  <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">
-                    FSLNO_ARCHIVE
-                  </p>
-                </div>
-              )}
+              {/* AUTHORITATIVE BOOT OVERLAY: ALWAYS RENDERED TO PREVENT HYDRATION MISMATCH */}
+              <div className={cn(
+                "fixed inset-0 z-[9999] bg-black flex items-center justify-center pointer-events-none transition-opacity duration-500",
+                mounted ? "opacity-0 invisible" : "opacity-100"
+              )}>
+                <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">
+                  FSLNO_ARCHIVE
+                </p>
+              </div>
             </CartProvider>
           </WishlistProvider>
         </FirebaseClientProvider>

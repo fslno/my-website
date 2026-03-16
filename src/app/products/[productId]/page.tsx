@@ -79,7 +79,7 @@ export default function ProductDetailPage(props: PageProps) {
   
   const db = useFirestore();
   const router = useRouter();
-  const { cart, addToCart } = useCart();
+  const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
 
@@ -98,7 +98,7 @@ export default function ProductDetailPage(props: PageProps) {
     return query(collection(db, getLivePath('sizeCharts')), where('category', '==', product.categoryId));
   }, [db, product?.categoryId]);
 
-  const { data: categoryCharts, isLoading: chartsLoading } = useCollection(sizeChartsQuery);
+  const { data: categoryCharts } = useCollection(sizeChartsQuery);
 
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -115,19 +115,12 @@ export default function ProductDetailPage(props: PageProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
 
-  const isSaved = isInWishlist(productId);
-
   useEffect(() => {
     if (!api) return;
     api.on("select", () => {
       setActiveImageIndex(api.selectedScrollSnap());
     });
   }, [api]);
-
-  const handleThumbnailClick = (index: number) => {
-    setActiveImageIndex(index);
-    api?.scrollTo(index);
-  };
 
   if (loading) {
     return (
@@ -137,8 +130,7 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
-  // --- AUTHORITATIVE DATA GATE ---
-  // Strictly prevent any property access until product exists.
+  // AUTHORITATIVE GATE: Prevent property access on null manifest
   if (!product) {
     return (
       <main className="min-h-screen pt-32 px-4 text-center bg-white">
@@ -160,7 +152,6 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
-  // Safe Property Access: All declarations involving product MUST be below the gate.
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
   const sizeChart = categoryCharts && categoryCharts.length > 0 ? categoryCharts[0] : null;
@@ -187,8 +178,12 @@ export default function ProductDetailPage(props: PageProps) {
     ? (product.variants?.find((v: any) => v.size === selectedSize)?.sku || product.sku) 
     : (product.sku || 'N/A');
 
-  const selectedVariant = product.variants?.find((v: any) => v.size === selectedSize);
-  const hasAnyStock = product.variants?.some((v: any) => (Number(v.stock) || 0) > 0);
+  const handleThumbnailClick = (index: number) => {
+    setActiveImageIndex(index);
+    api?.scrollTo(index);
+  };
+
+  const isSaved = isInWishlist(productId);
 
   const handleAddToCart = () => {
     if (!product || !selectedSize) return;
@@ -210,9 +205,9 @@ export default function ProductDetailPage(props: PageProps) {
     };
 
     if (wantsCustomization) {
-      if (customName) itemToAdd.customName = customName;
-      if (customNumber) itemToAdd.customNumber = customNumber;
-      if (specialRequest) itemToAdd.specialNote = specialRequest;
+      itemToAdd.customName = customName;
+      itemToAdd.customNumber = customNumber;
+      itemToAdd.specialNote = specialRequest;
     }
 
     addToCart(itemToAdd);
@@ -240,24 +235,12 @@ export default function ProductDetailPage(props: PageProps) {
   };
 
   const handleShare = async () => {
-    const shareData = {
-      title: `FSLNO Studio | ${product.name}`,
-      text: product.description || `Check out this ${product.name} from FSLNO Studio.`,
-      url: window.location.href,
-    };
-
-    if (navigator.share && navigator.canShare(shareData)) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.error('Share failed', err);
-      }
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: product.name, url });
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link Copied",
-        description: "Product link copied to clipboard.",
-      });
+      navigator.clipboard.writeText(url);
+      toast({ title: "Link Copied" });
     }
   };
 
@@ -315,19 +298,6 @@ export default function ProductDetailPage(props: PageProps) {
                   )}
                 </CarouselContent>
               </Carousel>
-              {media.length > 1 && (
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 lg:hidden z-10">
-                  {media.map((_: any, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className={cn(
-                        "w-1.5 h-1.5 rounded-full transition-all duration-500",
-                        activeImageIndex === idx ? "bg-black w-4" : "bg-black/20"
-                      )}
-                    />
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
