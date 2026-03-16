@@ -296,14 +296,6 @@ export default function CheckoutPage() {
               </div>
             </div>
           )}
-
-          <div className="space-y-4 pt-10 border-t">
-            <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Search className="h-3.5 w-3.5" /> Discovery Protocol</h3>
-            <div className="space-y-2">
-              <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>How did you hear about us?</Label>
-              <Input value={formData.referral} onChange={(e) => handleUppercaseInput('referral', e.target.value)} className="h-12 bg-[#F9F9F9] uppercase rounded-none" placeholder="E.G. INSTAGRAM, FRIEND, ETC." />
-            </div>
-          </div>
         </section>
       </div>
 
@@ -334,7 +326,25 @@ export default function CheckoutPage() {
           <Textarea value={orderNote} onChange={(e) => setOrderNote(e.target.value.toUpperCase())} placeholder="ANY SPECIAL REQUESTS OR INSTRUCTIONS..." className="min-h-[100px] resize-none uppercase text-xs rounded-none border-gray-200" />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pt-6 border-t">
+          <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Search className="h-3.5 w-3.5" /> Discovery Protocol</h3>
+          <div className="space-y-2">
+            <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>How did you hear about us?</Label>
+            <Select value={formData.referral} onValueChange={(val) => handleInputChange('referral', val)}>
+              <SelectTrigger className="h-12 bg-gray-50 border-gray-200 uppercase font-bold text-[10px] rounded-none">
+                <SelectValue placeholder="SELECT SOURCE" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="GOOGLE/PINTEREST" className="uppercase font-bold text-[10px]">Google / Pinterest</SelectItem>
+                <SelectItem value="FACEBOOK/INSTAGRAM" className="uppercase font-bold text-[10px]">Facebook / Instagram</SelectItem>
+                <SelectItem value="FROM FRIENDS" className="uppercase font-bold text-[10px]">From Friends</SelectItem>
+                <SelectItem value="REPEAT CUSTOMER" className="uppercase font-bold text-[10px]">Repeat Customer</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-6 border-t">
           <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Discount Code</Label>
           <div className="flex gap-2">
             <Input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} placeholder="COUPON" className="h-12 bg-gray-50 uppercase font-bold text-xs rounded-none border-gray-200" />
