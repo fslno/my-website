@@ -43,19 +43,6 @@ interface PageProps {
   params: Promise<{ productId: string }>;
 }
 
-const DEFAULT_SIZE_CHART = {
-  name: "Standard Sizing Guide",
-  unit: "cm",
-  columns: ["Chest", "Length", "Shoulder"],
-  rows: [
-    { label: "S", values: ["50", "70", "44"] },
-    { label: "M", values: ["52", "72", "46"] },
-    { label: "L", values: ["54", "74", "48"] },
-    { label: "XL", values: ["56", "76", "50"] },
-    { label: "2XL", values: ["58", "78", "52"] }
-  ]
-};
-
 export default function ProductDetailPage(props: PageProps) {
   const { productId } = use(props.params);
   
@@ -104,6 +91,7 @@ export default function ProductDetailPage(props: PageProps) {
     });
   }, [api]);
 
+  // CRITICAL: Handle loading state before any property access
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-white">
@@ -112,6 +100,7 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
+  // CRITICAL: Handle missing product before any property access
   if (!product) {
     return (
       <main className="min-h-screen pt-32 px-4 text-center bg-white">
@@ -133,6 +122,7 @@ export default function ProductDetailPage(props: PageProps) {
     );
   }
 
+  // SAFE ACCESS ZONE: Data ingestion confirmed
   const media = product.media || [];
   const reviewsEnabled = reviewConfig?.enabled !== false;
   
@@ -224,7 +214,7 @@ export default function ProductDetailPage(props: PageProps) {
   };
 
   return (
-    <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-24 bg-white">
+    <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-32 bg-white">
       <button 
         onClick={() => router.back()}
         className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
@@ -407,6 +397,23 @@ export default function ProductDetailPage(props: PageProps) {
 
       <ReviewSystem productId={productId} />
       <TestimonialSection />
+
+      {/* STICKY ADD TO CART BAR - ARCHIVAL PROTOCOL */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-t p-4 lg:hidden animate-in slide-in-from-bottom duration-500">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase truncate">{product.name}</p>
+            <p className="text-xs font-bold">{`C$${totalPrice.toFixed(2)}`}</p>
+          </div>
+          <Button 
+            onClick={handleAddToCart}
+            disabled={!selectedSize}
+            className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px] rounded-none"
+          >
+            {selectedSize ? 'Add to Cart' : 'Select Size'}
+          </Button>
+        </div>
+      </div>
     </main>
   );
 }

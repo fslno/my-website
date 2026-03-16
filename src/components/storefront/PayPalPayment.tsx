@@ -20,6 +20,7 @@ const ENV_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 /**
  * Official PayPal Orchestration Component.
  * Manifests high-fidelity payment buttons with archival synchronization.
+ * Uses isolated stacking context to stay behind fixed UI elements.
  */
 export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId }: PayPalPaymentProps) {
   const db = useFirestore();
@@ -46,7 +47,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
         "disable-funding": "paylater" // Authoritatively removed per directive
       }}
     >
-      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500 relative z-0 isolate">
         <PayPalButtons
           style={{ 
             layout: 'vertical', 

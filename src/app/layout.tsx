@@ -50,7 +50,7 @@ export default function RootLayout({
           )}
           suppressHydrationWarning
         >
-          <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">
+          <p className="text-white font-mono text-[10px] uppercase tracking-[0.5em]">
             FSLNO_ARCHIVE
           </p>
         </div>
@@ -66,8 +66,8 @@ export default function RootLayout({
                 {children}
               </main>
               {!isAdmin && <Footer />}
-              <Chatbot />
               <Toaster />
+              <Chatbot />
             </CartProvider>
           </WishlistProvider>
         </FirebaseClientProvider>
