@@ -46,6 +46,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 const sportsFonts = [
   "Anton", "Bebas Neue", "Oswald", "Teko", "Kanit", 
@@ -466,7 +467,25 @@ export default function ThemeEnginePage() {
               <div className="h-16 bg-white border-b flex items-center justify-between px-6 sm:px-8 shrink-0"><span className="font-bold text-lg sm:text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span><div className="flex items-center gap-3"><Search className="h-4 w-4 text-gray-200" /><ShoppingBag className="h-4 w-4 text-gray-200" /><div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-200" /></div></div></div>
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-12 font-body">
                 <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: 'center', textAlign: 'center' }}><div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">MODERN SILHOUETTES</span><h2 className="font-bold uppercase tracking-tight leading-none font-headline text-3xl">THE ARCHIVE SELECTION</h2><div className="mt-6 sm:mt-8 flex justify-center"><div className="bg-black text-white px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">SHOP NOW</div></div></div></div>
-                <div className="space-y-8"><div className="space-y-1"><p className="text-[8px] uppercase tracking-[0.2em] font-bold text-gray-400">{categorySectionSubtitle}</p><h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">{categorySectionTitle}</h3></div><div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3 relative group aspect-square bg-gray-100 border overflow-hidden" style={{ borderRadius: `${borderRadius}px` }}><div className="absolute inset-0 flex flex-col p-4 preview-cat-card-content" style={{ justifyContent: 'var(--preview-cat-card-vertical)' }}><p className="preview-cat-card-title font-headline font-bold uppercase tracking-tight leading-none">Drop {i}</p></div></div>))}</div></div>
+                <div className="space-y-8">
+                  <div className="space-y-1">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-gray-400">{categorySectionSubtitle}</p>
+                    <h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">{categorySectionTitle}</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 sm:gap-8">
+                    {[1, 2].map(i => (
+                      <div key={i} className="flex flex-col gap-3">
+                        <div className="preview-prod-card relative group aspect-square bg-gray-100 border overflow-hidden" style={{ borderRadius: `${borderRadius}px` }}>
+                          <div className="absolute inset-0 bg-black/5" />
+                        </div>
+                        <div className="preview-cat-card-content">
+                          <p className="preview-cat-card-title font-headline font-bold uppercase tracking-tight leading-none">Drop {i}</p>
+                          <p className="text-[7px] font-bold uppercase tracking-widest mt-1 opacity-40">View Drop</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

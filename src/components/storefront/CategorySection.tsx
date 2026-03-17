@@ -87,7 +87,7 @@ export function CategorySection() {
               </Link>
               
               <div className={cn(
-                "flex flex-col",
+                "flex flex-col category-card-content",
                 getFlexAlign(theme?.categoryCardTextAlign || 'left')
               )}>
                 <Link href={`/collections/${cat.id}`} className="hover:underline">
