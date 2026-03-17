@@ -163,8 +163,6 @@ export function Header() {
     });
   };
 
-  const remainingForThreshold = Math.max(0, THRESHOLD_VALUE - cartSubtotal);
-
   if (!mounted) return null;
 
   return (
@@ -472,19 +470,6 @@ export function Header() {
                 <SheetContent className="w-full sm:max-w-md bg-white border-l p-0 flex flex-col">
                   <SheetHeader className="pt-12 px-10 pb-8 border-b shrink-0 space-y-4">
                     <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Cart ({cartCount})</SheetTitle>
-                    
-                    {cartSubtotal > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-primary">
-                          <span className="flex items-center gap-1.5">
-                            <Zap className={cn("h-3 w-3", thresholdProgress >= 100 ? "text-yellow-500 fill-current" : "text-muted-foreground")} />
-                            {thresholdProgress >= 100 ? "Discount unlocked" : `${`C$${formatCurrency(remainingForThreshold)}`} more for $100 off`}
-                          </span>
-                          <span>{Math.round(thresholdProgress)}%</span>
-                        </div>
-                        <Progress value={thresholdProgress} className="h-1.5 bg-gray-100" />
-                      </div>
-                    )}
                   </SheetHeader>
 
                   <ScrollArea className="flex-1">
