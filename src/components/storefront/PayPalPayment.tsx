@@ -71,11 +71,11 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
           }}
           createOrder={async (data, actions) => {
             try {
-              // 1. Construct the pending manifest
+              // 1. Construct the initial manifest
               const payload = {
                 ...orderData,
-                status: 'pending',
-                paymentStatus: 'pending',
+                status: 'awaiting_processing',
+                paymentStatus: 'awaiting_payment',
                 createdAt: serverTimestamp()
               };
 
@@ -112,7 +112,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                 // Synchronize success state back to archival record
                 await updateDoc(doc(db, 'orders', firestoreId), {
                   paymentStatus: 'paid',
-                  status: 'processing',
+                  status: 'awaiting_processing',
                   updatedAt: serverTimestamp(),
                   paypalTransactionId: details.id,
                   payerEmail: details.payer.email_address

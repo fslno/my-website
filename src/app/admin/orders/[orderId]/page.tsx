@@ -217,7 +217,6 @@ export default function OrderDetailPage(props: PageProps) {
       case 'paid':
         return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] font-bold">Paid</Badge>;
       case 'awaiting_payment':
-      case 'awaiting':
         return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Payment</Badge>;
       case 'refunded':
         return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[10px] font-bold">Refunded</Badge>;
@@ -251,7 +250,7 @@ export default function OrderDetailPage(props: PageProps) {
       case 'confirmed':
         return <Badge className="bg-blue-50 text-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
       default:
-        return <Badge className="bg-gray-50 text-gray-700 border-gray-100 uppercase text-[10px] font-bold">{status?.replace('_', ' ')}</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Processing</Badge>;
     }
   };
 
@@ -302,7 +301,7 @@ export default function OrderDetailPage(props: PageProps) {
             <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Order #{order.id.substring(0, 6).toUpperCase()}</h1>
             <div className="flex gap-2 items-center">
               {getPaymentStatusBadge(order.paymentStatus || 'awaiting_payment')}
-              {getStatusBadge(order.status)}
+              {getStatusBadge(order.status || 'awaiting_processing')}
             </div>
           </div>
         </div>
@@ -397,7 +396,7 @@ export default function OrderDetailPage(props: PageProps) {
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Payment Status</Label>
                   <Select value={order.paymentStatus || 'awaiting_payment'} onValueChange={handleConfirmPayment} disabled={isUpdatingPayment}>
-                    <SelectTrigger className="h-11 bg-white border-black text-[10px] font-bold uppercase tracking-widest">
+                    <SelectTrigger className="h-11 bg-white border-black text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]">
                       <SelectValue placeholder="Payment" />
                     </SelectTrigger>
                     <SelectContent>
@@ -411,8 +410,8 @@ export default function OrderDetailPage(props: PageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Fulfillment Status</Label>
-                  <Select value={order.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
-                    <SelectTrigger className="h-11 bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none">
+                  <Select value={order.status || 'awaiting_processing'} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
+                    <SelectTrigger className="h-11 bg-black text-white text-[10px] font-bold uppercase tracking-widest border-none transition-all duration-300 ease-in-out hover:bg-[#D3D3D3] hover:text-[#333333]">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -711,7 +710,7 @@ export default function OrderDetailPage(props: PageProps) {
                                 <div className="text-right space-y-1">
                                   <p className="text-[11px] font-bold">{`C$${formatCurrency(prevOrder.total)}`}</p>
                                   <Badge className={cn("text-[8px] font-bold uppercase border-none h-4", prevOrder.status === 'delivered' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700')}>
-                                    {prevOrder.status.replace('_', ' ')}
+                                    {prevOrder.status ? prevOrder.status.replace('_', ' ') : 'Processing'}
                                   </Badge>
                                 </div>
                               </Link>
