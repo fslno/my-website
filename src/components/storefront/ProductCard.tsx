@@ -9,7 +9,7 @@ import { Star } from 'lucide-react';
 interface ProductCardProps {
   id: string;
   name: string;
-  price: string; // Already formatted string from parent
+  price: string; 
   comparedPrice?: number;
   image: string;
   hoverImage?: string;
@@ -17,9 +17,13 @@ interface ProductCardProps {
   rating?: number;
   reviewCount?: number;
   isSoldOut?: boolean;
+  priority?: boolean;
 }
 
-export function ProductCard({ id, name, price, comparedPrice, image, hoverImage, category, rating, reviewCount, isSoldOut }: ProductCardProps) {
+export function ProductCard({ 
+  id, name, price, comparedPrice, image, hoverImage, category, 
+  rating, reviewCount, isSoldOut, priority = false 
+}: ProductCardProps) {
   const currentPriceNum = parseFloat(price.replace(/[^0-9.]/g, ''));
   const hasDiscount = comparedPrice && comparedPrice > currentPriceNum;
   const discountPercent = hasDiscount ? Math.round(((comparedPrice! - currentPriceNum) / comparedPrice!) * 100) : 0;
@@ -37,6 +41,7 @@ export function ProductCard({ id, name, price, comparedPrice, image, hoverImage,
                 "object-cover transition-opacity duration-500",
                 hoverImage ? "group-hover:opacity-0" : ""
               )}
+              priority={priority}
             />
             {hoverImage && (
               <Image

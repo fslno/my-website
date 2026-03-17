@@ -29,6 +29,7 @@ interface BentoHeroProps {
 /**
  * Authoritative Bento Hero Manifest.
  * Synchronized to reflect Admin Storefront text and styling protocols.
+ * Implements priority loading for archival hero visuals.
  */
 export function BentoHero({ 
   isLoading, 

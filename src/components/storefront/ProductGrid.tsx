@@ -10,7 +10,7 @@ import { getLivePath } from '@/lib/deployment';
 /**
  * Unified Product Grid Manifest.
  * Authoritatively manifests all studio drops in a high-fidelity responsive grid.
- * Employs silent fail protocols for identity-agnostic browsing.
+ * Employs priority loading for the first 4 archival selections.
  */
 export function ProductGrid() {
   const db = useFirestore();
@@ -65,7 +65,7 @@ export function ProductGrid() {
   return (
     <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
-        {products?.map((product: any) => {
+        {products?.map((product: any, idx: number) => {
           const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
           const ratingInfo = productRatings[product.id];
           const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
@@ -85,6 +85,7 @@ export function ProductGrid() {
               rating={avgRating}
               reviewCount={reviewCount}
               isSoldOut={isSoldOut}
+              priority={idx < 4}
             />
           );
         })}

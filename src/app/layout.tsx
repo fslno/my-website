@@ -48,12 +48,12 @@ export default function RootLayout({
         {/* FIRST-FRAME HYDRATION GUARD: Permanent FSLNO Icon manifest */}
         <div 
           className={cn(
-            "fixed inset-0 z-[9999] bg-white flex items-center justify-center pointer-events-none transition-opacity duration-500",
+            "fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center pointer-events-none transition-opacity duration-500",
             mounted ? "opacity-0 invisible" : "opacity-100"
           )}
           suppressHydrationWarning
         >
-          <div className="relative w-24 h-24">
+          <div className="relative w-24 h-24 mb-6">
             <Image 
               src="https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png" 
               alt="FSLNO Loading" 
@@ -62,6 +62,7 @@ export default function RootLayout({
               priority 
             />
           </div>
+          <p className="text-black font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">Initializing Manifest</p>
         </div>
 
         <FirebaseClientProvider>
