@@ -26,7 +26,9 @@ import {
   ArrowUp,
   ArrowDown,
   RefreshCw,
-  Globe
+  Globe,
+  Search,
+  MinusCircle
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -83,12 +85,30 @@ export default function CategoriesPage() {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
 
+  // Product Assignment State
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+
   // Fetch products assigned to this category
   const assignedProductsQuery = useMemoFirebase(() => 
     db && editingId ? query(collection(db, 'products'), where('categoryId', '==', editingId)) : null, 
     [db, editingId]
   );
   const { data: assignedProducts, isLoading: productsLoading } = useCollection(assignedProductsQuery);
+
+  // Fetch all products for selection manifest
+  const allProductsQuery = useMemoFirebase(() => 
+    db && isAdmin ? collection(db, 'products') : null, 
+    [db, isAdmin]
+  );
+  const { data: allProducts } = useCollection(allProductsQuery);
+
+  const unassignedProducts = useMemo(() => {
+    if (!allProducts || !editingId) return [];
+    return allProducts.filter(p => 
+      p.categoryId !== editingId && 
+      p.name.toLowerCase().includes(productSearchQuery.toLowerCase())
+    ).slice(0, 5);
+  }, [allProducts, editingId, productSearchQuery]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,7 +123,6 @@ export default function CategoriesPage() {
     if (!db || !categories) return;
     setIsSaving(true);
     
-    // Authoritatively restricted to only restore "Kid's" per directive
     const defaults = [
       { name: "Kid's", description: 'Archival pieces for the younger generation.', order: 0 }
     ];
@@ -184,6 +203,34 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleAssignProduct = (productId: string) => {
+    if (!db || !editingId) return;
+    const productRef = doc(db, 'products', productId);
+    updateDoc(productRef, { categoryId: editingId, updatedAt: new Date().toISOString() })
+      .then(() => toast({ title: "Product Assigned", description: "Inventory synchronized." }))
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `products/${productId}`,
+          operation: 'update',
+          requestResourceData: { categoryId: editingId }
+        }));
+      });
+  };
+
+  const handleUnassignProduct = (productId: string) => {
+    if (!db) return;
+    const productRef = doc(db, 'products', productId);
+    updateDoc(productRef, { categoryId: '', updatedAt: new Date().toISOString() })
+      .then(() => toast({ title: "Product Removed", description: "Inventory de-indexed." }))
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `products/${productId}`,
+          operation: 'update',
+          requestResourceData: { categoryId: '' }
+        }));
+      });
+  };
+
   const handleMoveOrder = async (id: string, direction: 'up' | 'down', e: React.MouseEvent) => {
     e.stopPropagation();
     if (!db || !categories) return;
@@ -226,6 +273,7 @@ export default function CategoriesPage() {
     setSeoDescription(''); 
     setEditingId(null); 
     setActiveTab('general'); 
+    setProductSearchQuery('');
   };
 
   const openEdit = (category: any) => {
@@ -336,58 +384,122 @@ export default function CategoriesPage() {
                       </div>
                     </div>
                   </TabsContent>
-                  <TabsContent value="products" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Assigned Inventory</h3>
-                        <Badge variant="outline" className="bg-black text-white text-[9px] font-bold px-2 py-0.5 border-none">
-                          {assignedProducts?.length || 0} ITEMS
-                        </Badge>
+                  <TabsContent value="products" className="p-4 sm:p-8 m-0 space-y-12 max-w-5xl mx-auto">
+                    {!editingId ? (
+                      <div className="py-20 text-center border-2 border-dashed rounded-none bg-gray-50/50">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Save the category first to manage inventory selection.</p>
                       </div>
-                      <div className="border rounded-none overflow-hidden bg-white shadow-sm">
-                        <Table>
-                          <TableHeader className="bg-gray-50/50">
-                            <TableRow className="border-black/5">
-                              <TableHead className="text-[10px] font-bold uppercase tracking-widest">Product</TableHead>
-                              <TableHead className="text-[10px] font-bold uppercase tracking-widest">SKU</TableHead>
-                              <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">Price</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {productsLoading ? (
-                              <TableRow>
-                                <TableCell colSpan={3} className="text-center py-10">
-                                  <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-300" />
-                                </TableCell>
-                              </TableRow>
-                            ) : !assignedProducts || assignedProducts.length === 0 ? (
-                              <TableRow>
-                                <TableCell colSpan={3} className="text-center py-10 text-[9px] font-bold text-gray-400 uppercase">
-                                  No products assigned.
-                                </TableCell>
-                              </TableRow>
-                            ) : assignedProducts.map((p: any) => (
-                              <TableRow key={p.id} className="border-black/5">
-                                <TableCell className="text-xs font-bold uppercase">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gray-100 relative border overflow-hidden shrink-0 rounded-sm">
-                                      {p.media?.[0]?.url ? (
-                                        <NextImage src={p.media[0].url} alt="" fill className="object-cover" />
-                                      ) : (
-                                        <ShoppingBag className="h-4 w-4 text-gray-300 mx-auto mt-3" />
-                                      )}
+                    ) : (
+                      <>
+                        <section className="space-y-6">
+                          <div className="flex items-center gap-2">
+                            <Search className="h-4 w-4 text-gray-400" />
+                            <h3 className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Add Products</h3>
+                          </div>
+                          <div className="relative">
+                            <Input 
+                              placeholder="SEARCH ALL INVENTORY..." 
+                              value={productSearchQuery}
+                              onChange={(e) => setProductSearchQuery(e.target.value)}
+                              className="h-12 pl-4 pr-10 uppercase text-[10px] font-bold border-black/10 focus-visible:ring-black"
+                            />
+                          </div>
+                          
+                          {productSearchQuery.length >= 2 && (
+                            <div className="grid grid-cols-1 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                              {unassignedProducts.map((p: any) => (
+                                <div key={p.id} className="flex items-center justify-between p-3 border bg-white hover:border-black transition-colors group">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-gray-100 relative rounded-sm overflow-hidden border">
+                                      {p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill className="object-cover" />}
                                     </div>
-                                    <span className="truncate max-w-[200px]">{p.name}</span>
+                                    <div className="space-y-0.5">
+                                      <p className="text-[10px] font-bold uppercase text-primary truncate max-w-[200px]">{p.name}</p>
+                                      <p className="text-[8px] font-mono text-gray-400 uppercase">{p.sku || 'NO SKU'}</p>
+                                    </div>
                                   </div>
-                                </TableCell>
-                                <TableCell className="text-[10px] font-mono text-gray-400 uppercase">{p.sku || 'N/A'}</TableCell>
-                                <TableCell className="text-right text-xs font-bold">C${p.price?.toFixed(2)}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
+                                  <Button 
+                                    onClick={() => handleAssignProduct(p.id)}
+                                    size="sm" 
+                                    className="h-8 gap-2 bg-black text-white font-bold uppercase tracking-widest text-[8px]"
+                                  >
+                                    <Plus className="h-3 w-3" /> Assign
+                                  </Button>
+                                </div>
+                              ))}
+                              {unassignedProducts.length === 0 && (
+                                <p className="text-[10px] text-gray-400 uppercase font-bold py-4 italic">No matching silhouettes found.</p>
+                              )}
+                            </div>
+                          )}
+                        </section>
+
+                        <section className="space-y-6">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Assigned Inventory</h3>
+                            <Badge variant="outline" className="bg-black text-white text-[9px] font-bold px-2 py-0.5 border-none">
+                              {assignedProducts?.length || 0} ITEMS
+                            </Badge>
+                          </div>
+                          <div className="border rounded-none overflow-hidden bg-white shadow-sm">
+                            <Table>
+                              <TableHeader className="bg-gray-50/50">
+                                <TableRow className="border-black/5">
+                                  <TableHead className="text-[10px] font-bold uppercase tracking-widest">Product</TableHead>
+                                  <TableHead className="text-[10px] font-bold uppercase tracking-widest">SKU</TableHead>
+                                  <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">Price</TableHead>
+                                  <TableHead className="w-[80px]"></TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {productsLoading ? (
+                                  <TableRow>
+                                    <TableCell colSpan={4} className="text-center py-10">
+                                      <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-300" />
+                                    </TableCell>
+                                  </TableRow>
+                                ) : !assignedProducts || assignedProducts.length === 0 ? (
+                                  <TableRow>
+                                    <TableCell colSpan={4} className="text-center py-10 text-[9px] font-bold text-gray-400 uppercase">
+                                      No products assigned.
+                                    </TableCell>
+                                  </TableRow>
+                                ) : assignedProducts.map((p: any) => (
+                                  <TableRow key={p.id} className="border-black/5 group">
+                                    <TableCell className="text-xs font-bold uppercase">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gray-100 relative border overflow-hidden shrink-0 rounded-sm">
+                                          {p.media?.[0]?.url ? (
+                                            <NextImage src={p.media[0].url} alt="" fill className="object-cover" />
+                                          ) : (
+                                            <ShoppingBag className="h-4 w-4 text-gray-300 mx-auto mt-3" />
+                                          )}
+                                        </div>
+                                        <span className="truncate max-w-[200px]">{p.name}</span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-[10px] font-mono text-gray-400 uppercase">{p.sku || 'N/A'}</TableCell>
+                                    <TableCell className="text-right text-xs font-bold">C${p.price?.toFixed(2)}</TableCell>
+                                    <TableCell>
+                                      <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          onClick={() => handleUnassignProduct(p.id)}
+                                          className="h-8 w-8 text-red-500 hover:bg-red-50"
+                                        >
+                                          <MinusCircle className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </section>
+                      </>
+                    )}
                   </TabsContent>
                 </div>
               </Tabs>
