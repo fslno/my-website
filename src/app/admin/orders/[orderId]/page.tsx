@@ -457,8 +457,8 @@ export default function OrderDetailPage(props: PageProps) {
                               {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                             </div>
                             <div className="flex flex-col justify-center">
+                              <span className="text-[8px] h-4 uppercase font-bold text-gray-400">SIZE: {item.size} • QTY: {item.quantity}</span>
                               <span className="text-xs font-bold uppercase line-clamp-2 leading-snug">{item.name}</span>
-                              <span className="text-[8px] h-4 uppercase font-bold">Size: {item.size}</span>
                               {(item.customName || item.customNumber || item.specialNote) && (
                                 <div className="mt-1 flex flex-col gap-0.5">
                                   {(item.customName || item.customNumber) && (
@@ -492,9 +492,9 @@ export default function OrderDetailPage(props: PageProps) {
                         {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                       </div>
                       <div className="flex-1 flex flex-col justify-center min-w-0">
+                        <span className="text-[9px] uppercase font-bold text-gray-400">Size: {item.size} • Qty: {item.quantity}</span>
                         <span className="text-sm font-bold uppercase line-clamp-2 leading-tight">{item.name}</span>
                         <div className="flex items-center justify-between mt-1">
-                          <span className="text-[10px] uppercase font-bold text-gray-400">Size: {item.size} • Qty: {item.quantity}</span>
                           <span className="text-sm font-bold">{`C$${formatCurrency((Number(item.price) || 0) * item.quantity)}`}</span>
                         </div>
                         {(item.customName || item.customNumber || item.specialNote) && (

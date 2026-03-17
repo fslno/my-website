@@ -474,8 +474,8 @@ export default function OrdersPage() {
                                 {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                               </div>
                               <div className="min-w-0">
-                                <p className="text-[10px] font-bold uppercase line-clamp-2 leading-tight">{item.name}</p>
                                 <p className="text-[9px] text-gray-400 uppercase font-bold">SIZE: {item.size} • QTY: {item.quantity}</p>
+                                <p className="text-[10px] font-bold uppercase line-clamp-2 leading-tight">{item.name}</p>
                                 {(item.customName || item.customNumber || item.specialNote) && (
                                   <div className="mt-1 pl-2 border-l-2 border-blue-100 space-y-0.5">
                                     {(item.customName || item.customNumber) && (
@@ -611,7 +611,8 @@ export default function OrdersPage() {
                     {(order.items || []).map((item: any, i: number) => (
                       <div key={i} className="flex justify-between items-start gap-4">
                         <div className="flex-1">
-                          <p className="text-[10px] font-bold uppercase leading-tight line-clamp-2">{item.name} ({item.size})</p>
+                          <p className="text-[9px] font-bold uppercase text-gray-400 tracking-widest">SIZE: {item.size} • QTY: {item.quantity}</p>
+                          <p className="text-[10px] font-bold uppercase leading-tight line-clamp-2">{item.name}</p>
                           {(item.customName || item.customNumber || item.specialNote) && (
                             <div className="flex flex-col gap-1 mt-1.5 pl-2 border-l-2 border-blue-100">
                               {(item.customName || item.customNumber) && (
@@ -625,7 +626,6 @@ export default function OrdersPage() {
                             </div>
                           )}
                         </div>
-                        <p className="text-[10px] font-bold text-gray-400 shrink-0">QTY: {item.quantity}</p>
                       </div>
                     ))}
                   </div>
@@ -678,7 +678,7 @@ export default function OrdersPage() {
                 <SelectContent>
                   <SelectItem value="awaiting_processing" className="uppercase text-[10px] font-bold">Awaiting Processing</SelectItem>
                   <SelectItem value="processing" className="uppercase text-[10px] font-bold">Processing</SelectItem>
-                  <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Ready for Pickup</SelectItem>
+                  <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Pick up</SelectItem>
                   <SelectItem value="shipped" className="uppercase text-[10px] font-bold">Shipped</SelectItem>
                   <SelectItem value="delivered" className="uppercase text-[10px] font-bold">Delivered</SelectItem>
                   <SelectItem value="returned" className="uppercase text-[10px] font-bold">Returned</SelectItem>
