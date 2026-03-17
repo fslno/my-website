@@ -33,13 +33,13 @@ import {
   Globe,
   X
 } from 'lucide-react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface LinkItem {
@@ -422,7 +422,7 @@ export default function FooterEditorPage() {
                   {poweredByLogoUrl ? (
                     <>
                       <div className="relative w-10 h-10">
-                        <Image src={poweredByLogoUrl} alt="Powered By Logo" fill className="object-contain" />
+                        <NextImage src={poweredByLogoUrl} alt="Powered By Logo" fill className="object-contain" />
                       </div>
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
                         <Button variant="destructive" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setPoweredByLogoUrl(''); }}><Trash2 className="h-4 w-4" /></Button>

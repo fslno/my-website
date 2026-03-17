@@ -8,7 +8,6 @@ import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
 import { MetaTagInjector } from '@/components/storefront/MetaTagInjector';
-import { PushNotificationManager } from '@/components/storefront/PushNotificationManager';
 import { Chatbot } from '@/components/storefront/Chatbot';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
@@ -66,7 +65,6 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <ThemeStyleInjector />
           <MetaTagInjector />
-          <PushNotificationManager />
           <WishlistProvider>
             <CartProvider>
               <LayoutContent pathname={pathname}>
