@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -87,19 +86,23 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
     }
   };
 
+  // Authoritative Dashboard Identity
+  const adminLogo = storeConfig?.adminLogoUrl || storeConfig?.logoUrl;
+  const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "STUDIO";
+
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] admin-sidebar-bg">
       <SidebarHeader className="admin-header-height flex items-center px-6 border-b border-[#e1e3e5] admin-sidebar-bg">
         <Link href="/" className="flex items-center gap-2" onClick={handleNavClick}>
           <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative border border-white/10">
-            {storeConfig?.logoUrl ? (
-              <NextImage src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
+            {adminLogo ? (
+              <NextImage src={adminLogo} alt="Logo" fill className="object-cover" />
             ) : (
               "F"
             )}
           </div>
           <span className="font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden font-admin-headline">
-            {storeConfig?.businessName || "FSLNO"} Studio
+            {adminName}
           </span>
         </Link>
       </SidebarHeader>
@@ -385,12 +388,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  const adminLogo = storeConfig?.adminLogoUrl || storeConfig?.logoUrl;
+  const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "FSLNO";
+
   if (!user || !isAdmin) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-white p-4 text-center">
         <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-8 shadow-2xl overflow-hidden relative">
-          {storeConfig?.logoUrl ? (
-            <NextImage src={storeConfig.logoUrl} alt="Logo" width={64} height={64} className="object-cover" />
+          {adminLogo ? (
+            <NextImage src={adminLogo} alt="Logo" width={64} height={64} className="object-cover" />
           ) : (
             "F"
           )}
@@ -409,6 +415,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         ) : (
           <>
             <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Sign In</h1>
+            <p className="mb-6 text-[10px] uppercase font-bold text-muted-foreground tracking-[0.2em]">{adminName} Command</p>
             <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
               <div className="space-y-2 text-left">
                 <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email</Label>

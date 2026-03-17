@@ -65,14 +65,16 @@ import {
   MessageCircle,
   Facebook,
   MoreHorizontal,
-  Clock
+  Clock,
+  ShieldCheck,
+  Monitor
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -90,7 +92,8 @@ interface SocialItem {
 export default function SettingsPage() {
   const db = useFirestore();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const storefrontLogoRef = useRef<HTMLInputElement>(null);
+  const adminLogoRef = useRef<HTMLInputElement>(null);
 
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const staffQuery = useMemoFirebase(() => db ? collection(db, 'staff') : null, [db]);
@@ -103,13 +106,20 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('store');
 
+  // Storefront Identity
   const [businessName, setBusinessName] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+
+  // Admin Identity
+  const [adminBusinessName, setAdminBusinessName] = useState('');
+  const [adminLogoUrl, setAdminLogoUrl] = useState('');
+
+  // Contact & Logistics
   const [address, setAddress] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [phone, setPhone] = useState('');
   const [businessEmail, setBusinessEmail] = useState('');
-  const [logoUrl, setLogoUrl] = useState('');
-
+  
   const [phoneNumbers, setPhoneNumbers] = useState<ContactItem[]>([]);
   const [emailAddresses, setEmailAddresses] = useState<ContactItem[]>([]);
   const [socialChannels, setSocialChannels] = useState<SocialItem[]>([]);
@@ -133,11 +143,14 @@ export default function SettingsPage() {
   useEffect(() => {
     if (storeConfig) {
       setBusinessName(storeConfig.businessName || '');
+      setLogoUrl(storeConfig.logoUrl || '');
+      setAdminBusinessName(storeConfig.adminBusinessName || storeConfig.businessName || '');
+      setAdminLogoUrl(storeConfig.adminLogoUrl || storeConfig.logoUrl || '');
+      
       setAddress(storeConfig.address || '');
       setGoogleMapsUrl(storeConfig.googleMapsUrl || '');
       setPhone(storeConfig.phone || '');
       setBusinessEmail(storeConfig.email || '');
-      setLogoUrl(storeConfig.logoUrl || '');
       setPhoneNumbers(storeConfig.phoneNumbers || []);
       setEmailAddresses(storeConfig.emailAddresses || []);
       setSocialChannels(storeConfig.socialChannels || []);
@@ -153,11 +166,14 @@ export default function SettingsPage() {
     }
   }, [storeConfig, themeData]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'storefront' | 'admin') => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setLogoUrl(reader.result as string);
+      reader.onloadend = () => {
+        if (target === 'storefront') setLogoUrl(reader.result as string);
+        else setAdminLogoUrl(reader.result as string);
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -167,11 +183,13 @@ export default function SettingsPage() {
     setIsSaving(true);
     const updates = { 
       businessName, 
+      logoUrl,
+      adminBusinessName,
+      adminLogoUrl,
       address, 
       googleMapsUrl,
       phone, 
       email: businessEmail,
-      logoUrl,
       phoneNumbers,
       emailAddresses,
       socialChannels,
@@ -179,7 +197,7 @@ export default function SettingsPage() {
       updatedAt: new Date().toISOString() 
     };
     setDoc(storeConfigRef, updates, { merge: true })
-      .then(() => toast({ title: "Settings Saved", description: "Store info has been updated." }))
+      .then(() => toast({ title: "Identity Synchronized", description: "Store and Admin profiles updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: storeConfigRef.path, operation: 'write', requestResourceData: updates })))
       .finally(() => setIsSaving(false));
   };
@@ -303,7 +321,7 @@ export default function SettingsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-white border border-[#e1e3e5] h-auto flex-wrap p-1 mb-8 gap-2 rounded-none">
           <TabsTrigger value="store" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
-            <Building2 className="h-3.5 w-3.5" /> Store Info
+            <Building2 className="h-3.5 w-3.5" /> Identity & Logistics
           </TabsTrigger>
           <TabsTrigger value="staff" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
             <User className="h-3.5 w-3.5" /> Staff Members
@@ -313,90 +331,149 @@ export default function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="store" className="space-y-6 animate-in fade-in duration-300">
-          <Card className="border-[#e1e3e5] shadow-none rounded-none">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-gray-400" />
-                <CardTitle className="text-lg font-headline uppercase tracking-tight">Store Details</CardTitle>
-              </div>
-              <CardDescription className="text-xs uppercase font-bold tracking-tight">These details appear on your site and in your emails.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <TabsContent value="store" className="space-y-12 animate-in fade-in duration-300">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Storefront Identity Card */}
+            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+              <CardHeader className="bg-gray-50/50 border-b">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="h-5 w-5 text-gray-400" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Storefront Identity</CardTitle>
+                </div>
+                <CardDescription className="text-xs font-bold uppercase tracking-tight">Public-facing brand assets.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Storefront Name</Label>
+                  <Input 
+                    placeholder="e.g. FSLNO Studio" 
+                    value={businessName} 
+                    onChange={(e) => setBusinessName(e.target.value)} 
+                    className="h-12 uppercase font-bold text-xs" 
+                  />
+                </div>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Store Name</Label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input placeholder="e.g. FSLNO Studio" value={businessName} onChange={(e) => setBusinessName(e.target.value)} className="pl-10 h-11" />
-                    </div>
+                  <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Storefront Logo</Label>
+                  <input type="file" ref={storefrontLogoRef} className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e, 'storefront')} />
+                  <div 
+                    onClick={() => storefrontLogoRef.current?.click()}
+                    className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-gray-50 group hover:border-black transition-all cursor-pointer relative min-h-[200px]"
+                  >
+                    {logoUrl ? (
+                      <div className="relative w-full max-w-[180px] aspect-square rounded-lg overflow-hidden bg-white border shadow-sm">
+                        <NextImage src={logoUrl} alt="Storefront Logo" fill className="object-contain p-4" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <Button variant="secondary" size="icon" className="h-8 w-8"><Upload className="h-4 w-4" /></Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <ImageIcon className="h-6 w-6 text-gray-300" />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Upload Public Logo</p>
+                      </>
+                    )}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Admin Identity Card */}
+            <Card className="border-blue-100 bg-blue-50/5 shadow-none rounded-none overflow-hidden">
+              <CardHeader className="bg-blue-50/30 border-b">
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight text-blue-900">Admin Identity</CardTitle>
+                </div>
+                <CardDescription className="text-xs font-bold uppercase tracking-tight text-blue-700/60">Backend-specific branding.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-800">Admin Dashboard Name</Label>
+                  <Input 
+                    placeholder="e.g. FSLNO Command" 
+                    value={adminBusinessName} 
+                    onChange={(e) => setAdminBusinessName(e.target.value)} 
+                    className="h-12 uppercase font-bold text-xs bg-white border-blue-100" 
+                  />
+                </div>
+                <div className="space-y-4">
+                  <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-800">Admin Logo</Label>
+                  <input type="file" ref={adminLogoRef} className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e, 'admin')} />
+                  <div 
+                    onClick={() => adminLogoRef.current?.click()}
+                    className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-white group hover:border-blue-600 transition-all cursor-pointer relative min-h-[200px]"
+                  >
+                    {adminLogoUrl ? (
+                      <div className="relative w-full max-w-[180px] aspect-square rounded-lg overflow-hidden bg-white border border-blue-50 shadow-sm">
+                        <NextImage src={adminLogoUrl} alt="Admin Logo" fill className="object-contain p-4" />
+                        <div className="absolute inset-0 bg-blue-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <Button variant="secondary" size="icon" className="h-8 w-8"><Upload className="h-4 w-4 text-blue-600" /></Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <ImageIcon className="h-6 w-6 text-blue-200" />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-blue-300">Upload Dashboard Logo</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Contact & Logistics Card */}
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
+            <CardHeader className="border-b bg-gray-50/30">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-gray-400" />
+                <CardTitle className="text-lg font-headline uppercase tracking-tight">Contact & Logistics</CardTitle>
+              </div>
+              <CardDescription className="text-xs uppercase font-bold tracking-tight">Operational data for shipments and support.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Main Phone</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Main Logistics Phone</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input placeholder="+1 (555) 000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500 text-blue-600">Business Email (Internal Logistics)</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Email (Internal)</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input placeholder="admin@fslno.ca" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
+                </div>
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Address</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Physical Address</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-4 h-4 w-4 text-gray-400" />
-                      <Textarea placeholder="123 Archive Way, London, UK" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 min-h-[100px] resize-none" />
+                      <Textarea placeholder="12 Brant Ave #13, Guelph, ON N1E 1E7" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 min-h-[100px] resize-none" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Google Maps Link</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Google Maps Coordination</Label>
                     <div className="relative">
                       <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input placeholder="https://maps.google.com/..." value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Store Logo</Label>
-                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-                  <div 
-                    onClick={() => !logoUrl && fileInputRef.current?.click()}
-                    className={cn(
-                      "border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-gray-50 group hover:border-black transition-all min-h-[250px]",
-                      !logoUrl && "cursor-pointer"
-                    )}
-                  >
-                    {logoUrl ? (
-                      <div className="relative w-full max-w-[250px] aspect-square rounded-lg overflow-hidden bg-white border shadow-sm">
-                        <Image src={logoUrl} alt="Store Logo" fill className="object-contain p-4" />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2">
-                          <Button variant="destructive" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); setLogoUrl(''); }}><Trash2 className="h-4 w-4" /></Button>
-                          <Button variant="secondary" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}><Upload className="h-4 w-4" /></Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-black transition-colors"><ImageIcon className="h-6 w-6" /></div>
-                        <div className="text-center">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Upload Logo</p>
-                          <p className="text-[8px] text-gray-400 mt-1 uppercase font-bold">Recommended: PNG / SVG with transparency</p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
+
           <div className="flex justify-end">
-            <Button onClick={handleSaveStore} disabled={isSaving} className="w-full sm:w-auto bg-black text-white h-12 px-12 font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg">
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-              Save Settings
+            <Button onClick={handleSaveStore} disabled={isSaving} className="w-full sm:w-auto bg-black text-white h-14 px-16 font-bold uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:bg-[#D3D3D3] transition-all">
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <ShieldCheck className="h-4 w-4 mr-3" />}
+              Synchronize Identity Manifest
             </Button>
           </div>
         </TabsContent>
