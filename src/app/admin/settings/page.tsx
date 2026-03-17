@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -1035,6 +1034,7 @@ export default function SettingsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="English" className="text-[10px] font-bold uppercase">English (Default)</SelectItem>
+                        <SelectItem value="US English" className="text-[10px] font-bold uppercase">US English</SelectItem>
                         <SelectItem value="French" className="text-[10px] font-bold uppercase">French</SelectItem>
                         <SelectItem value="Spanish" className="text-[10px] font-bold uppercase">Spanish</SelectItem>
                         <SelectItem value="German" className="text-[10px] font-bold uppercase">German</SelectItem>
