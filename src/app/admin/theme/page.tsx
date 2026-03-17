@@ -37,7 +37,11 @@ import {
   Type as TypeIcon,
   CircleDot,
   PlusCircle,
-  X
+  X,
+  CreditCard,
+  Terminal,
+  Globe,
+  Fingerprint
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -286,7 +290,6 @@ export default function ThemeEnginePage() {
       adminSidebarHeaderColor,
       adminSidebarItemSize: Number(adminSidebarItemSize),
       adminSidebarItemColor,
-      adminSidebarItemColor,
       adminSidebarActiveBg,
       adminSidebarActiveText,
       updatedAt: serverTimestamp()
@@ -371,134 +374,185 @@ export default function ThemeEnginePage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 xl:h-[calc(100vh-250px)] h-auto">
         <div className="xl:col-span-4 xl:overflow-y-auto pr-0 xl:pr-4 space-y-6 scrollbar-hide h-full">
           <Tabs defaultValue="styles" className="w-full">
-            <TabsList className="w-full bg-white border border-[#e1e3e5] h-auto p-1 flex flex-wrap justify-start rounded-none mb-8 overflow-hidden">
+            {/* LAYER 01: PRIMARY SECTIONS */}
+            <TabsList className="w-full bg-white border h-auto xl:h-14 p-1 flex flex-wrap xl:flex-nowrap justify-start rounded-none mb-8 overflow-hidden">
               {[
                 { id: 'styles', label: 'Styles', icon: Palette },
                 { id: 'catalog', label: 'Nav', icon: Layers },
                 { id: 'layout', label: 'Layout', icon: Layout },
                 { id: 'admin', label: 'Admin', icon: Settings2 },
               ].map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id} className="flex-grow basis-[30%] xl:basis-auto min-w-[80px] gap-1.5 font-bold uppercase tracking-widest text-[9px] px-2 h-12 rounded-none">
+                <TabsTrigger key={tab.id} value={tab.id} className="flex-grow basis-[30%] xl:basis-auto min-w-[80px] gap-1.5 font-bold uppercase tracking-widest text-[9px] px-2 h-12 rounded-none data-[state=active]:bg-black data-[state=active]:text-white">
                   <tab.icon className="h-3.5 w-3.5" /> {tab.label}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            <TabsContent value="styles" className="mt-6 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Palette className="h-3.5 w-3.5" /> Brand Palette</CardTitle></CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Primary Color</Label><div className="flex gap-2"><div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} /></div><Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="h-12 font-mono text-xs uppercase" /></div></div>
-                  <div className="grid gap-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Accent Color</Label><div className="flex gap-2"><div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} /></div><Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="h-12 font-mono text-xs uppercase" /></div></div>
-                </CardContent>
-              </Card>
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Type className="h-3.5 w-3.5" /> Performance Typography</CardTitle></CardHeader>
-                <CardContent className="space-y-8">
-                  <div className="space-y-4"><Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Headline Identity</Label><Select value={headlineFont} onValueChange={setHeadlineFont}><SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
-                  <div className="space-y-4"><Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Descriptor Identity</Label><Select value={bodyFont} onValueChange={setBodyFont}><SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-medium py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
-                  <div className="pt-4 border-t space-y-4"><div className="flex items-center justify-between"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Border Radius</Label><span className="text-[10px] font-mono font-bold">{borderRadius}PX</span></div><input type="range" min="0" max="40" value={borderRadius} onChange={(e) => setBorderRadius(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                </CardContent>
-              </Card>
+            {/* LAYER 02: STYLES SUB-TABS */}
+            <TabsContent value="styles" className="m-0 space-y-6 animate-in fade-in duration-300">
+              <Tabs defaultValue="identity" className="w-full">
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 sm:grid-cols-4 rounded-none mb-6">
+                  <TabsTrigger value="identity" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Identity</TabsTrigger>
+                  <TabsTrigger value="categories" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Category</TabsTrigger>
+                  <TabsTrigger value="products" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Product</TabsTrigger>
+                  <TabsTrigger value="archive" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Archive</TabsTrigger>
+                </TabsList>
 
-              {/* RESTORED TYPOGRAPHY SCALES & COLORS */}
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Layers className="h-3.5 w-3.5" /> Category Orchestration</CardTitle></CardHeader>
-                <CardContent className="pt-6 space-y-8">
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Main Title Styles</h3></div>
-                    <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</Badge></div><input type="range" min="16" max="120" value={categoryTitleSize} onChange={(e) => setCategoryTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                    <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Color</Label><div className="flex gap-2"><Input type="color" value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Horizontal</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={categoryTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button><Button variant={categoryTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button><Button variant={categoryTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button></div></div>
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Vertical</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={categoryVerticalAlign === 'top' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryVerticalAlign('top')}><AlignLeft className="h-3.5 w-3.5 rotate-90" /></Button><Button variant={categoryVerticalAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryVerticalAlign('center')}><AlignCenter className="h-3.5 w-3.5 rotate-90" /></Button><Button variant={categoryVerticalAlign === 'bottom' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryVerticalAlign('bottom')}><AlignRight className="h-3.5 w-3.5 rotate-90" /></Button></div></div>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Card Geometry (Internal)</h3></div>
-                    <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Card Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryCardTitleSize}PX</Badge></div><input type="range" min="12" max="64" value={categoryCardTitleSize} onChange={(e) => setCategoryCardTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                    <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Card Title Color</Label><div className="flex gap-2"><Input type="color" value={categoryCardTitleColor} onChange={(e) => setCategoryCardTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={categoryCardTitleColor} onChange={(e) => setCategoryCardTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
-                  </div>
-                </CardContent>
-              </Card>
+                <TabsContent value="identity" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Palette className="h-3.5 w-3.5" /> Brand Palette</CardTitle></CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid gap-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Primary Color</Label><div className="flex gap-2"><div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} /></div><Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="h-12 font-mono text-xs uppercase" /></div></div>
+                      <div className="grid gap-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Accent Color</Label><div className="flex gap-2"><div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} /></div><Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="h-12 font-mono text-xs uppercase" /></div></div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Type className="h-3.5 w-3.5" /> Performance Typography</CardTitle></CardHeader>
+                    <CardContent className="space-y-8">
+                      <div className="space-y-4"><Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Headline Identity</Label><Select value={headlineFont} onValueChange={setHeadlineFont}><SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
+                      <div className="space-y-4"><Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Descriptor Identity</Label><Select value={bodyFont} onValueChange={setBodyFont}><SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-medium py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
+                      <div className="pt-4 border-t space-y-4"><div className="flex items-center justify-between"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Border Radius</Label><span className="text-[10px] font-mono font-bold">{borderRadius}PX</span></div><input type="range" min="0" max="40" value={borderRadius} onChange={(e) => setBorderRadius(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><ShoppingBag className="h-3.5 w-3.5" /> Product selection Orchestration</CardTitle></CardHeader>
-                <CardContent className="pt-6 space-y-8">
-                  <div className="space-y-6">
-                    <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge></div><input type="range" min="10" max="24" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                    <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Color</Label><div className="flex gap-2"><Input type="color" value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
-                  </div>
-                  <Separator />
-                  <div className="space-y-6">
-                    <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Price Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge></div><input type="range" min="10" max="24" value={productPriceSize} onChange={(e) => setProductPriceSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                    <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Price Color</Label><div className="flex gap-2"><Input type="color" value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
-                  </div>
-                  <Separator />
-                  <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Card Alignment</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={productTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button><Button variant={productTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button><Button variant={productTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button></div></div>
-                </CardContent>
-              </Card>
+                <TabsContent value="categories" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Layers className="h-3.5 w-3.5" /> Category Orchestration</CardTitle></CardHeader>
+                    <CardContent className="pt-6 space-y-8">
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Main Title Styles</h3></div>
+                        <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</Badge></div><input type="range" min="16" max="120" value={categoryTitleSize} onChange={(e) => setCategoryTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                        <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Color</Label><div className="flex gap-2"><Input type="color" value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Horizontal</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={categoryTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button><Button variant={categoryTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button><Button variant={categoryTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button></div></div>
+                          <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Vertical</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={categoryVerticalAlign === 'top' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryVerticalAlign('top')}><AlignLeft className="h-3.5 w-3.5 rotate-90" /></Button><Button variant={categoryVerticalAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryVerticalAlign('center')}><AlignCenter className="h-3.5 w-3.5 rotate-90" /></Button><Button variant={categoryVerticalAlign === 'bottom' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setCategoryVerticalAlign('bottom')}><AlignRight className="h-3.5 w-3.5 rotate-90" /></Button></div></div>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Card Geometry (Internal)</h3></div>
+                        <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Card Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryCardTitleSize}PX</Badge></div><input type="range" min="12" max="64" value={categoryCardTitleSize} onChange={(e) => setCategoryCardTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                        <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Card Title Color</Label><div className="flex gap-2"><Input type="color" value={categoryCardTitleColor} onChange={(e) => setCategoryCardTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={categoryCardTitleColor} onChange={(e) => setCategoryCardTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Layers className="h-3.5 w-3.5" /> Archive Scaling</CardTitle></CardHeader>
-                <CardContent className="pt-6 space-y-8">
-                  <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{archiveTitleSize}PX</Badge></div><input type="range" min="16" max="120" value={archiveTitleSize} onChange={(e) => setArchiveTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                  <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Title Color</Label><div className="flex gap-2"><Input type="color" value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
-                  <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Alignment</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={archiveTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button><Button variant={archiveTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button><Button variant={archiveTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button></div></div>
-                </CardContent>
-              </Card>
+                <TabsContent value="products" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><ShoppingBag className="h-3.5 w-3.5" /> Product selection Orchestration</CardTitle></CardHeader>
+                    <CardContent className="pt-6 space-y-8">
+                      <div className="space-y-6">
+                        <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge></div><input type="range" min="10" max="24" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                        <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Color</Label><div className="flex gap-2"><Input type="color" value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
+                      </div>
+                      <Separator />
+                      <div className="space-y-6">
+                        <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Price Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge></div><input type="range" min="10" max="24" value={productPriceSize} onChange={(e) => setProductPriceSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                        <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Price Color</Label><div className="flex gap-2"><Input type="color" value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
+                      </div>
+                      <Separator />
+                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Card Alignment</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={productTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button><Button variant={productTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button><Button variant={productTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button></div></div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="archive" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Layers className="h-3.5 w-3.5" /> Archive Scaling</CardTitle></CardHeader>
+                    <CardContent className="pt-6 space-y-8">
+                      <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{archiveTitleSize}PX</Badge></div><input type="range" min="16" max="120" value={archiveTitleSize} onChange={(e) => setArchiveTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                      <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Title Color</Label><div className="flex gap-2"><Input type="color" value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
+                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Alignment</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={archiveTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button><Button variant={archiveTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button><Button variant={archiveTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button></div></div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
+            {/* LAYER 02: NAV SUB-TABS */}
             <TabsContent value="catalog" className="mt-6 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="flex flex-row items-center justify-between pb-4"><div className="space-y-1"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Header Interaction</CardTitle><CardDescription className="text-[9px] uppercase font-bold tracking-tight">Lock navigation to viewport.</CardDescription></div><Switch checked={stickyHeader} onCheckedChange={setStickyHeader} /></CardHeader></Card>
-              <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30"><div><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Megaphone className="h-3.5 w-3.5" /> Announcement Bar</CardTitle><CardDescription className="text-[9px] uppercase font-bold tracking-tight">Promotional banner at top.</CardDescription></div><Switch checked={bannerEnabled} onCheckedChange={setBannerEnabled} /></CardHeader><CardContent className="pt-6 space-y-6"><div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Banner Text</Label><Input value={bannerText} onChange={(e) => setBannerText(e.target.value)} className="h-12 uppercase font-bold text-xs" /></div><div className="grid grid-cols-2 gap-6"><div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background</Label><Input type="color" value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="h-10 p-1" /></div><div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Font Size</Label><Input type="number" value={bannerFontSize} onChange={(e) => setBannerFontSize(e.target.value)} className="h-10" /></div></div></CardContent></Card>
+              <Tabs defaultValue="header" className="w-full">
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 rounded-none mb-6">
+                  <TabsTrigger value="header" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Header</TabsTrigger>
+                  <TabsTrigger value="banner" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Banner</TabsTrigger>
+                </TabsList>
+                <TabsContent value="header" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="flex flex-row items-center justify-between pb-4"><div className="space-y-1"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Header Interaction</CardTitle><CardDescription className="text-[9px] uppercase font-bold tracking-tight">Lock navigation to viewport.</CardDescription></div><Switch checked={stickyHeader} onCheckedChange={setStickyHeader} /></CardHeader></Card>
+                </TabsContent>
+                <TabsContent value="banner" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30"><div><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Megaphone className="h-3.5 w-3.5" /> Announcement Bar</CardTitle><CardDescription className="text-[9px] uppercase font-bold tracking-tight">Promotional banner at top.</CardDescription></div><Switch checked={bannerEnabled} onCheckedChange={setBannerEnabled} /></CardHeader><CardContent className="pt-6 space-y-6"><div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Banner Text</Label><Input value={bannerText} onChange={(e) => setBannerText(e.target.value)} className="h-12 uppercase font-bold text-xs" /></div><div className="grid grid-cols-2 gap-6"><div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background</Label><Input type="color" value={bannerBgColor} onChange={(e) => setBannerBgColor(e.target.value)} className="h-10 p-1" /></div><div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Font Size</Label><Input type="number" value={bannerFontSize} onChange={(e) => setBannerFontSize(e.target.value)} className="h-10" /></div></div></CardContent></Card>
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
+            {/* LAYER 02: LAYOUT SUB-TABS */}
             <TabsContent value="layout" className="mt-6 space-y-6 animate-in fade-in duration-300">
-              <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Architecture</CardTitle></CardHeader><CardContent className="space-y-4"><div className="grid grid-cols-2 gap-4"><button onClick={() => setHomepageLayout('bento')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'bento' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Bento Grid</span></button><button onClick={() => setHomepageLayout('classic')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'classic' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Classic Full</span></button></div></CardContent></Card>
-              <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><TypeIcon className="h-3.5 w-3.5" /> Content Labels</CardTitle></CardHeader><CardContent className="pt-6 space-y-8"><div className="space-y-6"><div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Category Section</h3></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Main Title</Label><Input value={categorySectionTitle} onChange={(e) => setCategorySectionTitle(e.target.value)} className="h-11 font-bold uppercase text-[10px]" /></div><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subtitle</Label><Input value={categorySectionSubtitle} onChange={(e) => setCategorySectionSubtitle(e.target.value)} className="h-11 uppercase text-[10px] tracking-widest" /></div></div></div><Separator /><div className="space-y-6"><div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Global Archive</h3></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Main Title</Label><Input value={archiveSectionTitle} onChange={(e) => setArchiveSectionTitle(e.target.value)} className="h-11 font-bold uppercase text-[10px]" /></div><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subtitle</Label><Input value={archiveSectionSubtitle} onChange={(e) => setArchiveSectionSubtitle(e.target.value)} className="h-11 uppercase text-[10px] tracking-widest" /></div></div></div></CardContent></Card>
+              <Tabs defaultValue="structure" className="w-full">
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 rounded-none mb-6">
+                  <TabsTrigger value="structure" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Structure</TabsTrigger>
+                  <TabsTrigger value="copy" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Copy Labels</TabsTrigger>
+                </TabsList>
+                <TabsContent value="structure" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Architecture</CardTitle></CardHeader><CardContent className="space-y-4"><div className="grid grid-cols-2 gap-4"><button onClick={() => setHomepageLayout('bento')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'bento' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Bento Grid</span></button><button onClick={() => setHomepageLayout('classic')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'classic' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Classic Full</span></button></div></CardContent></Card>
+                </TabsContent>
+                <TabsContent value="copy" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><TypeIcon className="h-3.5 w-3.5" /> Content Labels</CardTitle></CardHeader><CardContent className="pt-6 space-y-8"><div className="space-y-6"><div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Category Section</h3></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Main Title</Label><Input value={categorySectionTitle} onChange={(e) => setCategorySectionTitle(e.target.value)} className="h-11 font-bold uppercase text-[10px]" /></div><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subtitle</Label><Input value={categorySectionSubtitle} onChange={(e) => setCategorySectionSubtitle(e.target.value)} className="h-11 uppercase text-[10px] tracking-widest" /></div></div></div><Separator /><div className="space-y-6"><div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Global Archive</h3></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Main Title</Label><Input value={archiveSectionTitle} onChange={(e) => setArchiveSectionTitle(e.target.value)} className="h-11 font-bold uppercase text-[10px]" /></div><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subtitle</Label><Input value={archiveSectionSubtitle} onChange={(e) => setArchiveSectionSubtitle(e.target.value)} className="h-11 uppercase text-[10px] tracking-widest" /></div></div></div></CardContent></Card>
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
+            {/* LAYER 02: ADMIN SUB-TABS */}
             <TabsContent value="admin" className="mt-6 space-y-6 animate-in fade-in duration-300 pb-12">
-              <Card className="border-blue-100 bg-blue-50/10 shadow-none rounded-none">
-                <CardHeader className="pb-4 border-b"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2"><Settings2 className="h-3.5 w-3.5" /> Backend Core Architecture</CardTitle></CardHeader>
-                <CardContent className="pt-6 space-y-8">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-primary">Brand Color</Label><Input type="color" value={adminPrimaryColor} onChange={(e) => setAdminPrimaryColor(e.target.value)} className="h-10 p-1" /></div>
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-primary">Text Color</Label><Input type="color" value={adminTextColor} onChange={(e) => setAdminTextColor(e.target.value)} className="h-10 p-1" /></div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-primary">Accent Background</Label><Input type="color" value={adminAccentColor} onChange={(e) => setAdminAccentColor(e.target.value)} className="h-10 p-1" /></div>
-                    <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-primary">Header Height</Label><Input type="number" value={adminHeaderHeight} onChange={(e) => setAdminHeaderHeight(e.target.value)} className="h-10" /></div>
-                  </div>
-                  <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-primary">Font Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{adminBaseFontSize}PX</Badge></div><input type="range" min="10" max="24" value={adminBaseFontSize} onChange={(e) => setAdminBaseFontSize(e.target.value)} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" /></div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-4"><Label className="text-[10px] uppercase font-bold text-primary">Headline Font</Label><Select value={adminHeadlineFont} onValueChange={setAdminHeadlineFont}><SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
-                    <div className="space-y-4"><Label className="text-[10px] uppercase font-bold text-primary">Body Font</Label><Select value={adminBodyFont} onValueChange={setAdminBodyFont}><SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-medium py-3 hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
-                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Layout className="h-3.5 w-3.5" /> Sidebar Architecture</CardTitle></CardHeader>
-                <CardContent className="pt-6 space-y-8">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background Color</Label><Input type="color" value={adminSidebarBg} onChange={(e) => setAdminSidebarBg(e.target.value)} className="h-10 p-1" /></div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Header Color</Label><Input type="color" value={adminSidebarHeaderColor} onChange={(e) => setAdminSidebarHeaderColor(e.target.value)} className="h-10 p-1" /></div>
-                  </div>
-                  <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-gray-500">Header Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{adminSidebarHeaderSize}PX</Badge></div><input type="range" min="8" max="16" value={adminSidebarHeaderSize} onChange={(e) => setAdminSidebarHeaderSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                  <Separator />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Item Text Color</Label><Input type="color" value={adminSidebarItemColor} onChange={(e) => setAdminSidebarItemColor(e.target.value)} className="h-10 p-1" /></div>
-                    <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-gray-500">Item Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{adminSidebarItemSize}PX</Badge></div><input type="range" min="10" max="20" value={adminSidebarItemSize} onChange={(e) => setAdminSidebarItemSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                  </div>
-                  <Separator />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Active Background</Label><Input type="color" value={adminSidebarActiveBg} onChange={(e) => setAdminSidebarActiveBg(e.target.value)} className="h-10 p-1" /></div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Active Text Color</Label><Input type="color" value={adminSidebarActiveText} onChange={(e) => setAdminSidebarActiveText(e.target.value)} className="h-10 p-1" /></div>
-                  </div>
-                </CardContent>
-              </Card>
+              <Tabs defaultValue="system" className="w-full">
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 rounded-none mb-6">
+                  <TabsTrigger value="system" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">System</TabsTrigger>
+                  <TabsTrigger value="sidebar" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Sidebar</TabsTrigger>
+                </TabsList>
+                <TabsContent value="system" className="space-y-6">
+                  <Card className="border-blue-100 bg-blue-50/10 shadow-none rounded-none">
+                    <CardHeader className="pb-4 border-b"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2"><Settings2 className="h-3.5 w-3.5" /> Backend Core Architecture</CardTitle></CardHeader>
+                    <CardContent className="pt-6 space-y-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-primary">Brand Color</Label><Input type="color" value={adminPrimaryColor} onChange={(e) => setAdminPrimaryColor(e.target.value)} className="h-10 p-1" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-primary">Text Color</Label><Input type="color" value={adminTextColor} onChange={(e) => setAdminTextColor(e.target.value)} className="h-10 p-1" /></div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-primary">Accent Background</Label><Input type="color" value={adminAccentColor} onChange={(e) => setAdminAccentColor(e.target.value)} className="h-10 p-1" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-primary">Header Height</Label><Input type="number" value={adminHeaderHeight} onChange={(e) => setAdminHeaderHeight(e.target.value)} className="h-10" /></div>
+                      </div>
+                      <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-primary">Font Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{adminBaseFontSize}PX</Badge></div><input type="range" min="10" max="24" value={adminBaseFontSize} onChange={(e) => setAdminBaseFontSize(e.target.value)} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" /></div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-4"><Label className="text-[10px] uppercase font-bold text-primary">Headline Font</Label><Select value={adminHeadlineFont} onValueChange={setAdminHeadlineFont}><SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
+                        <div className="space-y-4"><Label className="text-[10px] uppercase font-bold text-primary">Body Font</Label><Select value={adminBodyFont} onValueChange={setAdminBodyFont}><SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-medium py-3 hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="sidebar" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+                    <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Layout className="h-3.5 w-3.5" /> Sidebar Architecture</CardTitle></CardHeader>
+                    <CardContent className="pt-6 space-y-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background Color</Label><Input type="color" value={adminSidebarBg} onChange={(e) => setAdminSidebarBg(e.target.value)} className="h-10 p-1" /></div>
+                        <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Header Color</Label><Input type="color" value={adminSidebarHeaderColor} onChange={(e) => setAdminSidebarHeaderColor(e.target.value)} className="h-10 p-1" /></div>
+                      </div>
+                      <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-gray-500">Header Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{adminSidebarHeaderSize}PX</Badge></div><input type="range" min="8" max="16" value={adminSidebarHeaderSize} onChange={(e) => setAdminSidebarHeaderSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                      <Separator />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Item Text Color</Label><Input type="color" value={adminSidebarItemColor} onChange={(e) => setAdminSidebarItemColor(e.target.value)} className="h-10 p-1" /></div>
+                        <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-gray-500">Item Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{adminSidebarItemSize}PX</Badge></div><input type="range" min="10" max="20" value={adminSidebarItemSize} onChange={(e) => setAdminSidebarItemSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                      </div>
+                      <Separator />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Active Background</Label><Input type="color" value={adminSidebarActiveBg} onChange={(e) => setAdminSidebarActiveBg(e.target.value)} className="h-10 p-1" /></div>
+                        <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Active Text Color</Label><Input type="color" value={adminSidebarActiveText} onChange={(e) => setAdminSidebarActiveText(e.target.value)} className="h-10 p-1" /></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
         </div>
