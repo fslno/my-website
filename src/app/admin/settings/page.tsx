@@ -55,6 +55,7 @@ import {
   Sparkles,
   Zap,
   AlignLeft,
+  AlignCenter,
   AlignRight,
   Maximize2,
   Mail,
@@ -467,6 +468,18 @@ export default function SettingsPage() {
             <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Name</Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input 
+                        placeholder="FSLNO Studio" 
+                        value={businessName} 
+                        onChange={(e) => setBusinessName(e.target.value)} 
+                        className="pl-10 h-11 uppercase font-bold text-xs" 
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Main Logistics Phone</Label>
                     <div className="relative">
