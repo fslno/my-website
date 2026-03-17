@@ -20,9 +20,8 @@ import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 /**
- * Authoritative Velocity Boot Layout.
- * Synchronizes the hydration handshake with a persistent shell to prevent server/client mismatches.
- * Implements a unified loading manifest to ensure high-velocity visual feedback.
+ * Authoritative Unified Root Layout.
+ * Forensicly hardened to prevent hydration mismatches during the boot sequence.
  */
 export default function RootLayout({
   children,
@@ -45,7 +44,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-background text-foreground overflow-x-hidden" suppressHydrationWarning>
         
-        {/* UNIFIED HYDRATION OVERLAY: Permanent FSLNO Icon manifest */}
+        {/* BOOT OVERLAY: Structurally identical on server and client to prevent tag mismatches */}
         <div 
           className={cn(
             "fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center pointer-events-none transition-opacity duration-500",
@@ -53,10 +52,10 @@ export default function RootLayout({
           )}
           suppressHydrationWarning
         >
-          <div className="relative w-24 h-24">
+          <div className="relative w-24 h-24" suppressHydrationWarning>
             <Image 
               src="https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png" 
-              alt="FSLNO Loading" 
+              alt="FSLNO" 
               fill 
               className="object-contain"
               priority 
@@ -83,10 +82,6 @@ export default function RootLayout({
   );
 }
 
-/**
- * Nested Content Provider.
- * Forensicly manages the data-loading manifest without blocking the primary layout shell.
- */
 function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
   const isAdmin = pathname?.startsWith('/admin');
   const db = useFirestore();
@@ -97,7 +92,6 @@ function LayoutContent({ children, pathname }: { children: React.ReactNode, path
   const { isLoading: themeLoading } = useDoc(themeRef);
   const { data: storeData, isLoading: storeLoading } = useDoc(storeRef);
 
-  // We allow the content to render even during loading to enable skeleton manifestations
   return (
     <>
       {!isAdmin && <Header />}
@@ -106,14 +100,13 @@ function LayoutContent({ children, pathname }: { children: React.ReactNode, path
       </main>
       {!isAdmin && <Footer />}
       
-      {/* Secondary Data Loading Guard: Smoothly overlays content until critical theme data manifests */}
       {(themeLoading || storeLoading) && !isAdmin && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex items-center justify-center animate-in fade-in duration-300">
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative w-16 h-16 opacity-20">
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex items-center justify-center animate-in fade-in duration-300" suppressHydrationWarning>
+          <div className="flex flex-col items-center gap-6" suppressHydrationWarning>
+            <div className="relative w-16 h-16 opacity-20" suppressHydrationWarning>
               <Image 
                 src={storeData?.logoUrl || "https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png"} 
-                alt="FSLNO Sync" 
+                alt="Studio Sync" 
                 fill 
                 className="object-contain grayscale"
                 priority 

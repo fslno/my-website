@@ -27,8 +27,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Optimized Archival Footer.
- * Reduced in vertical scale and spatial density by 20%.
- * Implements a mounted guard to ensure hydration stability.
+ * Forensicly hardened against hydration mismatches.
  */
 export function Footer() {
   const db = useFirestore();
@@ -39,14 +38,12 @@ export function Footer() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubmittingDone] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [currentYear, setCurrentYear] = useState(2025);
 
   useEffect(() => {
     setMounted(true);
+    setCurrentYear(new Date().getFullYear());
   }, []);
-
-  const currentYear = new Date().getFullYear();
-  const defaultCopyright = `© ${currentYear} ${config?.businessName || "FSLNO"}. ALL RIGHTS RESERVED.`;
-  const defaultVersion = "ARCHIVE SYSTEM V1.0";
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,13 +58,17 @@ export function Footer() {
 
   const mapsUrl = config?.googleMapsUrl || (config?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.address)}` : '#');
 
-  // Authoritative Guard: Only render content on client to prevent hydration mismatch of compact geometry
+  // Stabilized Year & Copyright
+  const defaultCopyright = `© ${currentYear} ${config?.businessName || "FSLNO"}. ALL RIGHTS RESERVED.`;
+  const defaultVersion = "ARCHIVE SYSTEM V1.0";
+
+  // Authoritative Guard: return identical skeleton on server and first client render
   if (!mounted) {
-    return <footer className="bg-primary h-24 mt-8 border-t border-primary-foreground/10" />;
+    return <footer className="bg-primary h-24 mt-8 border-t border-primary-foreground/10" suppressHydrationWarning />;
   }
 
   return (
-    <footer className="bg-primary text-primary-foreground py-12 mt-8 border-t border-primary-foreground/10">
+    <footer className="bg-primary text-primary-foreground py-12 mt-8 border-t border-primary-foreground/10" suppressHydrationWarning>
       <div className="max-w-[1440px] mx-auto px-4">
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 items-start">
