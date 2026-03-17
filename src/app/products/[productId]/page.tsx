@@ -197,6 +197,7 @@ export default function ProductDetailPage(props: PageProps) {
       image: product.media?.[0]?.url || '',
       size: selectedSize,
       categoryId: product.categoryId,
+      customizationEnabled: product.customizationEnabled,
       logistics: product.logistics || {}, 
     };
 

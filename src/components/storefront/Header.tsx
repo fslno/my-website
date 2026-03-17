@@ -550,29 +550,31 @@ export function Header() {
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100 group/custom relative mb-3">
-                                    <div className="flex flex-col gap-1 pr-10">
-                                      {(item.customName || item.customNumber) && (
-                                        <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
-                                          <Sparkles className="h-2.5 w-2.5" />
-                                          {item.customName} {item.customNumber && `#${item.customNumber}`}
-                                        </p>
-                                      )}
-                                      {item.specialNote && (
-                                        <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 mt-0.5">
-                                          <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
-                                          {item.specialNote}
-                                        </p>
+                                  <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100 relative mb-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex flex-col gap-1 min-w-0">
+                                        {(item.customName || item.customNumber) && (
+                                          <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5 truncate">
+                                            <Sparkles className="h-2.5 w-2.5 shrink-0" />
+                                            <span className="truncate">{item.customName} {item.customNumber && `#${item.customNumber}`}</span>
+                                          </p>
+                                        )}
+                                        {item.specialNote && (
+                                          <p className="text-[9px] text-muted-foreground italic flex items-start gap-1.5 mt-0.5">
+                                            <MessageSquare className="h-2.5 w-2.5 shrink-0 mt-0.5" />
+                                            <span className="line-clamp-1">{item.specialNote}</span>
+                                          </p>
+                                        )}
+                                      </div>
+                                      {item.customizationEnabled && (
+                                        <button 
+                                          onClick={() => handleStartEdit(item)}
+                                          className="text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline shrink-0 pt-0.5"
+                                        >
+                                          Edit
+                                        </button>
                                       )}
                                     </div>
-                                    {item.customizationEnabled && (
-                                      <button 
-                                        onClick={() => handleStartEdit(item)}
-                                        className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-100"
-                                      >
-                                        Edit
-                                      </button>
-                                    )}
                                   </div>
                                 )}
                               </div>
