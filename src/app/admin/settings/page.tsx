@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -71,7 +72,10 @@ import {
   Monitor,
   ShoppingBag,
   ArrowRightLeft,
-  CheckCircle2
+  CheckCircle2,
+  Scale,
+  Languages,
+  DollarSign
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -91,6 +95,11 @@ interface ContactItem {
 interface SocialItem {
   platform: string;
   url: string;
+}
+
+interface TaxNexus {
+  region: string;
+  rate: number;
 }
 
 export default function SettingsPage() {
@@ -129,6 +138,13 @@ export default function SettingsPage() {
   const [socialChannels, setSocialChannels] = useState<SocialItem[]>([]);
   const [whatsAppNumber, setWhatsAppNumber] = useState('');
 
+  // Compliance & Language
+  const [taxNexus, setTaxNexus] = useState<TaxNexus[]>([]);
+  const [primaryLanguage, setPrimaryLanguage] = useState('English');
+  const [multiLanguageEnabled, setMultiLanguageEnabled] = useState(false);
+  const [newRegion, setNewRegion] = useState('');
+  const [newRate, setNewRate] = useState('');
+
   const [isStaffDialogOpen, setIsStaffDialogOpen] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
   const [staffName, setStaffName] = useState('');
@@ -159,6 +175,11 @@ export default function SettingsPage() {
       setEmailAddresses(storeConfig.emailAddresses || []);
       setSocialChannels(storeConfig.socialChannels || []);
       setWhatsAppNumber(storeConfig.whatsAppNumber || '');
+
+      // Compliance Sync
+      setTaxNexus(storeConfig.taxNexus || []);
+      setPrimaryLanguage(storeConfig.primaryLanguage || 'English');
+      setMultiLanguageEnabled(storeConfig.multiLanguageEnabled ?? false);
     }
     if (themeData) {
       setChatbotEnabled(themeData.chatbotEnabled ?? true);
@@ -207,12 +228,28 @@ export default function SettingsPage() {
       emailAddresses,
       socialChannels,
       whatsAppNumber,
+      taxNexus,
+      primaryLanguage,
+      multiLanguageEnabled,
       updatedAt: new Date().toISOString() 
     };
     setDoc(storeConfigRef, updates, { merge: true })
-      .then(() => toast({ title: "Identity Synchronized", description: "Store and Admin profiles updated." }))
+      .then(() => toast({ title: "Identity Synchronized", description: "Global settings have been Authoritatively updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: storeConfigRef.path, operation: 'write', requestResourceData: updates })))
       .finally(() => setIsSaving(false));
+  };
+
+  const handleAddNexus = () => {
+    if (!newRegion || !newRate) return;
+    const updated = [...taxNexus, { region: newRegion.toUpperCase(), rate: parseFloat(newRate) }];
+    setTaxNexus(updated);
+    setNewRegion('');
+    setNewRate('');
+    toast({ title: "Nexus Added", description: `Tax rate for ${newRegion.toUpperCase()} staged.` });
+  };
+
+  const handleRemoveNexus = (idx: number) => {
+    setTaxNexus(taxNexus.filter((_, i) => i !== idx));
   };
 
   const handleSaveChatbot = async () => {
@@ -342,11 +379,13 @@ export default function SettingsPage() {
           <TabsTrigger value="support" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
             <MessageSquareMore className="h-3.5 w-3.5" /> Chat & Contact
           </TabsTrigger>
+          <TabsTrigger value="compliance" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
+            <Scale className="h-3.5 w-3.5" /> Compliance & Language
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="store" className="space-y-12 animate-in fade-in duration-300">
           
-          {/* Contact & Logistics Card (Primary) */}
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="border-b bg-gray-50/30">
               <div className="flex items-center gap-2">
@@ -405,7 +444,6 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Brand Identity Card (Unified Side-by-Side) */}
           <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
             <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -428,7 +466,6 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="pt-8 p-4 sm:p-8 space-y-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                {/* Storefront Column */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-2 border-b pb-4">
                     <ShoppingBag className="h-4 w-4 text-primary" />
@@ -470,7 +507,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Admin Column */}
                 <div className="space-y-8 bg-blue-50/5 p-6 border border-blue-100/50 rounded-sm">
                   <div className="flex items-center gap-2 border-b border-blue-100 pb-4">
                     <Monitor className="h-4 w-4 text-blue-600" />
@@ -893,6 +929,154 @@ export default function SettingsPage() {
                 Save Widget Settings
               </Button>
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="compliance" className="space-y-12 animate-in fade-in duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+              <CardHeader className="border-b bg-gray-50/30">
+                <div className="flex items-center gap-2">
+                  <Scale className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Taxation Protocols</CardTitle>
+                </div>
+                <CardDescription className="text-xs font-bold uppercase tracking-tight">Manage regional tax nexus and manual overrides.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
+                <div className="space-y-6">
+                  <div className="p-4 bg-blue-50 border border-blue-100 rounded-none space-y-2">
+                    <p className="text-[10px] font-bold text-blue-800 uppercase tracking-widest flex items-center gap-2">
+                      <Zap className="h-3.5 w-3.5" /> Nexus Orchestration
+                    </p>
+                    <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">
+                      Define the regions where your archive has established tax obligations.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Add Region</Label>
+                      <Input 
+                        placeholder="e.g. ONTARIO" 
+                        value={newRegion} 
+                        onChange={(e) => setNewRegion(e.target.value)} 
+                        className="h-11 uppercase font-bold text-xs" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Tax Rate (%)</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          type="number" 
+                          placeholder="13" 
+                          value={newRate} 
+                          onChange={(e) => setNewRate(e.target.value)} 
+                          className="h-11 font-mono" 
+                        />
+                        <Button 
+                          onClick={handleAddNexus}
+                          disabled={!newRegion || !newRate}
+                          className="h-11 bg-black text-white px-4 rounded-none"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border rounded-none overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-gray-50">
+                        <TableRow>
+                          <TableHead className="text-[9px] font-bold uppercase p-3">Region</TableHead>
+                          <TableHead className="text-[9px] font-bold uppercase text-center p-3">Rate</TableHead>
+                          <TableHead className="w-[50px] p-3"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {taxNexus.map((nexus, idx) => (
+                          <TableRow key={idx} className="border-b last:border-0">
+                            <TableCell className="text-[10px] font-bold uppercase p-3">{nexus.region}</TableCell>
+                            <TableCell className="text-center font-mono text-[10px] p-3">{nexus.rate}%</TableCell>
+                            <TableCell className="p-3 text-right">
+                              <button onClick={() => handleRemoveNexus(idx)} className="text-red-500 hover:text-red-700">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {taxNexus.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center py-8 text-[9px] font-bold uppercase text-gray-400 italic">No nexus staged.</TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+              <CardHeader className="border-b bg-gray-50/30">
+                <div className="flex items-center gap-2">
+                  <Languages className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Localization Engine</CardTitle>
+                </div>
+                <CardDescription className="text-xs font-bold uppercase tracking-tight">Configure the archival storefront language modes.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Primary System Language</Label>
+                    <Select value={primaryLanguage} onValueChange={setPrimaryLanguage}>
+                      <SelectTrigger className="h-12 bg-white border-2 border-primary/5 rounded-none">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="English" className="text-[10px] font-bold uppercase">English (Default)</SelectItem>
+                        <SelectItem value="French" className="text-[10px] font-bold uppercase">French</SelectItem>
+                        <SelectItem value="Spanish" className="text-[10px] font-bold uppercase">Spanish</SelectItem>
+                        <SelectItem value="German" className="text-[10px] font-bold uppercase">German</SelectItem>
+                        <SelectItem value="Japanese" className="text-[10px] font-bold uppercase">Japanese</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between p-6 bg-gray-50 border border-dashed rounded-none">
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-bold uppercase tracking-tight flex items-center gap-2">
+                        Multi-Language Support
+                      </p>
+                      <p className="text-[9px] text-[#5c5f62] uppercase leading-tight font-medium opacity-70">
+                        Enable participant language switching.
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={multiLanguageEnabled} 
+                      onCheckedChange={setMultiLanguageEnabled}
+                      className="data-[state=checked]:bg-black"
+                    />
+                  </div>
+
+                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-none flex items-start gap-3">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                    <p className="text-[9px] text-emerald-800 uppercase font-bold leading-relaxed">
+                      Archive translation protocols are forensicly cached for zero-latency switching.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleSaveStore} disabled={isSaving} className="w-full sm:w-auto bg-black text-white h-14 px-16 font-bold uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:bg-[#D3D3D3] transition-all">
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <Save className="h-4 w-4 mr-3" />}
+              Synchronize Compliance Manifest
+            </Button>
           </div>
         </TabsContent>
       </Tabs>

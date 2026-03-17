@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -30,7 +31,8 @@ import {
   VolumeX,
   Monitor,
   Star,
-  Zap
+  Zap,
+  Scale
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -263,6 +265,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 <Link href="/admin/shipping">
                   <Truck />
                   <span>Shipping</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Compliance" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/settings">
+                  <Scale />
+                  <span>Compliance</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
