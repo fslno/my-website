@@ -38,7 +38,8 @@ import {
   Clock,
   Scale,
   Maximize2,
-  Sparkles
+  Sparkles,
+  Images as ImagesIcon
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -713,7 +714,7 @@ export default function ProductsPage() {
                       </div>
                       <div className="space-y-4 pt-4 border-t">
                         <div className="flex items-center justify-between">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Description</Label>
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label>
                           <Button 
                             variant="ghost" 
                             size="sm" 

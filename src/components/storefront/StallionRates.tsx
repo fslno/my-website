@@ -77,16 +77,18 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
             id: `manual-std-${matched.province}`,
             service: 'Regional Logistics',
             label: 'Standard Shipping',
-            totalCost: Number(matched.standard) + handlingFee,
+            totalCost: (Number(matched.standard) || 0) + handlingFee,
             days: '3-5',
             type: 'standard'
           });
-          if (Number(matched.express) > 0) {
+          
+          // Authoritatively include Express if defined (even if 0)
+          if (matched.express !== undefined && matched.express !== '') {
             fetchedRates.push({
               id: `manual-exp-${matched.province}`,
               service: 'Regional Logistics',
               label: 'Express Delivery',
-              totalCost: Number(matched.express) + handlingFee,
+              totalCost: (Number(matched.express) || 0) + handlingFee,
               days: '1-2',
               type: 'express'
             });

@@ -568,7 +568,7 @@ export function Header() {
                                     {item.customizationEnabled && (
                                       <button 
                                         onClick={() => handleStartEdit(item)}
-                                        className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-100 sm:opacity-0 sm:group-hover/custom:opacity-100 transition-opacity"
+                                        className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-100"
                                       >
                                         Edit
                                       </button>

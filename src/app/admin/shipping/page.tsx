@@ -384,17 +384,6 @@ export default function ShippingPage() {
     handleUpdate({ carriers: updatedCarriers });
   };
 
-  const handleSaveAll = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast({ 
-        title: "Logistics Synchronized", 
-        description: "Global shipping and pickup protocols have been Authoritatively updated." 
-      });
-    }, 800);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -1000,7 +989,7 @@ export default function ShippingPage() {
 
           <Button 
             className="w-full bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
-            onClick={handleSaveAll}
+            onClick={() => toast({ title: "Logistics Synchronized", description: "Global shipping and pickup protocols have been Authoritatively updated." })}
             disabled={isSaving}
           >
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
