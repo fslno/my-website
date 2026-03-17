@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Heart, 
   Share2, 
@@ -111,8 +112,24 @@ export default function ProductDetailPage(props: PageProps) {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-32 bg-white">
+        <div className="h-6 w-32 mb-8"><Skeleton className="h-full w-full" /></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-24">
+          <Skeleton className="aspect-square w-full rounded-sm" />
+          <div className="space-y-6">
+            <Skeleton className="h-10 w-2/3" />
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-12 w-full mt-4" />
+            <Separator />
+            <div className="space-y-4">
+              <Skeleton className="h-4 w-1/2" />
+              <div className="flex gap-2">
+                {[1,2,3,4].map(i => <Skeleton key={i} className="h-10 w-10" />)}
+              </div>
+            </div>
+            <Skeleton className="h-14 w-full mt-8" />
+          </div>
+        </div>
       </main>
     );
   }

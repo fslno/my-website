@@ -4,13 +4,14 @@ import React, { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getLivePath } from '@/lib/deployment';
 
 /**
  * Unified Product Grid Manifest.
  * Authoritatively manifests all studio drops in a high-fidelity responsive grid.
  * Employs priority loading for the first 4 archival selections.
+ * Features a high-velocity skeleton manifest for immediate visual establishment.
  */
 export function ProductGrid() {
   const db = useFirestore();
@@ -54,8 +55,19 @@ export function ProductGrid() {
 
   if (productsLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-black/10" />
+      <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <div key={idx} className="space-y-4">
+              <Skeleton className="aspect-square w-full rounded-sm" />
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-1/3" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-1/4" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

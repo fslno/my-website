@@ -22,7 +22,7 @@ import Image from 'next/image';
 /**
  * Authoritative Velocity Boot Layout.
  * Synchronizes the hydration handshake with a persistent shell to prevent server/client mismatches.
- * Implements a dynamic loading manifest using the FSLNO icon protocol.
+ * Implements a unified loading manifest to ensure high-velocity visual feedback.
  */
 export default function RootLayout({
   children,
@@ -45,7 +45,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-background text-foreground overflow-x-hidden" suppressHydrationWarning>
         
-        {/* FIRST-FRAME HYDRATION GUARD: Permanent FSLNO Icon manifest */}
+        {/* UNIFIED HYDRATION OVERLAY: Permanent FSLNO Icon manifest */}
         <div 
           className={cn(
             "fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center pointer-events-none transition-opacity duration-500",
@@ -53,7 +53,7 @@ export default function RootLayout({
           )}
           suppressHydrationWarning
         >
-          <div className="relative w-24 h-24 mb-6">
+          <div className="relative w-24 h-24">
             <Image 
               src="https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png" 
               alt="FSLNO Loading" 
@@ -62,7 +62,6 @@ export default function RootLayout({
               priority 
             />
           </div>
-          <p className="text-black font-mono text-[10px] uppercase tracking-[0.5em] animate-pulse">Initializing Manifest</p>
         </div>
 
         <FirebaseClientProvider>
@@ -86,7 +85,7 @@ export default function RootLayout({
 
 /**
  * Nested Content Provider.
- * Forensicly manages the secondary data-loading manifest once the client has hydrated.
+ * Forensicly manages the data-loading manifest without blocking the primary layout shell.
  */
 function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
   const isAdmin = pathname?.startsWith('/admin');
@@ -98,26 +97,7 @@ function LayoutContent({ children, pathname }: { children: React.ReactNode, path
   const { isLoading: themeLoading } = useDoc(themeRef);
   const { data: storeData, isLoading: storeLoading } = useDoc(storeRef);
 
-  // Authoritative Data Sync Gate
-  if (themeLoading || storeLoading) {
-    return (
-      <div className="fixed inset-0 bg-white z-[1000] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
-          <div className="relative w-24 h-24">
-            <Image 
-              src={storeData?.logoUrl || "https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png"} 
-              alt="FSLNO Loading" 
-              fill 
-              className="object-contain"
-              priority 
-            />
-          </div>
-          <Loader2 className="h-5 w-5 animate-spin text-black/20" />
-        </div>
-      </div>
-    );
-  }
-
+  // We allow the content to render even during loading to enable skeleton manifestations
   return (
     <>
       {!isAdmin && <Header />}
@@ -125,6 +105,24 @@ function LayoutContent({ children, pathname }: { children: React.ReactNode, path
         {children}
       </main>
       {!isAdmin && <Footer />}
+      
+      {/* Secondary Data Loading Guard: Smoothly overlays content until critical theme data manifests */}
+      {(themeLoading || storeLoading) && !isAdmin && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex items-center justify-center animate-in fade-in duration-300">
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative w-16 h-16 opacity-20">
+              <Image 
+                src={storeData?.logoUrl || "https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png"} 
+                alt="FSLNO Sync" 
+                fill 
+                className="object-contain grayscale"
+                priority 
+              />
+            </div>
+            <Loader2 className="h-4 w-4 animate-spin text-black/10" />
+          </div>
+        </div>
+      )}
     </>
   );
 }
