@@ -32,7 +32,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser, useAuth } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, useAuth } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -550,7 +550,7 @@ export function Header() {
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100 group/custom relative">
+                                  <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-dashed border-gray-100 group/custom relative mb-3">
                                     <div className="flex flex-col gap-1 pr-10">
                                       {(item.customName || item.customNumber) && (
                                         <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1.5">
@@ -565,12 +565,14 @@ export function Header() {
                                         </p>
                                       )}
                                     </div>
-                                    <button 
-                                      onClick={() => handleStartEdit(item)}
-                                      className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-0 group-hover/custom:opacity-100 transition-opacity"
-                                    >
-                                      Edit
-                                    </button>
+                                    {item.customizationEnabled && (
+                                      <button 
+                                        onClick={() => handleStartEdit(item)}
+                                        className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-0 group-hover/custom:opacity-100 transition-opacity"
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>

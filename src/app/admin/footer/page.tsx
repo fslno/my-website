@@ -21,7 +21,7 @@ import {
   FileCode,
   Sparkles,
   Upload,
-  Image as ImageIcon,
+  Images as ImagesIcon,
   Mail,
   Clock,
   CreditCard,
@@ -30,7 +30,8 @@ import {
   Facebook,
   Youtube,
   Linkedin,
-  Globe
+  Globe,
+  X
 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -415,16 +416,22 @@ export default function FooterEditorPage() {
                 <Label className="text-[10px] uppercase font-bold text-gray-500">Logo / Icon</Label>
                 <input type="file" ref={poweredByLogoRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                 <div 
-                  onClick={() => poweredByLogoRef.current?.click()}
-                  className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 bg-white hover:border-black transition-all cursor-pointer group h-24"
+                  onClick={() => !poweredByLogoUrl && poweredByLogoRef.current?.click()}
+                  className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 bg-white hover:border-black transition-all cursor-pointer group h-24 relative"
                 >
                   {poweredByLogoUrl ? (
-                    <div className="relative w-10 h-10">
-                      <Image src={poweredByLogoUrl} alt="Powered By Logo" fill className="object-contain" />
-                    </div>
+                    <>
+                      <div className="relative w-10 h-10">
+                        <Image src={poweredByLogoUrl} alt="Powered By Logo" fill className="object-contain" />
+                      </div>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
+                        <Button variant="destructive" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setPoweredByLogoUrl(''); }}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="secondary" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); poweredByLogoRef.current?.click(); }}><Upload className="h-4 w-4" /></Button>
+                      </div>
+                    </>
                   ) : (
                     <>
-                      <ImageIcon className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
+                      <ImagesIcon className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
                       <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Upload Icon</p>
                     </>
                   )}
