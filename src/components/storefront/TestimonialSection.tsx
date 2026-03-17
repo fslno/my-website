@@ -19,6 +19,8 @@ import { getLivePath } from '@/lib/deployment';
  * Manifests featured customer feedback with high-fidelity, enlarged avatars.
  * Utilizes Zero-Error Query Protocol to avoid index/permission exceptions.
  * Features an automatic horizontal slider for high-fidelity mobile and desktop consistency.
+ * 
+ * Height reduced by 20% for forensic UI optimization.
  */
 export function TestimonialSection() {
   const db = useFirestore();
@@ -42,7 +44,7 @@ export function TestimonialSection() {
 
   if (isLoading) {
     return (
-      <div className="py-24 flex justify-center bg-white">
+      <div className="py-20 flex justify-center bg-white">
         <Loader2 className="h-8 w-8 animate-spin text-black/10" />
       </div>
     );
@@ -51,9 +53,9 @@ export function TestimonialSection() {
   if (!testimonials || testimonials.length === 0) return null;
 
   return (
-    <section className="py-24 bg-white border-t border-b overflow-hidden">
+    <section className="py-20 bg-white border-t border-b overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-4">
-        <div className="text-center mb-20 space-y-3">
+        <div className="text-center mb-16 space-y-3">
           <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">Feedback</span>
           <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tighter">Verified Studio Experiences</h2>
         </div>
@@ -70,7 +72,7 @@ export function TestimonialSection() {
             {testimonials.map((t) => (
               <CarouselItem key={t.id} className="pl-4 md:pl-8 lg:pl-10 basis-full md:basis-1/2 lg:basis-1/3">
                 <div 
-                  className="bg-gray-50/50 p-8 sm:p-12 border rounded-none flex flex-col gap-8 shadow-sm hover:shadow-md transition-shadow duration-500 group h-full"
+                  className="bg-gray-50/50 p-6 sm:p-10 border rounded-none flex flex-col gap-8 shadow-sm hover:shadow-md transition-shadow duration-500 group h-full"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-6">
