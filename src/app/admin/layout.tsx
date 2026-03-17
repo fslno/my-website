@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -108,11 +107,11 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="py-4 admin-sidebar-bg overflow-x-hidden">
-        <SidebarGroup>
-          <SidebarMenu>
+      <SidebarContent className="py-1 admin-sidebar-bg overflow-y-auto scrollbar-hide">
+        <SidebarGroup className="p-1">
+          <SidebarMenu className="gap-0.5">
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Home" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Home" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin">
                   <LayoutDashboard />
                   <span>Dashboard</span>
@@ -121,7 +120,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
             </SidebarMenuItem>
             
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Orders" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Orders" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/orders">
                   <ShoppingBag />
                   <span>Orders</span>
@@ -129,7 +128,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Products" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Products" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/products">
                   <BarChart3 />
                   <span>Products</span>
@@ -137,7 +136,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Categories" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Categories" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/categories">
                   <Tag />
                   <span>Categories</span>
@@ -145,7 +144,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Promotions" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Promotions" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/promotions">
                   <TicketPercent />
                   <span>Promotions</span>
@@ -153,7 +152,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Reviews" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Reviews" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/reviews">
                   <Star />
                   <span>Reviews</span>
@@ -161,7 +160,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Testimonials" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Testimonials" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/testimonials">
                   <Star />
                   <span>Testimonials</span>
@@ -169,7 +168,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Size Chart" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Size Chart" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/size-chart">
                   <Ruler />
                   <span>Size Chart</span>
@@ -177,7 +176,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Customers" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Customers" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/customers">
                   <Users />
                   <span>Customers</span>
@@ -187,11 +186,11 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Sales Channels</SidebarGroupLabel>
-          <SidebarMenu>
+        <SidebarGroup className="mt-1 p-1">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-6 uppercase tracking-widest font-bold font-admin-headline">Sales Channels</SidebarGroupLabel>
+          <SidebarMenu className="gap-0.5">
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/analytics">
                   <BarChart3 />
                   <span>Analytics</span>
@@ -199,7 +198,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Google Sync" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Google Sync" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/google">
                   <Globe />
                   <span>Google Sync</span>
@@ -207,7 +206,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Social Commerce" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Social Commerce" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/social">
                   <Share2 />
                   <span>Social Commerce</span>
@@ -217,11 +216,11 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[10px] uppercase tracking-widest font-bold font-admin-headline">Settings</SidebarGroupLabel>
-          <SidebarMenu>
+        <SidebarGroup className="mt-1 p-1">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-6 uppercase tracking-widest font-bold font-admin-headline">Settings</SidebarGroupLabel>
+          <SidebarMenu className="gap-0.5">
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/storefront">
                   <Monitor />
                   <span>Storefront</span>
@@ -229,7 +228,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/theme">
                   <Palette />
                   <span>Theme</span>
@@ -237,7 +236,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/notifications">
                   <MailWarning />
                   <span>Notifications</span>
@@ -245,7 +244,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/domain">
                   <Globe />
                   <span>Domain</span>
@@ -253,7 +252,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Payments" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Payments" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/payments">
                   <CreditCard />
                   <span>Payments</span>
@@ -261,7 +260,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Shipping" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Shipping" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/shipping">
                   <Truck />
                   <span>Shipping</span>
@@ -269,7 +268,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Compliance" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Compliance" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/settings">
                   <Scale />
                   <span>Compliance</span>
@@ -277,7 +276,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Webhooks" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Webhooks" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/shipping/webhooks">
                   <Zap />
                   <span>Webhooks</span>
@@ -287,10 +286,10 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-[#e1e3e5] p-4 admin-sidebar-bg">
-           <SidebarMenu>
+      <SidebarFooter className="border-t border-[#e1e3e5] p-2 admin-sidebar-bg">
+           <SidebarMenu className="gap-0.5">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
+                <SidebarMenuButton size="sm" asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
                   <Link href="/admin/settings">
                     <Settings />
                     <span>Settings</span>
@@ -298,7 +297,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body text-destructive">
+                <SidebarMenuButton size="sm" onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body text-destructive">
                   <LogOut />
                   <span>Sign Out</span>
                 </SidebarMenuButton>
