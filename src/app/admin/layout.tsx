@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
@@ -91,7 +91,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         <Link href="/" className="flex items-center gap-2" onClick={handleNavClick}>
           <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative border border-white/10">
             {storeConfig?.logoUrl ? (
-              <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
+              <NextImage src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
             ) : (
               "F"
             )}
@@ -380,7 +380,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen flex-col items-center justify-center bg-white p-4 text-center">
         <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-8 shadow-2xl overflow-hidden relative">
           {storeConfig?.logoUrl ? (
-            <Image src={storeConfig.logoUrl} alt="Logo" width={64} height={64} className="object-cover" />
+            <NextImage src={storeConfig.logoUrl} alt="Logo" width={64} height={64} className="object-cover" />
           ) : (
             "F"
           )}
@@ -535,7 +535,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {newOrderDetected && <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border border-white" />}
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
-                {user.photoURL && <Image src={user.photoURL} alt="Admin" fill className="object-cover" />}
+                {user.photoURL && <NextImage src={user.photoURL} alt="Admin" fill className="object-cover" />}
               </div>
             </div>
           </header>

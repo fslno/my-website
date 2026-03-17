@@ -94,6 +94,7 @@ export default function ShippingPage() {
   const [newProvStandard, setNewProvStandard] = useState('');
   const [newProvExpress, setNewProvExpress] = useState('');
   const [isProvDialogOpen, setIsProvDialogOpen] = useState(false);
+  const [editingProvIdx, setEditingProvIdx] = useState<number | null>(null);
 
   useEffect(() => {
     if (config) {
@@ -197,17 +198,38 @@ export default function ShippingPage() {
 
   const handleSaveProvinceRate = () => {
     if (!newProvName || !configRef) return;
-    const updated = [...provinceRates, { 
+    const rateData = { 
       province: newProvName.toUpperCase().trim(), 
       standard: parseFloat(newProvStandard) || 0, 
       express: parseFloat(newProvExpress) || 0 
-    }];
+    };
+    
+    let updated;
+    if (editingProvIdx !== null) {
+      updated = [...provinceRates];
+      updated[editingProvIdx] = rateData;
+    } else {
+      updated = [...provinceRates, rateData];
+    }
+
     handleUpdate({ provinceRates: updated });
     setNewProvName('');
     setNewProvStandard('');
     setNewProvExpress('');
+    setEditingProvIdx(null);
     setIsProvDialogOpen(false);
-    toast({ title: "Region Ingested", description: `${newProvName.toUpperCase()} rates added.` });
+    toast({ 
+      title: editingProvIdx !== null ? "Region Updated" : "Region Ingested", 
+      description: `${newProvName.toUpperCase()} rates saved.` 
+    });
+  };
+
+  const handleOpenEditProv = (rate: any, idx: number) => {
+    setNewProvName(rate.province);
+    setNewProvStandard(String(rate.standard));
+    setNewProvExpress(String(rate.express));
+    setEditingProvIdx(idx);
+    setIsProvDialogOpen(true);
   };
 
   const handleSavePickupDetails = () => {
@@ -562,7 +584,7 @@ export default function ShippingPage() {
                   <MapPin className="h-5 w-5 text-purple-600" />
                   <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Regional Manual Rates</CardTitle>
                 </div>
-                <Dialog open={isProvDialogOpen} onOpenChange={setIsProvDialogOpen}>
+                <Dialog open={isProvDialogOpen} onOpenChange={(open) => { setIsProvDialogOpen(open); if(!open) { setEditingProvIdx(null); setNewProvName(''); setNewProvStandard(''); setNewProvExpress(''); } }}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white w-full sm:w-auto">
                       <Plus className="h-3.5 w-3.5" /> Add Region
@@ -591,18 +613,22 @@ export default function ShippingPage() {
                     </div>
                     <DialogFooter>
                       <Button onClick={handleSaveProvinceRate} disabled={!newProvName} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]">
-                        Ingest Region
+                        {editingProvIdx !== null ? 'Update Region' : 'Ingest Region'}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>
-              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-purple-800/60 mt-1">Override global rates for specific geographic zones.</CardDescription>
+              <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-purple-800/60 mt-1">Override global rates for specific geographic zones. Click any row to edit.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y">
                 {provinceRates.map((rate, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors group gap-4">
+                  <div 
+                    key={idx} 
+                    className="flex items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors group gap-4 cursor-pointer"
+                    onClick={() => handleOpenEditProv(rate, idx)}
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded border bg-black text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">{rate.province}</div>
                       <div className="space-y-1">
@@ -613,18 +639,22 @@ export default function ShippingPage() {
                         </div>
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => {
-                        const updated = provinceRates.filter((_, i) => i !== idx);
-                        handleUpdate({ provinceRates: updated });
-                        toast({ title: "Removed", description: "Regional override de-indexed." });
-                      }} 
-                      className="h-9 w-9 text-gray-300 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-300 group-hover:text-black transition-colors"><Edit2 className="h-4 w-4" /></Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updated = provinceRates.filter((_, i) => i !== idx);
+                          handleUpdate({ provinceRates: updated });
+                          toast({ title: "Removed", description: "Regional override de-indexed." });
+                        }} 
+                        className="h-9 w-9 text-gray-300 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
                 {provinceRates.length === 0 && (
