@@ -353,7 +353,7 @@ export default function SettingsPage() {
                 <MapPin className="h-5 w-5 text-gray-400" />
                 <CardTitle className="text-lg font-headline uppercase tracking-tight">Contact & Logistics</CardTitle>
               </div>
-              <CardDescription className="text-xs uppercase font-bold tracking-tight">Operational data for shipments and support.</CardDescription>
+              <CardDescription className="text-xs font-bold uppercase tracking-tight">Operational data for shipments and support.</CardDescription>
             </CardHeader>
             <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

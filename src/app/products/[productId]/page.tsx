@@ -384,9 +384,9 @@ export default function ProductDetailPage(props: PageProps) {
               )}
             </div>
             <div className="flex flex-wrap gap-2">
-              {(product.variants || []).map((v: any) => (
+              {(product.variants || []).map((v: any, idx: number) => (
                 <button
-                  key={v.size}
+                  key={`${v.size}-${idx}`}
                   onClick={() => setSelectedSize(v.size)}
                   disabled={Number(v.stock) === 0}
                   className={cn(
@@ -395,7 +395,7 @@ export default function ProductDetailPage(props: PageProps) {
                     Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed"
                   )}
                 >
-                  {v.size}
+                  {v.size || 'OS'}
                 </button>
               ))}
             </div>
@@ -417,7 +417,7 @@ export default function ProductDetailPage(props: PageProps) {
                     )}
                   >No</button>
                   <button 
-                    onClick={() => setWantsCustomization(true)}
+                    onClick={() => wantsCustomization === true ? null : setWantsCustomization(true)}
                     className={cn(
                       "h-9 px-4 border text-[9px] font-bold uppercase tracking-widest transition-all",
                       wantsCustomization ? "bg-black text-white border-black" : "bg-white text-primary border-gray-200"
