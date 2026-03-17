@@ -6,6 +6,7 @@ import { doc } from 'firebase/firestore';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
 import { CategorySection } from '@/components/storefront/CategorySection';
 import { BentoHero } from '@/components/storefront/BentoHero';
+import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { getLivePath } from '@/lib/deployment';
 import { cn } from '@/lib/utils';
 
@@ -52,6 +53,8 @@ export default function Home() {
         </div>
         <ProductGrid />
       </div>
+
+      <TestimonialSection />
     </div>
   );
 }
