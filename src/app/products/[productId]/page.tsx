@@ -11,7 +11,6 @@ import {
 } from '@/firebase';
 import { doc, collection, query, orderBy, where } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -77,9 +76,6 @@ export default function ProductDetailPage(props: PageProps) {
   );
   
   const { data: product, isLoading: loading } = useDoc(productRef);
-
-  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
-  const { data: reviewConfig } = useDoc(reviewConfigRef);
 
   const sizeChartsQuery = useMemoFirebase(() => {
     if (!db || !product?.categoryId) return null;
@@ -156,7 +152,6 @@ export default function ProductDetailPage(props: PageProps) {
   }
 
   const media = product.media || [];
-  const reviewsEnabled = reviewConfig?.enabled !== false;
   
   const hasDiscount = (Number(product.comparedPrice) || 0) > (Number(product.price) || 0);
   const discountPercent = hasDiscount ? Math.round(((Number(product.comparedPrice) - Number(product.price)) / Number(product.comparedPrice)) * 100) : 0;
@@ -307,7 +302,7 @@ export default function ProductDetailPage(props: PageProps) {
         <div className="space-y-6">
           <div className="space-y-1">
             <h1 className="text-2xl font-headline font-bold tracking-tight text-primary uppercase">{product.name}</h1>
-            {(reviewsEnabled && ratingStats.count > 0) && (
+            {ratingStats.count > 0 && (
               <div className="flex items-center gap-2 mt-1 mb-2">
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((s) => (
@@ -346,7 +341,7 @@ export default function ProductDetailPage(props: PageProps) {
                     <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                       <div className="flex items-center gap-3 text-primary mb-2">
                         <Ruler className="h-6 w-6" />
-                        <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Size Chart</SheetTitle>
+                        <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">Size Chart</SheetTitle>
                       </div>
                       <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">
                         Measurements in {categoryCharts[0].unit === 'cm' ? 'Centimeters' : 'Inches'}
@@ -475,7 +470,6 @@ export default function ProductDetailPage(props: PageProps) {
         </div>
       </div>
 
-      <ReviewSystem productId={productId} />
       <TestimonialSection />
     </main>
   );
