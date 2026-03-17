@@ -477,23 +477,6 @@ export default function ProductDetailPage(props: PageProps) {
 
       <ReviewSystem productId={productId} />
       <TestimonialSection />
-
-      {/* STICKY ADD TO CART BAR - ARCHIVAL PROTOCOL */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-t p-4 lg:hidden animate-in slide-in-from-bottom duration-500">
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold uppercase truncate">{product.name}</p>
-            <p className="text-xs font-bold">{`C$${totalPrice.toFixed(2)}`}</p>
-          </div>
-          <Button 
-            onClick={handleAddToCart}
-            disabled={!selectedSize}
-            className="bg-black text-white h-12 px-8 font-bold uppercase tracking-widest text-[10px] rounded-none"
-          >
-            {selectedSize ? 'Add to Cart' : 'Select Size'}
-          </Button>
-        </div>
-      </div>
     </main>
   );
 }
