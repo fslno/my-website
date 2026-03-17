@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -29,7 +30,8 @@ import {
   Volume2,
   VolumeX,
   Monitor,
-  Star
+  Star,
+  Zap
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -258,6 +260,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 <Link href="/admin/shipping">
                   <Truck />
                   <span>Shipping</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Webhooks" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/shipping/webhooks">
+                  <Zap />
+                  <span>Webhooks</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

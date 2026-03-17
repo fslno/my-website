@@ -70,6 +70,17 @@
         "usedCount": { "type": "number" },
         "usageLimit": { "type": "number" }
       }
+    },
+    "WebhookEvent": {
+      "title": "WebhookEvent",
+      "type": "object",
+      "description": "Log of incoming external signals.",
+      "properties": {
+        "payload": { "type": "object" },
+        "receivedAt": { "type": "string", "format": "date-time" },
+        "type": { "type": "string" },
+        "status": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -102,31 +113,10 @@
         }
       },
       {
-        "path": "/roles_admin/{userId}",
+        "path": "/webhook_events/{eventId}",
         "definition": {
-          "entityName": "AdminRole",
-          "description": "Administrative authority manifest."
-        }
-      },
-      {
-        "path": "/products/{productId}",
-        "definition": {
-          "entityName": "Product",
-          "description": "Archival pieces manifest."
-        }
-      },
-      {
-        "path": "/categories/{categoryId}",
-        "definition": {
-          "entityName": "Category",
-          "description": "Product drop collections."
-        }
-      },
-      {
-        "path": "/coupons/{couponId}",
-        "definition": {
-          "entityName": "Coupon",
-          "description": "Discount code protocols."
+          "entityName": "WebhookEvent",
+          "description": "Historical log of high-velocity external updates."
         }
       }
     ],
