@@ -252,7 +252,7 @@ export default function OrdersPage() {
       case 'canceled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
       case 'confirmed':
-        return <Badge className="bg-blue-50 text-blue-100 uppercase text-[9px] font-bold">Confirmed</Badge>;
+        return <Badge className="bg-blue-50 text-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
       default:
         return <Badge className="bg-gray-50 text-gray-700 border-gray-100 uppercase text-[9px] font-bold">{status?.replace('_', ' ')}</Badge>;
     }
@@ -348,13 +348,13 @@ export default function OrdersPage() {
 
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
         {selectedIds.length > 0 && (
-          <div className="p-4 border-b bg-blue-50/20 flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
-            <div className="flex items-center gap-4">
+          <div className="p-4 border-b bg-blue-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex items-center gap-2">
                 <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5 border-none">Selection Manifest</Badge>
-                <span className="text-[10px] font-bold uppercase text-blue-700">{selectedIds.length} Orders Selected</span>
+                <span className="text-[10px] font-bold uppercase text-blue-700 tracking-widest">{selectedIds.length} Orders Selected</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -374,7 +374,7 @@ export default function OrdersPage() {
                 </Button>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setSelectedIds([])} className="h-9 w-9 text-blue-400 hover:text-blue-700">
+            <Button variant="ghost" size="icon" onClick={() => setSelectedIds([])} className="h-9 w-9 text-blue-400 hover:text-blue-700 self-end sm:self-auto">
               <X className="h-4 w-4" />
             </Button>
           </div>

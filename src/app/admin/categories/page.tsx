@@ -17,7 +17,7 @@ import {
   Trash2, 
   Loader2, 
   Tag, 
-  Image as ImageIcon,
+  Images as ImagesIcon,
   Upload,
   X,
   LayoutGrid,
@@ -52,7 +52,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
+import NextImage from 'next/image';
 
 export default function CategoriesPage() {
   const db = useFirestore();
@@ -305,7 +305,7 @@ export default function CategoriesPage() {
                         >
                           {imageUrl ? (
                             <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden border">
-                              <Image src={imageUrl} alt="Preview" fill className="object-cover" />
+                              <NextImage src={imageUrl} alt="Preview" fill className="object-cover" />
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setImageUrl(''); }} 
                                 className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full hover:bg-black transition-colors"
@@ -372,7 +372,7 @@ export default function CategoriesPage() {
                                   <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 bg-gray-100 relative border overflow-hidden shrink-0 rounded-sm">
                                       {p.media?.[0]?.url ? (
-                                        <Image src={p.media[0].url} alt="" fill className="object-cover" />
+                                        <NextImage src={p.media[0].url} alt="" fill className="object-cover" />
                                       ) : (
                                         <ShoppingBag className="h-4 w-4 text-gray-300 mx-auto mt-3" />
                                       )}
@@ -425,7 +425,7 @@ export default function CategoriesPage() {
                 <TableRow key={category.id} className="hover:bg-gray-50/50 cursor-pointer border-black/5 group" onClick={() => openEdit(category)}>
                   <TableCell>
                     <div className="w-14 h-14 bg-gray-100 relative overflow-hidden border shadow-sm">
-                      {category.imageUrl ? <Image src={category.imageUrl} alt={category.name} fill className="object-cover" /> : <ImageIcon className="h-6 w-6 text-gray-300 mx-auto mt-4" />}
+                      {category.imageUrl ? <NextImage src={category.imageUrl} alt={category.name} fill className="object-cover" /> : <ImagesIcon className="h-6 w-6 text-gray-300 mx-auto mt-4" />}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -470,7 +470,7 @@ export default function CategoriesPage() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-16 bg-gray-100 relative border overflow-hidden shrink-0">
-                    {category.imageUrl ? <Image src={category.imageUrl} alt={category.name} fill className="object-cover" /> : <ImageIcon className="h-5 w-5 text-gray-200 mx-auto mt-5" />}
+                    {category.imageUrl ? <NextImage src={category.imageUrl} alt={category.name} fill className="object-cover" /> : <ImagesIcon className="h-5 w-5 text-gray-200 mx-auto mt-5" />}
                   </div>
                   <div className="space-y-0.5">
                     <p className="font-bold text-sm uppercase tracking-tight">{category.name}</p>

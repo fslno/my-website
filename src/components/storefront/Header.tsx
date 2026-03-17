@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, useAuth } from '@/firebase';
@@ -194,7 +194,7 @@ export function Header() {
                   <SheetTitle className="text-xl sm:text-2xl font-headline font-bold uppercase tracking-tight text-primary flex items-center gap-3">
                     {storeConfig?.logoUrl && (
                       <div className="relative w-6 h-6 rounded-sm overflow-hidden">
-                        <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
+                        <NextImage src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                       </div>
                     )}
                     {!storeLoading && (storeConfig?.businessName || "STUDIO")}
@@ -250,7 +250,7 @@ export function Header() {
             <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
               {storeConfig?.logoUrl ? (
                 <div className="relative w-6 h-6 sm:w-8 sm:h-8 rounded-sm overflow-hidden">
-                  <Image src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
+                  <NextImage src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                 </div>
               ) : null}
               <h1 className="text-xl sm:text-3xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
@@ -334,7 +334,7 @@ export function Header() {
                           >
                             <div className="w-16 h-16 relative bg-gray-100 shrink-0 overflow-hidden border">
                               {product.media?.[0]?.url && (
-                                <Image 
+                                <NextImage 
                                   src={product.media[0].url} 
                                   alt={product.name} 
                                   fill 
@@ -434,7 +434,7 @@ export function Header() {
                               onClick={() => setIsWishlistOpen(false)}
                               className="w-20 h-20 relative bg-gray-100 border shrink-0"
                             >
-                              {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+                              {item.image && <NextImage src={item.image} alt={item.name} fill className="object-cover" />}
                             </Link>
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div className="space-y-1">
@@ -487,7 +487,7 @@ export function Header() {
                           <div key={item.variantId} className="flex gap-4">
                             <div className="w-24 h-24 relative bg-gray-100 overflow-hidden border shrink-0">
                               <Link href={`/products/${item.id}`} onClick={() => setIsCartOpen(false)}>
-                                {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+                                {item.image && <NextImage src={item.image} alt={item.name} fill className="object-cover" />}
                               </Link>
                             </div>
                             <div className="flex-1 flex flex-col justify-between py-1">
@@ -568,7 +568,7 @@ export function Header() {
                                     {item.customizationEnabled && (
                                       <button 
                                         onClick={() => handleStartEdit(item)}
-                                        className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-0 group-hover/custom:opacity-100 transition-opacity"
+                                        className="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-widest text-blue-600 hover:underline opacity-100 sm:opacity-0 sm:group-hover/custom:opacity-100 transition-opacity"
                                       >
                                         Edit
                                       </button>
