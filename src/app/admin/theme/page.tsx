@@ -88,6 +88,8 @@ const DEFAULT_THEME = {
   stickyHeader: true,
   adminPrimaryColor: '#000000',
   adminAccentColor: '#f6f6f7',
+  adminTextColor: '#1a1c1e',
+  adminBaseFontSize: '14',
   adminHeadlineFont: 'Inter',
   adminBodyFont: 'Inter',
   adminHeaderHeight: '64',
@@ -153,6 +155,8 @@ export default function ThemeEnginePage() {
   // Admin Theme State
   const [adminPrimaryColor, setAdminPrimaryColor] = useState(DEFAULT_THEME.adminPrimaryColor);
   const [adminAccentColor, setAdminAccentColor] = useState(DEFAULT_THEME.adminAccentColor);
+  const [adminTextColor, setAdminTextColor] = useState(DEFAULT_THEME.adminTextColor);
+  const [adminBaseFontSize, setAdminBaseFontSize] = useState(DEFAULT_THEME.adminBaseFontSize);
   const [adminHeadlineFont, setAdminHeadlineFont] = useState(DEFAULT_THEME.adminHeadlineFont);
   const [adminBodyFont, setAdminBodyFont] = useState(DEFAULT_THEME.adminBodyFont);
   const [adminHeaderHeight, setAdminHeaderHeight] = useState(DEFAULT_THEME.adminHeaderHeight);
@@ -200,6 +204,8 @@ export default function ThemeEnginePage() {
 
       setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
       setAdminAccentColor(themeData.adminAccentColor || DEFAULT_THEME.adminAccentColor);
+      setAdminTextColor(themeData.adminTextColor || DEFAULT_THEME.adminTextColor);
+      setAdminBaseFontSize(themeData.adminBaseFontSize?.toString() || DEFAULT_THEME.adminBaseFontSize);
       setAdminHeadlineFont(themeData.adminHeadlineFont || DEFAULT_THEME.adminHeadlineFont);
       setAdminBodyFont(themeData.adminBodyFont || DEFAULT_THEME.adminBodyFont);
       setAdminHeaderHeight(themeData.adminHeaderHeight?.toString() || DEFAULT_THEME.adminHeaderHeight);
@@ -248,6 +254,8 @@ export default function ThemeEnginePage() {
       archiveSectionSubtitle,
       adminPrimaryColor,
       adminAccentColor,
+      adminTextColor,
+      adminBaseFontSize: Number(adminBaseFontSize),
       adminHeadlineFont,
       adminBodyFont,
       adminHeaderHeight: Number(adminHeaderHeight),
@@ -708,6 +716,29 @@ export default function ThemeEnginePage() {
                       <Label className="text-[10px] uppercase font-bold text-primary">Backend Brand Color</Label>
                       <Input type="color" value={adminPrimaryColor} onChange={(e) => setAdminPrimaryColor(e.target.value)} className="h-10 p-1" />
                     </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-primary">Backend Text Color</Label>
+                      <div className="flex gap-2">
+                        <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={adminTextColor} onChange={(e) => setAdminTextColor(e.target.value)} />
+                        </div>
+                        <Input value={adminTextColor} onChange={(e) => setAdminTextColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase font-bold text-primary">Backend Font Scale</Label>
+                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{adminBaseFontSize}PX</Badge>
+                      </div>
+                      <input 
+                        type="range" min="10" max="24" value={adminBaseFontSize} 
+                        onChange={(e) => setAdminBaseFontSize(e.target.value)} 
+                        className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+                      />
+                    </div>
+
                     <Separator />
                     <div className="space-y-4">
                       <Label className="text-[10px] uppercase font-bold text-primary">Backend Headline Font</Label>

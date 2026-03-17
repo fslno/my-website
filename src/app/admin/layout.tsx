@@ -437,11 +437,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     :root {
       --admin-primary: ${theme?.adminPrimaryColor || '#000000'};
       --admin-accent: #FFFFFF;
+      --admin-text: ${theme?.adminTextColor || '#1a1c1e'};
+      --admin-base-size: ${theme?.adminBaseFontSize || 14}px;
       --admin-header-h: ${theme?.adminHeaderHeight || 64}px;
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
       --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
     }
-    .admin-viewport { background-color: var(--admin-accent); font-family: var(--admin-font-body); height: 100dvh; width: 100%; display: flex; flex-direction: row; overflow: hidden; }
+    .admin-viewport { 
+      background-color: var(--admin-accent); 
+      color: var(--admin-text);
+      font-size: var(--admin-base-size);
+      font-family: var(--admin-font-body); 
+      height: 100dvh; 
+      width: 100%; 
+      display: flex; 
+      flex-direction: row; 
+      overflow: hidden; 
+    }
     .admin-header-height { height: var(--admin-header-h); }
     .admin-sidebar-bg { background-color: white; }
     .font-admin-headline { font-family: var(--admin-font-headline); }
