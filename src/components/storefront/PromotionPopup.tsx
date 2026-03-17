@@ -60,6 +60,10 @@ export function PromotionPopup() {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
       <DialogContent className="sm:max-w-md bg-white border-none rounded-none p-0 overflow-hidden shadow-2xl">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Limited Offer Promotion</DialogTitle>
+          <DialogDescription>Information about the current archival reward protocol.</DialogDescription>
+        </DialogHeader>
         <div className="relative p-8 sm:p-12 text-center space-y-8">
           
           <div className="flex justify-center">
