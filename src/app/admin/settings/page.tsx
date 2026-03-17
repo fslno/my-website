@@ -68,7 +68,9 @@ import {
   Clock,
   ShieldCheck,
   Monitor,
-  ShoppingBag
+  ShoppingBag,
+  ArrowRightLeft,
+  CheckCircle2
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -177,6 +179,15 @@ export default function SettingsPage() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleSyncAdminBranding = () => {
+    setAdminBusinessName(businessName);
+    setAdminLogoUrl(logoUrl);
+    toast({
+      title: "Identity Synced",
+      description: "Admin branding now matches storefront manifest."
+    });
   };
 
   const handleSaveStore = async () => {
@@ -334,95 +345,115 @@ export default function SettingsPage() {
 
         <TabsContent value="store" className="space-y-12 animate-in fade-in duration-300">
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Storefront Identity Card */}
-            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
-              <CardHeader className="bg-gray-50/50 border-b">
-                <div className="flex items-center gap-2">
-                  <ShoppingBag className="h-5 w-5 text-gray-400" />
-                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Storefront Identity</CardTitle>
+          {/* Brand Identity Card (Unified) */}
+          <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Palette className="h-5 w-5 text-gray-400" />
+                    <CardTitle className="text-lg font-headline uppercase tracking-tight">Brand Identity Manifest</CardTitle>
+                  </div>
+                  <CardDescription className="text-xs font-bold uppercase tracking-tight">Manage public storefront and backend administrative profiles.</CardDescription>
                 </div>
-                <CardDescription className="text-xs font-bold uppercase tracking-tight">Public-facing brand assets.</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                <div className="space-y-2">
-                  <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Storefront Name</Label>
-                  <Input 
-                    placeholder="e.g. FSLNO Studio" 
-                    value={businessName} 
-                    onChange={(e) => setBusinessName(e.target.value)} 
-                    className="h-12 uppercase font-bold text-xs" 
-                  />
-                </div>
-                <div className="space-y-4">
-                  <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Storefront Logo</Label>
-                  <input type="file" ref={storefrontLogoRef} className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e, 'storefront')} />
-                  <div 
-                    onClick={() => storefrontLogoRef.current?.click()}
-                    className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-gray-50 group hover:border-black transition-all cursor-pointer relative min-h-[200px]"
-                  >
-                    {logoUrl ? (
-                      <div className="relative w-full max-w-[180px] aspect-square rounded-lg overflow-hidden bg-white border shadow-sm">
-                        <NextImage src={logoUrl} alt="Storefront Logo" fill className="object-contain p-4" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <Button variant="secondary" size="icon" className="h-8 w-8"><Upload className="h-4 w-4" /></Button>
-                        </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSyncAdminBranding}
+                  className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white"
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" /> Sync Admin from Store
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-8 p-4 sm:p-8 space-y-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {/* Storefront Column */}
+                <div className="space-y-8">
+                  <div className="flex items-center gap-2 border-b pb-4">
+                    <ShoppingBag className="h-4 w-4 text-primary" />
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Public Storefront</h3>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Name</Label>
+                      <Input 
+                        placeholder="FSLNO Studio" 
+                        value={businessName} 
+                        onChange={(e) => setBusinessName(e.target.value)} 
+                        className="h-12 uppercase font-bold text-xs" 
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Storefront Logo</Label>
+                      <input type="file" ref={storefrontLogoRef} className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e, 'storefront')} />
+                      <div 
+                        onClick={() => storefrontLogoRef.current?.click()}
+                        className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-3 bg-gray-50 group hover:border-black transition-all cursor-pointer relative min-h-[180px]"
+                      >
+                        {logoUrl ? (
+                          <div className="relative w-full max-w-[140px] aspect-square overflow-hidden bg-white border shadow-sm">
+                            <NextImage src={logoUrl} alt="Storefront Logo" fill className="object-contain p-4" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <Button variant="secondary" size="icon" className="h-8 w-8"><Upload className="h-4 w-4 text-black" /></Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <ImageIcon className="h-6 w-6 text-gray-300" />
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Upload Public Logo</p>
+                          </>
+                        )}
                       </div>
-                    ) : (
-                      <>
-                        <ImageIcon className="h-6 w-6 text-gray-300" />
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Upload Public Logo</p>
-                      </>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Admin Identity Card */}
-            <Card className="border-blue-100 bg-blue-50/5 shadow-none rounded-none overflow-hidden">
-              <CardHeader className="bg-blue-50/30 border-b">
-                <div className="flex items-center gap-2">
-                  <Monitor className="h-5 w-5 text-blue-600" />
-                  <CardTitle className="text-lg font-headline uppercase tracking-tight text-blue-900">Admin Identity</CardTitle>
-                </div>
-                <CardDescription className="text-xs font-bold uppercase tracking-tight text-blue-700/60">Backend-specific branding.</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                <div className="space-y-2">
-                  <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-800">Admin Dashboard Name</Label>
-                  <Input 
-                    placeholder="e.g. FSLNO Command" 
-                    value={adminBusinessName} 
-                    onChange={(e) => setAdminBusinessName(e.target.value)} 
-                    className="h-12 uppercase font-bold text-xs bg-white border-blue-100" 
-                  />
-                </div>
-                <div className="space-y-4">
-                  <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-800">Admin Logo</Label>
-                  <input type="file" ref={adminLogoRef} className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e, 'admin')} />
-                  <div 
-                    onClick={() => adminLogoRef.current?.click()}
-                    className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-3 bg-white group hover:border-blue-600 transition-all cursor-pointer relative min-h-[200px]"
-                  >
-                    {adminLogoUrl ? (
-                      <div className="relative w-full max-w-[180px] aspect-square rounded-lg overflow-hidden bg-white border border-blue-50 shadow-sm">
-                        <NextImage src={adminLogoUrl} alt="Admin Logo" fill className="object-contain p-4" />
-                        <div className="absolute inset-0 bg-blue-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <Button variant="secondary" size="icon" className="h-8 w-8"><Upload className="h-4 w-4 text-blue-600" /></Button>
-                        </div>
+                {/* Admin Column */}
+                <div className="space-y-8 bg-blue-50/5 p-6 border border-blue-100/50 rounded-sm">
+                  <div className="flex items-center gap-2 border-b border-blue-100 pb-4">
+                    <Monitor className="h-4 w-4 text-blue-600" />
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-900">Admin Command</h3>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-800">Admin Display Name</Label>
+                      <Input 
+                        placeholder="FSLNO Command" 
+                        value={adminBusinessName} 
+                        onChange={(e) => setAdminBusinessName(e.target.value)} 
+                        className="h-12 uppercase font-bold text-xs bg-white border-blue-100" 
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-800">Dashboard Logo</Label>
+                      <input type="file" ref={adminLogoRef} className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e, 'admin')} />
+                      <div 
+                        onClick={() => adminLogoRef.current?.click()}
+                        className="border-2 border-dashed rounded-none p-6 flex flex-col items-center justify-center gap-3 bg-white group hover:border-blue-600 transition-all cursor-pointer relative min-h-[180px]"
+                      >
+                        {adminLogoUrl ? (
+                          <div className="relative w-full max-w-[140px] aspect-square overflow-hidden bg-white border border-blue-50 shadow-sm">
+                            <NextImage src={adminLogoUrl} alt="Admin Logo" fill className="object-contain p-4" />
+                            <div className="absolute inset-0 bg-blue-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <Button variant="secondary" size="icon" className="h-8 w-8"><Upload className="h-4 w-4 text-blue-600" /></Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <ImageIcon className="h-6 w-6 text-blue-200" />
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-300">Upload Admin Logo</p>
+                          </>
+                        )}
                       </div>
-                    ) : (
-                      <>
-                        <ImageIcon className="h-6 w-6 text-blue-200" />
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-blue-300">Upload Dashboard Logo</p>
-                      </>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Contact & Logistics Card */}
           <Card className="border-[#e1e3e5] shadow-none rounded-none">
@@ -433,7 +464,7 @@ export default function SettingsPage() {
               </div>
               <CardDescription className="text-xs uppercase font-bold tracking-tight">Operational data for shipments and support.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-8 space-y-8">
+            <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div className="space-y-2">
@@ -471,7 +502,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-4">
             <Button onClick={handleSaveStore} disabled={isSaving} className="w-full sm:w-auto bg-black text-white h-14 px-16 font-bold uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:bg-[#D3D3D3] transition-all">
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <ShieldCheck className="h-4 w-4 mr-3" />}
               Synchronize Identity Manifest
@@ -655,7 +686,7 @@ export default function SettingsPage() {
               </div>
               <Switch checked={chatbotEnabled} onCheckedChange={setChatbotEnabled} />
             </CardHeader>
-            <CardContent className="pt-6 space-y-8">
+            <CardContent className="pt-6 p-4 sm:p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div className="space-y-2">
