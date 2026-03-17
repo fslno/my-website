@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -56,6 +57,19 @@
           "format": "date-time"
         }
       }
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "type": "object",
+      "description": "Archival discount manifest.",
+      "properties": {
+        "code": { "type": "string" },
+        "type": { "type": "string", "enum": ["percent", "fixed"] },
+        "value": { "type": "number" },
+        "active": { "type": "boolean" },
+        "usedCount": { "type": "number" },
+        "usageLimit": { "type": "number" }
+      }
     }
   },
   "auth": {
@@ -106,6 +120,13 @@
         "definition": {
           "entityName": "Category",
           "description": "Product drop collections."
+        }
+      },
+      {
+        "path": "/coupons/{couponId}",
+        "definition": {
+          "entityName": "Coupon",
+          "description": "Discount code protocols."
         }
       }
     ],

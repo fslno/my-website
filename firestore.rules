@@ -1,13 +1,14 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * FSLNO STUDIO SECURITY RULES - UNIFIED RESTORATION
+     * FSLNO STUDIO SECURITY RULES - AUTHORITATIVE RESTORATION
      * 
      * Core Philosophy:
      * 1. Public can read products, categories, config, and reviews.
-     * 2. Admin has full authority over all collections.
+     * 2. Admin has full authority over all collections via UID and Email verification.
      * 3. Users can manage their own profiles and carts.
      */
 
@@ -20,6 +21,7 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
+        request.auth.token.email == 'fslno.dev@gmail.com' ||
         exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
       );
     }
