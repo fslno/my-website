@@ -175,8 +175,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <Users />
                   <span>Customers</span>
                 </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+              </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
@@ -432,6 +431,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       --admin-text: ${theme?.adminTextColor || '#1a1c1e'};
       --admin-base-size: ${theme?.adminBaseFontSize || 14}px;
       --admin-header-h: ${theme?.adminHeaderHeight || 64}px;
+      
+      /* Forensic Font Injection */
+      --font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif !important;
+      --font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif !important;
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
       --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
       
@@ -443,6 +446,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       --admin-sb-active-bg: ${theme?.adminSidebarActiveBg || '#000000'};
       --admin-sb-active-text: ${theme?.adminSidebarActiveText || '#FFFFFF'};
     }
+    
     .admin-viewport { 
       background-color: var(--admin-accent); 
       color: var(--admin-text);
@@ -454,6 +458,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       flex-direction: row; 
       overflow: hidden; 
     }
+
+    /* Scalable UI Manifest */
+    .admin-viewport .text-xs { font-size: calc(var(--admin-base-size) * 0.75); }
+    .admin-viewport .text-sm { font-size: calc(var(--admin-base-size) * 0.875); }
+    .admin-viewport .text-base { font-size: var(--admin-base-size); }
+    .admin-viewport .text-lg { font-size: calc(var(--admin-base-size) * 1.125); }
+    .admin-viewport .text-xl { font-size: calc(var(--admin-base-size) * 1.25); }
+    .admin-viewport .text-2xl { font-size: calc(var(--admin-base-size) * 1.5); }
+    .admin-viewport .text-3xl { font-size: calc(var(--admin-base-size) * 1.875); }
+
     .admin-header-height { height: var(--admin-header-h); }
     
     .admin-sidebar-bg { 
