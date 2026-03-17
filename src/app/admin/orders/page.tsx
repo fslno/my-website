@@ -246,7 +246,7 @@ export default function OrdersPage() {
       case 'delivered':
         return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[9px] font-bold">Delivered</Badge>;
       case 'out_for_delivery':
-        return <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 uppercase text-[9px] font-bold">Out for Delivery</Badge>;
+        return <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 uppercase text-[10px] font-bold">Out for Delivery</Badge>;
       case 'returned':
         return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[9px] font-bold">Returned</Badge>;
       case 'canceled':
@@ -464,6 +464,7 @@ export default function OrdersPage() {
                     <TableCell className="align-top py-6">
                       <div className="space-y-4">
                         <div className="flex items-center gap-2">
+                          {!order.viewed && <Badge className="bg-red-600 text-white rounded-none uppercase text-[8px] font-bold px-1.5 h-4 border-none animate-pulse">NEW</Badge>}
                           <Badge variant="outline" className="bg-black text-white text-[8px] font-bold px-1.5 h-4 border-none">{totalUnits} PIECES</Badge>
                           {order.note && <Badge className="bg-amber-50 text-amber-700 border-none text-[8px] font-bold uppercase"><MessageSquare className="h-2 w-2 mr-1" /> NOTE</Badge>}
                         </div>
@@ -580,7 +581,10 @@ export default function OrdersPage() {
                 <div className="pl-8">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
-                      <div className="text-[10px] font-mono font-bold text-primary uppercase">#{order.id.substring(0,8)}</div>
+                      <div className="flex items-center gap-2">
+                        {!order.viewed && <Badge className="bg-red-600 text-white rounded-none uppercase text-[7px] font-bold px-1.5 h-3.5 border-none animate-pulse">NEW</Badge>}
+                        <div className="text-[10px] font-mono font-bold text-primary uppercase">#{order.id.substring(0,8)}</div>
+                      </div>
                       <p className="text-[9px] text-gray-400 font-bold uppercase">{formatDate(order.createdAt)}</p>
                     </div>
                     {getStatusBadge(order.status)}

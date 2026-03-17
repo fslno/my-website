@@ -73,7 +73,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, updateDoc, query, where, collection } from 'firebase/firestore';
+import { doc, updateDoc, query, where, collection, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -132,6 +132,18 @@ export default function OrderDetailPage(props: PageProps) {
       setTrackingNumber(order.trackingNumber);
     }
   }, [order]);
+
+  // Marking order as viewed on manifest load
+  useEffect(() => {
+    if (db && orderId && order && order.viewed !== true) {
+      updateDoc(doc(db, 'orders', orderId), {
+        viewed: true,
+        viewedAt: serverTimestamp()
+      }).catch(() => {
+        // Fail silent, non-critical manifest update
+      });
+    }
+  }, [db, orderId, order]);
 
   const handleUpdateStatus = (newStatus: string) => {
     if (!db || !order || isUpdatingStatus) return;

@@ -76,6 +76,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                 ...orderData,
                 status: 'awaiting_processing',
                 paymentStatus: 'awaiting_payment',
+                viewed: false, // Authoritative Entry Protocol: Initialize as unviewed
                 createdAt: serverTimestamp()
               };
 
