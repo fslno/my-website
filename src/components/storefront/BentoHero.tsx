@@ -48,7 +48,7 @@ export function BentoHero({
   );
 
   if (isLoading) {
-    return <section className="pt-28 sm:pt-36"><div className="w-full h-[52.5vh] bg-gray-50" /></section>;
+    return <section className="pt-28 sm:pt-36"><div className="w-full h-[60vh] bg-gray-50" /></section>;
   }
 
   const images = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
@@ -59,14 +59,14 @@ export function BentoHero({
         <Carousel 
           setApi={setApi}
           plugins={[autoplayPlugin.current]}
-          className="w-full h-[52.5vh]"
+          className="w-full h-[60vh]"
           opts={{
             loop: true,
           }}
         >
           <CarouselContent className="h-full ml-0">
             {images.map((url, idx) => (
-              <CarouselItem key={idx} className="relative h-[52.5vh] w-full pl-0">
+              <CarouselItem key={idx} className="relative h-[60vh] w-full pl-0">
                 <Image
                   src={url}
                   alt={`${headline} ${idx + 1}`}
@@ -77,7 +77,7 @@ export function BentoHero({
               </CarouselItem>
             ))}
             {images.length === 0 && (
-              <CarouselItem className="relative h-[52.5vh] w-full pl-0">
+              <CarouselItem className="relative h-[60vh] w-full pl-0">
                 <div className="absolute inset-0 bg-primary opacity-20" />
               </CarouselItem>
             )}
