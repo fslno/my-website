@@ -67,7 +67,8 @@ import {
   MoreHorizontal,
   Clock,
   ShieldCheck,
-  Monitor
+  Monitor,
+  ShoppingBag
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -187,7 +188,7 @@ export default function SettingsPage() {
       adminBusinessName,
       adminLogoUrl,
       address, 
-      googleMapsUrl,
+      googleMapsUrl, 
       phone, 
       email: businessEmail,
       phoneNumbers,
@@ -803,7 +804,7 @@ export default function SettingsPage() {
                   <Mail className="h-3.5 w-3.5" /> Support Emails
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={addEmailAddress} className="h-8 text-[8px] font-bold uppercase tracking-widest px-2">
-                  <Plus className="h-3 w-3 mr-1" /> Add
+                  <Plus className="h-3.5 w-3.5" /> Add
                 </Button>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
