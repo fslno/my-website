@@ -218,7 +218,7 @@ export default function FooterEditorPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Footer Editor</h1>
-          <p className="text-[#5c5f62] mt-1 text-sm">Synchronize global support paths, newsletter dispatches, and archival identity.</p>
+          <p className="text-[#5c5f62] mt-1 text-sm uppercase font-bold tracking-widest">Synchronize global support paths, newsletter dispatches, and archival identity.</p>
         </div>
         <Button onClick={handleSave} disabled={isSaving} className="bg-black text-white h-10 px-8 font-bold uppercase tracking-widest text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all">
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
@@ -228,13 +228,13 @@ export default function FooterEditorPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
-          <Card className="border-[#e1e3e5] shadow-none">
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
               <div>
                 <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                   <Mail className="h-4 w-4 text-blue-500" /> Newsletter Integration
                 </CardTitle>
-                <CardDescription>Configure the archival email capture module.</CardDescription>
+                <CardDescription className="text-xs uppercase font-bold mt-1">Configure the archival email capture module.</CardDescription>
               </div>
               <Switch checked={newsletterEnabled} onCheckedChange={setNewsletterEnabled} />
             </CardHeader>
@@ -245,7 +245,7 @@ export default function FooterEditorPage() {
                   value={newsletterHeadline} 
                   onChange={(e) => setNewsletterHeadline(e.target.value.toUpperCase())}
                   placeholder="JOIN THE ARCHIVE"
-                  className="h-11 font-bold tracking-tighter"
+                  className="h-11 font-bold tracking-tighter rounded-none"
                 />
               </div>
               <div className="space-y-2">
@@ -254,34 +254,34 @@ export default function FooterEditorPage() {
                   value={newsletterSubtext} 
                   onChange={(e) => setNewsletterSubtext(e.target.value)}
                   placeholder="Sign up for early access..."
-                  className="h-11"
+                  className="h-11 rounded-none"
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none">
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-widest">Brand Narrative</CardTitle>
-              <CardDescription>A concise statement defining your archive's identity.</CardDescription>
+              <CardDescription className="text-xs uppercase font-bold mt-1">A concise statement defining your archive's identity.</CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Redefining luxury through minimalist design..."
-                className="min-h-[120px] resize-none text-sm uppercase tracking-tight"
+                className="min-h-[120px] resize-none text-sm uppercase tracking-tight rounded-none"
               />
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none">
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-sm font-bold uppercase tracking-widest">Support Links</CardTitle>
-                <CardDescription>Customer service and utility paths.</CardDescription>
+                <CardDescription className="text-xs uppercase font-bold mt-1">Customer service and utility paths.</CardDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={() => addLink('support')} className="h-8 text-[9px] font-bold uppercase border-black">
+              <Button variant="outline" size="sm" onClick={() => addLink('support')} className="h-8 text-[9px] font-bold uppercase border-black rounded-none">
                 <Plus className="h-3 w-3 mr-1" /> Add Path
               </Button>
             </CardHeader>
@@ -292,13 +292,13 @@ export default function FooterEditorPage() {
                     value={link.label} 
                     onChange={(e) => updateLink('support', idx, 'label', e.target.value)}
                     placeholder="Label (e.g. FAQ)" 
-                    className="h-10 text-xs font-bold uppercase"
+                    className="h-10 text-xs font-bold uppercase rounded-none"
                   />
                   <Input 
                     value={link.url} 
                     onChange={(e) => updateLink('support', idx, 'url', e.target.value)}
                     placeholder="/shipping" 
-                    className="h-10 text-xs font-mono"
+                    className="h-10 text-xs font-mono rounded-none"
                   />
                   <Button variant="ghost" size="icon" onClick={() => removeLink('support', idx)} className="h-10 w-10 text-red-500 hover:bg-red-50">
                     <Trash2 className="h-4 w-4" />
@@ -309,13 +309,13 @@ export default function FooterEditorPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none">
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-sm font-bold uppercase tracking-widest">Legal & Compliance</CardTitle>
-                <CardDescription>Privacy, terms, and regulatory content.</CardDescription>
+                <CardDescription className="text-xs uppercase font-bold mt-1">Privacy, terms, and regulatory content.</CardDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={() => addLink('legal')} className="h-8 text-[9px] font-bold uppercase border-black">
+              <Button variant="outline" size="sm" onClick={() => addLink('legal')} className="h-8 text-[9px] font-bold uppercase border-black rounded-none">
                 <Plus className="h-3 w-3 mr-1" /> Add Path
               </Button>
             </CardHeader>
@@ -326,13 +326,13 @@ export default function FooterEditorPage() {
                     value={link.label} 
                     onChange={(e) => updateLink('legal', idx, 'label', e.target.value)}
                     placeholder="Label (e.g. Terms)" 
-                    className="h-10 text-xs font-bold uppercase"
+                    className="h-10 text-xs font-bold uppercase rounded-none"
                   />
                   <Input 
                     value={link.url} 
                     onChange={(e) => updateLink('legal', idx, 'url', e.target.value)}
                     placeholder="/privacy" 
-                    className="h-10 text-xs font-mono"
+                    className="h-10 text-xs font-mono rounded-none"
                   />
                   <Button variant="ghost" size="icon" onClick={() => removeLink('legal', idx)} className="h-10 w-10 text-red-500 hover:bg-red-50">
                     <Trash2 className="h-4 w-4" />
@@ -343,12 +343,12 @@ export default function FooterEditorPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none">
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
             <CardHeader className="border-b bg-gray-50/30">
               <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-emerald-500" /> Payment Visual Visibility
               </CardTitle>
-              <CardDescription>Select which gateway icons are Authoritatively surfaced in the footer.</CardDescription>
+              <CardDescription className="text-[10px] uppercase font-bold mt-1">Select which gateway icons are Authoritatively surfaced in the footer.</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -357,7 +357,7 @@ export default function FooterEditorPage() {
                     key={method.id}
                     onClick={() => togglePaymentIcon(method.id)}
                     className={cn(
-                      "p-3 border rounded-sm text-[9px] font-bold uppercase tracking-widest transition-all",
+                      "p-3 border rounded-none text-[9px] font-bold uppercase tracking-widest transition-all",
                       visiblePaymentIcons.includes(method.id)
                         ? "bg-black text-white border-black"
                         : "bg-white text-gray-400 border-gray-200 hover:border-gray-400"
@@ -372,12 +372,12 @@ export default function FooterEditorPage() {
         </div>
 
         <div className="space-y-8">
-          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/50">
+          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/50 rounded-none">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                 <Clock className="h-4 w-4 text-orange-500" /> Operational Hours
               </CardTitle>
-              <CardDescription>Display your "Spot" hours and Map link in the footer.</CardDescription>
+              <CardDescription className="text-xs uppercase font-bold mt-1">Display your "Spot" hours and Map link in the footer.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -386,7 +386,7 @@ export default function FooterEditorPage() {
                   value={openingHours} 
                   onChange={(e) => setOpeningHours(e.target.value)}
                   placeholder="e.g. MON-FRI: 10AM - 6PM"
-                  className="min-h-[100px] resize-none text-[10px] font-bold uppercase tracking-widest"
+                  className="min-h-[100px] resize-none text-[10px] font-bold uppercase tracking-widest rounded-none"
                 />
               </div>
               <div className="space-y-2">
@@ -397,17 +397,17 @@ export default function FooterEditorPage() {
                   value={googleMapsUrl}
                   onChange={(e) => setGoogleMapsUrl(e.target.value)}
                   placeholder="https://maps.google.com/..."
-                  className="h-10 text-[10px] font-bold uppercase"
+                  className="h-10 text-[10px] font-bold uppercase rounded-none"
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/50">
+          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/50 rounded-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-sm font-bold uppercase tracking-widest">Powered By</CardTitle>
-                <CardDescription>Studio attribution module.</CardDescription>
+                <CardDescription className="text-xs uppercase font-bold mt-1">Studio attribution module.</CardDescription>
               </div>
               <Switch checked={poweredByEnabled} onCheckedChange={setPoweredByEnabled} />
             </CardHeader>
@@ -417,14 +417,14 @@ export default function FooterEditorPage() {
                 <input type="file" ref={poweredByLogoRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                 <div 
                   onClick={() => !poweredByLogoUrl && poweredByLogoRef.current?.click()}
-                  className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 bg-white hover:border-black transition-all cursor-pointer group h-24 relative"
+                  className="border-2 border-dashed rounded-none p-4 flex flex-col items-center justify-center gap-2 bg-white hover:border-black transition-all cursor-pointer group h-24 relative"
                 >
                   {poweredByLogoUrl ? (
                     <>
                       <div className="relative w-10 h-10">
                         <NextImage src={poweredByLogoUrl} alt="Powered By Logo" fill className="object-contain" />
                       </div>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <Button variant="destructive" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setPoweredByLogoUrl(''); }}><Trash2 className="h-4 w-4" /></Button>
                         <Button variant="secondary" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); poweredByLogoRef.current?.click(); }}><Upload className="h-4 w-4" /></Button>
                       </div>
@@ -443,7 +443,7 @@ export default function FooterEditorPage() {
                   value={poweredByLabel} 
                   onChange={(e) => setPoweredByLabel(e.target.value)} 
                   placeholder="Powered by"
-                  className="h-10 text-xs"
+                  className="h-10 text-xs rounded-none"
                 />
               </div>
               <div className="space-y-2">
@@ -452,77 +452,77 @@ export default function FooterEditorPage() {
                   value={poweredByStudioName} 
                   onChange={(e) => setPoweredByStudioName(e.target.value)} 
                   placeholder="FSLNO STUDIO"
-                  className="h-10 text-xs font-headline font-bold"
+                  className="h-10 text-xs font-headline font-bold rounded-none"
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/50">
+          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/50 rounded-none">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-widest">Social Discovery</CardTitle>
-              <CardDescription>Channel connectivity URLs.</CardDescription>
+              <CardDescription className="text-xs uppercase font-bold mt-1">Channel connectivity URLs.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold text-gray-500">Instagram</Label>
                 <div className="relative">
                   <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} placeholder="https://instagram.com/..." className="pl-10 h-11 text-xs" />
+                  <Input value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} placeholder="https://instagram.com/..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold text-gray-500">TikTok</Label>
                 <div className="relative">
                   <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={tiktokUrl} onChange={(e) => setTiktokUrl(e.target.value)} placeholder="https://tiktok.com/@..." className="pl-10 h-11 text-xs" />
+                  <Input value={tiktokUrl} onChange={(e) => setTiktokUrl(e.target.value)} placeholder="https://tiktok.com/@..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold text-gray-500">Twitter / X</Label>
                 <div className="relative">
                   <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={twitterUrl} onChange={(e) => setTwitterUrl(e.target.value)} placeholder="https://twitter.com/..." className="pl-10 h-11 text-xs" />
+                  <Input value={twitterUrl} onChange={(e) => setTwitterUrl(e.target.value)} placeholder="https://twitter.com/..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold text-gray-500">Facebook</Label>
                 <div className="relative">
                   <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} placeholder="https://facebook.com/..." className="pl-10 h-11 text-xs" />
+                  <Input value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} placeholder="https://facebook.com/..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold text-gray-500">YouTube</Label>
                 <div className="relative">
                   <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/..." className="pl-10 h-11 text-xs" />
+                  <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold text-gray-500">Pinterest</Label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={pinterestUrl} onChange={(e) => setPinterestUrl(e.target.value)} placeholder="https://pinterest.com/..." className="pl-10 h-11 text-xs" />
+                  <Input value={pinterestUrl} onChange={(e) => setPinterestUrl(e.target.value)} placeholder="https://pinterest.com/..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold text-gray-500">LinkedIn</Label>
                 <div className="relative">
                   <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." className="pl-10 h-11 text-xs" />
+                  <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/30">
+          <Card className="border-[#e1e3e5] shadow-none bg-gray-50/30 rounded-none">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-gray-400" />
                 <CardTitle className="text-sm font-bold uppercase tracking-widest">Compliance & Versioning</CardTitle>
               </div>
-              <CardDescription>Curate the global footer fine print.</CardDescription>
+              <CardDescription className="text-[10px] uppercase font-bold mt-1">Curate the global footer fine print.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -531,7 +531,7 @@ export default function FooterEditorPage() {
                   value={copyrightText} 
                   onChange={(e) => setCopyrightText(e.target.value)} 
                   placeholder="e.g. © 2026 FSLNO. ALL RIGHTS RESERVED."
-                  className="h-11 text-xs uppercase"
+                  className="h-11 text-xs uppercase rounded-none"
                 />
               </div>
               <div className="space-y-2">
@@ -542,18 +542,18 @@ export default function FooterEditorPage() {
                     value={systemVersion} 
                     onChange={(e) => setSystemVersion(e.target.value)} 
                     placeholder="e.g. ARCHIVE SYSTEM V1.0"
-                    className="pl-10 h-11 text-xs uppercase font-mono"
+                    className="pl-10 h-11 text-xs uppercase font-mono rounded-none"
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="bg-black text-white p-6 rounded-xl space-y-4 shadow-xl">
+          <div className="bg-black text-white p-6 rounded-none space-y-4 shadow-xl">
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-zinc-400">
               <ExternalLink className="h-4 w-4 text-blue-400" /> Administrative Logic
             </h3>
-            <p className="text-[10px] text-gray-400 leading-relaxed">
+            <p className="text-[10px] text-gray-400 leading-relaxed uppercase font-medium">
               Footer links use relative paths (e.g. <code className="text-white">/shipping</code>) for internal store pages or absolute URLs for external domains.
             </p>
             <Separator className="bg-white/10" />

@@ -7,6 +7,7 @@ import { Loader2, Truck, AlertCircle, CheckCircle2, MapPin, Zap, ChevronRight } 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { getLivePath } from '@/lib/deployment';
 
 interface StallionRatesProps {
   address: {
@@ -24,12 +25,12 @@ interface StallionRatesProps {
 /**
  * Enhanced Logistics Discovery Engine.
  * Authoritatively manifests live API rates and Regional Manual Overrides.
- * Fallback protocol triggers only on absolute API handshake failure.
+ * Prioritizes manual regional overrides if they match the participant's province.
  */
 export function StallionRates({ address, cartItems, onRateSelect, selectedRateId, manualRates }: StallionRatesProps) {
   const db = useFirestore();
-  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
-  const shippingConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
+  const shippingConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/shipping')) : null, [db]);
   
   const { data: storeConfig } = useDoc(storeConfigRef);
   const { data: shippingConfig } = useDoc(shippingConfigRef);
@@ -50,8 +51,11 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
   const handlingFee = Number(storeConfig?.handlingFee) || 2.00;
 
   useEffect(() => {
-    const isAddressComplete = address.city && address.postalCode && address.province;
-    if (!isAddressComplete) {
+    // 01. Logic Gate: Regional rates only require province
+    const hasProvince = !!address.province;
+    const isFullAddress = !!(address.city && address.postalCode && address.province);
+
+    if (!hasProvince) {
       setRates([]);
       setError(null);
       setUseFallback(false);
@@ -65,46 +69,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
       
       let fetchedRates: any[] = [];
 
-      // 1. Authoritative API Discovery (Stallion)
-      if (isStallionEnabled) {
-        const parcel = cartItems.reduce((acc, item) => ({
-          weight: acc.weight + (Number(item.logistics?.weight || shippingConfig?.defaultWeight || 0.6) * item.quantity),
-          length: Math.max(acc.length, Number(item.logistics?.length || shippingConfig?.defaultLength || 35)),
-          width: Math.max(acc.width, Number(item.logistics?.width || shippingConfig?.defaultWidth || 25)),
-          height: acc.height + (Number(item.logistics?.height || shippingConfig?.defaultHeight || 10) * item.quantity)
-        }), { weight: 0, length: 0, width: 0, height: 0 });
-
-        try {
-          const response = await fetch('/api/shipping/stallion/rates', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to_address: {
-                city: address.city,
-                postal_code: address.postalCode,
-                province: address.province,
-                country_code: address.country === 'Canada' ? 'CA' : 'US'
-              },
-              parcel
-            })
-          });
-
-          const data = await response.json();
-          if (response.ok) {
-            fetchedRates = (data.rates || []).map((r: any) => ({
-              ...r,
-              totalCost: r.price + handlingFee
-            }));
-          } else {
-            throw new Error(data.error);
-          }
-        } catch (err: any) {
-          console.warn('[LOGISTICS] API Failure, checking for manual or fallback:', err.message);
-          setUseFallback(true);
-        }
-      }
-
-      // 2. Ingest Regional Manual Rates (Province Overrides)
+      // A. Ingest Regional Manual Rates (Province Overrides) - PROVINCE ONLY REQUIRED
       if (manualRates && address.province) {
         const matched = manualRates.find((r: any) => r.province.toUpperCase() === address.province.toUpperCase());
         if (matched) {
@@ -129,7 +94,47 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
         }
       }
 
-      // 3. Fallback Protocol: If no rates found after API/Manual attempts
+      // B. Authoritative API Discovery (Stallion) - REQUIRES FULL ADDRESS
+      if (isStallionEnabled && isFullAddress) {
+        const parcel = cartItems.reduce((acc, item) => ({
+          weight: acc.weight + (Number(item.logistics?.weight || shippingConfig?.defaultWeight || 0.6) * item.quantity),
+          length: Math.max(acc.length, Number(item.logistics?.length || shippingConfig?.defaultLength || 35)),
+          width: Math.max(acc.width, Number(item.logistics?.width || shippingConfig?.defaultWidth || 25)),
+          height: acc.height + (Number(item.logistics?.height || shippingConfig?.defaultHeight || 10) * item.quantity)
+        }), { weight: 0, length: 0, width: 0, height: 0 });
+
+        try {
+          const response = await fetch('/api/shipping/stallion/rates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to_address: {
+                city: address.city,
+                postal_code: address.postalCode,
+                province: address.province,
+                country_code: address.country === 'Canada' ? 'CA' : 'US'
+              },
+              parcel
+            })
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            const apiRates = (data.rates || []).map((r: any) => ({
+              ...r,
+              totalCost: r.price + handlingFee
+            }));
+            fetchedRates = [...fetchedRates, ...apiRates];
+          } else {
+            throw new Error(data.error);
+          }
+        } catch (err: any) {
+          console.warn('[LOGISTICS] API Failure, using fallback/manual:', err.message);
+          setUseFallback(true);
+        }
+      }
+
+      // C. Fallback Protocol: If no rates found after API/Manual attempts
       if (fetchedRates.length === 0 && (isStallionEnabled || useFallback)) {
         fetchedRates.push({
           id: 'fallback-std',
@@ -170,13 +175,13 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
     );
   }
 
-  const isAddressIncomplete = !address.city || !address.postalCode || !address.province;
+  const isAddressIncomplete = !address.province;
 
   if (isAddressIncomplete) {
     return (
       <div className="p-8 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-3 bg-gray-50/30">
         <MapPin className="h-5 w-5 text-gray-300" />
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Enter address for shipping rates.</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Enter province for shipping rates.</p>
       </div>
     );
   }
@@ -227,7 +232,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
       ) : (
         <div className="p-8 border-2 border-dashed rounded-none text-center bg-gray-50/30">
           <AlertCircle className="h-5 w-5 text-gray-300 mx-auto mb-2" />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No services available for this destination.</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No services available for this region.</p>
         </div>
       )}
 
