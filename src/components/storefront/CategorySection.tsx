@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 /**
  * Authoritative Category Selection segment.
  * Manifests ALL archival collections from the admin manifest in a 1:1 grid.
+ * Titles are positioned forensicly below the cards for maximal readability.
  * Labels and styling are controlled strictly from the Admin Theme Engine.
  */
 export function CategorySection() {
@@ -37,6 +38,10 @@ export function CategorySection() {
 
   if (!categories || categories.length === 0) return null;
 
+  const getFlexAlign = (align: string) => 
+    align === 'center' ? 'items-center text-center' : 
+    align === 'right' ? 'items-end text-right' : 'items-start text-left';
+
   return (
     <section className="py-12 bg-white border-b">
       <div className="max-w-[1440px] mx-auto px-4">
@@ -59,36 +64,42 @@ export function CategorySection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
           {categories.map((cat) => (
-            <Link 
-              key={cat.id} 
-              href={`/collections/${cat.id}`}
-              className="group relative aspect-square bg-gray-100 overflow-hidden rounded-sm border shadow-sm"
-            >
-              {cat.imageUrl ? (
-                <Image 
-                  src={cat.imageUrl} 
-                  alt={cat.name} 
-                  fill 
-                  className="object-cover transition-transform duration-700 group-hover:scale-110" 
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-gray-300">
-                  {cat.name}
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div key={cat.id} className="flex flex-col gap-4 group">
+              <Link 
+                href={`/collections/${cat.id}`}
+                className="relative aspect-square bg-gray-100 overflow-hidden rounded-sm border shadow-sm"
+              >
+                {cat.imageUrl ? (
+                  <NextImage 
+                    src={cat.imageUrl} 
+                    alt={cat.name} 
+                    fill 
+                    className="object-cover transition-transform duration-700 group-hover:scale-110" 
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-gray-300">
+                    {cat.name}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              </Link>
               
-              {/* Controlled Category Card Label */}
               <div className={cn(
-                "absolute inset-0 p-6 sm:p-8 flex flex-col transition-all duration-500 category-card-content",
-                "transform translate-y-4 group-hover:translate-y-0"
+                "flex flex-col",
+                getFlexAlign(theme?.categoryCardTextAlign || 'left')
               )}>
-                <h3 className="font-headline font-bold uppercase tracking-tight category-card-title">{cat.name}</h3>
-                <p className="text-[9px] font-bold uppercase tracking-widest mt-2 opacity-60">View Drop</p>
+                <Link href={`/collections/${cat.id}`} className="hover:underline">
+                  <h3 className="font-headline font-bold uppercase tracking-tight category-card-title leading-tight">
+                    {cat.name}
+                  </h3>
+                </Link>
+                <p className="text-[9px] font-bold uppercase tracking-widest mt-2 opacity-60 text-muted-foreground">
+                  View Drop
+                </p>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>

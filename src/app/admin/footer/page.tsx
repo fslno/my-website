@@ -15,23 +15,19 @@ import {
   Instagram, 
   Twitter, 
   MessageCircle,
-  Menu as MenuIcon,
   ExternalLink,
-  ShieldCheck,
-  FileCode,
-  Sparkles,
   Upload,
   Images as ImagesIcon,
   Mail,
   Clock,
   CreditCard,
-  CheckCircle2,
-  Navigation,
   Facebook,
   Youtube,
   Linkedin,
   Globe,
-  X
+  X,
+  ShieldCheck,
+  FileCode
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -220,7 +216,7 @@ export default function FooterEditorPage() {
           <h1 className="text-2xl font-bold tracking-tight text-[#1a1c1e]">Footer Editor</h1>
           <p className="text-[#5c5f62] mt-1 text-sm uppercase font-bold tracking-widest">Synchronize global support paths, newsletter dispatches, and archival identity.</p>
         </div>
-        <Button onClick={handleSave} disabled={isSaving} className="bg-black text-white h-10 px-8 font-bold uppercase tracking-widest text-[10px] hover:bg-[#D3D3D3] hover:text-[#333333] transition-all">
+        <Button onClick={handleSave} disabled={isSaving} className="bg-black text-white h-10 px-8 font-bold uppercase tracking-widest text-[10px] hover:bg-[#D3D3D3] transition-all">
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
           Commit Changes
         </Button>
@@ -391,7 +387,7 @@ export default function FooterEditorPage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
-                  <Navigation className="h-3 w-3" /> Location Link (Google Maps)
+                  <ExternalLink className="h-3 w-3" /> Location Link (Google Maps)
                 </Label>
                 <Input 
                   value={googleMapsUrl}
@@ -510,7 +506,7 @@ export default function FooterEditorPage() {
                 <Label className="text-[10px] uppercase font-bold text-gray-500">LinkedIn</Label>
                 <div className="relative">
                   <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." className="pl-10 h-11 text-xs rounded-none" />
+                  <Input value={linkedinUrl} onChange={(e) => setlinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
             </CardContent>
