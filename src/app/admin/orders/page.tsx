@@ -236,7 +236,7 @@ export default function OrdersPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'awaiting_processing':
-        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[9px] font-bold">Awaiting</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[9px] font-bold">Awaiting Processing</Badge>;
       case 'processing':
         return <Badge className="bg-violet-50 text-violet-700 border-violet-100 uppercase text-[9px] font-bold">Processing</Badge>;
       case 'ready_for_pickup':
@@ -262,8 +262,9 @@ export default function OrdersPage() {
     switch (status) {
       case 'paid':
         return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] font-bold">Paid</Badge>;
+      case 'awaiting_payment':
       case 'awaiting':
-        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Payment</Badge>;
       case 'refunded':
         return <Badge className="bg-slate-50 text-slate-700 border-slate-100 uppercase text-[10px] font-bold">Refunded</Badge>;
       case 'partially_refunded':
@@ -271,7 +272,7 @@ export default function OrdersPage() {
       case 'canceled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
       default:
-        return <Badge className="bg-zinc-50 text-zinc-700 border-zinc-100 uppercase text-[10px] font-bold">{status || 'Pending'}</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Payment</Badge>;
     }
   };
 
@@ -394,12 +395,12 @@ export default function OrdersPage() {
             <SelectTrigger className="w-full lg:w-[200px] h-10 border-[#e1e3e5] bg-white text-[10px] font-bold uppercase tracking-widest rounded-none">
               <div className="flex items-center gap-2">
                 <Filter className="h-3.5 w-3.5 text-[#8c9196]"/>
-                <span>{statusFilter === 'all' ? 'All Status' : statusFilter.replace('_', ' ')}</span>
+                <span>{statusFilter === 'all' ? 'All Status' : statusFilter.replace('_', ' ').toUpperCase()}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="uppercase text-[10px] font-bold">All Orders</SelectItem>
-              <SelectItem value="awaiting_processing" className="uppercase text-[10px] font-bold">Awaiting</SelectItem>
+              <SelectItem value="awaiting_processing" className="uppercase text-[10px] font-bold">Awaiting Processing</SelectItem>
               <SelectItem value="processing" className="uppercase text-[10px] font-bold">Processing</SelectItem>
               <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Pick up</SelectItem>
               <SelectItem value="shipped" className="uppercase text-[10px] font-bold">Shipped</SelectItem>
@@ -540,7 +541,7 @@ export default function OrdersPage() {
                         <div className="font-bold text-base text-primary tracking-tighter">
                           {`C$${formatCurrency(Number(order.total)||0)}`}
                         </div>
-                        {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+                        {getPaymentStatusBadge(order.paymentStatus || 'awaiting_payment')}
                       </div>
                     </TableCell>
                     <TableCell className="align-top py-6">
@@ -601,7 +602,7 @@ export default function OrdersPage() {
                     </div>
                     <div className="text-right space-y-1">
                       <div className="text-sm font-bold text-primary">{`C$${formatCurrency(Number(order.total) || 0)}`}</div>
-                      {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+                      {getPaymentStatusBadge(order.paymentStatus || 'awaiting_payment')}
                     </div>
                   </div>
 
@@ -675,7 +676,7 @@ export default function OrdersPage() {
                   <SelectValue placeholder="SELECT STATUS" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="awaiting_processing" className="uppercase text-[10px] font-bold">Awaiting</SelectItem>
+                  <SelectItem value="awaiting_processing" className="uppercase text-[10px] font-bold">Awaiting Processing</SelectItem>
                   <SelectItem value="processing" className="uppercase text-[10px] font-bold">Processing</SelectItem>
                   <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Ready for Pickup</SelectItem>
                   <SelectItem value="shipped" className="uppercase text-[10px] font-bold">Shipped</SelectItem>

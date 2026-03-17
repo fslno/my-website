@@ -216,6 +216,7 @@ export default function OrderDetailPage(props: PageProps) {
     switch (status) {
       case 'paid':
         return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] font-bold">Paid</Badge>;
+      case 'awaiting_payment':
       case 'awaiting':
         return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Payment</Badge>;
       case 'refunded':
@@ -225,14 +226,14 @@ export default function OrderDetailPage(props: PageProps) {
       case 'canceled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
       default:
-        return <Badge className="bg-zinc-50 text-zinc-700 border-zinc-100 uppercase text-[10px] font-bold">Pending</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Payment</Badge>;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'awaiting_processing':
-        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting</Badge>;
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Awaiting Processing</Badge>;
       case 'processing':
         return <Badge className="bg-violet-50 text-violet-700 border-violet-100 uppercase text-[10px] font-bold">Processing</Badge>;
       case 'ready_for_pickup':
@@ -300,7 +301,7 @@ export default function OrderDetailPage(props: PageProps) {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Order #{order.id.substring(0, 6).toUpperCase()}</h1>
             <div className="flex gap-2 items-center">
-              {getPaymentStatusBadge(order.paymentStatus || 'pending')}
+              {getPaymentStatusBadge(order.paymentStatus || 'awaiting_payment')}
               {getStatusBadge(order.status)}
             </div>
           </div>
@@ -395,14 +396,13 @@ export default function OrderDetailPage(props: PageProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <Label className="text-[9px] uppercase font-bold text-gray-400">Payment Status</Label>
-                  <Select value={order.paymentStatus || 'pending'} onValueChange={handleConfirmPayment} disabled={isUpdatingPayment}>
+                  <Select value={order.paymentStatus || 'awaiting_payment'} onValueChange={handleConfirmPayment} disabled={isUpdatingPayment}>
                     <SelectTrigger className="h-11 bg-white border-black text-[10px] font-bold uppercase tracking-widest">
                       <SelectValue placeholder="Payment" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending" className="text-[10px] font-bold uppercase">Pending</SelectItem>
+                      <SelectItem value="awaiting_payment" className="text-[10px] font-bold uppercase">Awaiting Payment</SelectItem>
                       <SelectItem value="paid" className="text-[10px] font-bold uppercase">Paid</SelectItem>
-                      <SelectItem value="awaiting" className="text-[10px] font-bold uppercase">Awaiting</SelectItem>
                       <SelectItem value="refunded" className="text-[10px] font-bold uppercase">Refunded</SelectItem>
                       <SelectItem value="partially_refunded" className="text-[10px] font-bold uppercase">Partially Refunded</SelectItem>
                       <SelectItem value="canceled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
@@ -897,4 +897,3 @@ function BarcodeScannerDialog({ onScan, isOpen, onOpenChange }: any) {
     </Dialog>
   );
 }
-
