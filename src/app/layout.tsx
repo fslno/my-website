@@ -9,6 +9,7 @@ import { WishlistProvider } from '@/context/WishlistContext';
 import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
 import { MetaTagInjector } from '@/components/storefront/MetaTagInjector';
 import { Chatbot } from '@/components/storefront/Chatbot';
+import { PromotionPopup } from '@/components/storefront/PromotionPopup';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { cn } from '@/lib/utils';
@@ -72,6 +73,7 @@ export default function RootLayout({
               </LayoutContent>
               <Toaster />
               <Chatbot />
+              <PromotionPopup />
             </CartProvider>
           </WishlistProvider>
         </FirebaseClientProvider>
