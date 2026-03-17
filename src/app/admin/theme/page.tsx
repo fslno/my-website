@@ -34,7 +34,8 @@ import {
   ShoppingBag,
   Search,
   FileText,
-  Type as TypeIcon
+  Type as TypeIcon,
+  CircleDot
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -93,6 +94,13 @@ const DEFAULT_THEME = {
   adminHeadlineFont: 'Inter',
   adminBodyFont: 'Inter',
   adminHeaderHeight: '64',
+  adminSidebarBg: '#FFFFFF',
+  adminSidebarHeaderSize: '10',
+  adminSidebarHeaderColor: '#8c9196',
+  adminSidebarItemSize: '14',
+  adminSidebarItemColor: '#1a1c1e',
+  adminSidebarActiveBg: '#000000',
+  adminSidebarActiveText: '#FFFFFF',
   categorySectionTitle: 'Shop by Drop',
   categorySectionSubtitle: 'The Collections',
   archiveSectionTitle: 'All Studio Pieces',
@@ -160,6 +168,13 @@ export default function ThemeEnginePage() {
   const [adminHeadlineFont, setAdminHeadlineFont] = useState(DEFAULT_THEME.adminHeadlineFont);
   const [adminBodyFont, setAdminBodyFont] = useState(DEFAULT_THEME.adminBodyFont);
   const [adminHeaderHeight, setAdminHeaderHeight] = useState(DEFAULT_THEME.adminHeaderHeight);
+  const [adminSidebarBg, setAdminSidebarBg] = useState(DEFAULT_THEME.adminSidebarBg);
+  const [adminSidebarHeaderSize, setAdminSidebarHeaderSize] = useState(DEFAULT_THEME.adminSidebarHeaderSize);
+  const [adminSidebarHeaderColor, setAdminSidebarHeaderColor] = useState(DEFAULT_THEME.adminSidebarHeaderColor);
+  const [adminSidebarItemSize, setAdminSidebarItemSize] = useState(DEFAULT_THEME.adminSidebarItemSize);
+  const [adminSidebarItemColor, setAdminSidebarItemColor] = useState(DEFAULT_THEME.adminSidebarItemColor);
+  const [adminSidebarActiveBg, setAdminSidebarActiveBg] = useState(DEFAULT_THEME.adminSidebarActiveBg);
+  const [adminSidebarActiveText, setAdminSidebarActiveText] = useState(DEFAULT_THEME.adminSidebarActiveText);
 
   useEffect(() => {
     if (themeData) {
@@ -209,6 +224,13 @@ export default function ThemeEnginePage() {
       setAdminHeadlineFont(themeData.adminHeadlineFont || DEFAULT_THEME.adminHeadlineFont);
       setAdminBodyFont(themeData.adminBodyFont || DEFAULT_THEME.adminBodyFont);
       setAdminHeaderHeight(themeData.adminHeaderHeight?.toString() || DEFAULT_THEME.adminHeaderHeight);
+      setAdminSidebarBg(themeData.adminSidebarBg || DEFAULT_THEME.adminSidebarBg);
+      setAdminSidebarHeaderSize(themeData.adminSidebarHeaderSize?.toString() || DEFAULT_THEME.adminSidebarHeaderSize);
+      setAdminSidebarHeaderColor(themeData.adminSidebarHeaderColor || DEFAULT_THEME.adminSidebarHeaderColor);
+      setAdminSidebarItemSize(themeData.adminSidebarItemSize?.toString() || DEFAULT_THEME.adminSidebarItemSize);
+      setAdminSidebarItemColor(themeData.adminSidebarItemColor || DEFAULT_THEME.adminSidebarItemColor);
+      setAdminSidebarActiveBg(themeData.adminSidebarActiveBg || DEFAULT_THEME.adminSidebarActiveBg);
+      setAdminSidebarActiveText(themeData.adminSidebarActiveText || DEFAULT_THEME.adminSidebarActiveText);
     }
   }, [themeData]);
 
@@ -259,6 +281,13 @@ export default function ThemeEnginePage() {
       adminHeadlineFont,
       adminBodyFont,
       adminHeaderHeight: Number(adminHeaderHeight),
+      adminSidebarBg,
+      adminSidebarHeaderSize: Number(adminSidebarHeaderSize),
+      adminSidebarHeaderColor,
+      adminSidebarItemSize: Number(adminSidebarItemSize),
+      adminSidebarItemColor,
+      adminSidebarActiveBg,
+      adminSidebarActiveText,
       updatedAt: new Date().toISOString()
     };
 
@@ -433,7 +462,7 @@ export default function ThemeEnginePage() {
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
                         {sportsFonts.map(font => (
-                          <SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 cursor-pointer">
+                          <SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75">
                             <span style={{ fontFamily: font }}>{font}</span>
                           </SelectItem>
                         ))}
@@ -448,7 +477,7 @@ export default function ThemeEnginePage() {
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
                         {sportsFonts.map(font => (
-                          <SelectItem key={font} value={font} className="text-sm font-medium py-3 cursor-pointer">
+                          <SelectItem key={font} value={font} className="text-sm font-medium py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75">
                             <span style={{ fontFamily: font }}>{font}</span>
                           </SelectItem>
                         ))}
@@ -567,185 +596,122 @@ export default function ThemeEnginePage() {
                   </div>
                 </CardContent>
               </Card>
-
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Card Protocol</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Label Scale</Label>
-                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryCardTitleSize}PX</Badge>
-                      </div>
-                      <input type="range" min="12" max="120" value={categoryCardTitleSize} onChange={(e) => setCategoryCardTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
-                    </div>
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-gray-400">Horizontal Alignment</Label>
-                      <div className="flex border p-1 rounded-sm bg-gray-50">
-                        <Button variant={categoryCardTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
-                        <Button variant={categoryCardTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
-                        <Button variant={categoryCardTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-gray-400">Vertical Alignment</Label>
-                      <div className="flex border p-1 rounded-sm bg-gray-50">
-                        <Button variant={categoryCardVerticalAlign === 'top' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardVerticalAlign('top')} title="Top"><AlignLeft className="h-4 w-4 rotate-90" /></Button>
-                        <Button variant={categoryCardVerticalAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardVerticalAlign('center')} title="Center"><AlignCenter className="h-4 w-4 rotate-90" /></Button>
-                        <Button variant={categoryCardVerticalAlign === 'bottom' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardVerticalAlign('bottom')} title="Bottom"><AlignRight className="h-4 w-4 rotate-90" /></Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Label Color</Label>
-                      <div className="flex gap-2">
-                        <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={categoryCardTitleColor} onChange={(e) => setCategoryCardTitleColor(e.target.value)} />
-                        </div>
-                        <Input value={categoryCardTitleColor} onChange={(e) => setCategoryCardTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Archive Heading Protocol</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Heading Scale</Label>
-                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{archiveTitleSize}PX</Badge>
-                      </div>
-                      <input type="range" min="12" max="120" value={archiveTitleSize} onChange={(e) => setArchiveTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
-                    </div>
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-gray-400">Alignment</Label>
-                      <div className="flex border p-1 rounded-sm bg-gray-50">
-                        <Button variant={archiveTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setArchiveTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
-                        <Button variant={archiveTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setArchiveTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
-                        <Button variant={archiveTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setArchiveTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid gap-2 max-w-sm">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Heading Color</Label>
-                    <div className="flex gap-2">
-                      <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} />
-                      </div>
-                      <Input value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                    <ShoppingBag className="h-3.5 w-3.5" /> Product Card Protocol
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Title Scale</Label>
-                          <Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge>
-                        </div>
-                        <input type="range" min="10" max="40" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Title Color</Label>
-                        <div className="flex gap-2">
-                          <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                            <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} />
-                          </div>
-                          <Input value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-6">
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Price Scale</Label>
-                          <Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge>
-                        </div>
-                        <input type="range" min="10" max="40" value={productPriceSize} onChange={(e) => setProductPriceSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Price Color</Label>
-                        <div className="flex gap-2">
-                          <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                            <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} />
-                          </div>
-                          <Input value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t max-w-sm">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Content Alignment</Label>
-                    <div className="flex border p-1 rounded-sm bg-gray-50 mt-2">
-                      <Button variant={productTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setProductTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
-                      <Button variant={productTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setProductTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
-                      <Button variant={productTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setProductTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
 
-            <TabsContent value="admin" className="mt-6 space-y-6 animate-in fade-in duration-300">
+            <TabsContent value="admin" className="mt-6 space-y-6 animate-in fade-in duration-300 pb-12">
               <Card className="border-blue-100 bg-blue-50/10 shadow-none rounded-none">
-                <CardHeader className="pb-4">
+                <CardHeader className="pb-4 border-b">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-2">
-                    <Settings2 className="h-3.5 w-3.5" /> Backend Architecture
+                    <Settings2 className="h-3.5 w-3.5" /> Backend Core Architecture
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-8">
-                  <div className="grid gap-6">
+                <CardContent className="pt-6 space-y-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-primary">Backend Brand Color</Label>
+                      <Label className="text-[10px] uppercase font-bold text-primary">Brand Color</Label>
                       <Input type="color" value={adminPrimaryColor} onChange={(e) => setAdminPrimaryColor(e.target.value)} className="h-10 p-1" />
                     </div>
-
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-primary">Backend Text Color</Label>
-                      <div className="flex gap-2">
-                        <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={adminTextColor} onChange={(e) => setAdminTextColor(e.target.value)} />
-                        </div>
-                        <Input value={adminTextColor} onChange={(e) => setAdminTextColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
-                      </div>
+                      <Label className="text-[10px] uppercase font-bold text-primary">Text Color</Label>
+                      <Input type="color" value={adminTextColor} onChange={(e) => setAdminTextColor(e.target.value)} className="h-10 p-1" />
                     </div>
+                  </div>
 
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[10px] uppercase font-bold text-primary">Backend Font Scale</Label>
-                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{adminBaseFontSize}PX</Badge>
-                      </div>
-                      <input 
-                        type="range" min="10" max="24" value={adminBaseFontSize} 
-                        onChange={(e) => setAdminBaseFontSize(e.target.value)} 
-                        className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" 
-                      />
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase font-bold text-primary">Font Scale</Label>
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{adminBaseFontSize}PX</Badge>
                     </div>
+                    <input 
+                      type="range" min="10" max="24" value={adminBaseFontSize} 
+                      onChange={(e) => setAdminBaseFontSize(e.target.value)} 
+                      className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+                    />
+                  </div>
 
-                    <Separator />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-primary">Backend Headline Font</Label>
+                      <Label className="text-[10px] uppercase font-bold text-primary">Headline Font</Label>
                       <Select value={adminHeadlineFont} onValueChange={setAdminHeadlineFont}>
                         <SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none"><SelectValue /></SelectTrigger>
-                        <SelectContent>{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent>
+                        <SelectContent>
+                          {sportsFonts.map(font => (
+                            <SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 hover:bg-neutral-100 transition-colors duration-75">
+                              <span style={{ fontFamily: font }}>{font}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase font-bold text-primary">Body Font</Label>
+                      <Select value={adminBodyFont} onValueChange={setAdminBodyFont}>
+                        <SelectTrigger className="h-14 bg-white border border-blue-100 rounded-none"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {sportsFonts.map(font => (
+                            <SelectItem key={font} value={font} className="text-sm font-medium py-3 hover:bg-neutral-100 transition-colors duration-75">
+                              <span style={{ fontFamily: font }}>{font}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+                <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                    <Layout className="h-3.5 w-3.5" /> Sidebar Architecture
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background Color</Label>
+                      <Input type="color" value={adminSidebarBg} onChange={(e) => setAdminSidebarBg(e.target.value)} className="h-10 p-1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Header Color</Label>
+                      <Input type="color" value={adminSidebarHeaderColor} onChange={(e) => setAdminSidebarHeaderColor(e.target.value)} className="h-10 p-1" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Header Scale</Label>
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold">{adminSidebarHeaderSize}PX</Badge>
+                    </div>
+                    <input type="range" min="8" max="16" value={adminSidebarHeaderSize} onChange={(e) => setAdminSidebarHeaderSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Item Text Color</Label>
+                      <Input type="color" value={adminSidebarItemColor} onChange={(e) => setAdminSidebarItemColor(e.target.value)} className="h-10 p-1" />
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Item Scale</Label>
+                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{adminSidebarItemSize}PX</Badge>
+                      </div>
+                      <input type="range" min="10" max="20" value={adminSidebarItemSize} onChange={(e) => setAdminSidebarItemSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Active Background</Label>
+                      <Input type="color" value={adminSidebarActiveBg} onChange={(e) => setAdminSidebarActiveBg(e.target.value)} className="h-10 p-1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Active Text Color</Label>
+                      <Input type="color" value={adminSidebarActiveText} onChange={(e) => setAdminSidebarActiveText(e.target.value)} className="h-10 p-1" />
                     </div>
                   </div>
                 </CardContent>

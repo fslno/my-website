@@ -230,14 +230,6 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Footer" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/footer">
-                  <MenuIcon />
-                  <span>Footer</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/notifications">
                   <MailWarning />
@@ -436,12 +428,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const adminThemeStyles = `
     :root {
       --admin-primary: ${theme?.adminPrimaryColor || '#000000'};
-      --admin-accent: #FFFFFF;
+      --admin-accent: ${theme?.adminAccentColor || '#f6f6f7'};
       --admin-text: ${theme?.adminTextColor || '#1a1c1e'};
       --admin-base-size: ${theme?.adminBaseFontSize || 14}px;
       --admin-header-h: ${theme?.adminHeaderHeight || 64}px;
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
       --admin-font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif;
+      
+      --admin-sb-bg: ${theme?.adminSidebarBg || '#FFFFFF'};
+      --admin-sb-head-size: ${theme?.adminSidebarHeaderSize || 10}px;
+      --admin-sb-head-color: ${theme?.adminSidebarHeaderColor || '#8c9196'};
+      --admin-sb-item-size: ${theme?.adminSidebarItemSize || 14}px;
+      --admin-sb-item-color: ${theme?.adminSidebarItemColor || '#1a1c1e'};
+      --admin-sb-active-bg: ${theme?.adminSidebarActiveBg || '#000000'};
+      --admin-sb-active-text: ${theme?.adminSidebarActiveText || '#FFFFFF'};
     }
     .admin-viewport { 
       background-color: var(--admin-accent); 
@@ -455,18 +455,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       overflow: hidden; 
     }
     .admin-header-height { height: var(--admin-header-h); }
-    .admin-sidebar-bg { background-color: white; }
+    
+    .admin-sidebar-bg { 
+      background-color: var(--admin-sb-bg) !important; 
+    }
+    
+    [data-sidebar="group-label"] {
+      font-size: var(--admin-sb-head-size) !important;
+      color: var(--admin-sb-head-color) !important;
+      font-family: var(--admin-font-headline) !important;
+    }
+    
+    [data-sidebar="menu-button"] {
+      font-size: var(--admin-sb-item-size) !important;
+      color: var(--admin-sb-item-color) !important;
+    }
+    
+    [data-sidebar="menu-button"]:hover,
+    [data-sidebar="menu-button"][data-active="true"] { 
+      background-color: var(--admin-sb-active-bg) !important; 
+      color: var(--admin-sb-active-text) !important; 
+    }
+    
+    [data-sidebar="menu-button"]:hover svg,
+    [data-sidebar="menu-button"][data-active="true"] svg {
+      color: var(--admin-sb-active-text) !important;
+    }
+
     .font-admin-headline { font-family: var(--admin-font-headline); }
     .font-admin-body { font-family: var(--admin-font-body); }
-    .admin-sidebar-bg [data-sidebar="menu-button"]:hover,
-    .admin-sidebar-bg [data-sidebar="menu-button"][data-active="true"] { 
-      background-color: var(--admin-primary) !important; 
-      color: white !important; 
-    }
-    .admin-sidebar-bg [data-sidebar="menu-button"]:hover svg,
-    .admin-sidebar-bg [data-sidebar="menu-button"][data-active="true"] svg {
-      color: white !important;
-    }
+    
     @keyframes order-pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.2); filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8)); }
