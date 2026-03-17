@@ -115,12 +115,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return cartData.filter(i => !i.isPromo);
     }
 
-    const { bogoMinQty, bogoCategoryId, bogoItemName } = promoConfig;
+    const { bogoMinQty, bogoCategoryIds, bogoItemName } = promoConfig;
 
     // Identify qualifying items
     const qualifyingCount = cartData.reduce((acc, item) => {
-      // Check if item belongs to the BOGO category
-      if (item.categoryId === bogoCategoryId) {
+      // Authoritative Category Evaluation
+      const isQualifyingCategory = Array.isArray(bogoCategoryIds) 
+        ? bogoCategoryIds.includes(item.categoryId)
+        : item.categoryId === promoConfig.bogoCategoryId; // Legacy fallback
+
+      if (isQualifyingCategory) {
         return acc + item.quantity;
       }
       return acc;
