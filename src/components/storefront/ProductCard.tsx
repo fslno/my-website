@@ -42,6 +42,7 @@ export function ProductCard({
                 hoverImage ? "group-hover:opacity-0" : ""
               )}
               priority={priority}
+              data-ai-hint="fashion product"
             />
             {hoverImage && (
               <Image
@@ -49,6 +50,7 @@ export function ProductCard({
                 alt={`${name} alternative view`}
                 fill
                 className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                data-ai-hint="fashion variant"
               />
             )}
           </>
