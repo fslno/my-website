@@ -27,7 +27,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Optimized Archival Footer.
- * Forensicly hardened against hydration mismatches.
+ * Forensicly hardened against hydration mismatches by deferring dynamic content to the client.
  */
 export function Footer() {
   const db = useFirestore();
@@ -207,7 +207,7 @@ export function Footer() {
                       disabled={isSubmitting || isSubscribed}
                       className="h-10 bg-accent text-accent-foreground w-full rounded-none font-bold uppercase tracking-widest text-[9px] hover:opacity-80 transition-all shadow-lg"
                     >
-                      {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : isSubscribed ? <CheckCircle2 className="h-3 w-3" /> : "Subscribe"}
+                      {!mounted ? "Subscribe" : isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : isSubscribed ? <CheckCircle2 className="h-3 w-3" /> : "Subscribe"}
                     </Button>
                   </div>
                   {isSubscribed && (

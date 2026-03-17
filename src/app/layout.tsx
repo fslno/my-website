@@ -21,7 +21,7 @@ import Image from 'next/image';
 
 /**
  * Authoritative Unified Root Layout.
- * Forensicly hardened to prevent hydration mismatches during the boot sequence.
+ * Forensicly hardened to prevent hydration mismatches by utilizing a stable boot sequence.
  */
 export default function RootLayout({
   children,
@@ -44,7 +44,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-background text-foreground overflow-x-hidden" suppressHydrationWarning>
         
-        {/* BOOT OVERLAY: Structurally identical on server and client to prevent tag mismatches */}
+        {/* BOOT OVERLAY: Structurally static to ensure server/client identity */}
         <div 
           className={cn(
             "fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center pointer-events-none transition-opacity duration-500",
