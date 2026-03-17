@@ -919,32 +919,36 @@ export default function ProductsPage() {
           </div>
         )}
 
-        <div className="p-4 border-b bg-gray-50/50 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="relative w-full md:flex-1 md:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" /><Input placeholder="Search products..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <input type="file" ref={csvImportRef} className="hidden" accept=".csv" onChange={handleImportCSV} />
-            <Button variant="ghost" size="sm" onClick={() => csvImportRef.current?.click()} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2">
-              <Upload className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Import CSV</span>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleExportCSV} className="h-9 text-[9px] font-bold uppercase tracking-widest gap-2">
-              <Download className="h-3.5 w-3.5" /> <span className="hidden xs:inline">Export CSV</span>
-            </Button>
-            <Separator orientation="vertical" className="h-6 mx-2 hidden md:block" />
-            <Select value={sortBy} onValueChange={(v: string) => setSortBy(v)}>
-              <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><ArrowUpDown className="h-3 w-3 mr-2" /><span className="truncate">Sort By</span></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest" className="text-[10px] uppercase font-bold">Newest First</SelectItem>
-                <SelectItem value="oldest" className="text-[10px] uppercase font-bold">Oldest First</SelectItem>
-                <SelectItem value="name-asc" className="text-[10px] uppercase font-bold">Name: A - Z</SelectItem>
-                <SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Name: Z - A</SelectItem>
-                <SelectItem value="price-high" className="text-[10px] uppercase font-bold">Price: High to Low</SelectItem>
-                <SelectItem value="price-low" className="text-[10px] uppercase font-bold">Price: Low to High</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="flex-1 md:w-[180px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><Filter className="h-3 w-3 mr-2" /><span className="truncate">{categoryFilter === 'all' ? 'All Categories' : categories?.find(c => c.id === categoryFilter)?.name}</span></SelectTrigger>
-              <SelectContent><SelectItem value="all" className="text-[10px] uppercase font-bold">All Categories</SelectItem>{categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}</SelectContent>
-            </Select>
+        <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="relative w-full lg:flex-1 lg:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" /><Input placeholder="Search products..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input type="file" ref={csvImportRef} className="hidden" accept=".csv" onChange={handleImportCSV} />
+              <Button variant="ghost" size="sm" onClick={() => csvImportRef.current?.click()} className="flex-1 sm:flex-none h-9 text-[9px] font-bold uppercase tracking-widest gap-2 bg-white border border-[#babfc3] rounded-none">
+                <Upload className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Import CSV</span><span className="sm:hidden">Import</span>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleExportCSV} className="flex-1 sm:flex-none h-9 text-[9px] font-bold uppercase tracking-widest gap-2 bg-white border border-[#babfc3] rounded-none">
+                <Download className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
+              </Button>
+            </div>
+            <Separator orientation="vertical" className="h-6 mx-1 hidden lg:block" />
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Select value={sortBy} onValueChange={(v: string) => setSortBy(v)}>
+                <SelectTrigger className="flex-1 sm:w-[140px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><ArrowUpDown className="h-3 w-3 mr-2" /><span className="truncate">Sort</span></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest" className="text-[10px] uppercase font-bold">Newest First</SelectItem>
+                  <SelectItem value="oldest" className="text-[10px] uppercase font-bold">Oldest First</SelectItem>
+                  <SelectItem value="name-asc" className="text-[10px] uppercase font-bold">Name: A - Z</SelectItem>
+                  <SelectItem value="name-desc" className="text-[10px] uppercase font-bold">Name: Z - A</SelectItem>
+                  <SelectItem value="price-high" className="text-[10px] uppercase font-bold">Price: High to Low</SelectItem>
+                  <SelectItem value="price-low" className="text-[10px] uppercase font-bold">Price: Low to High</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="flex-1 sm:w-[140px] h-10 text-[9px] font-bold uppercase tracking-widest bg-white border-[#babfc3] rounded-none"><Filter className="h-3 w-3 mr-2" /><span className="truncate">{categoryFilter === 'all' ? 'Category' : categories?.find(c => c.id === categoryFilter)?.name}</span></SelectTrigger>
+                <SelectContent><SelectItem value="all" className="text-[10px] uppercase font-bold">All</SelectItem>{categories?.map(c => (<SelectItem key={c.id} value={c.id} className="text-[10px] uppercase font-bold">{c.name}</SelectItem>))}</SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
