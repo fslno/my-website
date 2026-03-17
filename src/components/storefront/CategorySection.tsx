@@ -79,9 +79,14 @@ export function CategorySection() {
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                <h3 className="text-lg sm:text-xl font-headline font-bold text-white uppercase tracking-tight">{cat.name}</h3>
-                <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest mt-2">View Drop</p>
+              
+              {/* Controlled Category Card Label */}
+              <div className={cn(
+                "absolute inset-0 p-6 sm:p-8 flex flex-col transition-all duration-500 category-card-content",
+                "transform translate-y-4 group-hover:translate-y-0"
+              )}>
+                <h3 className="font-headline font-bold uppercase tracking-tight category-card-title">{cat.name}</h3>
+                <p className="text-[9px] font-bold uppercase tracking-widest mt-2 opacity-60">View Drop</p>
               </div>
             </Link>
           ))}

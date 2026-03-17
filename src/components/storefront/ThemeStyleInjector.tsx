@@ -85,6 +85,11 @@ export function ThemeStyleInjector() {
     const categoryTitleSize = theme.categoryTitleSize || 40;
     const categoryTitleColor = theme.categoryTitleColor || theme.primaryColor || '#000000';
 
+    const categoryCardTextAlign = theme.categoryCardTextAlign || 'left';
+    const categoryCardVerticalAlign = theme.categoryCardVerticalAlign || 'bottom';
+    const categoryCardTitleSize = theme.categoryCardTitleSize || 24;
+    const categoryCardTitleColor = theme.categoryCardTitleColor || '#FFFFFF';
+
     const archiveTextAlign = theme.archiveTextAlign || 'left';
     const archiveTitleSize = theme.archiveTitleSize || 40;
     const archiveTitleColor = theme.archiveTitleColor || theme.primaryColor || '#000000';
@@ -120,6 +125,12 @@ export function ThemeStyleInjector() {
         --category-flex-align: ${getFlexAlign(categoryTextAlign)};
         --category-title-size: ${categoryTitleSize}px;
         --category-title-color: ${categoryTitleColor};
+
+        --category-card-text-align: ${categoryCardTextAlign};
+        --category-card-vertical-align: ${getVerticalAlign(categoryCardVerticalAlign)};
+        --category-card-flex-align: ${getFlexAlign(categoryCardTextAlign)};
+        --category-card-title-size: ${categoryCardTitleSize}px;
+        --category-card-title-color: ${categoryCardTitleColor};
 
         --archive-text-align: ${archiveTextAlign};
         --archive-flex-align: ${getFlexAlign(archiveTextAlign)};
@@ -199,6 +210,19 @@ export function ThemeStyleInjector() {
       .category-title-size {
         font-size: clamp(calc(var(--category-title-size) * 0.6), 6vw, var(--category-title-size)) !important;
       }
+      
+      .category-card-content {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: var(--category-card-vertical-align) !important;
+        align-items: var(--category-card-flex-align) !important;
+        text-align: var(--category-card-text-align) !important;
+      }
+      .category-card-title {
+        font-size: clamp(calc(var(--category-card-title-size) * 0.6), 5vw, var(--category-card-title-size)) !important;
+        color: var(--category-card-title-color) !important;
+      }
+
       .archive-title-size {
         font-size: clamp(calc(var(--archive-title-size) * 0.6), 6vw, var(--archive-title-size)) !important;
       }

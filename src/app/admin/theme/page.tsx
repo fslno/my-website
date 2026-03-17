@@ -70,6 +70,10 @@ const DEFAULT_THEME = {
   categoryVerticalAlign: 'center',
   categoryTitleSize: '40',
   categoryTitleColor: '#000000',
+  categoryCardTextAlign: 'left',
+  categoryCardVerticalAlign: 'bottom',
+  categoryCardTitleSize: '24',
+  categoryCardTitleColor: '#FFFFFF',
   archiveTextAlign: 'left',
   archiveTitleSize: '40',
   archiveTitleColor: '#000000',
@@ -120,6 +124,11 @@ export default function ThemeEnginePage() {
   const [categoryTitleSize, setCategoryTitleSize] = useState(DEFAULT_THEME.categoryTitleSize);
   const [categoryTitleColor, setCategoryTitleColor] = useState(DEFAULT_THEME.categoryTitleColor);
 
+  const [categoryCardTextAlign, setCategoryCardTextAlign] = useState(DEFAULT_THEME.categoryCardTextAlign);
+  const [categoryCardVerticalAlign, setCategoryCardVerticalAlign] = useState(DEFAULT_THEME.categoryCardVerticalAlign);
+  const [categoryCardTitleSize, setCategoryCardTitleSize] = useState(DEFAULT_THEME.categoryCardTitleSize);
+  const [categoryCardTitleColor, setCategoryCardTitleColor] = useState(DEFAULT_THEME.categoryCardTitleColor);
+
   const [archiveTextAlign, setArchiveTextAlign] = useState(DEFAULT_THEME.archiveTextAlign);
   const [archiveTitleSize, setArchiveTitleSize] = useState(DEFAULT_THEME.archiveTitleSize);
   const [archiveTitleColor, setArchiveTitleColor] = useState(DEFAULT_THEME.archiveTitleColor);
@@ -165,6 +174,12 @@ export default function ThemeEnginePage() {
       setCategoryVerticalAlign(themeData.categoryVerticalAlign || DEFAULT_THEME.categoryVerticalAlign);
       setCategoryTitleSize(themeData.categoryTitleSize?.toString() || DEFAULT_THEME.categoryTitleSize);
       setCategoryTitleColor(themeData.categoryTitleColor || DEFAULT_THEME.categoryTitleColor);
+      
+      setCategoryCardTextAlign(themeData.categoryCardTextAlign || DEFAULT_THEME.categoryCardTextAlign);
+      setCategoryCardVerticalAlign(themeData.categoryCardVerticalAlign || DEFAULT_THEME.categoryCardVerticalAlign);
+      setCategoryCardTitleSize(themeData.categoryCardTitleSize?.toString() || DEFAULT_THEME.categoryCardTitleSize);
+      setCategoryCardTitleColor(themeData.categoryCardTitleColor || DEFAULT_THEME.categoryCardTitleColor);
+
       setArchiveTextAlign(themeData.archiveTextAlign || DEFAULT_THEME.archiveTextAlign);
       setArchiveTitleSize(themeData.archiveTitleSize?.toString() || DEFAULT_THEME.archiveTitleSize);
       setArchiveTitleColor(themeData.archiveTitleColor || DEFAULT_THEME.archiveTitleColor);
@@ -211,6 +226,10 @@ export default function ThemeEnginePage() {
       categoryVerticalAlign,
       categoryTitleSize: Number(categoryTitleSize),
       categoryTitleColor,
+      categoryCardTextAlign,
+      categoryCardVerticalAlign,
+      categoryCardTitleSize: Number(categoryCardTitleSize),
+      categoryCardTitleColor,
       archiveTextAlign,
       archiveTitleSize: Number(archiveTitleSize),
       archiveTitleColor,
@@ -272,6 +291,10 @@ export default function ThemeEnginePage() {
           --preview-cat-vertical: ${categoryVerticalAlign === 'bottom' ? 'flex-end' : categoryVerticalAlign === 'top' ? 'flex-start' : 'center'};
           --preview-cat-size: ${categoryTitleSize}px;
           --preview-cat-color: ${categoryTitleColor};
+          --preview-cat-card-align: ${categoryCardTextAlign};
+          --preview-cat-card-vertical: ${categoryCardVerticalAlign === 'bottom' ? 'flex-end' : categoryCardVerticalAlign === 'top' ? 'flex-start' : 'center'};
+          --preview-cat-card-size: ${categoryCardTitleSize}px;
+          --preview-cat-card-color: ${categoryCardTitleColor};
           --preview-archive-align: ${archiveTextAlign};
           --preview-archive-size: ${archiveTitleSize}px;
           --preview-archive-color: ${archiveTitleColor};
@@ -298,6 +321,11 @@ export default function ThemeEnginePage() {
           text-align: var(--preview-cat-align) !important;
           font-size: var(--preview-cat-size) !important;
           color: var(--preview-cat-color) !important;
+        }
+        #theme-preview-root .preview-cat-card-title {
+          text-align: var(--preview-cat-card-align) !important;
+          font-size: var(--preview-cat-card-size) !important;
+          color: var(--preview-cat-card-color) !important;
         }
         #theme-preview-root .preview-archive-title {
           text-align: var(--preview-archive-align) !important;
@@ -534,33 +562,43 @@ export default function ThemeEnginePage() {
 
               <Card className="border-[#e1e3e5] shadow-none rounded-none">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Heading Protocol</CardTitle>
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category Card Protocol</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Heading Scale</Label>
-                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryTitleSize}PX</Badge>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Label Scale</Label>
+                        <Badge variant="outline" className="text-[10px] font-mono font-bold">{categoryCardTitleSize}PX</Badge>
                       </div>
-                      <input type="range" min="12" max="120" value={categoryTitleSize} onChange={(e) => setCategoryTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                      <input type="range" min="12" max="120" value={categoryCardTitleSize} onChange={(e) => setCategoryCardTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
                     </div>
                     <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-gray-400">Alignment</Label>
+                      <Label className="text-[10px] uppercase font-bold text-gray-400">Horizontal Alignment</Label>
                       <div className="flex border p-1 rounded-sm bg-gray-50">
-                        <Button variant={categoryTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
-                        <Button variant={categoryTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
-                        <Button variant={categoryTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
+                        <Button variant={categoryCardTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardTextAlign('left')}><AlignLeft className="h-4 w-4" /></Button>
+                        <Button variant={categoryCardTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardTextAlign('center')}><AlignCenter className="h-4 w-4" /></Button>
+                        <Button variant={categoryCardTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardTextAlign('right')}><AlignRight className="h-4 w-4" /></Button>
                       </div>
                     </div>
                   </div>
-                  <div className="grid gap-2 max-w-sm">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Heading Color</Label>
-                    <div className="flex gap-2">
-                      <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase font-bold text-gray-400">Vertical Alignment</Label>
+                      <div className="flex border p-1 rounded-sm bg-gray-50">
+                        <Button variant={categoryCardVerticalAlign === 'top' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardVerticalAlign('top')} title="Top"><AlignLeft className="h-4 w-4 rotate-90" /></Button>
+                        <Button variant={categoryCardVerticalAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardVerticalAlign('center')} title="Center"><AlignCenter className="h-4 w-4 rotate-90" /></Button>
+                        <Button variant={categoryCardVerticalAlign === 'bottom' ? 'default' : 'ghost'} size="icon" className="flex-1 h-9 rounded-none" onClick={() => setCategoryCardVerticalAlign('bottom')} title="Bottom"><AlignRight className="h-4 w-4 rotate-90" /></Button>
                       </div>
-                      <Input value={categoryTitleColor} onChange={(e) => setCategoryTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Label Color</Label>
+                      <div className="flex gap-2">
+                        <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden">
+                          <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={categoryCardTitleColor} onChange={(e) => setCategoryCardTitleColor(e.target.value)} />
+                        </div>
+                        <Input value={categoryCardTitleColor} onChange={(e) => setCategoryCardTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -712,7 +750,15 @@ export default function ThemeEnginePage() {
                     <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-gray-400">{categorySectionSubtitle}</p>
                     <h3 className="preview-cat-title font-headline font-bold uppercase tracking-tight">{categorySectionTitle}</h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 sm:gap-8">{[1, 2].map(i => (<div key={i} className="preview-prod-card space-y-3"><div className="aspect-square bg-gray-100 border shadow-sm" style={{ borderRadius: `${borderRadius}px` }}></div><div className="space-y-1"><p className="preview-prod-title font-bold uppercase tracking-tight leading-none">Piece</p><p className="preview-price font-bold opacity-60 text-[10px] sm:text-xs">$890.00 CAD</p></div></div>))}</div>
+                  <div className="grid grid-cols-2 gap-4 sm:gap-8">
+                    {[1, 2].map(i => (
+                      <div key={i} className="preview-prod-card space-y-3 relative group aspect-square bg-gray-100 border overflow-hidden" style={{ borderRadius: `${borderRadius}px` }}>
+                        <div className="absolute inset-0 flex flex-col p-4 preview-cat-card-content" style={{ justifyContent: 'var(--preview-cat-card-vertical)' }}>
+                          <p className="preview-cat-card-title font-headline font-bold uppercase tracking-tight leading-none">Drop {i}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
