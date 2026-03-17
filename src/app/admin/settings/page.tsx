@@ -346,7 +346,66 @@ export default function SettingsPage() {
 
         <TabsContent value="store" className="space-y-12 animate-in fade-in duration-300">
           
-          {/* Brand Identity Card (Unified) */}
+          {/* Contact & Logistics Card (Primary) */}
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
+            <CardHeader className="border-b bg-gray-50/30">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-gray-400" />
+                <CardTitle className="text-lg font-headline uppercase tracking-tight">Contact & Logistics</CardTitle>
+              </div>
+              <CardDescription className="text-xs uppercase font-bold tracking-tight">Operational data for shipments and support.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Name</Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input 
+                        placeholder="FSLNO Studio" 
+                        value={businessName} 
+                        onChange={(e) => setBusinessName(e.target.value)} 
+                        className="pl-10 h-11 uppercase font-bold text-xs" 
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Main Logistics Phone</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input placeholder="+1 (555) 000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10 h-11" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Email (Internal)</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input placeholder="admin@fslno.ca" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} className="pl-10 h-11" />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Physical Address</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-4 h-4 w-4 text-gray-400" />
+                      <Textarea placeholder="12 Brant Ave #13, Guelph, ON N1E 1E7" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 min-h-[100px] resize-none" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Google Maps Coordination</Label>
+                    <div className="relative">
+                      <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input placeholder="https://maps.google.com/..." value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} className="pl-10 h-11" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Brand Identity Card (Unified Side-by-Side) */}
           <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
             <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -449,65 +508,6 @@ export default function SettingsPage() {
                           </>
                         )}
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contact & Logistics Card */}
-          <Card className="border-[#e1e3e5] shadow-none rounded-none">
-            <CardHeader className="border-b bg-gray-50/30">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-gray-400" />
-                <CardTitle className="text-lg font-headline uppercase tracking-tight">Contact & Logistics</CardTitle>
-              </div>
-              <CardDescription className="text-xs uppercase font-bold tracking-tight">Operational data for shipments and support.</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Name</Label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input 
-                        placeholder="FSLNO Studio" 
-                        value={businessName} 
-                        onChange={(e) => setBusinessName(e.target.value)} 
-                        className="pl-10 h-11 uppercase font-bold text-xs" 
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Main Logistics Phone</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input placeholder="+1 (555) 000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10 h-11" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Email (Internal)</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input placeholder="admin@fslno.ca" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} className="pl-10 h-11" />
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Physical Address</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-4 h-4 w-4 text-gray-400" />
-                      <Textarea placeholder="12 Brant Ave #13, Guelph, ON N1E 1E7" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 min-h-[100px] resize-none" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Google Maps Coordination</Label>
-                    <div className="relative">
-                      <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input placeholder="https://maps.google.com/..." value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
                 </div>
@@ -729,9 +729,7 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Widget Color</Label>
                     <div className="flex gap-2">
-                      <div className="w-11 h-11 rounded border p-1 bg-white shadow-sm overflow-hidden">
-                        <Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} />
-                      </div>
+                      <div className="w-11 h-11 rounded border p-1 bg-white shadow-sm overflow-hidden"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} /></div>
                       <Input value={chatbotColor} onChange={(e) => setChatbotColor(e.target.value)} className="h-11 font-mono text-xs uppercase" />
                     </div>
                   </div>
@@ -848,7 +846,7 @@ export default function SettingsPage() {
                   <Mail className="h-3.5 w-3.5" /> Support Emails
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={addEmailAddress} className="h-8 text-[8px] font-bold uppercase tracking-widest px-2">
-                  <Plus className="h-3.5 w-3.5" /> Add
+                  <Plus className="h-3 w-3 mr-1" /> Add
                 </Button>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
