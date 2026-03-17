@@ -175,7 +175,8 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                   <Users />
                   <span>Customers</span>
                 </Link>
-              </SidebarMenuItem>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
