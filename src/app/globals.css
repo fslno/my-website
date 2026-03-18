@@ -58,6 +58,15 @@
   background-color: #FFFFFF;
 }
 
+/* Product image responsive limit */
+@media (max-width: 767px) {
+  .product-image-mobile-limit {
+    aspect-ratio: auto !important;
+    height: 380px !important;
+    width: 100% !important;
+  }
+}
+
 /* Smooth transition for data hydration */
 .content-load-fade {
   animation: fadeIn 0.3s ease-in-out;

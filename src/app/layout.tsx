@@ -57,7 +57,7 @@ export default function RootLayout({
           <WishlistProvider>
             <CartProvider>
               <LayoutContent pathname={pathname}>
-                <div className="mobile-wrapper min-h-screen bg-white">
+                <div className="mobile-wrapper min-h-screen">
                   {children}
                 </div>
               </LayoutContent>
@@ -85,7 +85,7 @@ function LayoutContent({ children, pathname }: { children: React.ReactNode, path
   return (
     <>
       {!isAdmin && <Header />}
-      <main className={cn("min-h-screen bg-white", !isAdmin && "pt-0")}>
+      <main className={cn("min-h-screen", !isAdmin && "pt-0")}>
         {children}
       </main>
       {!isAdmin && <Footer />}
