@@ -27,8 +27,8 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative High-Fidelity Footer Manifest.
- * Orchestrated into a 4-column architecture on desktop.
- * Forensicly hardened against ReferenceErrors by properly importing Label.
+ * Recalibrated for 3-column tablet architecture and 4-column desktop grid.
+ * Utility paths are forensicly aligned right on tablet and desktop.
  */
 export function Footer() {
   const db = useFirestore();
@@ -65,10 +65,10 @@ export function Footer() {
     <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10" suppressHydrationWarning>
       <div className="max-w-[1440px] mx-auto px-4">
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
           
-          {/* Column 01: Identity (4 Cols) */}
-          <div className="lg:col-span-4 space-y-8">
+          {/* Column 01: Identity (1 Col md, 4 Col lg) */}
+          <div className="md:col-span-1 lg:col-span-4 space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
               {config?.businessName || "FSLNO"}
             </h2>
@@ -97,8 +97,8 @@ export function Footer() {
             </div>
           </div>
           
-          {/* Column 02: Support (2 Cols) */}
-          <div className="lg:col-span-2 space-y-6 lg:text-right flex flex-col lg:items-end">
+          {/* Column 02: Support (1 Col md, 2 Col lg) */}
+          <div className="md:col-span-1 lg:col-span-2 space-y-6 md:text-right lg:text-right flex flex-col md:items-end lg:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerSupportLinks?.map((link: any, idx: number) => (
@@ -112,8 +112,8 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 03: Legal (2 Cols) */}
-          <div className="lg:col-span-2 space-y-6 lg:text-right flex flex-col lg:items-end">
+          {/* Column 03: Legal (1 Col md, 2 Col lg) */}
+          <div className="md:col-span-1 lg:col-span-2 space-y-6 md:text-right lg:text-right flex flex-col md:items-end lg:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerLegalLinks?.map((link: any, idx: number) => (
@@ -127,8 +127,8 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 04: Newsletter (4 Cols) */}
-          <div className="lg:col-span-4 space-y-8">
+          {/* Column 04: Newsletter (3 Col md, 4 Col lg) */}
+          <div className="md:col-span-3 lg:col-span-4 space-y-8">
             <div className="space-y-4">
               <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
               <div className="space-y-1">
