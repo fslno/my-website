@@ -11,9 +11,9 @@ import { cn } from '@/lib/utils';
 
 /**
  * Authoritative Category Selection segment.
- * Manifests ALL archival collections from the admin manifest in a 1:1 grid.
+ * Manifests ALL archival collections from the admin manifest in a high-density 1:1 grid.
  * Titles are positioned forensicly below the cards for maximal readability.
- * Labels and styling are controlled strictly from the Admin Theme Engine.
+ * Gaps reduced for high-velocity mobile navigation.
  */
 export function CategorySection() {
   const db = useFirestore();
@@ -59,7 +59,7 @@ export function CategorySection() {
               {theme?.categorySectionSubtitle || 'The Collections'}
             </span>
             <h2 className="font-headline font-bold uppercase tracking-tight category-title-size category-title-color">
-              {theme?.categorySectionTitle || 'Shop by Drop'}
+              {theme?.categorySectionTitle || 'Shop by Categories'}
             </h2>
           </div>
         </div>

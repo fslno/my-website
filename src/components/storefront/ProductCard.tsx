@@ -20,6 +20,10 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
+/**
+ * Authoritative Product Card component.
+ * Recalibrated for high-density mobile displays.
+ */
 export function ProductCard({ 
   id, name, price, comparedPrice, image, hoverImage, category, 
   rating, reviewCount, isSoldOut, priority = false 
@@ -29,8 +33,8 @@ export function ProductCard({
   const discountPercent = hasDiscount ? Math.round(((comparedPrice! - currentPriceNum) / comparedPrice!) * 100) : 0;
 
   return (
-    <div className="group flex flex-col gap-1 sm:gap-3 product-text-align">
-      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
+    <div className="group flex flex-col gap-1.5 sm:gap-3 product-text-align">
+      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
         {image ? (
           <>
             <Image
