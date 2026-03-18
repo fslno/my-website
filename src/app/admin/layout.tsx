@@ -267,14 +267,6 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Compliance" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/settings">
-                  <Scale />
-                  <span>Compliance</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Webhooks" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/shipping/webhooks">
                   <Zap />
