@@ -4,6 +4,7 @@ import React, { useState, useMemo, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
+  useUser, 
   useFirestore, 
   useDoc, 
   useMemoFirebase,
@@ -28,7 +29,8 @@ import {
   AlertCircle,
   Sparkles,
   MessageSquare,
-  ShoppingBag
+  ShoppingBag,
+  Info
 } from 'lucide-react';
 import {
   Carousel,
@@ -67,7 +69,7 @@ interface PageProps {
 /**
  * Authoritative Product Manifest.
  * Recalibrated for a 1:1 Aspect Ratio across all viewports.
- * Full content restoration including ReviewSystem and Testimonials.
+ * Forensicly restores SKU, Brand, and technical features.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -170,7 +172,6 @@ export default function ProductDetailPage(props: PageProps) {
 
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-24">
           
-          {/* MEDIA COLUMN: 1:1 Aspect across all viewports */}
           <div className="w-full space-y-6 lg:sticky lg:top-32">
             <Carousel setApi={setApi} className="w-full">
               <CarouselContent>
@@ -188,7 +189,6 @@ export default function ProductDetailPage(props: PageProps) {
               </CarouselContent>
             </Carousel>
             
-            {/* Thumbnails */}
             {media.length > 1 && (
               <div className="flex gap-2 px-0 overflow-x-auto scrollbar-hide">
                 {media.map((item: any, idx: number) => (
@@ -204,12 +204,14 @@ export default function ProductDetailPage(props: PageProps) {
             )}
           </div>
 
-          {/* INFO COLUMN */}
           <div className="py-8 lg:py-0 w-full space-y-10 content-load-fade">
             <div className="space-y-4">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
                 <h1 className="text-2xl sm:text-4xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
+                {product.sku && (
+                  <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-widest mt-1">REF: {product.sku}</p>
+                )}
               </div>
               
               <div className="flex items-center gap-4">
@@ -225,7 +227,6 @@ export default function ProductDetailPage(props: PageProps) {
 
             <Separator />
 
-            {/* Size Manifest */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Size</span>
@@ -273,7 +274,6 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             </div>
 
-            {/* Personalization Protocol */}
             {product.customizationEnabled && (
               <div className="space-y-6 pt-6 border-t">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -298,7 +298,6 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             )}
 
-            {/* Actions */}
             <div className="space-y-4 pt-8 border-t">
               <Button 
                 onClick={handleAddToCart} 
@@ -317,23 +316,38 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             </div>
 
-            {/* Description */}
-            <div className="pt-12 border-t space-y-4">
-              <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
-              <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                {product.description || "Archival studio selection curated for the modern silhouette."}
+            <div className="pt-12 border-t space-y-12">
+              <div className="space-y-4">
+                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
+                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
+                  {product.description || "Archival studio selection curated for the modern silhouette."}
+                </div>
               </div>
+
+              {product.features && product.features.length > 0 && (
+                <div className="space-y-6">
+                  <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground flex items-center gap-2">
+                    <Info className="h-3 w-3" /> Technical Details
+                  </h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {product.features.map((feature: string, idx: number) => (
+                      <li key={idx} className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                        <div className="w-1 h-1 rounded-full bg-black shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* RESTORED FEEDBACK SECTIONS */}
         <ReviewSystem productId={productId} />
       </div>
 
       <TestimonialSection />
 
-      {/* STICKY COMMERCE BAR (Mobile) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t p-4 flex items-center justify-between gap-4 animate-in slide-in-from-bottom-full duration-500 shadow-2xl">
         <div className="flex flex-col">
           <span className="text-[10px] font-bold uppercase truncate max-w-[140px]">{product.name}</span>
