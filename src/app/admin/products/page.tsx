@@ -39,7 +39,8 @@ import {
   Scale,
   Maximize2,
   Sparkles,
-  Images as ImagesIcon
+  Images as ImagesIcon,
+  FileText
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -67,7 +68,8 @@ import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-produ
 
 interface MediaItem {
   url: string;
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'file';
+  name?: string;
 }
 
 interface Variant {
@@ -442,9 +444,12 @@ export default function ProductsPage() {
     
     const newMediaPromises = fileArray.map(file => {
       return new Promise<MediaItem>((resolve) => {
-        const type = file.type.startsWith('video/') ? 'video' : 'image';
+        let type: 'image' | 'video' | 'file' = 'file';
+        if (file.type.startsWith('video/')) type = 'video';
+        else if (file.type.startsWith('image/')) type = 'image';
+        
         const reader = new FileReader();
-        reader.onloadend = () => resolve({ url: reader.result as string, type });
+        reader.onloadend = () => resolve({ url: reader.result as string, type, name: file.name });
         reader.readAsDataURL(file);
       });
     });
@@ -666,7 +671,16 @@ export default function ProductsPage() {
                           draggedMediaIndex === index && "opacity-50 border-black ring-2 ring-black/5 scale-95"
                         )}
                       >
-                        {item.type === 'video' ? <video src={item.url} className="absolute inset-0 w-full h-full object-cover" muted loop /> : <NextImage src={item.url} alt={`Media ${index}`} fill className="object-cover" />}
+                        {item.type === 'video' ? (
+                          <video src={item.url} className="absolute inset-0 w-full h-full object-cover" muted loop />
+                        ) : item.type === 'image' ? (
+                          <NextImage src={item.url} alt={`Media ${index}`} fill className="object-cover" />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full bg-white gap-2">
+                            <FileText className="h-6 w-6 text-gray-400" />
+                            <span className="text-[8px] font-mono text-gray-500 truncate w-full px-2 text-center">{item.name || 'FILE'}</span>
+                          </div>
+                        )}
                         <button onClick={() => setMedia(media.filter((_, i) => i !== index))} className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
                         
                         <div className="absolute top-2 left-2 flex gap-1">
@@ -681,9 +695,9 @@ export default function ProductsPage() {
                     ))}
                     <button onClick={() => fileInputRef.current?.click()} className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group">
                       <PlusCircle className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">Add Image</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">Add Media</span>
                     </button>
-                    <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,video/*" onChange={handleMediaUpload} />
+                    <input type="file" ref={fileInputRef} className="hidden" multiple accept="*/*" onChange={handleMediaUpload} />
                   </div>
                   <section className="space-y-6 sm:space-y-8 bg-gray-50/50 p-4 sm:p-8 rounded-xl border border-gray-100">
                     <div className="flex items-center gap-2 mb-2"><Info className="h-4 w-4 text-gray-400" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Details</h3></div>
@@ -978,7 +992,7 @@ export default function ProductsPage() {
                   return (
                     <TableRow key={product.id} onClick={() => openEdit(product)} className={`transition-colors border-[#e1e3e5] group cursor-pointer ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}>
                       <TableCell className="px-4" onClick={(e) => e.stopPropagation()}><Checkbox checked={isSelected} onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} /></TableCell>
-                      <TableCell><div className="w-16 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{product.media?.[0]?.url ? <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" /> : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
+                      <TableCell><div className="w-16 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{product.media?.[0]?.url ? (product.media[0].type === 'video' ? <video src={product.media[0].url} className="object-cover w-full h-full" /> : <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" />) : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
                       <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span></div></TableCell>
                       <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'None'}</div></TableCell>
                       <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
@@ -1004,7 +1018,7 @@ export default function ProductsPage() {
                 <div key={product.id} onClick={() => openEdit(product)} className={cn("p-4 flex flex-col gap-4 bg-white transition-colors hover:bg-gray-50", isSelected && "bg-blue-50/30")}>
                   <div className="flex items-start gap-4">
                     <div onClick={(e) => e.stopPropagation()} className="pt-1"><Checkbox checked={isSelected} onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} /></div>
-                    <div className="w-16 h-20 bg-gray-100 relative overflow-hidden border shrink-0 shadow-sm">{product.media?.[0]?.url ? <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" /> : <Layers className="h-6 w-6 text-gray-200" />}</div>
+                    <div className="w-16 h-20 bg-gray-100 relative overflow-hidden border shrink-0 shadow-sm">{product.media?.[0]?.url ? (product.media[0].type === 'video' ? <video src={product.media[0].url} className="object-cover w-full h-full" /> : <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" />) : <Layers className="h-6 w-6 text-gray-200" />}</div>
                     <div className="flex-1 min-0 space-y-1">
                       <div className="flex justify-between items-start gap-2"><h3 className="font-bold text-xs uppercase line-clamp-2 leading-tight">{product.name}</h3><span className="font-bold text-xs shrink-0">C${formatCurrency(Number(product.price))}</span></div>
                       <p className="text-[9px] font-mono text-gray-400 uppercase truncate">SKU: {product.sku || 'N/A'}</p>
