@@ -18,7 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Heart, 
   Share2, 
@@ -28,8 +27,7 @@ import {
   Star,
   AlertCircle,
   Sparkles,
-  MessageSquare,
-  ShoppingBag,
+  ChevronRight,
   Info
 } from 'lucide-react';
 import {
@@ -68,8 +66,8 @@ interface PageProps {
 
 /**
  * Authoritative Product Manifest.
- * Recalibrated for a 1:1 Aspect Ratio across all viewports.
- * Forensicly restores SKU, Brand, and technical features.
+ * Forensicly restores SKU, Brand, and Product Reviews.
+ * Maintains 1:1 aspect ratio and mobile-first architectural stacking.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -94,6 +92,23 @@ export default function ProductDetailPage(props: PageProps) {
   }, [db, product?.categoryId]);
 
   const { data: categoryCharts } = useCollection(sizeChartsQuery);
+
+  // Review Manifest Data (Zero-Error Query Protocol)
+  const allReviewsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
+  }, [db]);
+  const { data: allReviews } = useCollection(allReviewsQuery);
+
+  const productReviews = useMemo(() => {
+    if (!allReviews || !productId) return [];
+    return allReviews.filter(r => r.productId === productId && r.published === true);
+  }, [allReviews, productId]);
+
+  const averageRating = useMemo(() => {
+    if (productReviews.length === 0) return 0;
+    return productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
+  }, [productReviews]);
 
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
@@ -207,8 +222,23 @@ export default function ProductDetailPage(props: PageProps) {
           <div className="py-8 lg:py-0 w-full space-y-10 content-load-fade">
             <div className="space-y-4">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
+                  
+                  {productReviews.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className={cn("h-2.5 w-2.5", s <= Math.round(averageRating) ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />
+                        ))}
+                      </div>
+                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">({productReviews.length})</span>
+                    </div>
+                  )}
+                </div>
+                
                 <h1 className="text-2xl sm:text-4xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
+                
                 {product.sku && (
                   <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-widest mt-1">REF: {product.sku}</p>
                 )}
@@ -235,7 +265,7 @@ export default function ProductDetailPage(props: PageProps) {
                     <SheetTrigger asChild>
                       <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Chart</button>
                     </SheetTrigger>
-                    <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none">
+                    <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl">
                       <SheetHeader className="p-8 border-b">
                         <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Size Guide</SheetTitle>
                       </SheetHeader>
