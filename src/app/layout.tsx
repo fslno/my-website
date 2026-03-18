@@ -16,8 +16,6 @@ import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { doc } from 'firebase/firestore';
 import { getLivePath } from '@/lib/deployment';
-import { Loader2 } from 'lucide-react';
-import Image from 'next/image';
 
 /**
  * Authoritative Unified Root Layout.
@@ -59,7 +57,7 @@ export default function RootLayout({
           <WishlistProvider>
             <CartProvider>
               <LayoutContent pathname={pathname}>
-                <div className="mobile-wrapper min-h-screen">
+                <div className="mobile-wrapper min-h-screen bg-white">
                   {children}
                 </div>
               </LayoutContent>
@@ -87,13 +85,13 @@ function LayoutContent({ children, pathname }: { children: React.ReactNode, path
   return (
     <>
       {!isAdmin && <Header />}
-      <main className={cn("min-h-screen", !isAdmin && "pt-0")}>
+      <main className={cn("min-h-screen bg-white", !isAdmin && "pt-0")}>
         {children}
       </main>
       {!isAdmin && <Footer />}
       
       {(themeLoading || storeLoading) && !isAdmin && (
-        <div className="fixed inset-0 bg-white z-[1000] animate-in fade-in duration-300" suppressHydrationWarning />
+        <div className="fixed inset-0 bg-white z-[1000]" suppressHydrationWarning />
       )}
     </>
   );

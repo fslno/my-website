@@ -87,7 +87,6 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
     }
   };
 
-  // Authoritative Dashboard Identity
   const adminLogo = storeConfig?.adminLogoUrl || storeConfig?.logoUrl;
   const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "STUDIO";
 
@@ -391,9 +390,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!hasMounted || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-10 w-10 animate-spin text-black" />
-      </div>
+      <div className="min-h-screen bg-white" />
     );
   }
 
@@ -403,13 +400,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || !isAdmin) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-white p-4 text-center">
-        <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-8 shadow-2xl overflow-hidden relative">
-          {adminLogo ? (
-            <NextImage src={adminLogo} alt="Logo" width={64} height={64} className="object-cover" />
-          ) : (
-            "F"
-          )}
-        </div>
         {user && !isAdmin ? (
           <div className="max-w-sm space-y-6">
             <div className="bg-red-50 border border-red-100 p-8 rounded-sm">
@@ -459,7 +449,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       --admin-base-size: ${theme?.adminBaseFontSize || 14}px;
       --admin-header-h: ${theme?.adminHeaderHeight || 64}px;
       
-      /* Forensic Font Injection */
       --font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif !important;
       --font-body: "${theme?.adminBodyFont || 'Inter'}", sans-serif !important;
       --admin-font-headline: "${theme?.adminHeadlineFont || 'Inter'}", sans-serif;
@@ -485,15 +474,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       flex-direction: row; 
       overflow: hidden; 
     }
-
-    /* Scalable UI Manifest */
-    .admin-viewport .text-xs { font-size: calc(var(--admin-base-size) * 0.75); }
-    .admin-viewport .text-sm { font-size: calc(var(--admin-base-size) * 0.875); }
-    .admin-viewport .text-base { font-size: var(--admin-base-size); }
-    .admin-viewport .text-lg { font-size: calc(var(--admin-base-size) * 1.125); }
-    .admin-viewport .text-xl { font-size: calc(var(--admin-base-size) * 1.25); }
-    .admin-viewport .text-2xl { font-size: calc(var(--admin-base-size) * 1.5); }
-    .admin-viewport .text-3xl { font-size: calc(var(--admin-base-size) * 1.875); }
 
     .admin-header-height { height: var(--admin-header-h); }
     
@@ -525,16 +505,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     .font-admin-headline { font-family: var(--admin-font-headline); }
     .font-admin-body { font-family: var(--admin-font-body); }
-    
-    @keyframes order-pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8)); }
-      100% { transform: scale(1); }
-    }
-    .animate-order-pulse {
-      animation: order-pulse 1s infinite;
-      color: #3b82f6 !important;
-    }
   `;
 
   return (
@@ -543,7 +513,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen w-full admin-viewport">
         <AppSidebar storeConfig={storeConfig} />
 
-        <main className="flex-1 flex flex-col min-w-0 relative max-w-full h-screen overflow-hidden">
+        <main className="flex-1 flex flex-col min-w-0 relative max-w-full h-screen overflow-hidden bg-white">
           <header className="admin-header-height bg-white/80 backdrop-blur-md border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30 w-full shrink-0">
             <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 max-w-xl">
               <SidebarTrigger className="h-9 w-9 shrink-0" />
@@ -552,12 +522,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <button 
                 onClick={() => setIsAudioMuted(!isAudioMuted)}
                 className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors"
-                title={isAudioMuted ? "Unmute Alarm" : "Mute Alarm"}
               >
                 {isAudioMuted ? <VolumeX className="h-5 w-5 text-red-400" /> : <Volume2 className="h-5 w-5 text-[#5c5f62]" />}
               </button>
               <button className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors relative">
-                <Bell className={cn("h-5 w-5 text-[#5c5f62]", newOrderDetected && "animate-order-pulse")} />
+                <Bell className={cn("h-5 w-5 text-[#5c5f62]")} />
                 {newOrderDetected && <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border border-white" />}
               </button>
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
@@ -565,7 +534,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 w-full font-admin-body bg-inherit scrollbar-hide">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 w-full font-admin-body bg-white scrollbar-hide">
             <div className="max-w-7xl mx-auto w-full min-w-0">
               {children}
             </div>
