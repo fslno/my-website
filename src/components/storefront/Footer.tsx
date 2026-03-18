@@ -93,6 +93,34 @@ export function Footer() {
                     </div>
                   </div>
                 )}
+
+                {/* Social Media Discovery Segment */}
+                {config?.socialChannels && config.socialChannels.length > 0 && (
+                  <div className="flex items-center gap-5 pt-4">
+                    {config.socialChannels.map((s: any, idx: number) => {
+                      let Icon = Globe;
+                      if (s.platform === 'Instagram') Icon = Instagram;
+                      else if (s.platform === 'Twitter' || s.platform === 'X') Icon = Twitter;
+                      else if (s.platform === 'Facebook') Icon = Facebook;
+                      else if (s.platform === 'YouTube') Icon = Youtube;
+                      else if (s.platform === 'LinkedIn') Icon = Linkedin;
+                      else if (s.platform === 'TikTok') Icon = Music;
+
+                      return (
+                        <a 
+                          key={idx} 
+                          href={s.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="opacity-40 hover:opacity-100 transition-opacity"
+                          aria-label={s.platform}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
