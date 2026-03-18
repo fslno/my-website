@@ -30,8 +30,7 @@ import {
   VolumeX,
   Monitor,
   Star,
-  Zap,
-  Scale
+  Zap
 } from 'lucide-react';
 import { 
   Sidebar, 
