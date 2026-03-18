@@ -65,7 +65,6 @@ interface PageProps {
 
 /**
  * Authoritative Product Detail Page.
- * Recalibrated hierarchy with rating summary below title and metadata below price.
  * Features 1:1 carousel without dots.
  */
 export default function ProductDetailPage(props: PageProps) {

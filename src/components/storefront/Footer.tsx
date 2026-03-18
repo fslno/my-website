@@ -67,7 +67,7 @@ export function Footer() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
           
-          {/* Segment 01: Identity (1 Col md, 4 Col lg) */}
+          {/* Segment 01: Identity */}
           <div className="md:col-span-1 lg:col-span-4 space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
               {config?.businessName || "FSLNO"}
@@ -94,7 +94,7 @@ export function Footer() {
                   </div>
                 )}
 
-                {/* Social Media Discovery Segment */}
+                {/* Social Media icons below pickup hours */}
                 {config?.socialChannels && config.socialChannels.length > 0 && (
                   <div className="flex items-center gap-5 pt-4">
                     {config.socialChannels.map((s: any, idx: number) => {
@@ -125,8 +125,8 @@ export function Footer() {
             </div>
           </div>
           
-          {/* Segment 02: Support (1 Col md, 2 Col lg) */}
-          <div className="md:col-span-1 lg:col-span-2 space-y-6 md:text-right lg:text-right flex flex-col md:items-end lg:items-end">
+          {/* Segment 02: Support */}
+          <div className="md:col-span-1 lg:col-span-2 space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerSupportLinks?.map((link: any, idx: number) => (
@@ -140,8 +140,8 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Segment 03: Legal (1 Col md, 2 Col lg) */}
-          <div className="md:col-span-1 lg:col-span-2 space-y-6 md:text-right lg:text-right flex flex-col md:items-end lg:items-end">
+          {/* Segment 03: Legal */}
+          <div className="md:col-span-1 lg:col-span-2 space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerLegalLinks?.map((link: any, idx: number) => (
@@ -155,7 +155,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Segment 04: Newsletter (3 Col md (full row), 4 Col lg (right col)) */}
+          {/* Segment 04: Newsletter */}
           <div className="md:col-span-3 lg:col-span-4 space-y-8 md:mt-12 lg:mt-0">
             <div className="space-y-4">
               <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>

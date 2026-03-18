@@ -33,7 +33,7 @@ export function ProductCard({
   const discountPercent = hasDiscount ? Math.round(((comparedPrice! - currentPriceNum) / comparedPrice!) * 100) : 0;
 
   return (
-    <div className="group flex flex-col gap-1.5 sm:gap-3 product-text-align">
+    <div className="group flex flex-col gap-1 product-text-align">
       <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
         {image ? (
           <>
@@ -79,7 +79,7 @@ export function ProductCard({
         )}
       </Link>
       
-      <div className="flex flex-col gap-0.5 py-1 product-flex-align">
+      <div className="flex flex-col gap-0 py-1 product-flex-align">
         <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-muted-foreground font-bold leading-none truncate">
           {category}
         </p>
