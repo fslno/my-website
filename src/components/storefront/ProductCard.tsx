@@ -29,7 +29,7 @@ export function ProductCard({
   const discountPercent = hasDiscount ? Math.round(((comparedPrice! - currentPriceNum) / comparedPrice!) * 100) : 0;
 
   return (
-    <div className="group flex flex-col gap-3 product-text-align">
+    <div className="group flex flex-col gap-2 sm:gap-3 product-text-align">
       <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-100 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
         {image ? (
           <>
@@ -75,8 +75,8 @@ export function ProductCard({
         )}
       </Link>
       
-      <div className="flex flex-col gap-2 py-1 product-flex-align">
-        <p className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-bold leading-none">
+      <div className="flex flex-col gap-1 sm:gap-2 py-1 product-flex-align">
+        <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-muted-foreground font-bold leading-none truncate">
           {category}
         </p>
         <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ export function ProductCard({
             {price}
           </p>
           {hasDiscount && (
-            <p className="text-[10px] text-muted-foreground line-through decoration-muted-foreground/50 font-medium">
+            <p className="text-[8px] sm:text-[10px] text-muted-foreground line-through decoration-muted-foreground/50 font-medium">
               C${comparedPrice?.toFixed(2)}
             </p>
           )}
@@ -97,19 +97,19 @@ export function ProductCard({
         </Link>
         
         {reviewCount && reviewCount > 0 ? (
-          <div className="flex items-center gap-1.5 mt-0.5">
+          <div className="flex items-center gap-1 mt-0.5">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 
                   key={s} 
                   className={cn(
-                    "h-2.5 w-2.5", 
+                    "h-2 sm:h-2.5 w-2 sm:w-2.5", 
                     s <= Math.round(rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
                   )} 
                 />
               ))}
             </div>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
+            <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
           </div>
         ) : null}
       </div>
