@@ -1,10 +1,11 @@
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const POLICY_DATA: Record<string, string[]> = {
@@ -39,7 +40,9 @@ const POLICY_DATA: Record<string, string[]> = {
  * Forensicly hard-coded to ensure zero-DB latency and visual consistency.
  */
 export default function UtilityPolicyPage(props: PageProps) {
-  const { slug } = use(props.params);
+  const resolvedParams = React.use(props.params);
+  const { slug } = resolvedParams;
+  
   const content = POLICY_DATA[slug.toLowerCase()];
 
   if (!content) {
@@ -47,7 +50,7 @@ export default function UtilityPolicyPage(props: PageProps) {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center p-6 pt-40 pb-20">
+    <div className="flex-1 flex items-center justify-center p-6 pt-40 pb-20 bg-white">
       <div className="max-w-md w-full border-l border-black pl-6 py-2 space-y-1">
         {content.map((line, idx) => (
           <p 

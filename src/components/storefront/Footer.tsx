@@ -28,6 +28,7 @@ import { getLivePath } from '@/lib/deployment';
 /**
  * Optimized Archival Footer.
  * Forensicly hardened against hydration mismatches by deferring dynamic content to the client.
+ * Mobile Layout recalibrated: Support beside Brand, Legal below.
  */
 export function Footer() {
   const db = useFirestore();
@@ -71,9 +72,9 @@ export function Footer() {
     <footer className="bg-primary text-primary-foreground py-12 mt-8 border-t border-primary-foreground/10" suppressHydrationWarning>
       <div className="max-w-[1440px] mx-auto px-4">
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 items-start">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 items-start">
           
-          <div className="lg:col-span-4 space-y-6">
+          <div className="col-span-1 lg:col-span-4 space-y-6">
             <h2 className="text-3xl font-headline font-bold tracking-tighter uppercase">
               {config?.businessName || "FSLNO"}
             </h2>
@@ -144,7 +145,7 @@ export function Footer() {
             </div>
           </div>
           
-          <div className="lg:col-span-2 space-y-6">
+          <div className="col-span-1 lg:col-span-2 space-y-6">
             <h4 className="text-[9px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-3 text-[10px] font-bold uppercase tracking-widest">
               {config?.footerSupportLinks?.length > 0 ? (
@@ -163,7 +164,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="col-span-2 lg:col-span-2 space-y-6">
             <h4 className="text-[9px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-3 text-[10px] font-bold uppercase tracking-widest">
               {config?.footerLegalLinks?.length > 0 ? (
@@ -181,7 +182,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="lg:col-span-4 space-y-6">
+          <div className="col-span-2 lg:col-span-4 space-y-6">
             {config?.newsletterEnabled !== false && (
               <div className="space-y-4">
                 <div className="space-y-2">

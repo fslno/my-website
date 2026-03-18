@@ -11,6 +11,7 @@ import {
 } from '@/firebase';
 import { doc, collection, query, orderBy, where } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
+import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -26,7 +27,8 @@ import {
   Star,
   AlertCircle,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  ShoppingBag
 } from 'lucide-react';
 import {
   Carousel,
@@ -59,10 +61,16 @@ import { getLivePath } from '@/lib/deployment';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+/**
+ * Mobile-First Product Manifest.
+ * 3:4 Aspect Ratio images, single-column stack on mobile, and sticky purchase bar.
+ */
 export default function ProductDetailPage(props: PageProps) {
-  const { productId } = use(props.params);
+  const resolvedParams = React.use(props.params);
+  const { productId } = resolvedParams;
   
   const db = useFirestore();
   const router = useRouter();
@@ -84,13 +92,6 @@ export default function ProductDetailPage(props: PageProps) {
 
   const { data: categoryCharts } = useCollection(sizeChartsQuery);
 
-  const reviewsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
-  }, [db]);
-
-  const { data: allReviews } = useCollection(reviewsQuery);
-
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
   const [customName, setCustomName] = useState('');
@@ -106,80 +107,16 @@ export default function ProductDetailPage(props: PageProps) {
     });
   }, [api]);
 
-  if (loading) {
-    return (
-      <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-32 bg-white">
-        <div className="h-6 w-32 mb-8"><Skeleton className="h-full w-full" /></div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-24">
-          <Skeleton className="aspect-square w-full rounded-sm" />
-          <div className="space-y-6">
-            <Skeleton className="h-10 w-2/3" />
-            <Skeleton className="h-4 w-1/4" />
-            <Skeleton className="h-12 w-full mt-4" />
-            <Separator />
-            <div className="space-y-4">
-              <Skeleton className="h-4 w-1/2" />
-              <div className="flex gap-2">
-                {[1,2,3,4].map(i => <Skeleton key={i} className="h-10 w-10" />)}
-              </div>
-            </div>
-            <Skeleton className="h-14 w-full mt-8" />
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!product) {
-    return (
-      <main className="min-h-screen pt-32 px-4 text-center bg-white">
-        <div className="max-w-md mx-auto space-y-6">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
-            <AlertCircle className="h-8 w-8 text-gray-300" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">Silhouette Missing</h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">
-              The requested archival segment is no longer part of the current Studio manifest.
-            </p>
-          </div>
-          <Button asChild className="bg-black text-white px-10 h-14 font-bold uppercase tracking-widest text-[10px] rounded-none shadow-xl">
-            <Link href="/">Return to Studio</Link>
-          </Button>
-        </div>
-      </main>
-    );
-  }
-
-  const media = product.media || [];
-  
-  const hasDiscount = (Number(product.comparedPrice) || 0) > (Number(product.price) || 0);
+  const media = product?.media || [];
+  const hasDiscount = product && (Number(product.comparedPrice) || 0) > (Number(product.price) || 0);
   const discountPercent = hasDiscount ? Math.round(((Number(product.comparedPrice) - Number(product.price)) / Number(product.comparedPrice)) * 100) : 0;
 
-  const ratingStats = (() => {
-    if (!allReviews || !productId) return { avg: 0, count: 0 };
-    const pReviews = allReviews.filter(r => r.productId === productId && r.published === true);
-    if (pReviews.length === 0) return { avg: 0, count: 0 };
-    const sum = pReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-    return { avg: sum / pReviews.length, count: pReviews.length };
-  })();
-
   const totalPrice = (() => {
+    if (!product) return 0;
     const base = Number(product.price) || 0;
     const fee = wantsCustomization ? (Number(product.customizationFee) || 10) : 0;
     return base + fee;
   })();
-
-  const displayedSku = selectedSize 
-    ? (product.variants?.find((v: any) => v.size === selectedSize)?.sku || product.sku) 
-    : (product.sku || 'N/A');
-
-  const handleThumbnailClick = (index: number) => {
-    setActiveImageIndex(index);
-    api?.scrollTo(index);
-  };
-
-  const isSaved = isInWishlist(productId);
 
   const handleAddToCart = () => {
     if (!product || !selectedSize) return;
@@ -208,267 +145,203 @@ export default function ProductDetailPage(props: PageProps) {
     }
 
     addToCart(itemToAdd);
-
-    toast({
-      title: "Added to Cart",
-      description: `${product.name} (${selectedSize}) is in your cart.`,
-    });
-
-    setWantsCustomization(false);
-    setCustomName('');
-    setCustomNumber('');
-    setSpecialRequest('');
-    setSelectedSize('');
+    toast({ title: "Added to Cart", description: `${product.name} is in your bag.` });
   };
 
-  const handleWishlist = () => {
-    toggleWishlist({
-      id: product.id,
-      name: product.name,
-      price: Number(product.price),
-      image: product.media?.[0]?.url || '',
-      brand: product.brand || 'FSLNO Studio'
-    });
-  };
+  if (loading) return <div className="min-h-screen bg-white" />;
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: product.name, url });
-    } else {
-      navigator.clipboard.writeText(url);
-      toast({ title: "Link Copied" });
-    }
-  };
+  if (!product) {
+    return (
+      <main className="min-h-screen pt-32 px-4 text-center bg-white flex flex-col items-center justify-center">
+        <AlertCircle className="h-12 w-12 text-gray-200 mb-4" />
+        <h1 className="text-xl font-bold uppercase">Silhouette Missing</h1>
+        <Button asChild variant="link" className="mt-4"><Link href="/">Return to Studio</Link></Button>
+      </main>
+    );
+  }
 
   return (
-    <main className="max-w-[1280px] mx-auto px-4 pt-12 pb-32 bg-white">
-      <button 
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
-      >
-        <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-        Back to Previous
-      </button>
+    <main className="mobile-wrapper min-h-screen bg-white pt-20 sm:pt-32 pb-32">
+      <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-8 group w-fit">
+          <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
+        </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-24">
-        <div className="space-y-6">
-          <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-24">
+          
+          {/* MEDIA COLUMN: Edge-to-edge on mobile, 3:4 Aspect Ratio */}
+          <div className="-mx-4 w-screen lg:mx-0 lg:w-full space-y-6 lg:sticky lg:top-32">
+            <Carousel setApi={setApi} className="w-full">
+              <CarouselContent>
+                {media.length > 0 ? (
+                  media.map((item: any, idx: number) => (
+                    <CarouselItem key={idx}>
+                      <div className="relative aspect-[3/4] bg-gray-50 overflow-hidden border-b lg:border rounded-none lg:rounded-sm">
+                        <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
+                      </div>
+                    </CarouselItem>
+                  ))
+                ) : (
+                  <CarouselItem><div className="aspect-[3/4] bg-gray-100" /></CarouselItem>
+                )}
+              </CarouselContent>
+            </Carousel>
+            
+            {/* Thumbnails (Desktop Only) */}
             {media.length > 1 && (
-              <div className="hidden lg:flex lg:flex-col gap-2 overflow-y-auto scrollbar-hide lg:w-20 shrink-0">
+              <div className="hidden lg:flex gap-2 px-0">
                 {media.map((item: any, idx: number) => (
                   <button 
-                    key={idx}
-                    onClick={() => handleThumbnailClick(idx)}
-                    className={cn(
-                      "w-full aspect-square shrink-0 relative border-2 transition-all duration-300 ease-in-out rounded-sm",
-                      activeImageIndex === idx ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
-                    )}
+                    key={idx} 
+                    onClick={() => api?.scrollTo(idx)}
+                    className={cn("relative w-16 h-20 border-2 transition-all", activeImageIndex === idx ? "border-black" : "border-transparent opacity-50")}
                   >
-                    <Image src={item.url} alt={`View ${idx}`} fill className="object-cover" />
+                    <Image src={item.url} alt="" fill className="object-cover" />
                   </button>
                 ))}
               </div>
             )}
-            
-            <div className="flex-1 overflow-hidden relative group/carousel">
-              <Carousel setApi={setApi} className="w-full">
-                <CarouselContent>
-                  {media.length > 0 ? (
-                    media.map((item: any, idx: number) => (
-                      <CarouselItem key={idx}>
-                        <div className="aspect-square relative bg-gray-100 overflow-hidden rounded-sm border">
-                          <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
-                        </div>
-                      </CarouselItem>
-                    ))
-                  ) : (
-                    <CarouselItem>
-                      <div className="aspect-square relative bg-gray-200 rounded-sm border" />
-                    </CarouselItem>
-                  )}
-                </CarouselContent>
-              </Carousel>
-            </div>
           </div>
 
-          <div className="hidden lg:block space-y-4 pt-6 border-t">
-            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Description</h3>
-            <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed text-sm">
-              {product.description || "No description provided."}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-headline font-bold tracking-tight text-primary uppercase">{product.name}</h1>
-            {ratingStats.count > 0 && (
-              <div className="flex items-center gap-2 mt-1 mb-2">
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className={cn("h-3 w-3", s <= Math.round(ratingStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />
-                  ))}
-                </div>
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">({ratingStats.count} Reviews)</span>
+          {/* INFO COLUMN: Stacked on mobile */}
+          <div className="px-0 lg:px-0 py-8 lg:py-0 w-full space-y-10 content-load-fade">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
+                <h1 className="text-2xl sm:text-4xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
               </div>
-            )}
-            <div className="flex items-center gap-4 pt-2">
-              <p className="text-lg font-bold text-primary">{`C$${totalPrice.toFixed(2)}`}</p>
-              {hasDiscount && (
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-muted-foreground line-through decoration-muted-foreground/50 font-medium">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
-                  <Badge className="bg-emerald-50 text-emerald-700 border-none uppercase text-[8px] font-bold tracking-widest">{discountPercent}% OFF</Badge>
-                </div>
-              )}
+              
+              <div className="flex items-center gap-4">
+                <p className="text-xl font-bold">{`C$${totalPrice.toFixed(2)}`}</p>
+                {hasDiscount && (
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground line-through">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
+                    <Badge className="bg-emerald-50 text-emerald-700 border-none text-[8px] font-bold">{discountPercent}% OFF</Badge>
+                  </div>
+                )}
+              </div>
             </div>
-            <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">REF: {displayedSku}</p>
-          </div>
 
-          <Separator />
+            <Separator />
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-[9px] uppercase tracking-widest font-bold text-muted-foreground">
-              <span>Select Size</span>
-              {categoryCharts && categoryCharts.length > 0 && (
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 text-[11px] font-bold">
-                      <Ruler className="h-5 w-5" /> Size Chart
-                    </button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-full sm:max-w-xl bg-white border-l p-0 flex flex-col">
-                    <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                      <div className="flex items-center gap-3 text-primary mb-2">
-                        <Ruler className="h-6 w-6" />
-                        <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">Size Chart</SheetTitle>
-                      </div>
-                      <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">
-                        Measurements in {categoryCharts[0].unit === 'cm' ? 'Centimeters' : 'Inches'}
-                      </p>
-                    </SheetHeader>
-                    <ScrollArea className="flex-1">
-                      <div className="p-8 space-y-12">
+            {/* Size Manifest */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Size</span>
+                {categoryCharts?.length > 0 && (
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Chart</button>
+                    </SheetTrigger>
+                    <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none">
+                      <SheetHeader className="p-8 border-b">
+                        <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Size Guide</SheetTitle>
+                      </SheetHeader>
+                      <ScrollArea className="flex-1 p-8">
                         {categoryCharts.map((chart: any) => (
                           <div key={chart.id} className="space-y-6">
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary">{chart.name}</h3>
-                            <div className="border rounded-none overflow-hidden">
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest border-b pb-2">{chart.name}</h3>
+                            <div className="border overflow-x-auto">
                               <Table>
-                                <TableHeader className="bg-gray-50/50">
-                                  <TableRow>
-                                    <TableHead className="text-[9px] font-bold uppercase tracking-widest">Size</TableHead>
-                                    {chart.columns.map((col: string, i: number) => (
-                                      <TableHead key={i} className="text-[9px] font-bold uppercase tracking-widest text-center">{col}</TableHead>
-                                    ))}
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {chart.rows.map((row: any, i: number) => (
-                                    <TableRow key={i}>
-                                      <TableCell className="text-[10px] font-bold uppercase">{row.label}</TableCell>
-                                      {row.values.map((val: string, j: number) => (
-                                        <TableCell key={j} className="text-center font-mono text-[10px]">{val || '-'}</TableCell>
-                                      ))}
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
+                                <TableHeader className="bg-gray-50"><TableRow><TableHead className="text-[9px] font-bold uppercase">Size</TableHead>{chart.columns.map((c: any, i: any) => (<TableHead key={i} className="text-[9px] font-bold uppercase text-center">{c}</TableHead>))}</TableRow></TableHeader>
+                                <TableBody>{chart.rows.map((r: any, i: any) => (<TableRow key={i}><TableCell className="text-[10px] font-bold">{r.label}</TableCell>{r.values.map((v: any, j: any) => (<TableCell key={j} className="text-center font-mono text-[10px]">{v || '-'}</TableCell>))}</TableRow>))}</TableBody>
                               </Table>
                             </div>
                           </div>
                         ))}
-                      </div>
-                    </ScrollArea>
-                  </SheetContent>
-                </Sheet>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(product.variants || []).map((v: any, idx: number) => (
-                <button
-                  key={`${v.size}-${idx}`}
-                  onClick={() => setSelectedSize(v.size)}
-                  disabled={Number(v.stock) === 0}
-                  className={cn(
-                    "h-10 min-w-[2.5rem] px-3 border text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm", 
-                    selectedSize === v.size ? "bg-primary text-primary-foreground border-primary" : "bg-white text-primary border-gray-200 hover:bg-secondary",
-                    Number(v.stock) === 0 && "opacity-30 cursor-not-allowed border-dashed"
-                  )}
-                >
-                  {v.size || 'OS'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {product.customizationEnabled && (
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Personalize this piece?</Label>
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold">Add name and number (+C${(Number(product.customizationFee) || 10).toFixed(2)})</p>
-                </div>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => setWantsCustomization(false)}
-                    className={cn(
-                      "h-9 px-4 border text-[9px] font-bold uppercase tracking-widest transition-all",
-                      !wantsCustomization ? "bg-black text-white border-black" : "bg-white text-primary border-gray-200"
-                    )}
-                  >No</button>
-                  <button 
-                    onClick={() => wantsCustomization === true ? null : setWantsCustomization(true)}
-                    className={cn(
-                      "h-9 px-4 border text-[9px] font-bold uppercase tracking-widest transition-all",
-                      wantsCustomization ? "bg-black text-white border-black" : "bg-white text-primary border-gray-200"
-                    )}
-                  >Yes</button>
-                </div>
+                      </ScrollArea>
+                    </SheetContent>
+                  </Sheet>
+                )}
               </div>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                {(product.variants || []).map((v: any, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedSize(v.size)}
+                    disabled={Number(v.stock) === 0}
+                    className={cn(
+                      "h-12 border text-[10px] font-bold uppercase tracking-widest transition-all",
+                      selectedSize === v.size ? "bg-black text-white border-black" : "bg-white text-primary border-gray-100 hover:border-black",
+                      Number(v.stock) === 0 && "opacity-20 cursor-not-allowed"
+                    )}
+                  >
+                    {v.size}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-              {wantsCustomization && (
-                <div className="grid grid-cols-1 gap-4 pt-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[9px] uppercase font-bold text-gray-500">Name</Label>
-                      <Input value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} placeholder="NAME" className="h-11 text-xs font-bold uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[9px] uppercase font-bold text-gray-500">Number</Label>
-                      <Input value={customNumber} onChange={(e) => setCustomNumber(e.target.value)} placeholder="00" maxLength={2} className="h-11 text-xs font-bold uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black" />
-                    </div>
+            {/* Personalization Protocol */}
+            {product.customizationEnabled && (
+              <div className="space-y-6 pt-6 border-t">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Personalize?</Label>
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold">+C${(Number(product.customizationFee) || 10).toFixed(2)}</p>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase font-bold text-gray-500">Special Request</Label>
-                    <Input value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} placeholder="ADDITIONAL NOTES..." className="h-11 text-[10px] font-medium uppercase rounded-none bg-gray-50 border-gray-200 focus-visible:ring-black" />
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", !wantsCustomization ? "bg-black text-white" : "bg-white")}>No</button>
+                    <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+                {wantsCustomization && (
+                  <div className="grid gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Name</Label><Input value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-bold uppercase text-xs" /></div>
+                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Number</Label><Input value={customNumber} maxLength={2} onChange={(e) => setCustomNumber(e.target.value)} className="h-11 rounded-none bg-gray-50 border-none font-bold text-center" /></div>
+                    </div>
+                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Notes</Label><Input value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-medium text-[10px]" /></div>
+                  </div>
+                )}
+              </div>
+            )}
 
-          <div className="space-y-3 pt-4 border-t mt-4">
-            <button 
-              onClick={handleAddToCart}
-              disabled={!selectedSize}
-              className={cn(
-                "w-full h-12 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none transition-all shadow-md", 
-                !selectedSize ? "bg-gray-200 text-muted-foreground" : "bg-primary text-primary-foreground hover:opacity-90"
-              )}
-            >
-              {!selectedSize ? 'Select Size' : 'Add to Cart'}
-            </button>
-            <div className="grid grid-cols-2 gap-2">
-              <Button onClick={handleWishlist} variant="outline" className={cn("h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none", isSaved && "bg-red-50 border-red-200 text-destructive")}>
-                <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} /> 
-                {isSaved ? 'Saved' : 'Wishlist'}
+            {/* Actions */}
+            <div className="space-y-4 pt-8 border-t">
+              <Button 
+                onClick={handleAddToCart} 
+                disabled={!selectedSize}
+                className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:opacity-90 shadow-xl"
+              >
+                {selectedSize ? 'Add to Bag' : 'Select Size'}
               </Button>
-              <Button onClick={handleShare} variant="outline" className="h-10 font-bold uppercase tracking-widest text-[9px] gap-2 border-gray-200 rounded-none">
-                <Share2 className="h-3.5 w-3.5" /> Share
-              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" onClick={() => toggleWishlist({ id: product.id, name: product.name, price: Number(product.price), image: product.media?.[0]?.url || '' })} className={cn("h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2", isInWishlist(product.id) && "bg-red-50 border-red-100 text-red-600")}>
+                  <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} /> {isInWishlist(product.id) ? 'Saved' : 'Wishlist'}
+                </Button>
+                <Button variant="outline" onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: "Link Copied" }); }} className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2">
+                  <Share2 className="h-4 w-4" /> Share
+                </Button>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="pt-12 border-t space-y-4">
+              <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
+              <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
+                {product.description || "Archival studio selection curated for the modern silhouette."}
+              </div>
             </div>
           </div>
         </div>
+
+        <ReviewSystem productId={productId} />
+      </div>
+
+      {/* STICKY COMMERCE BAR (Mobile) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t p-4 flex items-center justify-between gap-4 animate-in slide-in-from-bottom-full duration-500 shadow-2xl">
+        <div className="flex flex-col">
+          <span className="text-[10px] font-bold uppercase truncate max-w-[140px]">{product.name}</span>
+          <span className="text-xs font-black">C${Number(product.price).toFixed(2)}</span>
+        </div>
+        <Button 
+          onClick={handleAddToCart} 
+          disabled={!selectedSize}
+          className="flex-1 h-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[9px] rounded-none shadow-lg"
+        >
+          {selectedSize ? 'Add to Bag' : 'Size Required'}
+        </Button>
       </div>
 
       <TestimonialSection />

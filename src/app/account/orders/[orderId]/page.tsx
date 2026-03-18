@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
@@ -13,10 +13,12 @@ import { Button } from '@/components/ui/button';
 
 interface PageProps {
   params: Promise<{ orderId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default function OrderDetailPage(props: PageProps) {
-  const { orderId } = use(props.params);
+  const resolvedParams = React.use(props.params);
+  const { orderId } = resolvedParams;
   
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
@@ -64,21 +66,15 @@ export default function OrderDetailPage(props: PageProps) {
     });
   };
 
-  if (isUserLoading || orderLoading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-black" />
-      </div>
-    );
-  }
+  if (isUserLoading || orderLoading) return <div className="min-h-screen bg-white" />;
 
   if (!user || (order && order.userId !== user.uid)) {
     return (
-      <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
-        <div className="bg-red-50 p-8 border border-red-100 max-w-md">
+      <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center bg-white">
+        <div className="p-8 border max-w-md">
           <h1 className="text-2xl font-headline font-bold uppercase mb-4">Access Denied</h1>
           <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-8 leading-relaxed">
-            This forensic transaction manifest is restricted. Please verify your credentials.
+            Verify credentials to access manifest.
           </p>
           <Button asChild className="bg-black text-white px-10 h-12 rounded-none font-bold uppercase tracking-widest text-[10px]">
             <Link href="/account/orders">Back to History</Link>
@@ -90,7 +86,7 @@ export default function OrderDetailPage(props: PageProps) {
 
   if (!order) {
     return (
-      <div className="pt-28 sm:pt-40 pb-24 px-4 text-center">
+      <div className="pt-28 sm:pt-40 pb-24 px-4 text-center bg-white">
         <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Transaction Not Found.</p>
         <Link href="/account/orders" className="mt-8 inline-block text-[10px] font-bold uppercase underline tracking-widest">Return to Studio</Link>
       </div>
@@ -98,7 +94,7 @@ export default function OrderDetailPage(props: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9]">
+    <div className="min-h-screen bg-white">
       <div className="pt-28 sm:pt-40 pb-24 max-w-[1280px] mx-auto px-4">
         <div className="mb-12">
           <Link href="/account/orders" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors mb-6 group w-fit">
@@ -137,7 +133,7 @@ export default function OrderDetailPage(props: PageProps) {
                   {order.items?.map((item: any, i: number) => (
                     <div key={i} className="flex gap-6 p-6">
                       <div className="w-24 h-32 bg-gray-100 relative overflow-hidden border shrink-0">
-                        {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                        {item.image && <Image src={item.image} alt="" fill className="object-cover" />}
                       </div>
                       <div className="flex-1 flex flex-col justify-between py-1">
                         <div className="space-y-2">
@@ -149,16 +145,6 @@ export default function OrderDetailPage(props: PageProps) {
                             <span>Size: {item.size}</span>
                             <span>Qty: {item.quantity}</span>
                           </div>
-                          {(item.customName || item.customNumber || item.specialNote) && (
-                            <div className="pt-2 space-y-1">
-                              {(item.customName || item.customNumber) && (
-                                <p className="text-[10px] font-bold text-blue-600 uppercase">Personalized: {item.customName} {item.customNumber && `#${item.customNumber}`}</p>
-                              )}
-                              {item.specialNote && (
-                                <p className="text-[10px] text-gray-400 italic">"{item.specialNote}"</p>
-                              )}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -193,14 +179,6 @@ export default function OrderDetailPage(props: PageProps) {
                       </p>
                     </div>
                   )}
-                  {order.deliveryMethod === 'pickup' && (
-                    <div className="space-y-1">
-                      <p className="text-[9px] uppercase font-bold text-gray-400 tracking-widest">Pickup Status</p>
-                      <p className="text-xs font-bold uppercase text-blue-600">
-                        {order.status === 'ready_for_pickup' ? 'Ready at the Spot' : 'Preparing for Pickup'}
-                      </p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 
@@ -215,12 +193,6 @@ export default function OrderDetailPage(props: PageProps) {
                     <span>Subtotal</span>
                     <span className="text-primary">{`C$${formatCurrency(order.subtotal)}`}</span>
                   </div>
-                  {order.discountTotal > 0 && (
-                    <div className="flex justify-between text-[10px] font-bold text-red-600 uppercase">
-                      <span>Discounts</span>
-                      <span>{`-C$${formatCurrency(order.discountTotal)}`}</span>
-                    </div>
-                  )}
                   <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
                     <span>Shipping</span>
                     <span className="text-primary">{order.shipping > 0 ? `C$${formatCurrency(order.shipping)}` : 'FREE'}</span>
@@ -236,35 +208,6 @@ export default function OrderDetailPage(props: PageProps) {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </div>
-
-          <div className="lg:col-span-4 space-y-8">
-            <div className="bg-black text-white p-8 space-y-6">
-              <h3 className="text-sm font-headline font-bold uppercase tracking-tight">Need Assistance?</h3>
-              <p className="text-[10px] uppercase font-bold text-gray-400 leading-relaxed tracking-widest">
-                Our studio team is available for forensic support regarding your selection.
-              </p>
-              <Separator className="bg-white/10" />
-              <div className="space-y-4">
-                <Link href="/contact" className="flex items-center justify-between group">
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Contact Studio</span>
-                  <ChevronLeft className="h-3 w-3 rotate-180 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link href="/shipping" className="flex items-center justify-between group">
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Logistics Policy</span>
-                  <ChevronLeft className="h-3 w-3 rotate-180 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="p-8 border bg-white space-y-4">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                <Calendar className="h-3 w-3 text-gray-400" /> Operational Integrity
-              </h3>
-              <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-medium">
-                Every transaction in the FSLNO studio is Authoritatively logged and verified. Once a status reaches "Delivered", the logistical cycle is strictly finalized.
-              </p>
             </div>
           </div>
         </div>

@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: #F4F4F4;
+    --background: #FFFFFF;
     --foreground: #000000;
     --card: #FFFFFF;
     --card-foreground: #000000;
@@ -47,6 +47,31 @@
     background-color: #D3D3D3 !important;
     color: #333333 !important;
   }
+}
+
+/* Prevent horizontal scrolling on small devices */
+.mobile-wrapper {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: #FFFFFF !important; /* Force opaque white */
+}
+
+/* Maintain high-end aspect ratio for jerseys */
+.product-hero-image {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background-color: #f9f9f9;
+}
+
+/* Smooth transition for data hydration */
+.content-load-fade {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .bento-grid {

@@ -12,10 +12,12 @@ import { getLivePath } from '@/lib/deployment';
 
 interface PageProps {
   params: Promise<{ categoryId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default function CollectionPage(props: PageProps) {
-  const { categoryId } = use(props.params);
+  const resolvedParams = React.use(props.params);
+  const { categoryId } = resolvedParams;
   
   const db = useFirestore();
 
@@ -23,21 +25,16 @@ export default function CollectionPage(props: PageProps) {
   const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
   const { data: reviewConfig } = useDoc(reviewConfigRef);
 
-  // Fetch Category Details - skip if 'all'
+  // Fetch Category Details
   const categoryRef = useMemoFirebase(() => 
     db && categoryId !== 'all' ? doc(db, getLivePath(`categories/${categoryId}`)) : null, 
     [db, categoryId]
   );
   const { data: category, isLoading: categoryLoading } = useDoc(categoryRef);
 
-  // If 'all', fetch all categories to map IDs to names for the cards
-  const categoriesQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, getLivePath('categories'));
-  }, [db]);
+  const categoriesQuery = useMemoFirebase(() => db ? collection(db, getLivePath('categories')) : null, [db]);
   const { data: allCategories } = useCollection(categoriesQuery);
 
-  // Fetch Products in this Category
   const productsQuery = useMemoFirebase(() => {
     if (!db || !categoryId) return null;
     const path = getLivePath('products');
@@ -47,14 +44,12 @@ export default function CollectionPage(props: PageProps) {
 
   const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
 
-  // Fetch reviews for rating aggregation (Reviews are global)
   const reviewsQuery = useMemoFirebase(() => db ? collection(db, 'reviews') : null, [db]);
   const { data: allReviews } = useCollection(reviewsQuery);
 
   const productRatings = useMemo(() => {
     const map: Record<string, { sum: number, count: number }> = {};
     if (!allReviews) return map;
-    
     allReviews.forEach(r => {
       if (!r.published) return;
       if (!map[r.productId]) map[r.productId] = { sum: 0, count: 0 };
@@ -64,47 +59,23 @@ export default function CollectionPage(props: PageProps) {
     return map;
   }, [allReviews]);
 
-  const formatCurrency = (val: number) => {
-    return val.toLocaleString(undefined, { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    });
-  };
+  if (categoryLoading || productsLoading) return <div className="min-h-screen bg-white" />;
 
-  const isLoading = (categoryId !== 'all' && categoryLoading) || productsLoading;
   const reviewsEnabled = reviewConfig?.enabled !== false;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-background">
-        <Loader2 className="h-10 w-10 animate-spin text-black" />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <div className="pt-28 sm:pt-36 pb-12 border-b bg-white">
+    <div className="min-h-screen bg-white">
+      <div className="pt-28 sm:pt-36 pb-12 border-b">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col gap-6">
             <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors w-fit">
-              <ChevronLeft className="h-3 w-3" /> Back to Studio
+              <ChevronLeft className="h-3 w-3" /> Studio
             </Link>
-            
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-              <div className="space-y-3">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-muted-foreground">Studio Selection</span>
-                <h1 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">
-                  {categoryId === 'all' ? 'All Studio Drops' : (category?.name || 'Collection')}
-                </h1>
-                {(category?.description || categoryId === 'all') && (
-                  <p className="text-sm text-gray-500 max-w-2xl leading-relaxed uppercase tracking-tight">
-                    {categoryId === 'all' 
-                      ? 'Discover our sculptural silhouettes and technical studio pieces.' 
-                      : category?.description}
-                  </p>
-                )}
-              </div>
+            <div className="space-y-3">
+              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Studio Selection</span>
+              <h1 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">
+                {categoryId === 'all' ? 'All Studio Drops' : (category?.name || 'Collection')}
+              </h1>
             </div>
           </div>
         </div>
@@ -114,33 +85,26 @@ export default function CollectionPage(props: PageProps) {
         <div className="max-w-[1440px] mx-auto px-4">
           {!products || products.length === 0 ? (
             <div className="text-center py-32 border-2 border-dashed rounded-none bg-gray-50/50">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">The studio is currently empty for this drop.</p>
-              <Button asChild variant="outline" className="mt-8 border-black font-bold uppercase tracking-[0.2em] text-[10px] h-14 px-10 rounded-none hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300 ease-in-out">
-                <Link href="/">Explore Featured Drops</Link>
-              </Button>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Empty manifest.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
               {products.map((product: any) => {
                 const productCategory = category?.name || allCategories?.find(c => c.id === product.categoryId)?.name || 'Archive';
                 const ratingInfo = productRatings[product.id];
-                const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
-                const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
-                const isSoldOut = (Number(product.inventory) || 0) <= 0;
-
                 return (
                   <ProductCard 
                     key={product.id} 
                     id={product.id}
                     name={product.name}
-                    price={`C$${formatCurrency(Number(product.price))}`}
+                    price={`C$${(Number(product.price) || 0).toFixed(2)}`}
                     comparedPrice={product.comparedPrice}
                     image={product.media?.[0]?.url || ''}
                     hoverImage={product.media?.[1]?.url}
                     category={productCategory}
-                    rating={avgRating}
-                    reviewCount={reviewCount}
-                    isSoldOut={isSoldOut}
+                    rating={reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0}
+                    reviewCount={reviewsEnabled && ratingInfo ? ratingInfo.count : 0}
+                    isSoldOut={(Number(product.inventory) || 0) <= 0}
                   />
                 );
               })}
