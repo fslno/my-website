@@ -10,8 +10,7 @@ import { getLivePath } from '@/lib/deployment';
 /**
  * Unified Product Grid Manifest.
  * Authoritatively manifests all studio drops in a high-fidelity responsive grid.
- * Tightened gaps for high-velocity mobile interaction.
- * Forensicly stabilized to eliminate hydration mismatches.
+ * Forensicly stabilized to eliminate hydration mismatches by ensuring class consistency.
  */
 export function ProductGrid() {
   const db = useFirestore();
@@ -54,7 +53,7 @@ export function ProductGrid() {
   }, [allReviews]);
 
   // Forensic Constant for grid classes to ensure zero hydration mismatch
-  const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-2 md:gap-y-16";
+  const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16";
 
   if (productsLoading) {
     return (
