@@ -113,15 +113,7 @@ export default function ProductDetailPage(props: PageProps) {
   const [customName, setCustomName] = useState('');
   const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
-
-  useEffect(() => {
-    if (!api) return;
-    api.on("select", () => {
-      setActiveImageIndex(api.selectedScrollSnap());
-    });
-  }, [api]);
 
   const media = product?.media || [];
   const hasDiscount = product && (Number(product.comparedPrice) || 0) > (Number(product.price) || 0);
@@ -166,7 +158,7 @@ export default function ProductDetailPage(props: PageProps) {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white pt-20 sm:pt-32 pb-32">
+      <main className="min-h-screen bg-background pt-20 sm:pt-32 pb-32">
         <div className="max-w-[1280px] mx-auto px-4 lg:px-8 space-y-12">
           <Skeleton className="h-4 w-20" />
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12">
@@ -190,7 +182,7 @@ export default function ProductDetailPage(props: PageProps) {
 
   if (!product) {
     return (
-      <main className="min-h-screen pt-32 px-4 text-center bg-white flex flex-col items-center justify-center">
+      <main className="min-h-screen pt-32 px-4 text-center bg-background flex flex-col items-center justify-center">
         <AlertCircle className="h-12 w-12 text-gray-200 mb-4" />
         <h1 className="text-xl font-bold uppercase">Silhouette Missing</h1>
         <Button asChild variant="link" className="mt-4"><Link href="/">Return to Studio</Link></Button>
@@ -199,7 +191,7 @@ export default function ProductDetailPage(props: PageProps) {
   }
 
   return (
-    <main className="mobile-wrapper min-h-screen bg-white pt-20 sm:pt-32 pb-32">
+    <main className="mobile-wrapper min-h-screen bg-background pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
@@ -214,7 +206,7 @@ export default function ProductDetailPage(props: PageProps) {
                 {media.length > 0 ? (
                   media.map((item: any, idx: number) => (
                     <CarouselItem key={idx}>
-                      <div className="relative aspect-square bg-gray-50 overflow-hidden border rounded-sm">
+                      <div className="relative aspect-square bg-white overflow-hidden border rounded-sm">
                         <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
                       </div>
                     </CarouselItem>
