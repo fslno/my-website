@@ -66,7 +66,7 @@ interface PageProps {
 
 /**
  * Mobile-First Product Manifest.
- * 3:4 Aspect Ratio images, single-column stack on mobile, and sticky purchase bar.
+ * 1:1 Aspect Ratio images, single-column stack on mobile, and sticky purchase bar.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -169,20 +169,20 @@ export default function ProductDetailPage(props: PageProps) {
 
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-24">
           
-          {/* MEDIA COLUMN: Edge-to-edge on mobile with responsive height limit */}
+          {/* MEDIA COLUMN: Edge-to-edge on mobile */}
           <div className="-mx-4 w-screen lg:mx-0 lg:w-full space-y-6 lg:sticky lg:top-32">
             <Carousel setApi={setApi} className="w-full">
               <CarouselContent>
                 {media.length > 0 ? (
                   media.map((item: any, idx: number) => (
                     <CarouselItem key={idx}>
-                      <div className="relative aspect-[3/4] product-image-mobile-limit bg-gray-50 overflow-hidden border-b lg:border rounded-none lg:rounded-sm">
+                      <div className="relative aspect-square bg-gray-50 overflow-hidden border-b lg:border rounded-none lg:rounded-sm">
                         <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
                       </div>
                     </CarouselItem>
                   ))
                 ) : (
-                  <CarouselItem><div className="aspect-[3/4] product-image-mobile-limit bg-gray-100" /></CarouselItem>
+                  <CarouselItem><div className="aspect-square bg-gray-100" /></CarouselItem>
                 )}
               </CarouselContent>
             </Carousel>

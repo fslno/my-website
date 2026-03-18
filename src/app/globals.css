@@ -50,21 +50,12 @@
   background-color: #FFFFFF !important;
 }
 
-/* Maintain high-end aspect ratio for jerseys */
+/* Maintain high-end 1:1 aspect ratio for product cards */
 .product-hero-image {
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   background-color: #FFFFFF;
-}
-
-/* Product image responsive limit */
-@media (max-width: 767px) {
-  .product-image-mobile-limit {
-    aspect-ratio: auto !important;
-    height: 380px !important;
-    width: 100% !important;
-  }
 }
 
 /* Smooth transition for data hydration */

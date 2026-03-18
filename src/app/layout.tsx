@@ -19,7 +19,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative Unified Root Layout.
- * Forensicly hardened against visual flickering using a Solid White baseline.
+ * Forensicly hardened against visual flickering and hydration mismatches.
  */
 export default function RootLayout({
   children,
