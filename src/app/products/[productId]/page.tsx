@@ -64,11 +64,6 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-/**
- * Authoritative Product Manifest.
- * Forensicly restores SKU, Brand, and Product Reviews.
- * Maintains 1:1 aspect ratio and mobile-first architectural stacking.
- */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
   const { productId } = resolvedParams;
@@ -93,7 +88,6 @@ export default function ProductDetailPage(props: PageProps) {
 
   const { data: categoryCharts } = useCollection(sizeChartsQuery);
 
-  // Review Manifest Data (Zero-Error Query Protocol)
   const allReviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
@@ -187,7 +181,7 @@ export default function ProductDetailPage(props: PageProps) {
 
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-24">
           
-          <div className="w-full space-y-6 lg:sticky lg:top-32">
+          <div className="w-full relative lg:sticky lg:top-32">
             <Carousel setApi={setApi} className="w-full">
               <CarouselContent>
                 {media.length > 0 ? (
@@ -205,15 +199,17 @@ export default function ProductDetailPage(props: PageProps) {
             </Carousel>
             
             {media.length > 1 && (
-              <div className="flex gap-2 px-0 overflow-x-auto scrollbar-hide">
-                {media.map((item: any, idx: number) => (
+              <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center gap-2 px-4">
+                {media.map((_: any, idx: number) => (
                   <button 
                     key={idx} 
                     onClick={() => api?.scrollTo(idx)}
-                    className={cn("relative w-16 h-16 shrink-0 border-2 transition-all", activeImageIndex === idx ? "border-black" : "border-transparent opacity-50")}
-                  >
-                    <Image src={item.url} alt="" fill className="object-cover" />
-                  </button>
+                    className={cn(
+                      "w-1.5 h-1.5 rounded-full transition-all duration-300 shadow-sm",
+                      activeImageIndex === idx ? "bg-black w-4" : "bg-black/20 hover:bg-black/40"
+                    )}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
                 ))}
               </div>
             )}
@@ -222,25 +218,22 @@ export default function ProductDetailPage(props: PageProps) {
           <div className="py-8 lg:py-0 w-full space-y-10 content-load-fade">
             <div className="space-y-4">
               <div className="space-y-1">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
-                  
-                  {productReviews.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-0.5">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} className={cn("h-2.5 w-2.5", s <= Math.round(averageRating) ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />
-                        ))}
-                      </div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">({productReviews.length})</span>
-                    </div>
-                  )}
-                </div>
-                
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
                 <h1 className="text-2xl sm:text-4xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
                 
+                {productReviews.length > 0 && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className={cn("h-3 w-3", s <= Math.round(averageRating) ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />
+                      ))}
+                    </div>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">({productReviews.length})</span>
+                  </div>
+                )}
+
                 {product.sku && (
-                  <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-widest mt-1">REF: {product.sku}</p>
+                  <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-widest mt-2">REF: {product.sku}</p>
                 )}
               </div>
               
