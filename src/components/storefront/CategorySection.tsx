@@ -95,9 +95,6 @@ export function CategorySection() {
                     {cat.name}
                   </h3>
                 </Link>
-                <p className="text-[9px] font-bold uppercase tracking-widest mt-2 opacity-60 text-muted-foreground">
-                  View Drop
-                </p>
               </div>
             </div>
           ))}
