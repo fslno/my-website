@@ -363,20 +363,6 @@ export default function ProductDetailPage(props: PageProps) {
       </div>
 
       <TestimonialSection />
-
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t p-4 flex items-center justify-between gap-4 animate-in slide-in-from-bottom-full duration-500 shadow-2xl">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-bold uppercase truncate max-w-[140px]">{product.name}</span>
-          <span className="text-xs font-black">C${totalPrice.toFixed(2)}</span>
-        </div>
-        <Button 
-          onClick={handleAddToCart} 
-          disabled={!selectedSize}
-          className="flex-1 h-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[9px] rounded-none shadow-lg"
-        >
-          {selectedSize ? 'Add to Bag' : 'Size Required'}
-        </Button>
-      </div>
     </main>
   );
 }

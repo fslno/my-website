@@ -26,9 +26,9 @@ import { Label } from '@/components/ui/label';
 import { getLivePath } from '@/lib/deployment';
 
 /**
- * Authoritative High-Fidelity Footer Manifest.
- * Recalibrated for a 4-column responsive grid on tablet and desktop.
- * Utility paths and Newsletter module stack into a single column on mobile devices.
+ * Authoritative High-Fidelity Responsive Footer Manifest.
+ * Recalibrated for a 4-column grid on tablet and desktop viewports.
+ * Stacks into a single column on mobile for archival high-velocity scrolling.
  */
 export function Footer() {
   const db = useFirestore();
@@ -65,9 +65,10 @@ export function Footer() {
     <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10" suppressHydrationWarning>
       <div className="max-w-[1440px] mx-auto px-4">
         
+        {/* Authoritative Responsive Grid: 1 column on mobile, 4 columns on tablet and desktop */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 items-start">
           
-          {/* Segment 01: Identity */}
+          {/* Segment 01: Identity & Logistics */}
           <div className="space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
               {config?.businessName || "FSLNO"}
@@ -94,38 +95,38 @@ export function Footer() {
                   </div>
                 )}
 
-                {/* Social Media icons */}
-                {config?.socialChannels && config.socialChannels.length > 0 && (
-                  <div className="flex items-center gap-5 pt-4">
-                    {config.socialChannels.map((s: any, idx: number) => {
-                      let Icon = Globe;
-                      if (s.platform === 'Instagram') Icon = Instagram;
-                      else if (s.platform === 'Twitter' || s.platform === 'X') Icon = Twitter;
-                      else if (s.platform === 'Facebook') Icon = Facebook;
-                      else if (s.platform === 'YouTube') Icon = Youtube;
-                      else if (s.platform === 'LinkedIn') Icon = Linkedin;
-                      else if (s.platform === 'TikTok') Icon = Music;
+                {/* Social connectivity row */}
+                <div className="flex items-center gap-5 pt-4">
+                  {config?.socialChannels?.map((s: any, idx: number) => {
+                    let Icon = Globe;
+                    if (s.platform === 'Instagram') Icon = Instagram;
+                    else if (s.platform === 'Twitter' || s.platform === 'X') Icon = Twitter;
+                    else if (s.platform === 'Facebook') Icon = Facebook;
+                    else if (s.platform === 'YouTube') Icon = Youtube;
+                    else if (s.platform === 'LinkedIn') Icon = Linkedin;
+                    else if (s.platform === 'TikTok') Icon = Music;
 
-                      return (
-                        <a 
-                          key={idx} 
-                          href={s.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="opacity-40 hover:opacity-100 transition-opacity"
-                          aria-label={s.platform}
-                        >
-                          <Icon className="h-4 w-4" />
-                        </a>
-                      );
-                    })}
-                  </div>
-                )}
+                    return (
+                      <a 
+                        key={idx} 
+                        href={s.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="opacity-40 hover:opacity-100 transition-opacity"
+                        aria-label={s.platform}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </a>
+                    );
+                  }) || (
+                    <p className="text-[8px] font-bold uppercase tracking-widest opacity-20">No social manifest</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
           
-          {/* Segment 02: Support */}
+          {/* Segment 02: Support Manifest */}
           <div className="space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
@@ -140,7 +141,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Segment 03: Legal */}
+          {/* Segment 03: Legal Compliance */}
           <div className="space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
@@ -155,7 +156,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Segment 04: Newsletter */}
+          {/* Segment 04: Newsletter Dispatch */}
           <div className="space-y-8 md:text-right flex flex-col md:items-end">
             <div className="space-y-4">
               <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
