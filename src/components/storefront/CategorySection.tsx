@@ -64,9 +64,9 @@ export function CategorySection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-4 md:gap-x-6 md:gap-y-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-2 md:gap-x-6 md:gap-y-12">
           {categories.map((cat) => (
-            <div key={cat.id} className="flex flex-col gap-3 sm:gap-4 group">
+            <div key={cat.id} className="flex flex-col gap-2 sm:gap-4 group">
               <Link 
                 href={`/collections/${cat.id}`}
                 className="relative aspect-square bg-gray-100 overflow-hidden rounded-sm border shadow-sm"

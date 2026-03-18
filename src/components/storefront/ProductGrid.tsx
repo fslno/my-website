@@ -76,7 +76,7 @@ export function ProductGrid() {
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 sm:gap-x-4 md:gap-x-6 gap-y-4 sm:gap-y-6 md:gap-y-16">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 sm:gap-x-4 md:gap-x-6 gap-y-3 sm:gap-y-6 md:gap-y-16">
         {products?.map((product: any, idx: number) => {
           const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
           const ratingInfo = productRatings[product.id];
