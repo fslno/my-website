@@ -27,8 +27,8 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative High-Fidelity Footer Manifest.
- * Recalibrated for 3-segment tablet architecture and 4-column desktop grid.
- * Utility paths are forensicly aligned to ensure "perfect segments" on all devices.
+ * Recalibrated for a 4-column responsive grid on tablet and desktop.
+ * Utility paths and Newsletter module stack into a single column on mobile devices.
  */
 export function Footer() {
   const db = useFirestore();
@@ -65,10 +65,10 @@ export function Footer() {
     <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10" suppressHydrationWarning>
       <div className="max-w-[1440px] mx-auto px-4">
         
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 items-start">
           
           {/* Segment 01: Identity */}
-          <div className="md:col-span-1 lg:col-span-4 space-y-8">
+          <div className="space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
               {config?.businessName || "FSLNO"}
             </h2>
@@ -94,7 +94,7 @@ export function Footer() {
                   </div>
                 )}
 
-                {/* Social Media icons below pickup hours */}
+                {/* Social Media icons */}
                 {config?.socialChannels && config.socialChannels.length > 0 && (
                   <div className="flex items-center gap-5 pt-4">
                     {config.socialChannels.map((s: any, idx: number) => {
@@ -126,7 +126,7 @@ export function Footer() {
           </div>
           
           {/* Segment 02: Support */}
-          <div className="md:col-span-1 lg:col-span-2 space-y-6 md:text-right flex flex-col md:items-end">
+          <div className="space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerSupportLinks?.map((link: any, idx: number) => (
@@ -141,7 +141,7 @@ export function Footer() {
           </div>
 
           {/* Segment 03: Legal */}
-          <div className="md:col-span-1 lg:col-span-2 space-y-6 md:text-right flex flex-col md:items-end">
+          <div className="space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerLegalLinks?.map((link: any, idx: number) => (
@@ -156,7 +156,7 @@ export function Footer() {
           </div>
 
           {/* Segment 04: Newsletter */}
-          <div className="md:col-span-3 lg:col-span-4 space-y-8 md:mt-12 lg:mt-0">
+          <div className="space-y-8 md:text-right flex flex-col md:items-end">
             <div className="space-y-4">
               <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
               <div className="space-y-1">
@@ -165,7 +165,7 @@ export function Footer() {
               </div>
             </div>
             
-            <form onSubmit={handleSubscribe} className="space-y-6">
+            <form onSubmit={handleSubscribe} className="space-y-6 w-full max-w-sm">
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase tracking-[0.1em] font-bold opacity-60">Email Address</Label>
                 <Input 
@@ -173,7 +173,7 @@ export function Footer() {
                   placeholder="" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-transparent border-0 border-b border-primary-foreground/20 rounded-none h-12 px-0 focus-visible:ring-0 placeholder:text-primary-foreground/20 font-bold uppercase text-xs" 
+                  className="bg-transparent border-0 border-b border-primary-foreground/20 rounded-none h-12 px-0 focus-visible:ring-0 placeholder:text-primary-foreground/20 font-bold uppercase text-xs md:text-right" 
                 />
               </div>
               <Button 

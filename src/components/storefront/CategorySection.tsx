@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
  * Authoritative Category Selection segment.
  * Manifests ALL archival collections from the admin manifest in a high-density 1:1 grid.
  * Titles are positioned forensicly below the cards for maximal readability.
- * Gaps reduced for high-velocity mobile navigation.
+ * Gaps reduced for high-velocity mobile interaction.
  */
 export function CategorySection() {
   const db = useFirestore();
@@ -64,7 +64,7 @@ export function CategorySection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-1 md:gap-x-6 md:gap-y-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-2 md:gap-x-6 md:gap-y-12">
           {categories.map((cat) => (
             <div key={cat.id} className="flex flex-col gap-2 sm:gap-4 group">
               <Link 

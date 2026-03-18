@@ -54,7 +54,7 @@ export function ProductGrid() {
   }, [allReviews]);
 
   // Forensic Constant for grid classes to ensure zero hydration mismatch
-  const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-1 md:gap-y-16";
+  const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-2 md:gap-y-16";
 
   if (productsLoading) {
     return (
