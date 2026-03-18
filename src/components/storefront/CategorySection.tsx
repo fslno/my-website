@@ -43,15 +43,15 @@ export function CategorySection() {
     align === 'right' ? 'items-end text-right' : 'items-start text-left';
 
   return (
-    <section className="py-12 bg-white border-b">
+    <section className="py-8 sm:py-12 bg-white border-b">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className={cn(
-          "flex flex-col md:flex-row justify-between gap-6 mb-12",
+          "flex flex-col md:flex-row justify-between gap-4 sm:gap-6 mb-8 sm:mb-12",
           theme?.categoryTextAlign === 'center' ? 'items-center text-center' : 
           theme?.categoryTextAlign === 'right' ? 'items-end text-right' : 'items-end text-left'
         )}>
           <div className={cn(
-            "space-y-2 category-text-align",
+            "space-y-1 sm:space-y-2 category-text-align",
             theme?.categoryTextAlign === 'center' ? 'mx-auto' : 
             theme?.categoryTextAlign === 'right' ? 'ml-auto' : ''
           )}>
@@ -64,9 +64,9 @@ export function CategorySection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 md:gap-x-6 md:gap-y-12">
           {categories.map((cat) => (
-            <div key={cat.id} className="flex flex-col gap-4 group">
+            <div key={cat.id} className="flex flex-col gap-3 sm:gap-4 group">
               <Link 
                 href={`/collections/${cat.id}`}
                 className="relative aspect-square bg-gray-100 overflow-hidden rounded-sm border shadow-sm"
