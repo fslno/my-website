@@ -175,11 +175,11 @@ export default function ProductDetailPage(props: PageProps) {
   return (
     <main className="mobile-wrapper min-h-screen bg-white pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-8 group w-fit">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
         </button>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-24">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-12">
           
           <div className="w-full relative lg:sticky lg:top-32">
             <Carousel setApi={setApi} className="w-full">
@@ -215,42 +215,45 @@ export default function ProductDetailPage(props: PageProps) {
             )}
           </div>
 
-          <div className="py-8 lg:py-0 w-full space-y-10 content-load-fade">
-            <div className="space-y-4">
+          <div className="py-6 lg:py-0 w-full space-y-6 content-load-fade">
+            <div className="space-y-3">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
-                <h1 className="text-2xl sm:text-4xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
                 
                 {productReviews.length > 0 && (
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-2">
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <Star key={s} className={cn("h-3 w-3", s <= Math.round(averageRating) ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />
                       ))}
                     </div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">({productReviews.length})</span>
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">({productReviews.length})</span>
                   </div>
-                )}
-
-                {product.sku && (
-                  <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-widest mt-2">REF: {product.sku}</p>
                 )}
               </div>
               
-              <div className="flex items-center gap-4">
-                <p className="text-xl font-bold">{`C$${totalPrice.toFixed(2)}`}</p>
-                {hasDiscount && (
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground line-through">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
-                    <Badge className="bg-emerald-50 text-emerald-700 border-none text-[8px] font-bold">{discountPercent}% OFF</Badge>
-                  </div>
-                )}
+              <div className="space-y-2">
+                <div className="flex items-center gap-4">
+                  <p className="text-lg font-bold">{`C$${totalPrice.toFixed(2)}`}</p>
+                  {hasDiscount && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground line-through">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
+                      <Badge className="bg-emerald-50 text-emerald-700 border-none text-[8px] font-bold">{discountPercent}% OFF</Badge>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
+                  {product.sku && (
+                    <p className="text-[8px] font-mono font-bold text-muted-foreground uppercase tracking-widest">REF: {product.sku}</p>
+                  )}
+                </div>
               </div>
             </div>
 
             <Separator />
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Size</span>
                 {categoryCharts?.length > 0 && (
@@ -298,7 +301,7 @@ export default function ProductDetailPage(props: PageProps) {
             </div>
 
             {product.customizationEnabled && (
-              <div className="space-y-6 pt-6 border-t">
+              <div className="space-y-4 pt-4 border-t">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Personalize?</Label>
@@ -321,7 +324,7 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             )}
 
-            <div className="space-y-4 pt-8 border-t">
+            <div className="space-y-3 pt-6 border-t">
               <Button 
                 onClick={handleAddToCart} 
                 disabled={!selectedSize}
@@ -339,8 +342,8 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             </div>
 
-            <div className="pt-12 border-t space-y-12">
-              <div className="space-y-4">
+            <div className="pt-8 border-t space-y-8">
+              <div className="space-y-3">
                 <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
                   {product.description || "Archival studio selection curated for the modern silhouette."}
@@ -348,11 +351,11 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
 
               {product.features && product.features.length > 0 && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground flex items-center gap-2">
                     <Info className="h-3 w-3" /> Technical Details
                   </h3>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {product.features.map((feature: string, idx: number) => (
                       <li key={idx} className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wide text-gray-500">
                         <div className="w-1 h-1 rounded-full bg-black shrink-0" />
