@@ -66,7 +66,7 @@ interface PageProps {
 /**
  * Authoritative Product Detail Page.
  * Recalibrated hierarchy with rating summary below title and metadata below price.
- * Features integrated navigation dots inside the 1:1 carousel.
+ * Features 1:1 carousel without dots.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -185,7 +185,7 @@ export default function ProductDetailPage(props: PageProps) {
 
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-12">
           
-          {/* MEDIA SECTION with INTEGRATED NAVIGATION */}
+          {/* MEDIA SECTION */}
           <div className="w-full relative lg:sticky lg:top-32">
             <Carousel setApi={setApi} className="w-full">
               <CarouselContent>
@@ -202,31 +202,14 @@ export default function ProductDetailPage(props: PageProps) {
                 )}
               </CarouselContent>
             </Carousel>
-            
-            {media.length > 1 && (
-              <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center gap-2 px-4">
-                {media.map((_: any, idx: number) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => api?.scrollTo(idx)}
-                    className={cn(
-                      "w-1.5 h-1.5 rounded-full transition-all duration-300 shadow-sm",
-                      activeImageIndex === idx ? "bg-black w-4" : "bg-black/20 hover:bg-black/40"
-                    )}
-                    aria-label={`Go to slide ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* CONTENT SECTION with COMPRESSED GAPS */}
+          {/* CONTENT SECTION */}
           <div className="py-6 lg:py-0 w-full space-y-6 content-load-fade">
             <div className="space-y-3">
               <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
                 
-                {/* RATING SUMMARY BELOW TITLE */}
                 {productReviews.length > 0 && (
                   <div className="flex items-center gap-2">
                     <div className="flex gap-0.5">
@@ -250,7 +233,6 @@ export default function ProductDetailPage(props: PageProps) {
                   )}
                 </div>
                 
-                {/* BRAND & SKU BELOW PRICE */}
                 <div className="flex flex-col gap-0.5">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
                   {product.sku && (
