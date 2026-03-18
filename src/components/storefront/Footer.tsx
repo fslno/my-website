@@ -28,7 +28,7 @@ import { getLivePath } from '@/lib/deployment';
 /**
  * Optimized Archival Footer.
  * Forensicly hardened against hydration mismatches by deferring dynamic content to the client.
- * Mobile Layout recalibrated: Support beside Brand, Legal below.
+ * Realignment: Legal moved below Support, aligned to the right side.
  */
 export function Footer() {
   const db = useFirestore();
@@ -74,6 +74,7 @@ export function Footer() {
         
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 items-start">
           
+          {/* Column 01: Brand Identity */}
           <div className="col-span-1 lg:col-span-4 space-y-6">
             <h2 className="text-3xl font-headline font-bold tracking-tighter uppercase">
               {config?.businessName || "FSLNO"}
@@ -145,43 +146,47 @@ export function Footer() {
             </div>
           </div>
           
-          <div className="col-span-1 lg:col-span-2 space-y-6">
-            <h4 className="text-[9px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
-            <ul className="flex flex-col gap-3 text-[10px] font-bold uppercase tracking-widest">
-              {config?.footerSupportLinks?.length > 0 ? (
-                config.footerSupportLinks.map((link: any, idx: number) => (
-                  <li key={idx}>
-                    <Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link>
-                  </li>
-                ))
-              ) : (
-                <>
-                  <li><Link href="#" className="hover:opacity-60 transition-opacity">Shipping & Returns</Link></li>
-                  <li><Link href="#" className="hover:opacity-60 transition-opacity">Size Guide</Link></li>
-                  <li><Link href="#" className="hover:opacity-60 transition-opacity">Contact Us</Link></li>
-                </>
-              )}
-            </ul>
+          {/* Column 02: Support & Legal (Aligned Right) */}
+          <div className="col-span-1 lg:col-span-4 flex flex-col gap-10 items-end text-right">
+            <div className="space-y-6">
+              <h4 className="text-[9px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
+              <ul className="flex flex-col gap-3 text-[10px] font-bold uppercase tracking-widest">
+                {config?.footerSupportLinks?.length > 0 ? (
+                  config.footerSupportLinks.map((link: any, idx: number) => (
+                    <li key={idx}>
+                      <Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link>
+                    </li>
+                  ))
+                ) : (
+                  <>
+                    <li><Link href="#" className="hover:opacity-60 transition-opacity">Shipping & Returns</Link></li>
+                    <li><Link href="#" className="hover:opacity-60 transition-opacity">Size Guide</Link></li>
+                    <li><Link href="#" className="hover:opacity-60 transition-opacity">Contact Us</Link></li>
+                  </>
+                )}
+              </ul>
+            </div>
+
+            <div className="space-y-6">
+              <h4 className="text-[9px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
+              <ul className="flex flex-col gap-3 text-[10px] font-bold uppercase tracking-widest">
+                {config?.footerLegalLinks?.length > 0 ? (
+                  config.footerLegalLinks.map((link: any, idx: number) => (
+                    <li key={idx}>
+                      <Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link>
+                    </li>
+                  ))
+                ) : (
+                  <>
+                    <li><Link href="#" className="hover:opacity-60 transition-opacity">Privacy Policy</Link></li>
+                    <li><Link href="#" className="hover:opacity-60 transition-opacity">Terms of Service</Link></li>
+                  </>
+                )}
+              </ul>
+            </div>
           </div>
 
-          <div className="col-span-2 lg:col-span-2 space-y-6">
-            <h4 className="text-[9px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
-            <ul className="flex flex-col gap-3 text-[10px] font-bold uppercase tracking-widest">
-              {config?.footerLegalLinks?.length > 0 ? (
-                config.footerLegalLinks.map((link: any, idx: number) => (
-                  <li key={idx}>
-                    <Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link>
-                  </li>
-                ))
-              ) : (
-                <>
-                  <li><Link href="#" className="hover:opacity-60 transition-opacity">Privacy Policy</Link></li>
-                  <li><Link href="#" className="hover:opacity-60 transition-opacity">Terms of Service</Link></li>
-                </>
-              )}
-            </ul>
-          </div>
-
+          {/* Column 03: Newsletter */}
           <div className="col-span-2 lg:col-span-4 space-y-6">
             {config?.newsletterEnabled !== false && (
               <div className="space-y-4">
