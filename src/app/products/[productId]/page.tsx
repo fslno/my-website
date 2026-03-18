@@ -65,8 +65,9 @@ interface PageProps {
 }
 
 /**
- * Mobile-First Product Manifest.
- * 1:1 Aspect Ratio images, single-column stack on mobile, and sticky purchase bar.
+ * Authoritative Product Manifest.
+ * Recalibrated for a 1:1 Aspect Ratio across all viewports.
+ * Full content restoration including ReviewSystem and Testimonials.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -169,14 +170,14 @@ export default function ProductDetailPage(props: PageProps) {
 
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-24">
           
-          {/* MEDIA COLUMN: Edge-to-edge on mobile */}
-          <div className="-mx-4 w-screen lg:mx-0 lg:w-full space-y-6 lg:sticky lg:top-32">
+          {/* MEDIA COLUMN: 1:1 Aspect across all viewports */}
+          <div className="w-full space-y-6 lg:sticky lg:top-32">
             <Carousel setApi={setApi} className="w-full">
               <CarouselContent>
                 {media.length > 0 ? (
                   media.map((item: any, idx: number) => (
                     <CarouselItem key={idx}>
-                      <div className="relative aspect-square bg-gray-50 overflow-hidden border-b lg:border rounded-none lg:rounded-sm">
+                      <div className="relative aspect-square bg-gray-50 overflow-hidden border rounded-sm">
                         <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
                       </div>
                     </CarouselItem>
@@ -187,14 +188,14 @@ export default function ProductDetailPage(props: PageProps) {
               </CarouselContent>
             </Carousel>
             
-            {/* Thumbnails (Desktop Only) */}
+            {/* Thumbnails */}
             {media.length > 1 && (
-              <div className="hidden lg:flex gap-2 px-0">
+              <div className="flex gap-2 px-0 overflow-x-auto scrollbar-hide">
                 {media.map((item: any, idx: number) => (
                   <button 
                     key={idx} 
                     onClick={() => api?.scrollTo(idx)}
-                    className={cn("relative w-16 h-20 border-2 transition-all", activeImageIndex === idx ? "border-black" : "border-transparent opacity-50")}
+                    className={cn("relative w-16 h-16 shrink-0 border-2 transition-all", activeImageIndex === idx ? "border-black" : "border-transparent opacity-50")}
                   >
                     <Image src={item.url} alt="" fill className="object-cover" />
                   </button>
@@ -203,8 +204,8 @@ export default function ProductDetailPage(props: PageProps) {
             )}
           </div>
 
-          {/* INFO COLUMN: Stacked on mobile */}
-          <div className="px-0 lg:px-0 py-8 lg:py-0 w-full space-y-10 content-load-fade">
+          {/* INFO COLUMN */}
+          <div className="py-8 lg:py-0 w-full space-y-10 content-load-fade">
             <div className="space-y-4">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
@@ -326,14 +327,17 @@ export default function ProductDetailPage(props: PageProps) {
           </div>
         </div>
 
+        {/* RESTORED FEEDBACK SECTIONS */}
         <ReviewSystem productId={productId} />
       </div>
+
+      <TestimonialSection />
 
       {/* STICKY COMMERCE BAR (Mobile) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t p-4 flex items-center justify-between gap-4 animate-in slide-in-from-bottom-full duration-500 shadow-2xl">
         <div className="flex flex-col">
           <span className="text-[10px] font-bold uppercase truncate max-w-[140px]">{product.name}</span>
-          <span className="text-xs font-black">C${Number(product.price).toFixed(2)}</span>
+          <span className="text-xs font-black">C${totalPrice.toFixed(2)}</span>
         </div>
         <Button 
           onClick={handleAddToCart} 
@@ -343,8 +347,6 @@ export default function ProductDetailPage(props: PageProps) {
           {selectedSize ? 'Add to Bag' : 'Size Required'}
         </Button>
       </div>
-
-      <TestimonialSection />
     </main>
   );
 }
