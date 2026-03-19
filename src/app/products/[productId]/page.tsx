@@ -67,7 +67,7 @@ interface PageProps {
 /**
  * Authoritative Product Detail Page.
  * Implements High-Fidelity Skeletons for faster archival transactions.
- * Orchestrates the compact Review Discovery Protocol centered below the header.
+ * Orchestrates the compact Review Discovery Protocol centered at the very top of the manifest.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -181,14 +181,15 @@ export default function ProductDetailPage(props: PageProps) {
   return (
     <main className="mobile-wrapper min-h-screen bg-background pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
+        
+        {/* AUTHORITATIVE CENTERED REVIEW DISCOVERY PROTOCOL - HEADER LOWER BOARD POSITION */}
+        <div className="flex justify-center mb-8">
+          <ReviewSystem productId={productId} />
+        </div>
+
         <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
         </button>
-
-        {/* AUTHORITATIVE CENTERED REVIEW DISCOVERY PROTOCOL */}
-        <div className="flex justify-center mb-12">
-          <ReviewSystem productId={productId} />
-        </div>
 
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-12">
           
