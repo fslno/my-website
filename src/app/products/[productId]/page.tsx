@@ -180,13 +180,12 @@ export default function ProductDetailPage(props: PageProps) {
 
   return (
     <main className="mobile-wrapper min-h-screen bg-background pt-20 sm:pt-32 pb-32">
-      <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
-        
-        {/* AUTHORITATIVE CENTERED REVIEW DISCOVERY PROTOCOL - HEADER LOWER BOARD POSITION */}
-        <div className="flex justify-center mb-8">
-          <ReviewSystem productId={productId} />
-        </div>
+      {/* ATTACHED TO LINE BORD - AUTHORITATIVE POSITIONAL SYNC */}
+      <div className="flex justify-center -mt-4 sm:-mt-8 mb-4">
+        <ReviewSystem productId={productId} />
+      </div>
 
+      <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
         </button>

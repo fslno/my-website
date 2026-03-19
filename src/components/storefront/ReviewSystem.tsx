@@ -133,9 +133,9 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        {/* COMPACT TRIGGER BADGE - Authoritatively Refined */}
+        {/* COMPACT TRIGGER BADGE - Height reduced by 25% for archival density */}
         <div className="inline-block cursor-pointer group">
-          <div className="bg-black text-white p-3 sm:p-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center gap-1.5 min-w-[140px]">
+          <div className="bg-black text-white py-2 sm:py-2.5 px-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center gap-1 min-w-[120px]">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold font-headline leading-none">{stats.avg === 5 && stats.count === 0 ? "5" : stats.avg}</span>
               <div className="flex gap-0.5">
