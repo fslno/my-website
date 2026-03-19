@@ -20,7 +20,7 @@ import {
   SheetTitle, 
   SheetTrigger,
   SheetDescription
-} from "@/components/ui/sheet";
+} from "@/components/ui/dialog"; // Note: Sheet usually uses Dialog primitives in shadcn
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ReviewSystemProps {
@@ -133,7 +133,6 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        {/* COMPACT TRIGGER BADGE - Height reduced by 25% for archival density */}
         <div className="inline-block cursor-pointer group">
           <div className="bg-black text-white py-2 sm:py-2.5 px-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center gap-1 min-w-[120px]">
             <div className="flex items-center gap-3">
@@ -174,8 +173,6 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
 
         <ScrollArea className="flex-1">
           <div className="p-8 space-y-16">
-            
-            {/* CONTRIBUTION PROTOCOL */}
             <section className="space-y-8">
               <div className="flex items-center gap-2 border-b pb-4">
                 <Plus className="h-4 w-4 text-primary" />
@@ -223,7 +220,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                       >
                         {imagePreview ? (
                           <div className="relative w-full h-full">
-                            <Image src={imagePreview} alt="Preview" min-h-[120px] fill className="object-cover" />
+                            <Image src={imagePreview} alt="Preview" fill className="object-cover" />
                           </div>
                         ) : (
                           <>
@@ -254,7 +251,6 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
               )}
             </section>
 
-            {/* VERIFIED TESTIMONIALS */}
             <section className="space-y-8">
               <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-2">
