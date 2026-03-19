@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, use, useEffect } from 'react';
@@ -67,6 +68,7 @@ interface PageProps {
 /**
  * Authoritative Product Detail Page.
  * Implements High-Fidelity Skeletons for faster archival transactions.
+ * Orchestrates the compact Review Discovery Protocol.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -91,22 +93,6 @@ export default function ProductDetailPage(props: PageProps) {
   }, [db, product?.categoryId]);
 
   const { data: categoryCharts } = useCollection(sizeChartsQuery);
-
-  const allReviewsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
-  }, [db]);
-  const { data: allReviews } = useCollection(allReviewsQuery);
-
-  const productReviews = useMemo(() => {
-    if (!allReviews || !productId) return [];
-    return allReviews.filter(r => r.productId === productId && r.published === true);
-  }, [allReviews, productId]);
-
-  const averageRating = useMemo(() => {
-    if (productReviews.length === 0) return 0;
-    return productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
-  }, [productReviews]);
 
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
@@ -220,20 +206,14 @@ export default function ProductDetailPage(props: PageProps) {
 
           {/* CONTENT SECTION */}
           <div className="py-6 lg:py-0 w-full space-y-6 content-load-fade">
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
                 
-                {productReviews.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className={cn("h-3 w-3", s <= Math.round(averageRating) ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />
-                      ))}
-                    </div>
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">({productReviews.length})</span>
-                  </div>
-                )}
+                {/* COMPACT REVIEW BADGE PROTOCOL */}
+                <div className="pt-2">
+                  <ReviewSystem productId={productId} />
+                </div>
               </div>
               
               <div className="space-y-2">
@@ -373,8 +353,6 @@ export default function ProductDetailPage(props: PageProps) {
             </div>
           </div>
         </div>
-
-        <ReviewSystem productId={productId} />
       </div>
 
       <TestimonialSection />
