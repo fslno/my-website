@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, use, useEffect } from 'react';
@@ -68,7 +67,7 @@ interface PageProps {
 /**
  * Authoritative Product Detail Page.
  * Implements High-Fidelity Skeletons for faster archival transactions.
- * Orchestrates the compact Review Discovery Protocol.
+ * Orchestrates the compact Review Discovery Protocol centered below the header.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -147,6 +146,9 @@ export default function ProductDetailPage(props: PageProps) {
       <main className="min-h-screen bg-background pt-20 sm:pt-32 pb-32">
         <div className="max-w-[1280px] mx-auto px-4 lg:px-8 space-y-12">
           <Skeleton className="h-4 w-20" />
+          <div className="flex justify-center">
+            <Skeleton className="h-16 w-40 rounded-2xl" />
+          </div>
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12">
             <Skeleton className="aspect-square w-full rounded-sm" />
             <div className="space-y-8 py-6 lg:py-0">
@@ -183,6 +185,11 @@ export default function ProductDetailPage(props: PageProps) {
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
         </button>
 
+        {/* AUTHORITATIVE CENTERED REVIEW DISCOVERY PROTOCOL */}
+        <div className="flex justify-center mb-12">
+          <ReviewSystem productId={productId} />
+        </div>
+
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-12">
           
           {/* MEDIA SECTION */}
@@ -209,11 +216,6 @@ export default function ProductDetailPage(props: PageProps) {
             <div className="space-y-4">
               <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
-                
-                {/* COMPACT REVIEW BADGE PROTOCOL */}
-                <div className="pt-2">
-                  <ReviewSystem productId={productId} />
-                </div>
               </div>
               
               <div className="space-y-2">
