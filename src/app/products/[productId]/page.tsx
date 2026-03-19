@@ -67,7 +67,7 @@ interface PageProps {
 /**
  * Authoritative Product Detail Page.
  * Implements High-Fidelity Skeletons for faster archival transactions.
- * Orchestrates the compact Review Discovery Protocol centered at the very top of the manifest.
+ * Orchestrates the compact Review Discovery Protocol attached to the header board line.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -138,16 +138,15 @@ export default function ProductDetailPage(props: PageProps) {
     }
 
     addToCart(itemToAdd);
-    toast({ title: "Added to Cart", description: `${product.name} is in your bag.` });
+    toast({ title: "Added to Bag", description: `${product.name} is in your bag.` });
   };
 
   if (loading) {
     return (
       <main className="min-h-screen bg-background pt-20 sm:pt-32 pb-32">
         <div className="max-w-[1280px] mx-auto px-4 lg:px-8 space-y-12">
-          <Skeleton className="h-4 w-20" />
-          <div className="flex justify-center">
-            <Skeleton className="h-16 w-40 rounded-2xl" />
+          <div className="flex justify-center -mt-4 sm:-mt-8 mb-4">
+            <Skeleton className="h-14 w-40 rounded-2xl" />
           </div>
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12">
             <Skeleton className="aspect-square w-full rounded-sm" />
