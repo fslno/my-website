@@ -223,7 +223,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                       >
                         {imagePreview ? (
                           <div className="relative w-full h-full">
-                            <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                            <Image src={imagePreview} alt="Preview" min-h-[120px] fill className="object-cover" />
                           </div>
                         ) : (
                           <>
