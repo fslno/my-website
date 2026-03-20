@@ -90,7 +90,7 @@ export default function ProductDetailPage(props: PageProps) {
   const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
   
-  // Carousel State for Dots
+  // Carousel State for Dots and Thumbnails
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
@@ -174,9 +174,9 @@ export default function ProductDetailPage(props: PageProps) {
     return (
       <main className="min-h-screen bg-background pt-20 sm:pt-32 pb-32">
         <div className="max-w-[1280px] mx-auto px-4 lg:px-8 space-y-12">
-          <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12">
-            <Skeleton className="aspect-square w-full rounded-sm" />
-            <div className="space-y-8 py-6 lg:py-0">
+          <div className="flex flex-col md:grid md:grid-cols-12 md:gap-12">
+            <Skeleton className="md:col-span-7 lg:col-span-8 aspect-square w-full rounded-sm" />
+            <div className="md:col-span-5 lg:col-span-4 space-y-8 py-6 md:py-0">
               <div className="space-y-4">
                 <Skeleton className="h-10 w-3/4" />
                 <Skeleton className="h-6 w-1/4" />
@@ -205,51 +205,98 @@ export default function ProductDetailPage(props: PageProps) {
 
   return (
     <main className="mobile-wrapper min-h-screen bg-background pt-20 sm:pt-32 pb-32">
-      <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
         <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
-          <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
+          <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Studio
         </Link>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-12">
+        {/* AUTHORITATIVE ROW ALIGNMENT: Image and Name sit side-by-side on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
           
-          {/* MEDIA SECTION */}
-          <div className="w-full relative lg:sticky lg:top-32">
-            <Carousel setApi={setApi} className="w-full">
-              <CarouselContent>
-                {media.length > 0 ? (
-                  media.map((item: any, idx: number) => (
-                    <CarouselItem key={idx}>
-                      <div className="relative aspect-square bg-white overflow-hidden border rounded-sm">
-                        <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
-                      </div>
-                    </CarouselItem>
-                  ))
-                ) : (
-                  <CarouselItem><div className="aspect-square bg-gray-100" /></CarouselItem>
-                )}
-              </CarouselContent>
-            </Carousel>
-            
-            {/* Dots Navigation - Mobile Only Circular Protocol */}
-            {count > 1 && (
-              <div className="flex sm:hidden justify-center gap-2 mt-4">
-                {Array.from({ length: count }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => api?.scrollTo(i)}
+          {/* MEDIA SECTION - Thumbnails on the left of main image */}
+          <div className="md:col-span-7 lg:col-span-8 space-y-8">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Thumbnail Manifest - Visible only on desktop */}
+              <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
+                {media.map((item: any, idx: number) => (
+                  <button 
+                    key={idx} 
+                    onClick={() => api?.scrollTo(idx)}
                     className={cn(
-                      "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                      current === i + 1 ? "bg-black" : "bg-gray-300"
+                      "relative aspect-[3/4] bg-white border rounded-sm overflow-hidden transition-all",
+                      current === idx + 1 ? "border-black ring-1 ring-black scale-105" : "border-gray-100 opacity-60 hover:opacity-100"
                     )}
-                    aria-label={`Go to slide ${i + 1}`}
-                  />
+                  >
+                    <Image src={item.url} alt="" fill className="object-cover" />
+                  </button>
                 ))}
               </div>
-            )}
+
+              <div className="flex-1 relative">
+                <Carousel setApi={setApi} className="w-full">
+                  <CarouselContent>
+                    {media.length > 0 ? (
+                      media.map((item: any, idx: number) => (
+                        <CarouselItem key={idx}>
+                          <div className="relative aspect-square bg-white overflow-hidden border rounded-sm">
+                            <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
+                          </div>
+                        </CarouselItem>
+                      ))
+                    ) : (
+                      <CarouselItem><div className="aspect-square bg-gray-100" /></CarouselItem>
+                    )}
+                  </CarouselContent>
+                </Carousel>
+                
+                {/* Dots Navigation - Mobile Only Circular Protocol */}
+                {count > 1 && (
+                  <div className="flex sm:hidden justify-center gap-2 mt-4">
+                    {Array.from({ length: count }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => api?.scrollTo(i)}
+                        className={cn(
+                          "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                          current === i + 1 ? "bg-black" : "bg-gray-300"
+                        )}
+                        aria-label={`Go to slide ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* DESCRIPTION SECTION - Repositioned below images in desktop mode */}
+            <div className="hidden md:block pt-8 border-t space-y-8">
+              <div className="space-y-3">
+                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
+                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
+                  {product.description || "Archival studio selection curated for the modern silhouette."}
+                </div>
+              </div>
+
+              {product.features && product.features.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground flex items-center gap-2">
+                    <Info className="h-3 w-3" /> Technical Details
+                  </h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {product.features.map((feature: string, idx: number) => (
+                      <li key={idx} className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                        <div className="w-1 h-1 rounded-full bg-black shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* CONTENT SECTION */}
-          <div className="py-6 lg:py-0 w-full space-y-6">
+          {/* INFO SECTION - Aligned with the top of the image column */}
+          <div className="md:col-span-5 lg:col-span-4 space-y-6">
             <div className="space-y-4">
               <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
@@ -307,7 +354,7 @@ export default function ProductDetailPage(props: PageProps) {
                   </Sheet>
                 )}
               </div>
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {(product.variants || []).map((v: any, idx: number) => (
                   <button
                     key={idx}
@@ -367,29 +414,14 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             </div>
 
-            <div className="pt-8 border-t space-y-8">
+            {/* Mobile Manifest - Description stays here for scrolling flow */}
+            <div className="md:hidden pt-8 border-t space-y-8">
               <div className="space-y-3">
                 <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
                   {product.description || "Archival studio selection curated for the modern silhouette."}
                 </div>
               </div>
-
-              {product.features && product.features.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground flex items-center gap-2">
-                    <Info className="h-3 w-3" /> Technical Details
-                  </h3>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {product.features.map((feature: string, idx: number) => (
-                      <li key={idx} className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wide text-gray-500">
-                        <div className="w-1 h-1 rounded-full bg-black shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </div>
         </div>
