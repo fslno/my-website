@@ -71,7 +71,7 @@ export default function CollectionPage(props: PageProps) {
       <div className="pt-28 sm:pt-36 pb-12 border-b">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col gap-6">
-            <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors w-fit">
+            <Link href="/" className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors w-fit">
               <ChevronLeft className="h-3 w-3" /> Home
             </Link>
             <div className="space-y-3">

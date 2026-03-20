@@ -38,7 +38,7 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 export function Header() {
   const [mounted, setMounted] = useState(false);
-  const { cart, cartCount, cartSubtotal, removeFromCart } = useCart();
+  const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal, totalBeforeTax } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
   const { user } = useUser();
   const auth = useAuth();
@@ -340,9 +340,22 @@ export function Header() {
                   </ScrollArea>
                   {cart.length > 0 && (
                     <SheetFooter className="p-4 border-t bg-gray-50 flex flex-col gap-4 shrink-0">
-                      <div className="flex justify-between items-end">
-                        <span className="text-[10px] font-bold uppercase text-gray-400">Subtotal</span>
-                        <span className="text-sm font-bold">C${formatCurrency(cartSubtotal)}</span>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-end">
+                          <span className="text-[10px] font-bold uppercase text-gray-400">Subtotal</span>
+                          <span className="text-[11px] font-bold">C${formatCurrency(cartSubtotal)}</span>
+                        </div>
+                        {discountTotal > 0 && (
+                          <div className="flex justify-between items-end text-emerald-600">
+                            <span className="text-[10px] font-bold uppercase">Savings Applied</span>
+                            <span className="text-[11px] font-bold">-C${formatCurrency(discountTotal)}</span>
+                          </div>
+                        )}
+                        <Separator />
+                        <div className="flex justify-between items-end pt-1">
+                          <span className="text-[10px] font-bold uppercase text-primary">Estimated Total</span>
+                          <span className="text-sm font-bold">C${formatCurrency(totalBeforeTax)}</span>
+                        </div>
                       </div>
                       <Button asChild className="w-full h-11 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
                         <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout</Link>

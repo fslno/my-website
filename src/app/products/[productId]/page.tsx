@@ -205,7 +205,7 @@ export default function ProductDetailPage(props: PageProps) {
   return (
     <main className="mobile-wrapper min-h-screen bg-background pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
+        <Link href="/" className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Home
         </Link>
 
