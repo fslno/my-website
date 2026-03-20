@@ -352,9 +352,9 @@ export function Header() {
             </div>
           </div>
 
-          {/* AUTHORITATIVE REVIEW PILL POSITIONING: Anchored to bottom center of header border */}
+          {/* AUTHORITATIVE REVIEW PILL POSITIONING: Top of button attached to header bottom border */}
           {currentProductId && (
-            <div className="absolute left-1/2 -bottom-0 -translate-x-1/2 translate-y-1/2 z-[60]">
+            <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full z-[60]">
               <ReviewSystem productId={currentProductId} />
             </div>
           )}
