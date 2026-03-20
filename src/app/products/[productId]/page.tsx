@@ -57,6 +57,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
+import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
@@ -66,7 +67,7 @@ interface PageProps {
 /**
  * Authoritative Product Detail Page.
  * Orchestrates archival silhouettes with zero-latency skeleton transitions.
- * Reviews are now Authoritatively managed via the global header discovery protocol.
+ * Reviews are now Authoritatively positioned below the product name.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -204,8 +205,11 @@ export default function ProductDetailPage(props: PageProps) {
           {/* CONTENT SECTION */}
           <div className="py-6 lg:py-0 w-full space-y-6 content-load-fade">
             <div className="space-y-4">
-              <div className="space-y-1">
+              <div className="space-y-3">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
+                <div className="flex items-center">
+                  <ReviewSystem productId={product.id} />
+                </div>
               </div>
               
               <div className="space-y-2">
