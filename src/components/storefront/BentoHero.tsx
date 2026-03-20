@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -29,7 +29,7 @@ interface BentoHeroProps {
 /**
  * Authoritative Bento Hero Manifest.
  * Standardized height (32vh) - Reduced by 60% from original 81vh.
- * Synchronized to reflect Admin Storefront text and styling protocols.
+ * Fixed hydration mismatch by ensuring skeleton and content heights match exactly.
  */
 export function BentoHero({ 
   isLoading, 
@@ -42,13 +42,23 @@ export function BentoHero({
   verticalAlign = 'center'
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  if (isLoading) {
-    return <section className="pt-[76px] sm:pt-[104px]"><div className="w-full h-[32vh] bg-gray-50" /></section>;
+  // Authoritative Height Guard: Ensuring skeleton matches the final render height exactly
+  if (isLoading || !mounted) {
+    return (
+      <section className="pt-[76px] sm:pt-[104px]">
+        <div className="w-full h-[32vh] bg-gray-50 animate-pulse" />
+      </section>
+    );
   }
 
   const images = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
