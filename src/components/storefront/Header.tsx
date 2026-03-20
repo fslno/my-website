@@ -122,7 +122,7 @@ export function Header() {
           theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
         )}
       >
-        <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between relative">
+        <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between relative h-full">
           <div className="flex items-center gap-2 sm:gap-4">
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
@@ -352,7 +352,7 @@ export function Header() {
             </div>
           </div>
 
-          {/* AUTHORITATIVE REVIEW PILL POSITIONING: Top of button attached to header bottom border */}
+          {/* AUTHORITATIVE REVIEW PILL POSITIONING: Center attached to header bottom border from outside */}
           {currentProductId && (
             <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full z-[60]">
               <ReviewSystem productId={currentProductId} />
