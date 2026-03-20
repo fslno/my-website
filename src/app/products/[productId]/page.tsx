@@ -249,7 +249,7 @@ export default function ProductDetailPage(props: PageProps) {
                   </CarouselContent>
                 </Carousel>
                 
-                {/* Dots Navigation - Mobile Only Circular Protocol */}
+                {/* Dots Navigation - Mobile Only Small Circle Protocol */}
                 {count > 1 && (
                   <div className="flex sm:hidden justify-center gap-2 mt-4">
                     {Array.from({ length: count }).map((_, i) => (
