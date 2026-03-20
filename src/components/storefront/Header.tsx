@@ -307,8 +307,8 @@ export function Header() {
           </div>
         </div>
 
-        {/* Global Review Discovery Protocol: Centered on the bottom border line */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 hidden lg:block z-[60]">
+        {/* AUTHORITATIVE RATING BADGE MANIFEST: Centered absolutely on the border line with max visibility */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 hidden lg:block z-[9999]">
           <ReviewSystem productId={activeProductId} />
         </div>
       </header>

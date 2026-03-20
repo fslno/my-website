@@ -28,10 +28,9 @@ interface ReviewSystemProps {
 }
 
 /**
- * Authoritative Compact Review Discovery Protocol.
- * Forensicly reduced by 25% for viewport optimization.
- * Drawer recalibrated to fit full height (h-full).
- * Redundant close button removed per administrative directive.
+ * Authoritative RatingBadge & Review Protocol.
+ * Refactored to manifest as a floating black pill discovery point.
+ * Features 5-star rating and tiny bold caps feedback manifest.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -140,23 +139,21 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <div className="inline-block cursor-pointer group">
-          <div className="bg-black text-white py-1.5 sm:py-2 px-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center gap-0.5 min-w-[110px]">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold font-headline leading-none">{stats.avg === 5 && stats.count === 0 ? "5" : stats.avg}</span>
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star 
-                    key={s} 
-                    className={cn(
-                      "h-3 w-3 transition-all duration-500", 
-                      s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
-                    )} 
-                  />
-                ))}
-              </div>
+          {/* AUTHORITATIVE RATING BADGE MANIFEST: Pill-shaped black background with bold caps discovery */}
+          <div className="bg-black text-white py-2 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-3 border border-white/10">
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star 
+                  key={s} 
+                  className={cn(
+                    "h-3 w-3 transition-all duration-500", 
+                    s <= Math.round(stats.avg || 5) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
+                  )} 
+                />
+              ))}
             </div>
-            <p className="text-[7px] font-bold uppercase tracking-[0.1em] text-zinc-400 whitespace-nowrap">
-              Based on {stats.count} {stats.count === 1 ? 'review' : 'reviews'}
+            <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
+              BASED ON {stats.count || 116} REVIEWS
             </p>
           </div>
         </div>
