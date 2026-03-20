@@ -30,7 +30,7 @@ interface ReviewSystemProps {
 /**
  * Authoritative Compact Review Discovery Protocol.
  * Forensicly reduced by 25% for viewport optimization.
- * Repositioned to the header manifest for universal archival prominence.
+ * Drawer recalibrated to fit full height (h-full).
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -161,7 +161,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
         </div>
       </SheetTrigger>
       
-      <SheetContent className="w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10">
+      <SheetContent className="w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10 h-full">
         <SheetHeader className="p-8 border-b bg-gray-50/50 shrink-0">
           <div className="flex items-center justify-between">
             <div className="space-y-1">

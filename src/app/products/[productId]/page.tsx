@@ -67,7 +67,7 @@ interface PageProps {
 /**
  * Authoritative Product Detail Page.
  * Orchestrates archival silhouettes with zero-latency skeleton transitions.
- * Reviews are now Authoritatively positioned below the product name.
+ * Back button recalibrated to return to the hero banner (Link to "/").
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -177,9 +177,9 @@ export default function ProductDetailPage(props: PageProps) {
   return (
     <main className="mobile-wrapper min-h-screen bg-background pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
+        <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
-        </button>
+        </Link>
 
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 items-start mb-12">
           
@@ -242,7 +242,7 @@ export default function ProductDetailPage(props: PageProps) {
                     <SheetTrigger asChild>
                       <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Chart</button>
                     </SheetTrigger>
-                    <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl">
+                    <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
                       <SheetHeader className="p-8 border-b">
                         <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Size Guide</SheetTitle>
                       </SheetHeader>

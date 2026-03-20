@@ -28,8 +28,8 @@ interface BentoHeroProps {
 
 /**
  * Authoritative Bento Hero Manifest.
+ * Standardized height (81vh) and padding (pt-[76px] sm:pt-[104px]) to resolve hydration errors.
  * Synchronized to reflect Admin Storefront text and styling protocols.
- * Recalibrated vertical expansion (81vh) and top padding sync to eliminate hydration mismatches.
  */
 export function BentoHero({ 
   isLoading, 
