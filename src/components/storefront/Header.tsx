@@ -75,11 +75,13 @@ export function Header() {
     ).slice(0, 6) || [];
   }, [allProducts, searchQuery]);
 
-  // Detected current product ID from route for review pill
+  // Detected current product ID from route
   const currentProductId = useMemo(() => {
     const match = pathname?.match(/\/products\/([^/]+)/);
     return match ? match[1] : null;
   }, [pathname]);
+
+  const isAdmin = pathname?.startsWith('/admin');
 
   useEffect(() => {
     setMounted(true);
@@ -352,10 +354,26 @@ export function Header() {
             </div>
           </div>
 
-          {/* Center attached review pill discovery point */}
-          {currentProductId && (
-            <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full z-[60]">
-              <ReviewSystem productId={currentProductId} />
+          {/* Global Discovery Manifest: Persistent across all viewports (excluding Admin) */}
+          {!isAdmin && (
+            <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full z-[60] flex items-center gap-1">
+              <ReviewSystem productId={currentProductId || 'global'} />
+              {!user && (
+                <div className="flex bg-black text-white shadow-2xl border border-white/10 h-7">
+                  <button 
+                    onClick={() => setIsAuthOpen(true)}
+                    className="px-2.5 h-full text-[7px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors border-r border-white/10"
+                  >
+                    Sign In
+                  </button>
+                  <button 
+                    onClick={() => setIsAuthOpen(true)}
+                    className="px-2.5 h-full text-[7px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

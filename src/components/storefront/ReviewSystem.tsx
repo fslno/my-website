@@ -30,7 +30,7 @@ interface ReviewSystemProps {
 
 /**
  * Product Review and Rating system.
- * Authoritatively updated to respect the Announcement Bar positioning.
+ * High-fidelity rectangular geometry protocol with persistent manifestation.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -63,10 +63,13 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
 
   const productReviews = useMemo(() => {
     if (!allReviews || !productId) return [];
+    // Handle 'global' identifier for non-product specific persistent view
+    if (productId === 'global') return allReviews.filter(r => r.published === true);
     return allReviews.filter(r => r.productId === productId && r.published === true);
   }, [allReviews, productId]);
 
   const stats = useMemo(() => {
+    // Authoritative Baseline Manifest: Start from 1 review and 5 stars if empty
     if (productReviews.length === 0) return { avg: 5, count: 1 };
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
@@ -142,19 +145,19 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <div className="inline-block cursor-pointer group">
-          <div className="bg-black text-white py-2 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-3 border border-white/10">
+          <div className="bg-black text-white py-1 px-2.5 rounded-none shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/10 h-7">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 
                   key={s} 
                   className={cn(
-                    "h-3 w-3 transition-all duration-500", 
+                    "h-2.5 w-2.5 transition-all duration-500", 
                     s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
                   )} 
                 />
               ))}
             </div>
-            <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
+            <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
               BASED ON {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
             </p>
           </div>
@@ -175,7 +178,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                 <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Customer Reviews</SheetTitle>
               </div>
               <SheetDescription className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
-                See what others say about this piece.
+                {productId === 'global' ? 'See what others say about the studio.' : 'See what others say about this piece.'}
               </SheetDescription>
             </div>
           </div>
@@ -183,83 +186,85 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
 
         <ScrollArea className="flex-1">
           <div className="p-8 space-y-16">
-            <section className="space-y-8">
-              <div className="flex items-center gap-2 border-b pb-4">
-                <Plus className="h-4 w-4 text-primary" />
-                <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Write a Review</h3>
-              </div>
+            {productId !== 'global' && (
+              <section className="space-y-8">
+                <div className="flex items-center gap-2 border-b pb-4">
+                  <Plus className="h-4 w-4 text-primary" />
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Write a Review</h3>
+                </div>
 
-              {user ? (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-4">
-                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Rating</Label>
-                    <div className="flex gap-3">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => setRating(s)}
-                          className="transition-transform active:scale-90"
-                        >
-                          <Star className={cn(
-                            "h-7 w-7 transition-all duration-300",
-                            s <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-100"
-                          )} />
-                        </button>
-                      ))}
+                {user ? (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-4">
+                      <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Rating</Label>
+                      <div className="flex gap-3">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setRating(s)}
+                            className="transition-transform active:scale-90"
+                          >
+                            <Star className={cn(
+                              "h-7 w-7 transition-all duration-300",
+                              s <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-100"
+                            )} />
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Review</Label>
-                    <Textarea 
-                      required 
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      placeholder="TELL US WHAT YOU THINK..."
-                      className="min-h-[120px] bg-gray-50 text-sm rounded-none border-none resize-none font-medium uppercase p-4"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Review</Label>
+                      <Textarea 
+                        required 
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="TELL US WHAT YOU THINK..."
+                        className="min-h-[120px] bg-gray-50 text-sm rounded-none border-none resize-none font-medium uppercase p-4"
+                      />
+                    </div>
 
-                  <div className="space-y-4">
-                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Add a Photo</Label>
-                    <div className="flex items-center gap-4">
-                      <div 
-                        onClick={() => document.getElementById('review-image-drawer')?.click()}
-                        className="w-24 h-24 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-2 bg-gray-50 cursor-pointer hover:border-black transition-all group"
-                      >
-                        {imagePreview ? (
-                          <div className="relative w-full h-full">
-                            <Image src={imagePreview} alt="Preview" fill className="object-cover" />
-                          </div>
-                        ) : (
-                          <>
-                            <Camera className="h-5 w-5 text-gray-300 group-hover:text-black transition-colors" />
-                            <span className="text-[8px] font-bold uppercase text-gray-400">Upload</span>
-                          </>
+                    <div className="space-y-4">
+                      <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Add a Photo</Label>
+                      <div className="flex items-center gap-4">
+                        <div 
+                          onClick={() => document.getElementById('review-image-drawer')?.click()}
+                          className="w-24 h-24 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-2 bg-gray-50 cursor-pointer hover:border-black transition-all group"
+                        >
+                          {imagePreview ? (
+                            <div className="relative w-full h-full">
+                              <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <>
+                              <Camera className="h-5 w-5 text-gray-300 group-hover:text-black transition-colors" />
+                              <span className="text-[8px] font-bold uppercase text-gray-400">Upload</span>
+                            </>
+                          )}
+                        </div>
+                        <input id="review-image-drawer" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                        {imagePreview && (
+                          <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="text-[9px] font-bold text-red-500 uppercase underline">Clear</button>
                         )}
                       </div>
-                      <input id="review-image-drawer" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                      {imagePreview && (
-                        <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="text-[9px] font-bold text-red-500 uppercase underline">Clear</button>
-                      )}
                     </div>
-                  </div>
 
-                  <Button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
-                  >
-                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Review"}
-                  </Button>
-                </form>
-              ) : (
-                <div className="p-8 text-center border-2 border-dashed rounded-none bg-gray-50/50">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Please sign in to write a review.</p>
-                </div>
-              )}
-            </section>
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
+                    >
+                      {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Review"}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="p-8 text-center border-2 border-dashed rounded-none bg-gray-50/50">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Please sign in to write a review.</p>
+                  </div>
+                )}
+              </section>
+            )}
 
             <section className="space-y-8">
               <div className="flex items-center justify-between border-b pb-4">
