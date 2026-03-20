@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, useMemo, use, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  useUser, 
   useFirestore, 
   useDoc, 
   useMemoFirebase,
   useCollection
 } from '@/firebase';
-import { doc, collection, query, orderBy, where } from 'firebase/firestore';
+import { doc, collection, query, where } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,8 +21,6 @@ import {
   Share2, 
   Ruler, 
   ChevronLeft,
-  Loader2,
-  Star,
   AlertCircle,
   Sparkles,
   Info
@@ -64,17 +61,11 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-/**
- * Authoritative Product Detail Page.
- * Orchestrates archival silhouettes with zero-latency skeleton transitions.
- * Button now forensicly follows inventory limits from the administrative manifest.
- */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
   const { productId } = resolvedParams;
   
   const db = useFirestore();
-  const router = useRouter();
   const { cart, addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
@@ -98,7 +89,22 @@ export default function ProductDetailPage(props: PageProps) {
   const [customName, setCustomName] = useState('');
   const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
+  
+  // Carousel State for Dots
   const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
 
   // Inventory logic
   const selectedVariant = useMemo(() => {
@@ -223,16 +229,31 @@ export default function ProductDetailPage(props: PageProps) {
                 )}
               </CarouselContent>
             </Carousel>
+            
+            {/* Dots Navigation */}
+            {count > 1 && (
+              <div className="flex justify-center gap-2 mt-4">
+                {Array.from({ length: count }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => api?.scrollTo(i)}
+                    className={cn(
+                      "w-2 h-2 rounded-full transition-all duration-300",
+                      current === i + 1 ? "bg-black w-4" : "bg-gray-300"
+                    )}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* CONTENT SECTION */}
-          <div className="py-6 lg:py-0 w-full space-y-6 content-load-fade">
+          <div className="py-6 lg:py-0 w-full space-y-6">
             <div className="space-y-4">
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
-                <div className="flex items-center">
-                  <ReviewSystem productId={product.id} />
-                </div>
+                <ReviewSystem productId={product.id} />
               </div>
               
               <div className="space-y-2">

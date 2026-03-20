@@ -8,21 +8,9 @@ import {
   Menu, 
   Search, 
   X, 
-  Trash2, 
-  ArrowRight, 
   Heart, 
-  Zap, 
-  Loader2, 
-  Sparkles, 
-  MessageSquare,
-  ChevronDown,
-  TicketPercent,
-  Settings,
   User as UserIcon,
-  LogOut,
-  Package,
-  Edit2,
-  ChevronLeft
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -34,28 +22,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, useAuth } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { AuthDialog } from '@/components/storefront/AuthDialog';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
 
-/**
- * Authoritative Studio Header.
- * Forensicly reduced by 20% for viewport optimization.
- * Now features an integrated Review Discovery Protocol and Search manifest.
- */
 export function Header() {
   const [mounted, setMounted] = useState(false);
-  const { cart, cartCount, cartSubtotal, removeFromCart, updateCartItem } = useCart();
+  const { cart, cartCount, cartSubtotal, removeFromCart } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
   const { user } = useUser();
   const auth = useAuth();
@@ -89,7 +69,7 @@ export function Header() {
     if (pathname?.startsWith('/products/')) {
       return pathname.split('/products/')[1];
     }
-    return 'GiIn4hVnLg3upP2BDrDM'; // Authoritative Global Fallback ID
+    return 'GiIn4hVnLg3upP2BDrDM'; 
   }, [pathname]);
 
   const filteredProducts = useMemo(() => {
@@ -129,10 +109,10 @@ export function Header() {
     <>
       {theme?.bannerEnabled && (
         <div 
-          className="fixed top-0 left-0 right-0 z-[60] h-7 sm:h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center banner-style"
-          style={{ backgroundColor: theme.bannerBgColor || 'var(--primary)' }}
+          className="fixed top-0 left-0 right-0 z-[60] h-7 sm:h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center"
+          style={{ backgroundColor: theme.bannerBgColor || '#000000' }}
         >
-          {theme.bannerText}
+          <span className="text-[7px] sm:text-[10px]">{theme.bannerText}</span>
         </div>
       )}
       <header
@@ -200,7 +180,7 @@ export function Header() {
                       <div className="divide-y">
                         {filteredProducts.map((p: any) => (
                           <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
-                            <div className="w-12 h-12 relative bg-gray-100 border">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill className="object-cover" />}</div>
+                            <div className="w-12 h-12 relative bg-gray-100 border shrink-0">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill className="object-cover" />}</div>
                             <div className="flex flex-col justify-center overflow-hidden">
                               <h3 className="text-[10px] font-bold uppercase truncate">{p.name}</h3>
                               <p className="text-[9px] font-bold text-gray-400">C${Number(p.price).toFixed(2)}</p>
@@ -234,13 +214,7 @@ export function Header() {
                     {wishlistCount > 0 && <span className="absolute top-1.5 right-1.5 bg-black text-white text-[8px] w-3 h-3 rounded-full flex items-center justify-center">{wishlistCount}</span>}
                   </Button>
                 </SheetTrigger>
-                <SheetContent 
-                  className={cn(
-                    "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0',
-                    "h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]"
-                  )}
-                >
+                <SheetContent className="w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl h-full">
                   <SheetHeader className="p-8 border-b"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {wishlist.length === 0 ? (
@@ -252,7 +226,7 @@ export function Header() {
                       <div className="space-y-6">
                         {wishlist.map((item) => (
                           <div key={item.id} className="flex gap-4">
-                            <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-20 relative bg-gray-50 border">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
+                            <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-20 relative bg-gray-50 border shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div>
                                 <h3 className="text-[10px] font-bold uppercase leading-tight">{item.name}</h3>
@@ -275,13 +249,7 @@ export function Header() {
                     {cartCount > 0 && <span className="absolute top-1.5 right-1.5 bg-black text-white text-[8px] w-3 h-3 rounded-full flex items-center justify-center">{cartCount}</span>}
                   </Button>
                 </SheetTrigger>
-                <SheetContent 
-                  className={cn(
-                    "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0',
-                    "h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]"
-                  )}
-                >
+                <SheetContent className="w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl h-full">
                   <SheetHeader className="p-8 border-b"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Bag ({cartCount})</SheetTitle></SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {cart.length === 0 ? (
@@ -327,12 +295,12 @@ export function Header() {
                     )}
                   </ScrollArea>
                   {cart.length > 0 && (
-                    <SheetFooter className="p-8 border-t bg-gray-50 flex flex-col gap-4">
+                    <SheetFooter className="p-4 border-t bg-gray-50 flex flex-col gap-4">
                       <div className="flex justify-between items-end">
                         <span className="text-[10px] font-bold uppercase text-gray-400">Subtotal</span>
-                        <span className="text-lg font-bold">C${formatCurrency(cartSubtotal)}</span>
+                        <span className="text-sm font-bold">C${formatCurrency(cartSubtotal)}</span>
                       </div>
-                      <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
+                      <Button asChild className="w-full h-11 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
                         <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout</Link>
                       </Button>
                     </SheetFooter>
