@@ -67,7 +67,7 @@ interface PageProps {
 /**
  * Authoritative Product Detail Page.
  * Orchestrates archival silhouettes with zero-latency skeleton transitions.
- * Back button recalibrated to return to the hero banner (Link to "/").
+ * Button now forensicly follows inventory limits from the administrative manifest.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -75,7 +75,7 @@ export default function ProductDetailPage(props: PageProps) {
   
   const db = useFirestore();
   const router = useRouter();
-  const { addToCart } = useCart();
+  const { cart, addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
 
@@ -100,6 +100,29 @@ export default function ProductDetailPage(props: PageProps) {
   const [specialRequest, setSpecialRequest] = useState('');
   const [api, setApi] = useState<CarouselApi>();
 
+  // Inventory logic
+  const selectedVariant = useMemo(() => {
+    return product?.variants?.find((v: any) => v.size === selectedSize);
+  }, [product, selectedSize]);
+
+  const cartItemCount = useMemo(() => {
+    if (!product || !selectedSize) return 0;
+    return cart.filter(item => item.id === product.id && item.size === selectedSize)
+               .reduce((acc, item) => acc + item.quantity, 0);
+  }, [cart, product, selectedSize]);
+
+  const isOutOfStock = selectedVariant && Number(selectedVariant.stock) <= 0;
+  const hasReachedLimit = selectedVariant && cartItemCount >= Number(selectedVariant.stock);
+
+  const buttonText = useMemo(() => {
+    if (!selectedSize) return 'Select Size';
+    if (isOutOfStock) return 'Out of Stock';
+    if (hasReachedLimit) return 'Reached Limit';
+    return 'Add to Bag';
+  }, [selectedSize, isOutOfStock, hasReachedLimit]);
+
+  const isButtonDisabled = !selectedSize || isOutOfStock || hasReachedLimit;
+
   const media = product?.media || [];
   const hasDiscount = product && (Number(product.comparedPrice) || 0) > (Number(product.price) || 0);
   const discountPercent = hasDiscount ? Math.round(((Number(product.comparedPrice) - Number(product.price)) / Number(product.comparedPrice)) * 100) : 0;
@@ -112,7 +135,7 @@ export default function ProductDetailPage(props: PageProps) {
   })();
 
   const handleAddToCart = () => {
-    if (!product || !selectedSize) return;
+    if (!product || !selectedSize || hasReachedLimit) return;
 
     const uniqueVariantId = wantsCustomization 
       ? `${product.id}-${selectedSize}-${customName}-${customNumber}-${specialRequest.substring(0, 10)}`
@@ -308,10 +331,10 @@ export default function ProductDetailPage(props: PageProps) {
             <div className="space-y-3 pt-6 border-t">
               <Button 
                 onClick={handleAddToCart} 
-                disabled={!selectedSize}
+                disabled={isButtonDisabled}
                 className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
               >
-                {selectedSize ? 'Add to Bag' : 'Select Size'}
+                {buttonText}
               </Button>
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" onClick={() => toggleWishlist({ id: product.id, name: product.name, price: Number(product.price), image: product.media?.[0]?.url || '' })} className={cn("h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2", isInWishlist(product.id) && "bg-red-50 border-red-100 text-red-600")}>

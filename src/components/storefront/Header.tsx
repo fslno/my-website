@@ -177,13 +177,11 @@ export function Header() {
             </Link>
           </div>
 
-          {/* ATTACHED REVIEW PROTOCOL - CENTER POSITIONED */}
           <div className="hidden lg:flex flex-1 justify-center px-4">
             <ReviewSystem productId={activeProductId} />
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Search Protocol */}
             <div className="relative flex items-center" ref={searchRef}>
               <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <Input 
@@ -229,7 +227,6 @@ export function Header() {
                 ) : <UserIcon className="h-4 w-4" />}
               </Button>
 
-              {/* WISHLIST MANIFEST */}
               <Sheet open={isWishlistOpen} onOpenChange={setIsWishlistOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative h-9 w-9">
@@ -299,9 +296,14 @@ export function Header() {
                             <div className="w-20 h-20 relative bg-gray-50 border shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</div>
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div>
-                                <h3 className="text-[10px] font-bold uppercase leading-tight">{item.name}</h3>
-                                <p className="text-[10px] font-bold mt-1">C${formatCurrency(item.price * item.quantity)}</p>
-                                <p className="text-[8px] font-bold text-gray-400 mt-1 uppercase">Size: {item.size}</p>
+                                <div className="flex justify-between items-start gap-2">
+                                  <h3 className="text-[10px] font-bold uppercase leading-tight truncate max-w-[180px]">{item.name}</h3>
+                                  <p className="text-[10px] font-bold whitespace-nowrap">C${formatCurrency(item.price * item.quantity)}</p>
+                                </div>
+                                <div className="flex items-center gap-3 mt-1.5">
+                                  <p className="text-[8px] font-bold text-gray-400 uppercase">Size: {item.size}</p>
+                                  <p className="text-[8px] font-bold text-primary uppercase">Qty: {item.quantity}</p>
+                                </div>
                                 
                                 {/* Customization Manifest */}
                                 {(item.customName || item.customNumber || item.specialNote) && (
