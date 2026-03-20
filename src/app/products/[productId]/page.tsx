@@ -223,7 +223,7 @@ export default function ProductDetailPage(props: PageProps) {
                     key={idx} 
                     onClick={() => api?.scrollTo(idx)}
                     className={cn(
-                      "relative aspect-[3/4] bg-white border rounded-sm overflow-hidden transition-all",
+                      "relative aspect-square bg-white border rounded-sm overflow-hidden transition-all",
                       current === idx + 1 ? "border-black ring-1 ring-black scale-105" : "border-gray-100 opacity-60 hover:opacity-100"
                     )}
                   >
@@ -381,7 +381,7 @@ export default function ProductDetailPage(props: PageProps) {
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", !wantsCustomization ? "bg-black text-white" : "bg-white")}>No</button>
-                    <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
+                    <button onClick={() => wantsCustomization === true ? null : setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
                   </div>
                 </div>
                 {wantsCustomization && (
