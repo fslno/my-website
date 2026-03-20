@@ -15,17 +15,11 @@ import Autoplay from "embla-carousel-autoplay";
 import { getLivePath } from '@/lib/deployment';
 
 /**
- * Enhanced Archival Testimonial Section.
- * Manifests featured customer feedback with high-fidelity, enlarged avatars.
- * Utilizes Zero-Error Query Protocol to avoid index/permission exceptions.
- * Features an automatic horizontal slider for high-fidelity mobile and desktop consistency.
- * 
- * Height reduced by 20% for forensic UI optimization.
+ * Customer testimonial section.
  */
 export function TestimonialSection() {
   const db = useFirestore();
 
-  // Authoritative Query: Simple manifest to avoid index/permission exceptions.
   const testimonialsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, getLivePath('testimonials')), orderBy('createdAt', 'desc'));
@@ -33,10 +27,8 @@ export function TestimonialSection() {
 
   const { data: allTestimonials, isLoading } = useCollection(testimonialsQuery);
 
-  // Authoritative Client-Side Filtration for zero-error manifest.
   const testimonials = useMemo(() => {
     if (!allTestimonials) return [];
-    // Increase pool size slightly for a better looping experience
     return allTestimonials.filter(t => t.isFeatured === true).slice(0, 9);
   }, [allTestimonials]);
 
@@ -57,7 +49,7 @@ export function TestimonialSection() {
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="text-center mb-16 space-y-3">
           <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">Feedback</span>
-          <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tighter">Verified Studio Experiences</h2>
+          <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tighter">What Our Customers Say</h2>
         </div>
 
         <Carousel

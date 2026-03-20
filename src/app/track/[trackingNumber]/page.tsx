@@ -10,6 +10,9 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+/**
+ * Track Your Order page.
+ */
 export default function TrackingPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
   const { trackingNumber } = resolvedParams;
@@ -21,7 +24,7 @@ export default function TrackingPage(props: PageProps) {
           <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto shadow-xl">
             <Truck className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Shipment Tracing</h1>
+          <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Track Your Order</h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">ID: {trackingNumber.toUpperCase()}</p>
         </div>
 
@@ -31,14 +34,14 @@ export default function TrackingPage(props: PageProps) {
             <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0"><Package className="h-5 w-5 text-blue-600" /></div>
             <div className="space-y-1">
               <h2 className="text-sm font-bold uppercase tracking-widest text-primary">In Transit</h2>
-              <p className="text-[10px] text-muted-foreground uppercase leading-relaxed font-medium">Your selection has been dispatched from the studio.</p>
+              <p className="text-[10px] text-muted-foreground uppercase leading-relaxed font-medium">Your order has been shipped and is on its way.</p>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button asChild className="flex-1 bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none"><Link href="/">Return</Link></Button>
-          <Button asChild variant="outline" className="flex-1 border-black h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none"><Link href="/account/orders">Orders</Link></Button>
+          <Button asChild className="flex-1 bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none"><Link href="/">Back to Home</Link></Button>
+          <Button asChild variant="outline" className="flex-1 border-black h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none"><Link href="/account/orders">My Orders</Link></Button>
         </div>
       </div>
     </div>

@@ -75,7 +75,7 @@ export function Header() {
     ).slice(0, 6) || [];
   }, [allProducts, searchQuery]);
 
-  // Product Discovery Protocol: Detect current product ID from route
+  // Detected current product ID from route for review pill
   const currentProductId = useMemo(() => {
     const match = pathname?.match(/\/products\/([^/]+)/);
     return match ? match[1] : null;
@@ -96,9 +96,9 @@ export function Header() {
     if (!auth) return;
     try {
       await auth.signOut();
-      toast({ title: "Signed out", description: "Session closed." });
+      toast({ title: "Signed out", description: "You have been signed out." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: "Logout failed." });
+      toast({ variant: "destructive", title: "Error", description: "Sign out failed." });
     }
   };
 
@@ -133,7 +133,7 @@ export function Header() {
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">
-                    {!storeLoading && (storeConfig?.businessName || "STUDIO")}
+                    {!storeLoading && (storeConfig?.businessName || "HOME")}
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-8">
@@ -189,7 +189,7 @@ export function Header() {
                 </div>
               )}
               <h1 className="text-lg sm:text-2xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
-                {!storeLoading && (storeConfig?.businessName || "STUDIO")}
+                {!storeLoading && (storeConfig?.businessName || "HOME")}
               </h1>
             </Link>
           </div>
@@ -208,7 +208,7 @@ export function Header() {
                 <div className="absolute top-full right-0 mt-2 w-[280px] md:w-[400px] bg-white border shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
                   <ScrollArea className="max-h-[50vh]">
                     {filteredProducts.length === 0 ? (
-                      <div className="p-8 text-center text-[10px] font-bold text-gray-400">No matches.</div>
+                      <div className="p-8 text-center text-[10px] font-bold text-gray-400">No products found.</div>
                     ) : (
                       <div className="divide-y">
                         {filteredProducts.map((p: any) => (
@@ -233,7 +233,7 @@ export function Header() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><UserIcon className="h-4 w-4" /></DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 rounded-none">
-                      <DropdownMenuItem asChild><Link href="/account/orders" className="text-[10px] font-bold uppercase tracking-widest">Orders</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link href="/account/orders" className="text-[10px] font-bold uppercase tracking-widest">My Orders</Link></DropdownMenuItem>
                       <DropdownMenuItem onClick={handleLogout} className="text-[10px] font-bold uppercase tracking-widest text-destructive">Sign Out</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -258,7 +258,7 @@ export function Header() {
                     {wishlist.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
                         <Heart className="h-10 w-10 text-gray-200" />
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Wishlist is empty.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Your wishlist is empty.</p>
                       </div>
                     ) : (
                       <div className="space-y-6">
@@ -293,12 +293,12 @@ export function Header() {
                     theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
                   )}
                 >
-                  <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Bag ({cartCount})</SheetTitle></SheetHeader>
+                  <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Cart ({cartCount})</SheetTitle></SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {cart.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
                         <ShoppingBag className="h-10 w-10 text-gray-200" />
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Bag is empty.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Your cart is empty.</p>
                       </div>
                     ) : (
                       <div className="space-y-6">
@@ -352,7 +352,7 @@ export function Header() {
             </div>
           </div>
 
-          {/* AUTHORITATIVE REVIEW PILL POSITIONING: Center attached to header bottom border from outside */}
+          {/* Center attached review pill discovery point */}
           {currentProductId && (
             <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full z-[60]">
               <ReviewSystem productId={currentProductId} />

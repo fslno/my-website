@@ -27,16 +27,14 @@ interface BentoHeroProps {
 }
 
 /**
- * Authoritative Bento Hero Manifest.
- * Standardized height (48vh) - Forensicly recalibrated based on a 50% increase from the previous 32vh protocol.
- * Fixed hydration mismatch by ensuring skeleton and content heights match exactly.
+ * Main Hero section for the home page.
  */
 export function BentoHero({ 
   isLoading, 
   heroImages = [], 
-  headline = 'The Collection', 
-  subheadline = 'Modern Silhouettes',
-  buttonText = 'Shop the Drops',
+  headline = 'Our Collection', 
+  subheadline = 'Modern Styles',
+  buttonText = 'Shop Now',
   fallbackImageUrl,
   textAlign = 'center',
   verticalAlign = 'center'
@@ -52,7 +50,6 @@ export function BentoHero({
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  // Authoritative Height Guard: Ensuring skeleton matches the final render height exactly
   if (isLoading || !mounted) {
     return (
       <section className="pt-[76px] sm:pt-[104px]">

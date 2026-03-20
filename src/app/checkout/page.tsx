@@ -205,7 +205,7 @@ export default function CheckoutPage() {
       if (couponDoc.exists()) {
         const data = couponDoc.data() as Coupon;
         if (data.active) { applyCoupon(data); toast({ title: "Applied", description: `Discount verified.` }); setCouponInput(''); }
-        else toast({ variant: "destructive", title: "Error", description: "Code inactive." });
+        else toast({ variant: "destructive", title: "Error", description: "Code is not active." });
       } else toast({ variant: "destructive", title: "Error", description: "Invalid code." });
     } catch (e) { toast({ variant: "destructive", title: "Error", description: "Verification failed." }); }
     finally { setIsValidatingCoupon(false); }
@@ -234,27 +234,27 @@ export default function CheckoutPage() {
         className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
       >
         <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-        Back to Previous
+        Back
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-12">
           <section className="space-y-6">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">01. Delivery</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">01. Shipping Method</h2>
             <div className="grid grid-cols-2 gap-4">
               <button onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }} className={cn("p-4 border-2 text-left flex flex-col gap-3 transition-all duration-300", deliveryMethod === 'shipping' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}>
                 <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")} />
-                <div><p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")}>Shipping</p><p className="text-[10px] text-muted-foreground mt-1">Deliver to address</p></div>
+                <div><p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")}>Shipping</p><p className="text-[10px] text-muted-foreground mt-1">Deliver to my address</p></div>
               </button>
               <button onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); setErrors({}); }} className={cn("p-4 border-2 text-left flex flex-col gap-3 transition-all duration-300", deliveryMethod === 'pickup' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}>
                 <Store className={cn("h-6 w-6", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")} />
-                <div><p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")}>Pickup</p><p className="text-[10px] text-muted-foreground mt-1">Pick up in-person</p></div>
+                <div><p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")}>Pickup</p><p className="text-[10px] text-muted-foreground mt-1">Pick up in store</p></div>
               </button>
             </div>
           </section>
           
           <section className="space-y-8 bg-white p-8 border shadow-sm rounded-none">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Details</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Your Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2"><Label htmlFor="email" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email</Label><Input id="email" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} /></div>
               <div className="space-y-2"><Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone</Label><Input id="tel" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} /></div>
@@ -317,7 +317,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-6 pt-10 border-t">
-                  <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Pickup Schedule</h3>
+                  <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Pickup Time</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupDate ? "text-destructive" : "")}>Date</Label><Input type="date" className="h-12 rounded-none" value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div>
                     <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupTime ? "text-destructive" : "")}>Time</Label><Input type="time" className="h-12 rounded-none" value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div>
@@ -329,7 +329,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="lg:col-span-5 bg-white border-l p-6 space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4 text-primary">Summary ({cartCount})</h2>
+          <h2 className="text-sm font-bold uppercase tracking-[0.2em] border-b pb-4 text-primary">Order Summary ({cartCount})</h2>
           <div className="space-y-4">
             {cart.map((item) => (
               <div key={item.variantId} className="flex gap-4">
@@ -351,9 +351,9 @@ export default function CheckoutPage() {
           </div>
 
           <div className="space-y-3 pt-4 border-t">
-            <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Search className="h-3.5 w-3.5" /> Discovery Protocol</h3>
+            <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Search className="h-3.5 w-3.5" /> How did you find us?</h3>
             <div className="space-y-2">
-              <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>How did you hear about us?</Label>
+              <Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>Select an option</Label>
               <Select value={formData.referral} onValueChange={(val) => handleInputChange('referral', val)}>
                 <SelectTrigger className="h-12 bg-gray-50 border-gray-200 uppercase font-bold text-[10px] rounded-none">
                   <SelectValue placeholder="SELECT SOURCE" />
@@ -393,7 +393,7 @@ export default function CheckoutPage() {
           <div className="pt-6 border-t space-y-2">
             <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>Subtotal</span><span className="text-primary">{`C$${formatCurrency(cartSubtotal)}`}</span></div>
             {discountTotal > 0 && (<div className="flex justify-between text-[10px] font-bold uppercase text-destructive"><span>Discount</span><span className="text-destructive">{`-C$${formatCurrency(discountTotal)}`}</span></div>)}
-            <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Pickup'}</span><span className="text-primary">{isShippingReady ? (shippingRate > 0 ? `C$${formatCurrency(shippingRate)}` : 'FREE') : '--'}</span></div>
+            <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>{deliveryMethod === 'shipping' ? 'Shipping' : 'Store Pickup'}</span><span className="text-primary">{isShippingReady ? (shippingRate > 0 ? `C$${formatCurrency(shippingRate)}` : 'FREE') : '--'}</span></div>
             <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground"><span>Tax</span><span className="text-primary">{isTaxReady ? `C$${formatCurrency(calculatedTax)}` : '--'}</span></div>
             <Separator />
             <div className="flex justify-between items-end pt-2"><span className="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">Total</span><p className="text-2xl font-bold font-headline tracking-tighter text-primary">{isSummaryReady ? `C$${formatCurrency(finalTotal)}` : '--'}</p></div>
@@ -408,7 +408,7 @@ export default function CheckoutPage() {
 
             <div className="flex flex-col items-center gap-4 pt-6">
               <div className="flex items-center gap-6 grayscale opacity-40"><ShieldCheck className="h-5 w-5" /><div className="h-4 w-px bg-gray-200" /><div className="flex items-center gap-2"><div className="w-8 h-5 bg-gray-200 rounded-sm" /><div className="w-8 h-5 bg-gray-200 rounded-sm" /><div className="w-8 h-5 bg-gray-200 rounded-sm" /></div></div>
-              <p className="text-[8px] text-center text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">Forensic Transaction Protocol Active.<br />Secure 256-bit Archival Encryption.</p>
+              <p className="text-[8px] text-center text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">Secure Payment Active.<br />Your data is safe and encrypted.</p>
             </div>
           </div>
         </div>
@@ -417,9 +417,9 @@ export default function CheckoutPage() {
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-12 text-center shadow-2xl">
           <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8"><CheckCircle2 className="h-10 w-10 text-emerald-600" /></div>
-          <DialogHeader className="space-y-4"><DialogTitle className="text-3xl font-headline font-bold uppercase tracking-tight text-primary text-center">Order Confirmed</DialogTitle><p className="text-sm text-muted-foreground uppercase tracking-[0.2em] font-medium">Transaction ID: #{confirmedOrder?.id?.substring(0, 8).toUpperCase()}</p></DialogHeader>
-          <div className="py-10 space-y-6"><div className="p-6 bg-gray-50 border rounded-none text-left space-y-4"><p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Logistics Manifest</p><div className="space-y-2"><p className="text-xs font-bold uppercase">Recipient: {confirmedOrder?.customer?.name}</p><p className="text-xs font-bold uppercase">Destination: {confirmedOrder?.deliveryMethod}</p></div></div><p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">A forensic confirmation manifest has been dispatched to {confirmedOrder?.email}.</p></div>
-          <Button asChild className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[11px] rounded-none shadow-xl"><Link href="/">Return to Studio</Link></Button>
+          <DialogHeader className="space-y-4"><DialogTitle className="text-3xl font-headline font-bold uppercase tracking-tight text-primary text-center">Order Confirmed</DialogTitle><p className="text-sm text-muted-foreground uppercase tracking-[0.2em] font-medium">Order ID: #{confirmedOrder?.id?.substring(0, 8).toUpperCase()}</p></DialogHeader>
+          <div className="py-10 space-y-6"><div className="p-6 bg-gray-50 border rounded-none text-left space-y-4"><p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Order Details</p><div className="space-y-2"><p className="text-xs font-bold uppercase">Recipient: {confirmedOrder?.customer?.name}</p><p className="text-xs font-bold uppercase">Method: {confirmedOrder?.deliveryMethod}</p></div></div><p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-relaxed">A confirmation email has been sent to {confirmedOrder?.email}.</p></div>
+          <Button asChild className="w-full h-16 bg-black text-white font-bold uppercase tracking-[0.3em] text-[11px] rounded-none shadow-xl"><Link href="/">Back to Home</Link></Button>
         </DialogContent>
       </Dialog>
     </div>

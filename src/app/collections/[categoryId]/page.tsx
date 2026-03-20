@@ -44,7 +44,10 @@ export default function CollectionPage(props: PageProps) {
 
   const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
 
-  const reviewsQuery = useMemoFirebase(() => db ? collection(db, 'reviews') : null, [db]);
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, 'reviews');
+  }, [db]);
   const { data: allReviews } = useCollection(reviewsQuery);
 
   const productRatings = useMemo(() => {
@@ -69,12 +72,12 @@ export default function CollectionPage(props: PageProps) {
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col gap-6">
             <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors w-fit">
-              <ChevronLeft className="h-3 w-3" /> Studio
+              <ChevronLeft className="h-3 w-3" /> Home
             </Link>
             <div className="space-y-3">
-              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Studio Selection</span>
+              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Collection</span>
               <h1 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">
-                {categoryId === 'all' ? 'All Studio Drops' : (category?.name || 'Collection')}
+                {categoryId === 'all' ? 'All Products' : (category?.name || 'Collection')}
               </h1>
             </div>
           </div>
@@ -85,12 +88,12 @@ export default function CollectionPage(props: PageProps) {
         <div className="max-w-[1440px] mx-auto px-4">
           {!products || products.length === 0 ? (
             <div className="text-center py-32 border-2 border-dashed rounded-none bg-gray-50/50">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Empty manifest.</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No products found in this category.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
               {products.map((product: any) => {
-                const productCategory = category?.name || allCategories?.find(c => c.id === product.categoryId)?.name || 'Archive';
+                const productCategory = category?.name || allCategories?.find(c => c.id === product.categoryId)?.name || 'Product';
                 const ratingInfo = productRatings[product.id];
                 return (
                   <ProductCard 

@@ -6,8 +6,7 @@ import { ArrowRight, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 /**
- * Authoritative Not Found Manifest.
- * Maintains the brand narrative when a participant encounters an unknown route.
+ * Page Not Found component.
  */
 export default function NotFound() {
   return (
@@ -20,18 +19,18 @@ export default function NotFound() {
       </div>
       
       <div className="space-y-3">
-        <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Coordinates Not Found</h1>
+        <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Page Not Found</h1>
         <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground max-w-xs mx-auto leading-relaxed">
-          The requested archival segment does not exist in the current studio manifest.
+          The page you are looking for does not exist in our shop.
         </p>
       </div>
 
       <div className="flex flex-col gap-4 w-full max-w-xs mx-auto pt-8">
         <Button asChild className="bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none shadow-xl">
-          <Link href="/">Back to Studio</Link>
+          <Link href="/">Back to Home</Link>
         </Button>
         <Button asChild variant="ghost" className="h-12 font-bold uppercase tracking-widest text-[9px]">
-          <Link href="/collections/all" className="flex items-center gap-2">Explore All Drops <ArrowRight className="h-3.5 w-3.5" /></Link>
+          <Link href="/collections/all" className="flex items-center gap-2">View All Products <ArrowRight className="h-3.5 w-3.5" /></Link>
         </Button>
       </div>
     </div>

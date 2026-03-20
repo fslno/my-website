@@ -10,10 +10,7 @@ import { getLivePath } from '@/lib/deployment';
 import { cn } from '@/lib/utils';
 
 /**
- * Authoritative Category Selection segment.
- * Manifests ALL archival collections from the admin manifest in a high-density 1:1 grid.
- * Titles are positioned forensicly below the cards for maximal readability.
- * Gaps reduced for high-velocity mobile interaction.
+ * Category section display.
  */
 export function CategorySection() {
   const db = useFirestore();
@@ -56,10 +53,10 @@ export function CategorySection() {
             theme?.categoryTextAlign === 'right' ? 'ml-auto' : ''
           )}>
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">
-              {theme?.categorySectionSubtitle || 'The Collections'}
+              {theme?.categorySectionSubtitle || 'Browse Collections'}
             </span>
             <h2 className="font-headline font-bold uppercase tracking-tight category-title-size category-title-color">
-              {theme?.categorySectionTitle || 'Shop by Categories'}
+              {theme?.categorySectionTitle || 'Shop by Category'}
             </h2>
           </div>
         </div>

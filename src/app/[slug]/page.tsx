@@ -10,34 +10,33 @@ interface PageProps {
 
 const POLICY_DATA: Record<string, string[]> = {
   'shipping': [
-    'GLOBAL LOGISTICS MANIFEST',
-    'PROCESSING DURATION: 2-4 DAYS',
-    'FLAT RATE DISPATCH ACTIVE',
-    'SIGNATURE REQUIRED UPON RECEIPT'
+    'SHIPPING POLICY',
+    'PROCESSING TIME: 2-4 DAYS',
+    'FLAT RATE SHIPPING ACTIVE',
+    'SIGNATURE MAY BE REQUIRED'
   ],
   'tracking': [
-    'SHIPMENT TRACING PROTOCOL',
-    'INPUT REFERENCE IN PORTAL',
-    'REAL-TIME SYNC COMMENCING',
-    'STATUS: AWAITING CARRIER HANDSHAKE'
+    'TRACK YOUR ORDER',
+    'ENTER YOUR ORDER ID IN THE PORTAL',
+    'REAL-TIME UPDATES AVAILABLE',
+    'STATUS: READY FOR CARRIER'
   ],
   'terms': [
-    'ARCHIVE TERMS OF OPERATION',
-    'ALL TRANSACTIONS ARE FINAL',
-    'INTELLECTUAL PROPERTY PROTECTED',
-    'USER CONSENT IS MANDATORY'
+    'TERMS OF SERVICE',
+    'ALL SALES ARE FINAL',
+    'PROPERTY PROTECTED',
+    'USER CONSENT REQUIRED'
   ],
   'privacy': [
-    'DATA ENCRYPTION PROTOCOL',
-    'ZERO THIRD-PARTY LEAKAGE',
-    'SECURE ARCHIVE STORAGE',
-    'COOKIE CLEARANCE ACTIVE'
+    'PRIVACY POLICY',
+    'SECURE DATA STORAGE',
+    'WE DO NOT SELL YOUR INFO',
+    'COOKIE SETTINGS ACTIVE'
   ]
 };
 
 /**
- * Permanent 4-Line Utility Segment.
- * Forensicly hard-coded to ensure zero-DB latency and visual consistency.
+ * Policy and Utility pages.
  */
 export default function UtilityPolicyPage(props: PageProps) {
   const resolvedParams = React.use(props.params);

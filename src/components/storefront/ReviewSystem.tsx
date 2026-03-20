@@ -28,10 +28,7 @@ interface ReviewSystemProps {
 }
 
 /**
- * Authoritative RatingBadge & Review Protocol.
- * Refactored to manifest as a floating black pill discovery point.
- * Features 5-star rating and tiny bold caps feedback manifest.
- * Baseline recalibrated to start from 1 review and 5 stars for new pieces.
+ * Product Review and Rating component.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -65,7 +62,6 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   }, [allReviews, productId]);
 
   const stats = useMemo(() => {
-    // Authoritative Baseline: Start from 1 review and 5 stars if empty
     if (productReviews.length === 0) return { avg: 5, count: 1 };
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
@@ -98,7 +94,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
       const reviewData = {
         productId,
         userId: user.uid,
-        userName: user.displayName || user.email?.split('@')[0] || 'Studio Participant',
+        userName: user.displayName || user.email?.split('@')[0] || 'Customer',
         rating,
         comment,
         imageUrl,
@@ -109,8 +105,8 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
       await addDoc(collection(db, 'reviews'), reviewData);
 
       toast({
-        title: "Review Transmitted",
-        description: "Your feedback is pending archival moderation.",
+        title: "Review Sent",
+        description: "Your review is waiting for approval.",
       });
 
       setComment('');
@@ -120,8 +116,8 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Submission Failure",
-        description: "Could not sync review.",
+        title: "Submission Error",
+        description: "Could not save your review.",
       });
     } finally {
       setIsSubmitting(false);
@@ -141,7 +137,6 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <div className="inline-block cursor-pointer group">
-          {/* AUTHORITATIVE RATING BADGE MANIFEST: Pill-shaped black background with bold caps discovery */}
           <div className="bg-black text-white py-2 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-3 border border-white/10">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
@@ -167,10 +162,10 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
-                <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Studio Feedback</SheetTitle>
+                <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Customer Reviews</SheetTitle>
               </div>
               <SheetDescription className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
-                Verified participant testimonials for this piece.
+                See what other customers say about this item.
               </SheetDescription>
             </div>
           </div>
@@ -181,13 +176,13 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
             <section className="space-y-8">
               <div className="flex items-center gap-2 border-b pb-4">
                 <Plus className="h-4 w-4 text-primary" />
-                <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Provide Feedback</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Write a Review</h3>
               </div>
 
               {user ? (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-4">
-                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Rating Manifest</Label>
+                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Rating</Label>
                     <div className="flex gap-3">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <button
@@ -206,18 +201,18 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Experience</Label>
+                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Review</Label>
                     <Textarea 
                       required 
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      placeholder="DESCRIBE THE SILHOUETTE..."
+                      placeholder="TELL US WHAT YOU THINK..."
                       className="min-h-[120px] bg-gray-50 text-sm rounded-none border-none resize-none font-medium uppercase p-4"
                     />
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Media Sync</Label>
+                    <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Add a Photo</Label>
                     <div className="flex items-center gap-4">
                       <div 
                         onClick={() => document.getElementById('review-image-drawer')?.click()}
@@ -246,12 +241,12 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                     disabled={isSubmitting}
                     className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
                   >
-                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Transmit Feedback"}
+                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Review"}
                   </Button>
                 </form>
               ) : (
                 <div className="p-8 text-center border-2 border-dashed rounded-none bg-gray-50/50">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Sign in to leave a review.</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Please sign in to write a review.</p>
                 </div>
               )}
             </section>
@@ -260,15 +255,15 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
               <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Verified Feed</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Customer Photos & Reviews</h3>
                 </div>
-                <Badge variant="outline" className="text-[8px] font-bold border-none bg-black text-white px-2 h-5">{productReviews.length} PIECES</Badge>
+                <Badge variant="outline" className="text-[8px] font-bold border-none bg-black text-white px-2 h-5">{productReviews.length} REVIEWS</Badge>
               </div>
               
               {reviewsLoading ? (
                 <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-200" /></div>
               ) : productReviews.length === 0 ? (
-                <div className="py-8 text-center"><p className="text-[10px] font-bold uppercase text-gray-300 tracking-widest italic">No public data for this piece.</p></div>
+                <div className="py-8 text-center"><p className="text-[10px] font-bold uppercase text-gray-300 tracking-widest italic">No reviews for this item yet.</p></div>
               ) : (
                 <div className="space-y-12">
                   {productReviews.map((review) => (
@@ -292,7 +287,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                       <div className="flex gap-6">
                         {review.imageUrl && (
                           <div className="w-20 h-28 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm">
-                            <Image src={review.imageUrl} alt="Reviewer photo" fill className="object-cover" />
+                            <Image src={review.imageUrl} alt="Review photo" fill className="object-cover" />
                           </div>
                         )}
                         <div className="space-y-3 flex-1">

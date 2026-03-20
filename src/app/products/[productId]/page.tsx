@@ -123,7 +123,7 @@ export default function ProductDetailPage(props: PageProps) {
     if (!selectedSize) return 'Select Size';
     if (isOutOfStock) return 'Out of Stock';
     if (hasReachedLimit) return 'Reached Limit';
-    return 'Add to Bag';
+    return 'Add to Cart';
   }, [selectedSize, isOutOfStock, hasReachedLimit]);
 
   const isButtonDisabled = !selectedSize || isOutOfStock || hasReachedLimit;
@@ -166,7 +166,7 @@ export default function ProductDetailPage(props: PageProps) {
     }
 
     addToCart(itemToAdd);
-    toast({ title: "Added to Bag", description: `${product.name} is in your bag.` });
+    toast({ title: "Added to Cart", description: `${product.name} is in your cart.` });
   };
 
   if (loading) {
@@ -196,8 +196,8 @@ export default function ProductDetailPage(props: PageProps) {
     return (
       <main className="min-h-screen pt-32 px-4 text-center bg-background flex flex-col items-center justify-center">
         <AlertCircle className="h-12 w-12 text-gray-200 mb-4" />
-        <h1 className="text-xl font-bold uppercase">Silhouette Missing</h1>
-        <Button asChild variant="link" className="mt-4"><Link href="/">Return to Studio</Link></Button>
+        <h1 className="text-xl font-bold uppercase">Product Not Found</h1>
+        <Button asChild variant="link" className="mt-4"><Link href="/">Back to Shop</Link></Button>
       </main>
     );
   }
@@ -206,7 +206,7 @@ export default function ProductDetailPage(props: PageProps) {
     <main className="mobile-wrapper min-h-screen bg-background pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
         <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
-          <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Studio
+          <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Home
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
@@ -264,16 +264,16 @@ export default function ProductDetailPage(props: PageProps) {
 
             <div className="hidden md:block pt-8 border-t space-y-8">
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
+                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">About the Item</h3>
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                  {product.description || "Archival studio selection curated for the modern silhouette."}
+                  {product.description || "Modern styles designed for everyday comfort."}
                 </div>
               </div>
 
               {product.features && product.features.length > 0 && (
                 <div className="space-y-4">
                   <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground flex items-center gap-2">
-                    <Info className="h-3 w-3" /> Technical Details
+                    <Info className="h-3 w-3" /> Details
                   </h3>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {product.features.map((feature: string, idx: number) => (
@@ -308,7 +308,7 @@ export default function ProductDetailPage(props: PageProps) {
                 <div className="flex flex-col gap-0.5">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
                   {product.sku && (
-                    <p className="text-[8px] font-mono font-bold text-muted-foreground uppercase tracking-widest">REF: {product.sku}</p>
+                    <p className="text-[8px] font-mono font-bold text-muted-foreground uppercase tracking-widest">SKU: {product.sku}</p>
                   )}
                 </div>
               </div>
@@ -322,7 +322,7 @@ export default function ProductDetailPage(props: PageProps) {
                 {categoryCharts?.length > 0 && (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Chart</button>
+                      <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Size Chart</button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
                       <SheetHeader className="p-8 border-b">
@@ -367,7 +367,7 @@ export default function ProductDetailPage(props: PageProps) {
               <div className="space-y-4 pt-4 border-t">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Personalize?</Label>
+                    <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Personalize your item?</Label>
                     <p className="text-[9px] text-muted-foreground uppercase font-bold">+C${(Number(product.customizationFee) || 10).toFixed(2)}</p>
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
@@ -381,7 +381,7 @@ export default function ProductDetailPage(props: PageProps) {
                       <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Name</Label><Input value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-bold uppercase text-xs" /></div>
                       <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Number</Label><Input value={customNumber} maxLength={2} onChange={(e) => setCustomNumber(e.target.value)} className="h-11 rounded-none bg-gray-50 border-none font-bold text-center" /></div>
                     </div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Notes</Label><Input value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-medium text-[10px]" /></div>
+                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Special Notes</Label><Input value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-medium text-[10px]" /></div>
                   </div>
                 )}
               </div>
@@ -397,7 +397,7 @@ export default function ProductDetailPage(props: PageProps) {
               </Button>
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" onClick={() => toggleWishlist({ id: product.id, name: product.name, price: Number(product.price), image: product.media?.[0]?.url || '' })} className={cn("h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2", isInWishlist(product.id) && "bg-red-50 border-red-100 text-red-600")}>
-                  <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} /> {isInWishlist(product.id) ? 'Saved' : 'Wishlist'}
+                  <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} /> {isInWishlist(product.id) ? 'Saved' : 'Add to Wishlist'}
                 </Button>
                 <Button variant="outline" onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: "Link Copied" }); }} className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2">
                   <Share2 className="h-4 w-4" /> Share
@@ -407,9 +407,9 @@ export default function ProductDetailPage(props: PageProps) {
 
             <div className="md:hidden pt-8 border-t space-y-8">
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
+                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">About the Item</h3>
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                  {product.description || "Archival studio selection curated for the modern silhouette."}
+                  {product.description || "Modern styles designed for everyday comfort."}
                 </div>
               </div>
             </div>

@@ -9,11 +9,13 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
+/**
+ * Order History page.
+ */
 export default function OrderHistoryPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
 
-  // Optimized query using userId for strict security rule alignment with limit
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -60,7 +62,7 @@ export default function OrderHistoryPage() {
       <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
         <ShoppingBag className="h-12 w-12 text-gray-200 mb-6" />
         <h1 className="text-3xl font-headline font-bold uppercase mb-4">Account Required</h1>
-        <p className="text-gray-500 max-w-xs mb-8">Please sign in to view your archive order history.</p>
+        <p className="text-gray-500 max-w-xs mb-8">Please sign in to view your order history.</p>
       </div>
     );
   }
@@ -79,7 +81,7 @@ export default function OrderHistoryPage() {
           </div>
         ) : !orders || orders.length === 0 ? (
           <div className="text-center py-32 border-2 border-dashed rounded-none bg-gray-50/50">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">No archival transactions found.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">You haven't placed any orders yet.</p>
             <Link href="/" className="mt-8 inline-block bg-black text-white px-10 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] w-fit mx-auto">
               Start Shopping
             </Link>
@@ -95,7 +97,7 @@ export default function OrderHistoryPage() {
                       <p className="text-xs font-mono font-bold uppercase">#{order.id.substring(0, 8)}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[9px] uppercase font-bold text-gray-400">Placed On</p>
+                      <p className="text-[9px] uppercase font-bold text-gray-400">Date</p>
                       <p className="text-xs font-bold uppercase">{formatDate(order.createdAt)}</p>
                     </div>
                     <div className="space-y-1">

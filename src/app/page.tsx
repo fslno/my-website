@@ -11,9 +11,8 @@ import { getLivePath } from '@/lib/deployment';
 import { cn } from '@/lib/utils';
 
 /**
- * Authoritative Unified Home Page.
- * Synchronized to manifest the Admin-Controlled Hero and Category Selection.
- * Section labels and styles are forensicly controlled via the Admin Theme Engine.
+ * Main Home Page.
+ * Displays the hero section, categories, and product grid.
  */
 export default function Home() {
   const db = useFirestore();
@@ -43,10 +42,10 @@ export default function Home() {
           )}>
             <div className="space-y-2">
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground block">
-                {theme?.archiveSectionSubtitle || 'The Archive'}
+                {theme?.archiveSectionSubtitle || 'Our Collection'}
               </span>
               <h2 className="font-headline font-bold uppercase tracking-tight archive-title-size archive-title-color leading-tight">
-                {theme?.archiveSectionTitle || 'All Studio Pieces'}
+                {theme?.archiveSectionTitle || 'Shop All Products'}
               </h2>
             </div>
           </div>

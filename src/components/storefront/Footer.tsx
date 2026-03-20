@@ -26,9 +26,7 @@ import { Label } from '@/components/ui/label';
 import { getLivePath } from '@/lib/deployment';
 
 /**
- * Authoritative High-Fidelity Responsive Footer Manifest.
- * Recalibrated for a 4-column grid on tablet and desktop viewports.
- * Stacks into a single column on mobile for archival high-velocity scrolling.
+ * High-fidelity responsive footer.
  */
 export function Footer() {
   const db = useFirestore();
@@ -65,17 +63,15 @@ export function Footer() {
     <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10" suppressHydrationWarning>
       <div className="max-w-[1440px] mx-auto px-4">
         
-        {/* Authoritative Responsive Grid: 1 column on mobile, 4 columns on tablet and desktop */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 items-start">
           
-          {/* Segment 01: Identity & Logistics */}
           <div className="space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
-              {config?.businessName || "FSLNO"}
+              {config?.businessName || "HOME"}
             </h2>
             <div className="space-y-6">
               <p className="max-w-xs text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">
-                {config?.footerDescription || "Curated archival silhouettes for the modern studio selection."}
+                {config?.footerDescription || "Modern clothing and accessories for every style."}
               </p>
               
               <div className="space-y-4">
@@ -87,7 +83,7 @@ export function Footer() {
                   <div className="flex items-start gap-3">
                     <Clock className="h-4 w-4 opacity-40 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-40">Pick up hours</p>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-40">Store Hours</p>
                       <p className="text-[10px] font-bold uppercase tracking-widest whitespace-pre-wrap leading-relaxed italic">
                         {config.openingHours}
                       </p>
@@ -95,7 +91,6 @@ export function Footer() {
                   </div>
                 )}
 
-                {/* Social connectivity row */}
                 <div className="flex items-center gap-5 pt-4">
                   {config?.socialChannels?.map((s: any, idx: number) => {
                     let Icon = Globe;
@@ -119,16 +114,15 @@ export function Footer() {
                       </a>
                     );
                   }) || (
-                    <p className="text-[8px] font-bold uppercase tracking-widest opacity-20">No social manifest</p>
+                    <p className="text-[8px] font-bold uppercase tracking-widest opacity-20">Connect with us</p>
                   )}
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Segment 02: Support Manifest */}
           <div className="space-y-6 md:text-right flex flex-col md:items-end">
-            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Help</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config?.footerSupportLinks?.map((link: any, idx: number) => (
                 <li key={idx}><Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link></li>
@@ -141,7 +135,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Segment 03: Legal Compliance */}
           <div className="space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
@@ -156,13 +149,12 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Segment 04: Newsletter Dispatch */}
           <div className="space-y-8 md:text-right flex flex-col md:items-end">
             <div className="space-y-4">
               <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
               <div className="space-y-1">
-                <h3 className="text-3xl font-headline font-bold uppercase tracking-tight leading-none">Join</h3>
-                <p className="text-[10px] uppercase tracking-widest font-bold opacity-60">Access latest drops.</p>
+                <h3 className="text-3xl font-headline font-bold uppercase tracking-tight leading-none">Join Us</h3>
+                <p className="text-[10px] uppercase tracking-widest font-bold opacity-60">Get our latest updates.</p>
               </div>
             </div>
             
@@ -191,10 +183,7 @@ export function Footer() {
         <div className="border-t border-primary-foreground/10 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-2">
             <p className="text-[9px] uppercase tracking-[0.2em] font-bold opacity-40">
-              © {currentYear} {config?.businessName || "FSLNO"}. ALL RIGHTS RESERVED.
-            </p>
-            <p className="text-[7px] uppercase tracking-[0.3em] font-bold opacity-20">
-              {config?.systemVersion || "ARCHIVE SYSTEM V2.1"}
+              © {currentYear} {config?.businessName || "HOME"}. All rights reserved.
             </p>
           </div>
 
