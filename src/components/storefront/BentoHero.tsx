@@ -28,7 +28,7 @@ interface BentoHeroProps {
 
 /**
  * Authoritative Bento Hero Manifest.
- * Standardized height (81vh) and padding (pt-[76px] sm:pt-[104px]) to resolve hydration errors.
+ * Standardized height (32vh) - Reduced by 60% from original 81vh.
  * Synchronized to reflect Admin Storefront text and styling protocols.
  */
 export function BentoHero({ 
@@ -48,14 +48,14 @@ export function BentoHero({
   );
 
   if (isLoading) {
-    return <section className="pt-[76px] sm:pt-[104px]"><div className="w-full h-[81vh] bg-gray-50" /></section>;
+    return <section className="pt-[76px] sm:pt-[104px]"><div className="w-full h-[32vh] bg-gray-50" /></section>;
   }
 
   const images = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
 
   return (
     <section className="pt-[76px] sm:pt-[104px]">
-      <div className="w-full bg-primary overflow-hidden group shadow-2xl relative h-[81vh]">
+      <div className="w-full bg-primary overflow-hidden group shadow-2xl relative h-[32vh]">
         <Carousel 
           setApi={setApi}
           plugins={[autoplayPlugin.current]}
@@ -66,7 +66,7 @@ export function BentoHero({
         >
           <CarouselContent className="h-full ml-0">
             {images.map((url, idx) => (
-              <CarouselItem key={idx} className="relative h-[81vh] w-full pl-0">
+              <CarouselItem key={idx} className="relative h-[32vh] w-full pl-0">
                 <Image
                   src={url}
                   alt={`${headline} ${idx + 1}`}
@@ -77,7 +77,7 @@ export function BentoHero({
               </CarouselItem>
             ))}
             {images.length === 0 && (
-              <CarouselItem className="relative h-[81vh] w-full pl-0">
+              <CarouselItem className="relative h-[32vh] w-full pl-0">
                 <div className="absolute inset-0 bg-primary opacity-20" />
               </CarouselItem>
             )}
