@@ -368,7 +368,7 @@ export function Header() {
 
           {!isAdmin && (
             <div className="absolute right-4 bottom-0 translate-y-full z-[60] flex items-center gap-1">
-              <ReviewSystem productId={currentProductId || 'global'} />
+              {!currentProductId && <ReviewSystem productId="global" />}
             </div>
           )}
         </div>

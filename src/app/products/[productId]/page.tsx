@@ -54,6 +54,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
+import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
@@ -370,7 +371,7 @@ export default function ProductDetailPage(props: PageProps) {
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", !wantsCustomization ? "bg-black text-white" : "bg-white")}>No</button>
-                    <button onClick={() => wantsCustomization && setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
+                    <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
                   </div>
                 </div>
                 {wantsCustomization && (
@@ -400,6 +401,11 @@ export default function ProductDetailPage(props: PageProps) {
                 <Button variant="outline" onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: "Link Copied" }); }} className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2">
                   <Share2 className="h-4 w-4" /> Share
                 </Button>
+              </div>
+              
+              {/* Relocated Review System for Product specific reviews */}
+              <div className="pt-2 flex justify-start">
+                <ReviewSystem productId={product.id} />
               </div>
             </div>
 
