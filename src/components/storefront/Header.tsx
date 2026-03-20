@@ -255,7 +255,7 @@ export function Header() {
                       <div className="space-y-6">
                         {wishlist.map((item) => (
                           <div key={item.id} className="flex gap-4">
-                            <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-24 relative bg-gray-50 border">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
+                            <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-20 relative bg-gray-50 border">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div>
                                 <h3 className="text-[10px] font-bold uppercase leading-tight">{item.name}</h3>
@@ -296,14 +296,28 @@ export function Header() {
                       <div className="space-y-6">
                         {cart.map((item) => (
                           <div key={item.variantId} className="flex gap-4">
-                            <div className="w-20 h-24 relative bg-gray-50 border">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</div>
+                            <div className="w-20 h-20 relative bg-gray-50 border shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</div>
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div>
                                 <h3 className="text-[10px] font-bold uppercase leading-tight">{item.name}</h3>
                                 <p className="text-[10px] font-bold mt-1">C${formatCurrency(item.price * item.quantity)}</p>
                                 <p className="text-[8px] font-bold text-gray-400 mt-1 uppercase">Size: {item.size}</p>
+                                
+                                {/* Customization Manifest */}
+                                {(item.customName || item.customNumber || item.specialNote) && (
+                                  <div className="mt-2 space-y-0.5 border-t border-dashed border-gray-100 pt-1">
+                                    {(item.customName || item.customNumber) && (
+                                      <p className="text-[8px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                                        <Sparkles className="h-2 w-2" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                      </p>
+                                    )}
+                                    {item.specialNote && (
+                                      <p className="text-[8px] text-gray-400 italic leading-tight">"{item.specialNote}"</p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                              <button onClick={() => removeFromCart(item.variantId)} className="text-[8px] font-bold uppercase tracking-widest text-destructive text-left hover:underline">Remove</button>
+                              <button onClick={() => removeFromCart(item.variantId)} className="text-[8px] font-bold uppercase tracking-widest text-destructive text-left hover:underline mt-2">Remove</button>
                             </div>
                           </div>
                         ))}
