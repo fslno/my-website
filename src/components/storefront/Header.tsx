@@ -157,10 +157,6 @@ export function Header() {
             </Link>
           </div>
 
-          <div className="hidden lg:flex flex-1 justify-center px-4">
-            <ReviewSystem productId={activeProductId} />
-          </div>
-
           <div className="flex items-center gap-2">
             <div className="relative flex items-center" ref={searchRef}>
               <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -309,6 +305,11 @@ export function Header() {
               </Sheet>
             </div>
           </div>
+        </div>
+
+        {/* Global Review Discovery Protocol: Centered on the bottom border line */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 hidden lg:block z-[60]">
+          <ReviewSystem productId={activeProductId} />
         </div>
       </header>
       <AuthDialog open={isAuthOpen} onOpenChange={setIsAuthOpen} />
