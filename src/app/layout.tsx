@@ -31,8 +31,8 @@ export default function RootLayout({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Forensic Delay to ensure stable hydration before revealing the Studio
-    const timer = setTimeout(() => setMounted(true), 800);
+    // High-Velocity Entrance Protocol: Reduced delay to 400ms
+    const timer = setTimeout(() => setMounted(true), 400);
     return () => clearTimeout(timer);
   }, []);
 
@@ -45,18 +45,18 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-background text-foreground overflow-x-hidden" suppressHydrationWarning>
         
-        {/* BOOT OVERLAY: High-fidelity typographic signature to ensure visual integrity */}
+        {/* DARK BOOT OVERLAY: Pitch Black background to eliminate white color transactions */}
         <div 
           className={cn(
-            "fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center pointer-events-none transition-opacity duration-700",
+            "fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center pointer-events-none transition-opacity duration-700",
             mounted ? "opacity-0 invisible" : "opacity-100"
           )}
         >
           <div className="flex flex-col items-center gap-6 animate-pulse">
-            <h1 className="font-headline font-bold text-6xl sm:text-8xl tracking-tighter uppercase text-primary">
+            <h1 className="font-headline font-bold text-6xl sm:text-8xl tracking-tighter uppercase text-white">
               FSLNO
             </h1>
-            <div className="h-px w-16 bg-primary/10" />
+            <div className="h-px w-16 bg-white/20" />
           </div>
         </div>
 
