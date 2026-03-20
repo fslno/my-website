@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -35,6 +34,7 @@ import { AuthDialog } from '@/components/storefront/AuthDialog';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
 import { Separator } from '@/components/ui/separator';
+import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 export function Header() {
   const [mounted, setMounted] = useState(false);
@@ -74,6 +74,12 @@ export function Header() {
       p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 6) || [];
   }, [allProducts, searchQuery]);
+
+  // Product Discovery Protocol: Detect current product ID from route
+  const currentProductId = useMemo(() => {
+    const match = pathname?.match(/\/products\/([^/]+)/);
+    return match ? match[1] : null;
+  }, [pathname]);
 
   useEffect(() => {
     setMounted(true);
@@ -116,7 +122,7 @@ export function Header() {
           theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
         )}
       >
-        <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between">
+        <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between relative">
           <div className="flex items-center gap-2 sm:gap-4">
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
@@ -145,7 +151,6 @@ export function Header() {
                     
                     <Separator className="my-4" />
                     
-                    {/* Authoritative Mobile Identity Portal */}
                     <div className="space-y-4">
                       {user ? (
                         <>
@@ -223,7 +228,6 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-0.5">
-              {/* Desktop-Only User Discovery */}
               <Button variant="ghost" size="icon" className="h-9 w-9 hidden lg:flex" onClick={() => user ? null : setIsAuthOpen(true)}>
                 {user ? (
                   <DropdownMenu>
@@ -312,7 +316,6 @@ export function Header() {
                                   <p className="text-[8px] font-bold text-primary uppercase">Qty: {item.quantity}</p>
                                 </div>
                                 
-                                {/* Customization Manifest */}
                                 {(item.customName || item.customNumber || item.specialNote) && (
                                   <div className="mt-2 space-y-0.5 border-t border-dashed border-gray-100 pt-1">
                                     {(item.customName || item.customNumber) && (
@@ -348,6 +351,13 @@ export function Header() {
               </Sheet>
             </div>
           </div>
+
+          {/* AUTHORITATIVE REVIEW PILL POSITIONING: Anchored to bottom center of header border */}
+          {currentProductId && (
+            <div className="absolute left-1/2 -bottom-0 -translate-x-1/2 translate-y-1/2 z-[60]">
+              <ReviewSystem productId={currentProductId} />
+            </div>
+          )}
         </div>
       </header>
       <AuthDialog open={isAuthOpen} onOpenChange={setIsAuthOpen} />

@@ -54,7 +54,6 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
-import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
@@ -210,13 +209,9 @@ export default function ProductDetailPage(props: PageProps) {
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Studio
         </Link>
 
-        {/* AUTHORITATIVE ROW ALIGNMENT: Image and Name sit side-by-side on desktop */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
-          
-          {/* MEDIA SECTION - Thumbnails on the left of main image */}
           <div className="md:col-span-7 lg:col-span-8 space-y-8">
             <div className="flex flex-col md:flex-row gap-4">
-              {/* Thumbnail Manifest - Visible only on desktop */}
               <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
                 {media.map((item: any, idx: number) => (
                   <button 
@@ -249,7 +244,6 @@ export default function ProductDetailPage(props: PageProps) {
                   </CarouselContent>
                 </Carousel>
                 
-                {/* Dots Navigation - Mobile Only Small Circle Protocol */}
                 {count > 1 && (
                   <div className="flex sm:hidden justify-center gap-2 mt-4">
                     {Array.from({ length: count }).map((_, i) => (
@@ -268,7 +262,6 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             </div>
 
-            {/* DESCRIPTION SECTION - Repositioned below images in desktop mode */}
             <div className="hidden md:block pt-8 border-t space-y-8">
               <div className="space-y-3">
                 <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
@@ -295,12 +288,10 @@ export default function ProductDetailPage(props: PageProps) {
             </div>
           </div>
 
-          {/* INFO SECTION - Aligned with the top of the image column */}
           <div className="md:col-span-5 lg:col-span-4 space-y-6">
             <div className="space-y-4">
               <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
-                <ReviewSystem productId={product.id} />
               </div>
               
               <div className="space-y-2">
@@ -414,7 +405,6 @@ export default function ProductDetailPage(props: PageProps) {
               </div>
             </div>
 
-            {/* Mobile Manifest - Description stays here for scrolling flow */}
             <div className="md:hidden pt-8 border-t space-y-8">
               <div className="space-y-3">
                 <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Manifest</h3>
