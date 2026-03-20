@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -53,7 +54,7 @@ export function BentoHero({
   if (isLoading || !mounted) {
     return (
       <section className="pt-[76px] sm:pt-[104px]">
-        <div className="w-full h-[48vh] bg-gray-50 animate-pulse" />
+        <div className="w-full h-[60vh] bg-gray-50 animate-pulse" />
       </section>
     );
   }
@@ -62,7 +63,7 @@ export function BentoHero({
 
   return (
     <section className="pt-[76px] sm:pt-[104px]">
-      <div className="w-full bg-primary overflow-hidden group shadow-2xl relative h-[48vh]">
+      <div className="w-full bg-primary overflow-hidden group shadow-2xl relative h-[60vh]">
         <Carousel 
           setApi={setApi}
           plugins={[autoplayPlugin.current]}
@@ -73,7 +74,7 @@ export function BentoHero({
         >
           <CarouselContent className="h-full ml-0">
             {images.map((url, idx) => (
-              <CarouselItem key={idx} className="relative h-[48vh] w-full pl-0">
+              <CarouselItem key={idx} className="relative h-[60vh] w-full pl-0">
                 <Image
                   src={url}
                   alt={`${headline} ${idx + 1}`}
@@ -84,7 +85,7 @@ export function BentoHero({
               </CarouselItem>
             ))}
             {images.length === 0 && (
-              <CarouselItem className="relative h-[48vh] w-full pl-0">
+              <CarouselItem className="relative h-[60vh] w-full pl-0">
                 <div className="absolute inset-0 bg-primary opacity-20" />
               </CarouselItem>
             )}
