@@ -75,7 +75,6 @@ export function Header() {
     ).slice(0, 6) || [];
   }, [allProducts, searchQuery]);
 
-  // Detected current product ID from route
   const currentProductId = useMemo(() => {
     const match = pathname?.match(/\/products\/([^/]+)/);
     return match ? match[1] : null;
@@ -367,9 +366,8 @@ export function Header() {
             </div>
           </div>
 
-          {/* Global Discovery Manifest: Persistent across all viewports (excluding Admin) */}
           {!isAdmin && (
-            <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full z-[60] flex items-center gap-1">
+            <div className="absolute right-4 bottom-0 translate-y-full z-[60] flex items-center gap-1">
               <ReviewSystem productId={currentProductId || 'global'} />
             </div>
           )}

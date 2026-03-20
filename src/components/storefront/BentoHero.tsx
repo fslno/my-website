@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -29,6 +28,7 @@ interface BentoHeroProps {
 
 /**
  * Main Hero section for the home page.
+ * Recalibrated with increased height and lowered vertical offset.
  */
 export function BentoHero({ 
   isLoading, 
@@ -53,8 +53,8 @@ export function BentoHero({
 
   if (isLoading || !mounted) {
     return (
-      <section className="pt-[76px] sm:pt-[104px]">
-        <div className="w-full h-[60vh] bg-gray-50 animate-pulse" />
+      <section className="pt-32 sm:pt-40">
+        <div className="w-full h-[60vh] bg-white" />
       </section>
     );
   }
@@ -62,7 +62,7 @@ export function BentoHero({
   const images = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
 
   return (
-    <section className="pt-[76px] sm:pt-[104px]">
+    <section className="pt-32 sm:pt-40">
       <div className="w-full bg-primary overflow-hidden group shadow-2xl relative h-[60vh]">
         <Carousel 
           setApi={setApi}

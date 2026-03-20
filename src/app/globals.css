@@ -34,6 +34,7 @@
   body {
     @apply bg-background text-foreground font-body;
     background-color: #FFFFFF !important;
+    color: #000000 !important;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
@@ -50,10 +51,10 @@
   background-color: #FFFFFF !important;
 }
 
-/* Maintain high-end 1:1 aspect ratio for product cards */
+/* Maintain high-end 3:4 aspect ratio for product cards */
 .product-hero-image {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 4;
   object-fit: cover;
   background-color: #FFFFFF;
 }
