@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -10,7 +11,9 @@ import {
   X, 
   Heart, 
   User as UserIcon,
-  Sparkles
+  Sparkles,
+  LogOut,
+  Package
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -31,6 +34,7 @@ import {
 import { AuthDialog } from '@/components/storefront/AuthDialog';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
+import { Separator } from '@/components/ui/separator';
 
 export function Header() {
   const [mounted, setMounted] = useState(false);
@@ -127,10 +131,47 @@ export function Header() {
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-8">
-                  <nav className="flex flex-col gap-6">
+                  <nav className="flex flex-col gap-4">
                     {categories?.map((cat: any) => (
-                      <Link key={cat.id} href={`/collections/${cat.id}`} onClick={() => setIsMenuOpen(false)} className="text-lg font-headline uppercase text-primary hover:opacity-60">{cat.name}</Link>
+                      <Link 
+                        key={cat.id} 
+                        href={`/collections/${cat.id}`} 
+                        onClick={() => setIsMenuOpen(false)} 
+                        className="text-lg font-headline uppercase text-primary hover:opacity-60"
+                      >
+                        {cat.name}
+                      </Link>
                     ))}
+                    
+                    <Separator className="my-4" />
+                    
+                    {/* Authoritative Mobile Identity Portal */}
+                    <div className="space-y-4">
+                      {user ? (
+                        <>
+                          <Link 
+                            href="/account/orders" 
+                            onClick={() => setIsMenuOpen(false)} 
+                            className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3"
+                          >
+                            <Package className="h-5 w-5" /> My Orders
+                          </Link>
+                          <button 
+                            onClick={() => { handleLogout(); setIsMenuOpen(false); }} 
+                            className="text-lg font-headline uppercase text-destructive hover:opacity-60 flex items-center gap-3 w-full text-left"
+                          >
+                            <LogOut className="h-5 w-5" /> Sign Out
+                          </button>
+                        </>
+                      ) : (
+                        <button 
+                          onClick={() => { setIsAuthOpen(true); setIsMenuOpen(false); }} 
+                          className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 w-full text-left"
+                        >
+                          <UserIcon className="h-5 w-5" /> Account / Sign In
+                        </button>
+                      )}
+                    </div>
                   </nav>
                 </ScrollArea>
               </SheetContent>
@@ -182,7 +223,8 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-0.5">
-              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => user ? null : setIsAuthOpen(true)}>
+              {/* Desktop-Only User Discovery */}
+              <Button variant="ghost" size="icon" className="h-9 w-9 hidden lg:flex" onClick={() => user ? null : setIsAuthOpen(true)}>
                 {user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><UserIcon className="h-4 w-4" /></DropdownMenuTrigger>
