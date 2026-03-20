@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: #F4F4F4;
+    --background: #FFFFFF;
     --foreground: #000000;
     --card: #FFFFFF;
     --card-foreground: #000000;
@@ -33,7 +33,7 @@
   }
   body {
     @apply bg-background text-foreground font-body;
-    background-color: #F4F4F4 !important;
+    background-color: #FFFFFF !important;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
@@ -47,7 +47,7 @@
 .mobile-wrapper {
   max-width: 100vw;
   overflow-x: hidden;
-  background-color: #F4F4F4 !important;
+  background-color: #FFFFFF !important;
 }
 
 /* Maintain high-end 1:1 aspect ratio for product cards */

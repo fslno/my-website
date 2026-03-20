@@ -47,7 +47,7 @@ export function ThemeStyleInjector() {
       root.style.setProperty('--primary-foreground', getContrastColor(theme.primaryColor));
     }
 
-    const bgColor = theme.accentColor || '#F4F4F4';
+    const bgColor = theme.accentColor || '#FFFFFF';
     root.style.setProperty('--background', bgColor);
 
     if (theme.accentColor) {
