@@ -241,22 +241,6 @@ export default function ProductDetailPage(props: PageProps) {
                     )}
                   </CarouselContent>
                 </Carousel>
-                
-                {count > 1 && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg z-10 animate-in fade-in slide-in-from-bottom-2 duration-500 md:hidden">
-                    {Array.from({ length: count }).map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => api?.scrollTo(i)}
-                        className={cn(
-                          "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                          current === i + 1 ? "bg-black scale-125" : "bg-black/20"
-                        )}
-                        aria-label={`Go to slide ${i + 1}`}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 
