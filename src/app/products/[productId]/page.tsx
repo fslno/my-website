@@ -230,16 +230,16 @@ export default function ProductDetailPage(props: PageProps) {
               </CarouselContent>
             </Carousel>
             
-            {/* Dots Navigation */}
+            {/* Dots Navigation - Mobile Only Circular Protocol */}
             {count > 1 && (
-              <div className="flex justify-center gap-2 mt-4">
+              <div className="flex sm:hidden justify-center gap-2 mt-4">
                 {Array.from({ length: count }).map((_, i) => (
                   <button
                     key={i}
                     onClick={() => api?.scrollTo(i)}
                     className={cn(
-                      "w-2 h-2 rounded-full transition-all duration-300",
-                      current === i + 1 ? "bg-black w-4" : "bg-gray-300"
+                      "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                      current === i + 1 ? "bg-black" : "bg-gray-300"
                     )}
                     aria-label={`Go to slide ${i + 1}`}
                   />
