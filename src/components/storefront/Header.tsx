@@ -29,7 +29,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AuthDialog } from '@/components/storefront/AuthDialog';
-import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
 
@@ -63,14 +62,6 @@ export function Header() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
-
-  // Dynamic Review Product Sync
-  const activeProductId = useMemo(() => {
-    if (pathname?.startsWith('/products/')) {
-      return pathname.split('/products/')[1];
-    }
-    return 'GiIn4hVnLg3upP2BDrDM'; 
-  }, [pathname]);
 
   const filteredProducts = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
@@ -305,11 +296,6 @@ export function Header() {
               </Sheet>
             </div>
           </div>
-        </div>
-
-        {/* AUTHORITATIVE RATING BADGE MANIFEST: Centered absolutely on the border line with max visibility */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 hidden lg:block z-[9999]">
-          <ReviewSystem productId={activeProductId} />
         </div>
       </header>
       <AuthDialog open={isAuthOpen} onOpenChange={setIsAuthOpen} />
