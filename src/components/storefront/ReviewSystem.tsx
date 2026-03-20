@@ -22,13 +22,15 @@ import {
   SheetDescription
 } from "@/components/ui/sheet"; 
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getLivePath } from '@/lib/deployment';
 
 interface ReviewSystemProps {
   productId: string;
 }
 
 /**
- * Product Review and Rating component.
+ * Product Review and Rating system.
+ * Authoritatively updated to respect the Announcement Bar positioning.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -45,7 +47,10 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
 
   const isAdmin = user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
-  // Global Review Config
+  // Global Config Discovery
+  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
+  const { data: theme } = useDoc(themeRef);
+
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
   const { data: config } = useDoc(configRef);
 
@@ -156,7 +161,12 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
         </div>
       </SheetTrigger>
       
-      <SheetContent className="w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10 h-full">
+      <SheetContent 
+        className={cn(
+          "w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10 transition-all duration-500",
+          theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
+        )}
+      >
         <SheetHeader className="p-8 border-b bg-gray-50/50 shrink-0">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -165,7 +175,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                 <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Customer Reviews</SheetTitle>
               </div>
               <SheetDescription className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
-                See what other customers say about this item.
+                See what others say about this piece.
               </SheetDescription>
             </div>
           </div>

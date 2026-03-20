@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
@@ -13,9 +13,16 @@ import { cn } from '@/lib/utils';
 /**
  * Main Home Page.
  * Displays the hero section, categories, and product grid.
+ * Forensicly stabilized to eliminate hydration mismatches.
  */
 export default function Home() {
   const db = useFirestore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme, isLoading: themeLoading } = useDoc(themeRef);
 
@@ -42,10 +49,10 @@ export default function Home() {
           )}>
             <div className="space-y-2">
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground block">
-                {theme?.archiveSectionSubtitle || 'Our Collection'}
+                {mounted ? (theme?.archiveSectionSubtitle || 'Our Collection') : 'Our Collection'}
               </span>
               <h2 className="font-headline font-bold uppercase tracking-tight archive-title-size archive-title-color leading-tight">
-                {theme?.archiveSectionTitle || 'Shop All Products'}
+                {mounted ? (theme?.archiveSectionTitle || 'Shop All Products') : 'Shop All Products'}
               </h2>
             </div>
           </div>
