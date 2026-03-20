@@ -202,7 +202,7 @@ export function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl h-full">
-                  <SheetHeader className="p-8 border-b"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
+                  <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {wishlist.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
@@ -237,7 +237,7 @@ export function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl h-full">
-                  <SheetHeader className="p-8 border-b"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Bag ({cartCount})</SheetTitle></SheetHeader>
+                  <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Bag ({cartCount})</SheetTitle></SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {cart.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
@@ -282,7 +282,7 @@ export function Header() {
                     )}
                   </ScrollArea>
                   {cart.length > 0 && (
-                    <SheetFooter className="p-4 border-t bg-gray-50 flex flex-col gap-4">
+                    <SheetFooter className="p-4 border-t bg-gray-50 flex flex-col gap-4 shrink-0">
                       <div className="flex justify-between items-end">
                         <span className="text-[10px] font-bold uppercase text-gray-400">Subtotal</span>
                         <span className="text-sm font-bold">C${formatCurrency(cartSubtotal)}</span>
