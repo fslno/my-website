@@ -29,7 +29,7 @@ interface BentoHeroProps {
 /**
  * Authoritative Bento Hero Manifest.
  * Synchronized to reflect Admin Storefront text and styling protocols.
- * Implements priority loading for archival hero visuals.
+ * Recalibrated vertical expansion (81vh) and top padding sync to eliminate hydration mismatches.
  */
 export function BentoHero({ 
   isLoading, 
@@ -48,25 +48,25 @@ export function BentoHero({
   );
 
   if (isLoading) {
-    return <section className="pt-28 sm:pt-36"><div className="w-full h-[60vh] bg-gray-50" /></section>;
+    return <section className="pt-[76px] sm:pt-[104px]"><div className="w-full h-[81vh] bg-gray-50" /></section>;
   }
 
   const images = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
 
   return (
-    <section className="pt-28 sm:pt-36">
-      <div className="w-full bg-primary overflow-hidden group shadow-2xl relative">
+    <section className="pt-[76px] sm:pt-[104px]">
+      <div className="w-full bg-primary overflow-hidden group shadow-2xl relative h-[81vh]">
         <Carousel 
           setApi={setApi}
           plugins={[autoplayPlugin.current]}
-          className="w-full h-[60vh]"
+          className="w-full h-full"
           opts={{
             loop: true,
           }}
         >
           <CarouselContent className="h-full ml-0">
             {images.map((url, idx) => (
-              <CarouselItem key={idx} className="relative h-[60vh] w-full pl-0">
+              <CarouselItem key={idx} className="relative h-[81vh] w-full pl-0">
                 <Image
                   src={url}
                   alt={`${headline} ${idx + 1}`}
@@ -77,13 +77,12 @@ export function BentoHero({
               </CarouselItem>
             ))}
             {images.length === 0 && (
-              <CarouselItem className="relative h-[60vh] w-full pl-0">
+              <CarouselItem className="relative h-[81vh] w-full pl-0">
                 <div className="absolute inset-0 bg-primary opacity-20" />
               </CarouselItem>
             )}
           </CarouselContent>
 
-          {/* Interaction-Triggered Navigation Arrows */}
           {images.length > 1 && (
             <div className="absolute inset-0 z-20 pointer-events-none group-hover:pointer-events-auto">
               <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-none border-none bg-black/20 text-white hover:bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-auto" />
@@ -91,7 +90,6 @@ export function BentoHero({
             </div>
           )}
 
-          {/* Content Overlay - Orchestrated via Admin Manifest */}
           <div className={cn(
             "absolute inset-0 p-6 sm:p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 hero-vertical-align hero-text-align pointer-events-none"
           )}>

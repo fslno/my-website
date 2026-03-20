@@ -44,13 +44,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { AuthDialog } from '@/components/storefront/AuthDialog';
+import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative Studio Header.
  * Forensicly reduced by 20% for viewport optimization.
- * Now features an integrated Search protocol.
+ * Now features an integrated Review Discovery Protocol and Search manifest.
  */
 export function Header() {
   const [mounted, setMounted] = useState(false);
@@ -83,10 +84,13 @@ export function Header() {
 
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
-  const [editFields, setEditFields] = useState({ name: '', number: '', note: '' });
-
-  const isCheckoutPage = pathname === '/checkout';
+  // Dynamic Review Product Sync
+  const activeProductId = useMemo(() => {
+    if (pathname?.startsWith('/products/')) {
+      return pathname.split('/products/')[1];
+    }
+    return 'GiIn4hVnLg3upP2BDrDM'; // Authoritative Global Fallback ID
+  }, [pathname]);
 
   const filteredProducts = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
@@ -115,16 +119,6 @@ export function Header() {
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: "Logout failed." });
     }
-  };
-
-  const handleSaveEdit = (variantId: string) => {
-    updateCartItem(variantId, {
-      customName: editFields.name,
-      customNumber: editFields.number,
-      specialNote: editFields.note
-    });
-    setEditingVariantId(null);
-    toast({ title: "Updated", description: "Customization saved." });
   };
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -183,6 +177,11 @@ export function Header() {
             </Link>
           </div>
 
+          {/* ATTACHED REVIEW PROTOCOL - CENTER POSITIONED */}
+          <div className="hidden lg:flex flex-1 justify-center px-4">
+            <ReviewSystem productId={activeProductId} />
+          </div>
+
           <div className="flex items-center gap-2">
             {/* Search Protocol */}
             <div className="relative flex items-center" ref={searchRef}>
@@ -230,6 +229,48 @@ export function Header() {
                 ) : <UserIcon className="h-4 w-4" />}
               </Button>
 
+              {/* WISHLIST MANIFEST */}
+              <Sheet open={isWishlistOpen} onOpenChange={setIsWishlistOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                    <Heart className="h-4 w-4" />
+                    {wishlistCount > 0 && <span className="absolute top-1.5 right-1.5 bg-black text-white text-[8px] w-3 h-3 rounded-full flex items-center justify-center">{wishlistCount}</span>}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent 
+                  className={cn(
+                    "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
+                    theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0',
+                    "h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]"
+                  )}
+                >
+                  <SheetHeader className="p-8 border-b"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
+                  <ScrollArea className="flex-1 p-6">
+                    {wishlist.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
+                        <Heart className="h-10 w-10 text-gray-200" />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Wishlist is empty.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {wishlist.map((item) => (
+                          <div key={item.id} className="flex gap-4">
+                            <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-24 relative bg-gray-50 border">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
+                            <div className="flex-1 flex flex-col justify-between py-1">
+                              <div>
+                                <h3 className="text-[10px] font-bold uppercase leading-tight">{item.name}</h3>
+                                <p className="text-[10px] font-bold mt-1">C${item.price.toFixed(2)}</p>
+                              </div>
+                              <button onClick={() => toggleWishlist(item)} className="text-[8px] font-bold uppercase tracking-widest text-destructive text-left hover:underline">Remove</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </SheetContent>
+              </Sheet>
+
               <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative h-9 w-9">
@@ -237,7 +278,13 @@ export function Header() {
                     {cartCount > 0 && <span className="absolute top-1.5 right-1.5 bg-black text-white text-[8px] w-3 h-3 rounded-full flex items-center justify-center">{cartCount}</span>}
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="w-full sm:max-w-md bg-white p-0 flex flex-col border-none">
+                <SheetContent 
+                  className={cn(
+                    "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
+                    theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0',
+                    "h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]"
+                  )}
+                >
                   <SheetHeader className="p-8 border-b"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Bag ({cartCount})</SheetTitle></SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {cart.length === 0 ? (

@@ -12,7 +12,6 @@ import {
 } from '@/firebase';
 import { doc, collection, query, orderBy, where } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -66,8 +65,8 @@ interface PageProps {
 
 /**
  * Authoritative Product Detail Page.
- * Implements High-Fidelity Skeletons for faster archival transactions.
- * Orchestrates the compact Review Discovery Protocol attached to the header board line.
+ * Orchestrates archival silhouettes with zero-latency skeleton transitions.
+ * Reviews are now Authoritatively managed via the global header discovery protocol.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
@@ -145,9 +144,6 @@ export default function ProductDetailPage(props: PageProps) {
     return (
       <main className="min-h-screen bg-background pt-20 sm:pt-32 pb-32">
         <div className="max-w-[1280px] mx-auto px-4 lg:px-8 space-y-12">
-          <div className="flex justify-center -mt-4 sm:-mt-8 mb-4">
-            <Skeleton className="h-14 w-40 rounded-2xl" />
-          </div>
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12">
             <Skeleton className="aspect-square w-full rounded-sm" />
             <div className="space-y-8 py-6 lg:py-0">
@@ -179,11 +175,6 @@ export default function ProductDetailPage(props: PageProps) {
 
   return (
     <main className="mobile-wrapper min-h-screen bg-background pt-20 sm:pt-32 pb-32">
-      {/* ATTACHED TO LINE BORD - AUTHORITATIVE POSITIONAL SYNC */}
-      <div className="flex justify-center -mt-4 sm:-mt-8 mb-4">
-        <ReviewSystem productId={productId} />
-      </div>
-
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
