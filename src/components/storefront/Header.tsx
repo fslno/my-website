@@ -358,22 +358,6 @@ export function Header() {
           {!isAdmin && (
             <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full z-[60] flex items-center gap-1">
               <ReviewSystem productId={currentProductId || 'global'} />
-              {!user && (
-                <div className="flex bg-black text-white shadow-2xl border border-white/10 h-7">
-                  <button 
-                    onClick={() => setIsAuthOpen(true)}
-                    className="px-2.5 h-full text-[7px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors border-r border-white/10"
-                  >
-                    Sign In
-                  </button>
-                  <button 
-                    onClick={() => setIsAuthOpen(true)}
-                    className="px-2.5 h-full text-[7px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
-                  >
-                    Sign Up
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>
