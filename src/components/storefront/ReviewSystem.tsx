@@ -31,6 +31,7 @@ interface ReviewSystemProps {
  * Authoritative Compact Review Discovery Protocol.
  * Forensicly reduced by 25% for viewport optimization.
  * Drawer recalibrated to fit full height (h-full).
+ * Redundant close button removed per administrative directive.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -309,10 +310,6 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
             </section>
           </div>
         </ScrollArea>
-
-        <div className="p-8 border-t bg-gray-50/50 shrink-0">
-          <Button onClick={() => setIsOpen(false)} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[9px]">Close Feedback</Button>
-        </div>
       </SheetContent>
     </Sheet>
   );
