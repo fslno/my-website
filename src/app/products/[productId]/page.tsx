@@ -172,7 +172,7 @@ export default function ProductDetailPage(props: PageProps) {
       <main className="min-h-screen bg-white pt-20 sm:pt-32 pb-32">
         <div className="max-w-[1280px] mx-auto px-4 lg:px-8 space-y-12">
           <div className="flex flex-col md:grid md:grid-cols-12 md:gap-12">
-            <Skeleton className="md:col-span-7 lg:col-span-8 aspect-[3/4] w-full rounded-sm" />
+            <Skeleton className="md:col-span-7 lg:col-span-8 aspect-square w-full rounded-sm" />
             <div className="md:col-span-5 lg:col-span-4 space-y-8 py-6 md:py-0">
               <div className="space-y-4">
                 <Skeleton className="h-10 w-3/4" />
@@ -216,7 +216,7 @@ export default function ProductDetailPage(props: PageProps) {
                     key={idx} 
                     onClick={() => api?.scrollTo(idx)}
                     className={cn(
-                      "relative aspect-[3/4] bg-white border rounded-sm overflow-hidden transition-all",
+                      "relative aspect-square bg-white border rounded-sm overflow-hidden transition-all",
                       current === idx + 1 ? "border-black ring-1 ring-black scale-105" : "border-gray-100 opacity-60 hover:opacity-100"
                     )}
                   >
@@ -231,13 +231,13 @@ export default function ProductDetailPage(props: PageProps) {
                     {media.length > 0 ? (
                       media.map((item: any, idx: number) => (
                         <CarouselItem key={idx}>
-                          <div className="relative aspect-[3/4] bg-white overflow-hidden border rounded-sm">
+                          <div className="relative aspect-square bg-white overflow-hidden border rounded-sm">
                             <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
                           </div>
                         </CarouselItem>
                       ))
                     ) : (
-                      <CarouselItem><div className="aspect-[3/4] bg-gray-100" /></CarouselItem>
+                      <CarouselItem><div className="aspect-square bg-gray-100" /></CarouselItem>
                     )}
                   </CarouselContent>
                 </Carousel>
@@ -386,7 +386,7 @@ export default function ProductDetailPage(props: PageProps) {
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", !wantsCustomization ? "bg-black text-white" : "bg-white")}>No</button>
-                    <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
+                    <button onClick={() => wantsCustomization && setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
                   </div>
                 </div>
                 {wantsCustomization && (
