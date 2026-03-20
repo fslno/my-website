@@ -16,12 +16,11 @@ import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { doc } from 'firebase/firestore';
 import { getLivePath } from '@/lib/deployment';
-import NextImage from 'next/image';
 
 /**
  * Authoritative Unified Root Layout.
  * Forensicly hardened against visual flickering and hydration mismatches.
- * Features a high-fidelity 512x512 branded boot manifest.
+ * Features a high-fidelity branded text boot manifest to ensure zero-intrusion from broken media.
  */
 export default function RootLayout({
   children,
@@ -46,21 +45,21 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-background text-foreground overflow-x-hidden" suppressHydrationWarning>
         
-        {/* BOOT OVERLAY: Branded Manifest to prevent visual flickering */}
+        {/* BOOT OVERLAY: Branded Text Manifest to prevent visual flickering and broken images */}
         <div 
           className={cn(
-            "fixed inset-0 z-[9999] bg-background flex items-center justify-center pointer-events-none transition-opacity duration-700",
+            "fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center pointer-events-none transition-opacity duration-700",
             mounted ? "opacity-0 invisible" : "opacity-100"
           )}
         >
-          <div className="relative w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 lg:w-[512px] lg:h-[512px] animate-pulse">
-            <NextImage 
-              src="https://placehold.co/512x512/transparent/000000?text=FSLNO" 
-              alt="FSLNO" 
-              fill 
-              className="object-contain"
-              priority
-            />
+          <div className="flex flex-col items-center gap-6 animate-pulse">
+            <h1 className="font-headline font-bold text-6xl sm:text-8xl tracking-tighter uppercase text-primary">
+              FSLNO
+            </h1>
+            <div className="h-px w-16 bg-primary/10" />
+            <span className="text-[10px] sm:text-xs uppercase tracking-[0.6em] font-bold text-muted-foreground ml-2">
+              Studio
+            </span>
           </div>
         </div>
 
