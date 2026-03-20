@@ -31,6 +31,7 @@ interface ReviewSystemProps {
  * Authoritative RatingBadge & Review Protocol.
  * Refactored to manifest as a floating black pill discovery point.
  * Features 5-star rating and tiny bold caps feedback manifest.
+ * Baseline recalibrated to start from 1 review and 5 stars for new pieces.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -64,7 +65,8 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   }, [allReviews, productId]);
 
   const stats = useMemo(() => {
-    if (productReviews.length === 0) return { avg: 5, count: 0 };
+    // Authoritative Baseline: Start from 1 review and 5 stars if empty
+    if (productReviews.length === 0) return { avg: 5, count: 1 };
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
   }, [productReviews]);
@@ -147,13 +149,13 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                   key={s} 
                   className={cn(
                     "h-3 w-3 transition-all duration-500", 
-                    s <= Math.round(stats.avg || 5) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
+                    s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
                   )} 
                 />
               ))}
             </div>
             <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
-              BASED ON {stats.count || 116} REVIEWS
+              BASED ON {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
             </p>
           </div>
         </div>
