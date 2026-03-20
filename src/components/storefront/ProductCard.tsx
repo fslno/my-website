@@ -14,6 +14,7 @@ interface ProductCardProps {
   image: string;
   hoverImage?: string;
   category: string;
+  sku?: string;
   rating?: number;
   reviewCount?: number;
   isSoldOut?: boolean;
@@ -26,7 +27,7 @@ interface ProductCardProps {
  */
 export function ProductCard({ 
   id, name, price, comparedPrice, image, hoverImage, category, 
-  rating, reviewCount, isSoldOut, priority = false 
+  sku, rating, reviewCount, isSoldOut, priority = false 
 }: ProductCardProps) {
   const currentPriceNum = parseFloat(price.replace(/[^0-9.]/g, ''));
   const hasDiscount = comparedPrice && comparedPrice > currentPriceNum;
@@ -80,9 +81,6 @@ export function ProductCard({
       </Link>
       
       <div className="flex flex-col gap-0 py-1 product-flex-align">
-        <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-muted-foreground font-bold leading-none truncate">
-          {category}
-        </p>
         <div className="flex items-center gap-2">
           <p className="product-price-size product-price-color font-bold leading-none">
             {price}
@@ -99,6 +97,12 @@ export function ProductCard({
         >
           {name}
         </Link>
+        
+        {sku && (
+          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-muted-foreground font-bold leading-none truncate mt-1">
+            {sku}
+          </p>
+        )}
         
         {reviewCount && reviewCount > 0 ? (
           <div className="flex items-center gap-1 mt-0.5">

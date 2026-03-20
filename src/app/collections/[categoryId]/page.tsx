@@ -102,6 +102,7 @@ export default function CollectionPage(props: PageProps) {
                     image={product.media?.[0]?.url || ''}
                     hoverImage={product.media?.[1]?.url}
                     category={productCategory}
+                    sku={product.sku}
                     rating={reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0}
                     reviewCount={reviewsEnabled && ratingInfo ? ratingInfo.count : 0}
                     isSoldOut={(Number(product.inventory) || 0) <= 0}

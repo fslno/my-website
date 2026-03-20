@@ -96,6 +96,7 @@ export function ProductGrid() {
               image={product.media?.[0]?.url || ''}
               hoverImage={product.media?.[1]?.url}
               category={productCategory}
+              sku={product.sku}
               rating={avgRating}
               reviewCount={reviewCount}
               isSoldOut={isSoldOut}
