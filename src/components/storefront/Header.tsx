@@ -34,7 +34,7 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
  * Authoritative Header Manifest.
  * Forensicly purged of search and menu interaction points for an opaque white start.
  * Thumbnails recalibrated to 1:1 geometric ratio.
- * Cart items optimized for mobile-first visual density.
+ * Cart items optimized for high-density mobile fitting.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -197,13 +197,13 @@ export function Header() {
                     ) : (
                       <div className="space-y-6">
                         {cart.map((item) => (
-                          <div key={item.variantId} className="flex gap-3 sm:gap-4 group border-b border-gray-50 pb-4 last:border-0 last:pb-0">
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 relative bg-gray-50 border shrink-0 overflow-hidden rounded-sm">
+                          <div key={item.variantId} className="flex gap-2 sm:gap-4 group border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                            <div className="w-14 h-14 sm:w-20 sm:h-20 relative bg-gray-50 border shrink-0 overflow-hidden rounded-sm">
                               {item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}
                             </div>
                             <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
                               <div className="text-left">
-                                <div className="flex justify-between items-start gap-2">
+                                <div className="flex justify-between items-start gap-1.5">
                                   <h3 className="text-[10px] font-bold uppercase leading-tight line-clamp-2 flex-1">{item.name}</h3>
                                   <p className="text-[10px] font-bold whitespace-nowrap shrink-0">C${formatCurrency(item.price * item.quantity)}</p>
                                 </div>
