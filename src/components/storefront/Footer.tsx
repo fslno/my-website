@@ -27,6 +27,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * High-fidelity responsive footer.
+ * Optimized for peak velocity by return null when not mounted to prevent "flashback" of black.
  */
 export function Footer() {
   const db = useFirestore();
@@ -57,7 +58,8 @@ export function Footer() {
 
   const mapsUrl = config?.googleMapsUrl || (config?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.address)}` : '#');
 
-  if (!mounted) return <footer className="bg-primary h-24 mt-8" />;
+  // Authoritative Removal from Flashback: Ensure zero visible trace until mounted.
+  if (!mounted) return null;
 
   return (
     <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10" suppressHydrationWarning>

@@ -15,7 +15,7 @@ import { Footer } from '@/components/storefront/Footer';
 import { usePathname } from 'next/navigation';
 
 /**
- * Authoritative Direct-Open Root Layout.
+ * Authoritative Direct-Entry Root Layout.
  * Optimized for instantaneous storefront manifestation by removing hydration gates.
  */
 export default function RootLayout({
