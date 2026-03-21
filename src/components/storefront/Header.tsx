@@ -111,7 +111,8 @@ export function Header() {
     
     // Header-relative positions
     if (pos === 'left') return { left: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
-    if (pos === 'center') return { left: '50%', transform: 'translateX(-50%) translateY(100%)', top: `calc(100% + ${offset})`, position: 'absolute' as const };
+    // Authoritative Center Correction: Removed translateY(100%) to ensure it touches the header bar
+    if (pos === 'center') return { left: '50%', transform: 'translateX(-50%)', top: `calc(100% + ${offset})`, position: 'absolute' as const };
     if (pos === 'right') return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
 
     // Viewport-fixed bottom positions
@@ -159,7 +160,7 @@ export function Header() {
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-8">
-                  <nav className="flex flex-col gap-2"> {/* Authoritative Row Gap Reduction */}
+                  <nav className="flex flex-col gap-2">
                     {categories?.map((cat: any) => (
                       <Link 
                         key={cat.id} 
@@ -171,9 +172,9 @@ export function Header() {
                       </Link>
                     ))}
                     
-                    <Separator className="my-2" /> {/* Authoritative Spacing Reduction */}
+                    <Separator className="my-2" />
                     
-                    <div className="space-y-2"> {/* Authoritative Row Gap Reduction */}
+                    <div className="space-y-2">
                       {user ? (
                         <>
                           <Link 
