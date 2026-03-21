@@ -72,7 +72,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   }, [allReviews, productId]);
 
   const stats = useMemo(() => {
-    if (productReviews.length === 0) return { avg: 5, count: 1 };
+    if (!productReviews || productReviews.length === 0) return { avg: 0, count: 0 };
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
   }, [productReviews]);
@@ -134,7 +134,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   };
 
   // Hydration Stability Protocol:
-  if (!isMounted || (config && config.enabled === false)) return null;
+  if (!isMounted || (config && config.enabled === false) || stats.count === 0) return null;
 
   const isBottom = theme?.ratingBadgePosition?.startsWith('bottom') || theme?.ratingBadgePosition === 'split';
 

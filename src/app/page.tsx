@@ -40,7 +40,7 @@ export default function Home() {
       
       <CategorySection />
       
-      {mounted && (
+      {mounted && theme && (
         <div className="bg-white">
           <div className="max-w-[1440px] mx-auto px-4 pt-12">
             <div className={cn(
