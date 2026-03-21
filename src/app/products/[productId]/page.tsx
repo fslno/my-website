@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
+  useUser,
   useFirestore, 
   useDoc, 
   useMemoFirebase,
@@ -119,6 +120,15 @@ export default function ProductDetailPage(props: PageProps) {
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
 
+  // Authoritative Field Reset Protocol: Purge inputs when personalization is disabled
+  useEffect(() => {
+    if (!wantsCustomization) {
+      setCustomName('');
+      setCustomNumber('');
+      setSpecialRequest('');
+    }
+  }, [wantsCustomization]);
+
   useEffect(() => {
     if (!api) return;
 
@@ -166,6 +176,16 @@ export default function ProductDetailPage(props: PageProps) {
   const handleAddToCart = () => {
     if (!product || !selectedSize || hasReachedLimit) return;
 
+    // Data Integrity Gate: Ensure fields are populated if "Yes" is selected
+    if (wantsCustomization && !customName && !customNumber && !specialRequest) {
+      toast({
+        variant: "destructive",
+        title: "Information Required",
+        description: "Please provide customization details or select 'No'."
+      });
+      return;
+    }
+
     const uniqueVariantId = wantsCustomization 
       ? `${product.id}-${selectedSize}-${customName}-${customNumber}-${specialRequest.substring(0, 10)}`
       : `${product.id}-${selectedSize}`;
@@ -211,6 +231,7 @@ export default function ProductDetailPage(props: PageProps) {
                 {media.map((item: any, idx: number) => (
                   <button 
                     key={idx} 
+                    type="button"
                     onClick={() => api?.scrollTo(idx)}
                     className={cn(
                       "relative aspect-square bg-white border rounded-sm overflow-hidden transition-all",
@@ -334,7 +355,7 @@ export default function ProductDetailPage(props: PageProps) {
                 {categoryCharts && categoryCharts.length > 0 && (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Size Chart</button>
+                      <button type="button" className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Size Chart</button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
                       <SheetHeader className="p-8 border-b">
@@ -377,6 +398,7 @@ export default function ProductDetailPage(props: PageProps) {
                 {(product.variants || []).map((v: any, idx: number) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => setSelectedSize(v.size)}
                     disabled={Number(v.stock) === 0}
                     className={cn(
@@ -399,17 +421,58 @@ export default function ProductDetailPage(props: PageProps) {
                     <p className="text-[9px] text-muted-foreground uppercase font-bold">+C${(Number(product.customizationFee) || 10).toFixed(2)}</p>
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
-                    <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", !wantsCustomization ? "bg-black text-white" : "bg-white")}>No</button>
-                    <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
+                    <button 
+                      type="button"
+                      onClick={() => setWantsCustomization(false)} 
+                      className={cn(
+                        "flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest transition-colors", 
+                        !wantsCustomization ? "bg-black text-white border-black" : "bg-white hover:bg-gray-50"
+                      )}
+                    >
+                      No
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setWantsCustomization(true)} 
+                      className={cn(
+                        "flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest transition-colors", 
+                        wantsCustomization ? "bg-black text-white border-black" : "bg-white hover:bg-gray-50"
+                      )}
+                    >
+                      Yes
+                    </button>
                   </div>
                 </div>
                 {wantsCustomization && (
                   <div className="grid gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Name</Label><Input value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-bold uppercase text-xs" /></div>
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Number</Label><Input value={customNumber} maxLength={2} onChange={(e) => setCustomNumber(e.target.value)} className="h-11 rounded-none bg-gray-50 border-none font-bold text-center" /></div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Name</Label>
+                        <Input 
+                          value={customName} 
+                          onChange={(e) => setCustomName(e.target.value.toUpperCase())} 
+                          className="h-11 rounded-none bg-gray-50 border-none font-bold uppercase text-xs focus-visible:ring-1 focus-visible:ring-black" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Number</Label>
+                        <Input 
+                          value={customNumber} 
+                          maxLength={2} 
+                          onChange={(e) => setCustomNumber(e.target.value)} 
+                          className="h-11 rounded-none bg-gray-50 border-none font-bold text-center focus-visible:ring-1 focus-visible:ring-black" 
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Special Notes</Label><Input value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-medium text-[10px]" /></div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold text-gray-400">Special Notes</Label>
+                      <Input 
+                        value={specialRequest} 
+                        onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} 
+                        placeholder="ANY SPECIAL INSTRUCTIONS..."
+                        className="h-11 rounded-none bg-gray-50 border-none font-medium text-[10px] focus-visible:ring-1 focus-visible:ring-black" 
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -419,15 +482,25 @@ export default function ProductDetailPage(props: PageProps) {
               <Button 
                 onClick={handleAddToCart} 
                 disabled={isButtonDisabled}
-                className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
+                className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-black/90 transition-none active:scale-100 shadow-xl"
               >
                 {buttonText}
               </Button>
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" onClick={() => toggleWishlist({ id: product.id, name: product.name, price: Number(product.price), image: product.media?.[0]?.url || '' })} className={cn("h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2", isInWishlist(product.id) && "bg-red-50 border-red-100 text-red-600")}>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => toggleWishlist({ id: product.id, name: product.name, price: Number(product.price), image: product.media?.[0]?.url || '' })} 
+                  className={cn("h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2", isInWishlist(product.id) && "bg-red-50 border-red-100 text-red-600")}
+                >
                   <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} /> {isInWishlist(product.id) ? 'Saved' : 'Add to Wishlist'}
                 </Button>
-                <Button variant="outline" onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: "Link Copied" }); }} className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: "Link Copied" }); }} 
+                  className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2"
+                >
                   <Share2 className="h-4 w-4" /> Share
                 </Button>
               </div>
