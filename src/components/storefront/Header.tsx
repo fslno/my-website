@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Tag,
-  Sparkles
+  Sparkles,
+  Search as SearchIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
 import { AuthDialog } from '@/components/storefront/AuthDialog';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
@@ -63,10 +72,18 @@ export function Header() {
   }, [db]);
   const { data: categories } = useCollection(categoriesQuery);
 
+  const productsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, getLivePath('products'));
+  }, [db]);
+  const { data: allProducts } = useCollection(productsQuery);
+
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -75,6 +92,14 @@ export function Header() {
 
   const isAdmin = useMemo(() => pathname?.startsWith('/admin'), [pathname]);
   const isProductPage = useMemo(() => pathname?.includes('/products/'), [pathname]);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery || searchQuery.length < 2 || !allProducts) return [];
+    return allProducts.filter(p => 
+      p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      p.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 10);
+  }, [searchQuery, allProducts]);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -205,6 +230,10 @@ export function Header() {
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="flex items-center gap-0.5">
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setIsSearchOpen(true)}>
+                <SearchIcon className="h-4 w-4" />
+              </Button>
+
               {/* DESKTOP AUTH BUTTON */}
               <Button variant="ghost" size="icon" className="h-9 w-9 hidden lg:flex" onClick={() => user ? null : setIsAuthOpen(true)}>
                 {user ? (
@@ -359,6 +388,72 @@ export function Header() {
           )}
         </div>
       </header>
+
+      {/* SEARCH DIALOG */}
+      <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Search Archive</DialogTitle>
+            <DialogDescription>Search through the collection by name or SKU.</DialogDescription>
+          </DialogHeader>
+          <div className="p-6 border-b flex items-center gap-4">
+            <SearchIcon className="h-5 w-5 text-gray-400" />
+            <Input 
+              placeholder="SEARCH THE ARCHIVE..." 
+              className="border-none shadow-none focus-visible:ring-0 text-lg font-headline font-bold uppercase p-0 h-auto placeholder:text-gray-200"
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button onClick={() => setIsSearchOpen(false)} className="p-2 hover:bg-gray-50 rounded-full transition-colors">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <ScrollArea className="flex-1">
+            <div className="p-6 space-y-6">
+              {searchResults.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {searchResults.map(product => (
+                    <Link 
+                      key={product.id} 
+                      href={`/products/${product.id}`} 
+                      onClick={() => setIsSearchOpen(false)}
+                      className="flex items-center gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-300"
+                    >
+                      <div className="w-16 h-16 relative bg-gray-50 border rounded-sm overflow-hidden shrink-0">
+                        {product.media?.[0]?.url && <NextImage src={product.media[0].url} alt="" fill className="object-cover" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-tight group-hover:underline line-clamp-2 leading-snug">{product.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-[10px] font-bold">C${(Number(product.price)||0).toFixed(2)}</p>
+                          {product.sku && <p className="text-[8px] font-mono text-gray-400 uppercase">{product.sku}</p>}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : searchQuery.length >= 2 ? (
+                <div className="py-20 text-center space-y-2">
+                  <p className="text-[10px] font-bold uppercase text-gray-400 tracking-[0.2em]">No results found.</p>
+                  <p className="text-[8px] font-bold uppercase text-gray-300 tracking-widest italic">Verify your query manifest.</p>
+                </div>
+              ) : (
+                <div className="py-20 text-center space-y-4">
+                  <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                    <SearchIcon className="h-5 w-5 text-gray-200" />
+                  </div>
+                  <p className="text-[10px] font-bold uppercase text-gray-400 tracking-[0.3em] italic">Start typing to search...</p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          <div className="p-4 border-t bg-gray-50/50 flex justify-center">
+            <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">Press Esc to exit</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <AuthDialog open={isAuthOpen} onOpenChange={setIsAuthOpen} />
     </>
   );
