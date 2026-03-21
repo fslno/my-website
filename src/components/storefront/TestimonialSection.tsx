@@ -84,7 +84,7 @@ export function TestimonialSection() {
                             <Star 
                               key={s} 
                               className={cn(
-                                "h-3 w-3", 
+                                "h-3 w-3 transition-all duration-500", 
                                 s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20"
                               )} 
                             />

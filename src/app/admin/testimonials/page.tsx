@@ -147,7 +147,7 @@ export default function AdminTestimonialsPage() {
                   <TableCell className="p-6"><div className="w-10 h-10 rounded-full border bg-gray-100 overflow-hidden relative shrink-0">{t.customerImageUrl && <Image src={t.customerImageUrl} alt={t.customerName} fill className="object-cover" />}</div></TableCell>
                   <TableCell><p className="font-bold text-xs uppercase tracking-widest">{t.customerName}</p></TableCell>
                   <TableCell><p className="text-[11px] text-gray-500 line-clamp-2 italic">"{t.quote}"</p></TableCell>
-                  <TableCell><div className="flex justify-center gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} className={cn("h-3 w-3", s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />)}</div></TableCell>
+                  <TableCell><div className="flex justify-center gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} className={cn("h-3 w-3 transition-all", s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />)}</div></TableCell>
                   <TableCell className="text-center"><div className="flex justify-center" onClick={e => e.stopPropagation()}><Switch checked={t.isFeatured} onCheckedChange={() => toggleFeatured(t.id, t.isFeatured)} /></div></TableCell>
                   <TableCell className="pr-6"><div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity"><Button variant="ghost" size="icon" onClick={e => { e.stopPropagation(); handleDelete(t.id); }}><Trash2 className="h-4 w-4 text-red-500" /></Button></div></TableCell>
                 </TableRow>
@@ -164,7 +164,7 @@ export default function AdminTestimonialsPage() {
             <div key={t.id} className="p-4 bg-white space-y-4 hover:bg-gray-50 transition-colors" onClick={() => openEdit(t)}>
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full border bg-gray-100 overflow-hidden relative shrink-0">{t.customerImageUrl && <Image src={t.customerImageUrl} alt={t.customerName} fill className="object-cover" />}</div><p className="font-bold text-xs uppercase tracking-widest">{t.customerName}</p></div>
-                <div className="flex gap-0.5">{[1, 2, 3, 4, 5].map(s => <Star key={s} className={cn("h-2.5 w-2.5", s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />)}</div>
+                <div className="flex gap-0.5">{[1, 2, 3, 4, 5].map(s => <Star key={s} className={cn("h-2.5 w-2.5 transition-all", s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />)}</div>
               </div>
               <p className="text-[11px] text-gray-500 line-clamp-3 italic leading-relaxed">"{t.quote}"</p>
               <div className="flex items-center justify-between pt-2 border-t border-black/5">

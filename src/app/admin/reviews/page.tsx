@@ -344,7 +344,7 @@ export default function AdminReviewsPage() {
                     <TableCell>
                       <div className="flex justify-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />
+                          <Star key={s} className={cn("h-3 w-3 transition-all", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />
                         ))}
                       </div>
                     </TableCell>
@@ -412,7 +412,7 @@ export default function AdminReviewsPage() {
                   </div>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />
+                      <Star key={s} className={cn("h-3 w-3 transition-all", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />
                     ))}
                   </div>
                 </div>

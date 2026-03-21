@@ -111,13 +111,13 @@ export function ProductCard({
                 <Star 
                   key={s} 
                   className={cn(
-                    "h-2 sm:h-2.5 w-2 sm:w-2.5", 
+                    "h-2 sm:h-2.5 w-2 sm:w-2.5 transition-all duration-500", 
                     s <= Math.round(rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20"
                   )} 
                 />
               ))}
             </div>
-            <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
+            <span className="text-[8px] sm:text-[9px] font-bold text-yellow-400 uppercase tracking-widest ml-1">({reviewCount})</span>
           </div>
         ) : null}
       </div>

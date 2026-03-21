@@ -188,7 +188,11 @@ export default function ProductDetailPage(props: PageProps) {
     toast({ title: "Added to Cart", description: `${product.name} is in your cart.` });
   };
 
-  if (!mounted || loading || !product) {
+  if (!mounted) {
+    return <div className="min-h-screen bg-white" />;
+  }
+
+  if (loading || !product) {
     return <div className="min-h-screen bg-white" />;
   }
 
@@ -278,7 +282,7 @@ export default function ProductDetailPage(props: PageProps) {
                       />
                     ))}
                   </div>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({stats.count})</span>
+                  <span className="text-[9px] font-bold text-yellow-400 uppercase tracking-widest ml-1">({stats.count})</span>
                 </div>
               </div>
               

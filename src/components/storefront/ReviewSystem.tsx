@@ -160,7 +160,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                 />
               ))}
             </div>
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] whitespace-nowrap">
+            <p className="text-[7px] font-bold uppercase tracking-[0.15em] whitespace-nowrap text-yellow-400">
               {stats.count === 0 ? 'WRITE A REVIEW' : `BASED ON ${stats.count} ${stats.count === 1 ? 'REVIEW' : 'REVIEWS'}`}
             </p>
           </div>
