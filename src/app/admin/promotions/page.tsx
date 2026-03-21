@@ -427,7 +427,8 @@ export default function PromotionsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase font-bold text-gray-500">Discount ($)</Label(Input 
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Discount ($)</Label>
+                    <Input 
                       type="number" 
                       value={thresholdDiscount} 
                       onChange={(e) => setThresholdDiscount(Number(e.target.value))}
