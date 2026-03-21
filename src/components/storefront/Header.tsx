@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import NextImage from 'next/image';
@@ -38,6 +39,7 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 /**
  * Authoritative Header Manifest.
  * Optimized for Direct-Entry velocity with a zero-flicker white entry protocol.
+ * Forensicly stabilized to eliminate hydration mismatches.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -109,26 +111,27 @@ export function Header() {
 
   const getBadgePositionStyle = () => {
     if (!theme) return { right: '1rem', top: '100%' };
-    
     const offset = `${theme.ratingBadgeVerticalOffset || 0}px`;
     const pos = theme.ratingBadgePosition || 'right';
-    
     if (pos === 'left') return { left: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
     if (pos === 'center') return { left: '50%', transform: 'translateX(-50%)', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
     if (pos === 'right') return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
-
     if (pos === 'bottom-left') return { left: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     if (pos === 'bottom-center') return { left: '50%', transform: 'translateX(-50%)', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     if (pos === 'bottom-right') return { right: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
-    
     if (pos === 'split') return { display: 'none' };
-
     return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
   };
 
-  // Direct-Entry Protocol: Return a perfectamente stable white plane to eliminate hydration flashbacks.
+  // Direct-Entry Protocol: Return a perfectly stable header placeholder to eliminate hydration mismatches.
+  // This must exactly match the base structure rendered by the server to prevent "Notifications (F8)" Confusions.
   if (!mounted) {
-    return <header className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white" />;
+    return (
+      <header 
+        className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b" 
+        style={{ marginTop: '0' }}
+      />
+    );
   }
 
   return (
@@ -349,7 +352,7 @@ export function Header() {
                     )}
                   </ScrollArea>
                   {cart.length > 0 && (
-                    <SheetFooter className="p-4 border-t bg-gray-50 flex flex-col gap-4 shrink-0">
+                    <div className="p-4 border-t bg-gray-50 flex flex-col gap-4 shrink-0">
                       <div className="space-y-2">
                         <div className="flex justify-between items-end">
                           <span className="text-[10px] font-bold uppercase text-gray-400">Subtotal</span>
@@ -365,7 +368,7 @@ export function Header() {
                       <Button asChild className="w-full h-11 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
                         <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout</Link>
                       </Button>
-                    </SheetFooter>
+                    </div>
                   )}
                 </SheetContent>
               </Sheet>

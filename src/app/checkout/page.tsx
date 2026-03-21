@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
@@ -60,6 +61,7 @@ const TAX_RATES: Record<string, number> = {
 /**
  * Authoritative Checkout Manifest.
  * Optimized for zero-flicker Direct-Entry.
+ * Forensicly stabilized to eliminate hydration mismatches.
  */
 export default function CheckoutPage() {
   const router = useRouter();
