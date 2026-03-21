@@ -17,6 +17,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Promotion popup alert for customers.
+ * Authoritatively recalibrated to fit viewport height on all devices.
  */
 export function PromotionPopup() {
   const pathname = usePathname();
@@ -51,12 +52,12 @@ export function PromotionPopup() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
-      <DialogContent className="sm:max-w-md bg-white border-none rounded-none p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-white border-none rounded-none p-0 overflow-y-auto max-h-[95vh] shadow-2xl scrollbar-hide">
         <DialogHeader className="sr-only">
           <DialogTitle>Limited Offer Promotion</DialogTitle>
           <DialogDescription>Information about the current reward offer.</DialogDescription>
         </DialogHeader>
-        <div className="relative p-8 sm:p-12 text-center space-y-8">
+        <div className="relative p-8 sm:p-12 text-center space-y-8 h-fit">
           
           <div className="flex justify-center">
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center shadow-xl border border-black/5 relative">
