@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -14,6 +14,11 @@ import { cn } from '@/lib/utils';
  */
 export function CategorySection() {
   const db = useFirestore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
@@ -25,7 +30,8 @@ export function CategorySection() {
 
   const { data: categories, isLoading } = useCollection(categoriesQuery);
 
-  if (isLoading || !categories || categories.length === 0) {
+  // Authoritative Flashback Purge: Render nothing until hydration is complete.
+  if (!mounted || isLoading || !categories || categories.length === 0) {
     return null;
   }
 

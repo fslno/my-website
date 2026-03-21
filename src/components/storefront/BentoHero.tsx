@@ -39,13 +39,26 @@ export function BentoHero({
   verticalAlign = 'center'
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
+  const [mounted, setMounted] = useState(false);
   
   const autoplayPlugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Authoritative Flashback Purge: Strictly render a clean white box until mounted.
+  if (!mounted) {
+    return (
+      <section className="pt-[76px] sm:pt-[104px]">
+        <div className="w-full bg-white h-[72vh]" />
+      </section>
+    );
+  }
+
   // Authoritative Priority: If no Firestore images manifest, return a stable white viewport shell.
-  // This eliminates the "black banner" and "placeholder" flashback.
   if (!heroImages || heroImages.length === 0) {
     return (
       <section className="pt-[76px] sm:pt-[104px]">

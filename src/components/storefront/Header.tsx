@@ -125,9 +125,13 @@ export function Header() {
     return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
   };
 
+  // Authoritative Flashback Purge: Strictly render nothing until hydration is complete.
+  // This ensures the first frame is clean white and matches the server-client initial state.
+  if (!mounted) return null;
+
   return (
     <>
-      {mounted && theme?.bannerEnabled && (
+      {theme?.bannerEnabled && (
         <div 
           className="fixed top-0 left-0 right-0 z-[60] h-7 sm:h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center"
           style={{ backgroundColor: theme.bannerBgColor || '#000000' }}
@@ -138,7 +142,7 @@ export function Header() {
       <header
         className={cn(
           'fixed left-0 right-0 z-50 transition-all duration-300 h-12 sm:h-16 flex items-center bg-white border-b shadow-sm',
-          mounted && theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
+          theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
         )}
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between relative h-full">
@@ -152,7 +156,7 @@ export function Header() {
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">
-                    {mounted && storeConfig ? storeConfig.businessName : ""}
+                    {storeConfig?.businessName || ""}
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-8">
@@ -202,13 +206,13 @@ export function Header() {
             </Sheet>
 
             <Link href="/" className="flex items-center gap-2 group">
-              {mounted && storeConfig?.logoUrl && (
+              {storeConfig?.logoUrl && (
                 <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-sm overflow-hidden">
                   <NextImage src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                 </div>
               )}
               <h1 className="text-lg sm:text-2xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
-                {mounted && storeConfig ? (storeConfig.businessName || "") : ""}
+                {storeConfig?.businessName || ""}
               </h1>
             </Link>
           </div>
@@ -269,7 +273,7 @@ export function Header() {
                 <SheetContent 
                   className={cn(
                     "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    mounted && theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
+                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
                   )}
                 >
                   <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
@@ -309,7 +313,7 @@ export function Header() {
                 <SheetContent 
                   className={cn(
                     "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    mounted && theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
+                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
                   )}
                 >
                   <SheetHeader className="p-3 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Cart ({cartCount})</SheetTitle></SheetHeader>
@@ -366,7 +370,7 @@ export function Header() {
             </div>
           </div>
 
-          {mounted && !isAdmin && !isProductPage && theme && (
+          {!isAdmin && !isProductPage && theme && (
             <>
               {theme?.ratingBadgePosition === 'split' ? (
                 <>
