@@ -93,7 +93,7 @@ export default function ProductDetailPage(props: PageProps) {
   const { data: productReviews } = useCollection(reviewsQuery);
 
   const stats = useMemo(() => {
-    if (!productReviews || productReviews.length === 0) return { avg: 5, count: 1 };
+    if (!productReviews || productReviews.length === 0) return { avg: 5, count: 0 };
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
   }, [productReviews]);
@@ -182,7 +182,6 @@ export default function ProductDetailPage(props: PageProps) {
     toast({ title: "Added to Cart", description: `${product.name} is in your cart.` });
   };
 
-  // Direct-Entry Protocol: Return a clean white viewport while data is loading.
   if (loading || !product) {
     return <div className="min-h-screen bg-white" />;
   }
@@ -267,7 +266,7 @@ export default function ProductDetailPage(props: PageProps) {
                       <Star 
                         key={s} 
                         className={cn(
-                          "h-2.5 w-2.5", 
+                          "h-2.5 sm:h-2.5 w-2.5 sm:w-2.5", 
                           s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
                         )} 
                       />
