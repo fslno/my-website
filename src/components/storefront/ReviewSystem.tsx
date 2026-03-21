@@ -29,8 +29,8 @@ interface ReviewSystemProps {
 }
 
 /**
- * Product Review and Rating system.
- * Optimized for Direct-Entry velocity and Yellow Manifest Protocol.
+ * Authoritative Review Manifest.
+ * Calibrated to the Yellow Star Protocol and zero-flicker Direct-Entry.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -178,7 +178,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
-                <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Customer Reviews</SheetTitle>
+                <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">Customer Reviews</SheetTitle>
               </div>
               <SheetDescription className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
                 {productId === 'global' ? 'See what others say about the studio.' : 'See what others say about this piece.'}

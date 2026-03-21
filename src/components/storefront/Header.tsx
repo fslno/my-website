@@ -35,6 +35,10 @@ import { getLivePath } from '@/lib/deployment';
 import { Separator } from '@/components/ui/separator';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
+/**
+ * Authoritative Header Manifest.
+ * Optimized for Direct-Entry velocity with a zero-flicker white entry protocol.
+ */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
@@ -47,7 +51,7 @@ export function Header() {
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
-  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
 
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, getLivePath('categories')) : null, [db]);
@@ -109,7 +113,7 @@ export function Header() {
     const offset = `${theme.ratingBadgeVerticalOffset || 0}px`;
     const pos = theme.ratingBadgePosition || 'right';
     
-    // Header-relative positions - Adjusted to touch the line bar
+    // Header-relative positions - Touches the line bar exactly
     if (pos === 'left') return { left: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
     if (pos === 'center') return { left: '50%', transform: 'translateX(-50%)', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
     if (pos === 'right') return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };

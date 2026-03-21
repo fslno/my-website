@@ -57,6 +57,10 @@ const TAX_RATES: Record<string, number> = {
   'ON': 0.13, 'BC': 0.12, 'QC': 0.14975, 'AB': 0.05, 'MB': 0.12, 'NB': 0.15, 'NL': 0.15, 'NS': 0.15, 'PE': 0.15, 'SK': 0.11, 'NY': 0.08875, 'CA': 0.0725, 'TX': 0.0625, 'FL': 0.06, 'DEFAULT': 0.10
 };
 
+/**
+ * Authoritative Checkout Manifest.
+ * Optimized for zero-flicker Direct-Entry.
+ */
 export default function CheckoutPage() {
   const router = useRouter();
   const db = useFirestore();
@@ -218,7 +222,7 @@ export default function CheckoutPage() {
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  // Direct-Entry Protocol: Return a perfectly stable white placeholder to eliminate hydration glitches.
+  // Direct-Entry Protocol: Return a clean white screen while mounting
   if (!mounted) {
     return <div className="min-h-screen bg-white" />;
   }
