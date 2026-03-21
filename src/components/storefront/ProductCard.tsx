@@ -23,7 +23,7 @@ interface ProductCardProps {
 
 /**
  * Authoritative Product Card component.
- * Recalibrated for high-density mobile displays.
+ * Recalibrated for high-density mobile displays and high-velocity performance.
  */
 export function ProductCard({ 
   id, name, price, comparedPrice, image, hoverImage, category, 
@@ -35,13 +35,18 @@ export function ProductCard({
 
   return (
     <div className="group flex flex-col gap-1 product-text-align">
-      <Link href={`/products/${id}`} className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
+      <Link 
+        href={`/products/${id}`} 
+        className="relative block overflow-hidden bg-gray-50 aspect-[3/4] rounded-sm border shadow-sm" 
+        style={{ borderRadius: 'var(--radius)' }}
+      >
         {image ? (
           <>
             <Image
               src={image}
               alt={name}
               fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               className={cn(
                 "object-cover transition-opacity duration-500",
                 hoverImage ? "group-hover:opacity-0" : ""
@@ -54,6 +59,7 @@ export function ProductCard({
                 src={hoverImage}
                 alt={`${name} alternative view`}
                 fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                 className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 data-ai-hint="fashion variant"
               />
@@ -64,7 +70,7 @@ export function ProductCard({
         )}
         
         {isSoldOut && (
-          <div className="absolute top-0 right-0 z-10 p-1.5 sm:p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className="absolute top-0 right-0 z-10 p-1.5 sm:p-2 pointer-events-none">
             <span className="bg-red-600 text-white text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-2 py-1 sm:px-3 sm:py-1.5 shadow-xl">
               Sold Out
             </span>
@@ -72,7 +78,7 @@ export function ProductCard({
         )}
 
         {!isSoldOut && hasDiscount && (
-          <div className="absolute top-0 left-0 z-10 p-1.5 sm:p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className="absolute top-0 left-0 z-10 p-1.5 sm:p-2 pointer-events-none">
             <span className="bg-white text-black text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-2 py-1 sm:px-3 sm:py-1.5 shadow-xl border border-black/5">
               {discountPercent}% OFF
             </span>
@@ -93,7 +99,7 @@ export function ProductCard({
         </div>
         <Link 
           href={`/products/${id}`} 
-          className="product-title-size product-title-color font-medium line-clamp-2 group-hover:underline leading-snug tracking-tight min-h-0"
+          className="product-title-size product-title-color font-medium line-clamp-2 group-hover:underline leading-snug tracking-tight min-h-0 py-0.5"
         >
           {name}
         </Link>
@@ -105,7 +111,7 @@ export function ProductCard({
         )}
         
         {reviewCount && reviewCount > 0 ? (
-          <div className="flex items-center gap-1 mt-0.5">
+          <div className="flex items-center gap-1 mt-1">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 

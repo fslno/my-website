@@ -37,8 +37,7 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 /**
  * Authoritative Header Manifest.
- * Refactored for Opaque White Start to eliminate hydration flashbacks.
- * Optimized for Mobile Ergonomics.
+ * Forensicly recalibrated for mobile ergonomics and zero-flicker Direct-Entry.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -118,11 +117,9 @@ export function Header() {
     if (pos === 'bottom-left') return { left: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     if (pos === 'bottom-center') return { left: '50%', transform: 'translateX(-50%)', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     if (pos === 'bottom-right') return { right: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
-    if (pos === 'split') return { display: 'none' };
     return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
   };
 
-  // Direct-Entry Protocol: Return a perfectly stable white plane to eliminate hydration flashbacks.
   if (!mounted) {
     return <header className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b" />;
   }
@@ -144,10 +141,10 @@ export function Header() {
         )}
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between relative h-full">
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-4">
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-primary h-10 w-10">
+                <Button variant="ghost" size="icon" className="lg:hidden text-primary h-9 w-9">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -164,37 +161,25 @@ export function Header() {
                         key={cat.id} 
                         href={`/collections/${cat.id}`} 
                         onClick={() => setIsMenuOpen(false)} 
-                        className="text-lg font-headline uppercase text-primary hover:opacity-60 transition-opacity"
+                        className="text-lg font-headline uppercase text-primary hover:opacity-60 transition-opacity py-2"
                       >
                         {cat.name}
                       </Link>
                     ))}
-                    
-                    <Separator className="my-2 opacity-50" />
-                    
-                    <div className="space-y-2">
+                    <Separator className="my-4 opacity-50" />
+                    <div className="space-y-4">
                       {user ? (
                         <>
-                          <Link 
-                            href="/account/orders" 
-                            onClick={() => setIsMenuOpen(false)} 
-                            className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 transition-opacity"
-                          >
+                          <Link href="/account/orders" onClick={() => setIsMenuOpen(false)} className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 transition-opacity">
                             <Package className="h-5 w-5" /> My Orders
                           </Link>
-                          <button 
-                            onClick={() => { handleLogout(); setIsMenuOpen(false); }} 
-                            className="text-lg font-headline uppercase text-destructive hover:opacity-60 flex items-center gap-3 w-full text-left transition-opacity"
-                          >
+                          <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="text-lg font-headline uppercase text-destructive hover:opacity-60 flex items-center gap-3 w-full text-left transition-opacity">
                             <LogOut className="h-5 w-5" /> Sign Out
                           </button>
                         </>
                       ) : (
-                        <button 
-                          onClick={() => { setIsAuthOpen(true); setIsMenuOpen(false); }} 
-                          className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 w-full text-left transition-opacity"
-                        >
-                          <UserIcon className="h-5 w-5" /> Account / Sign In
+                        <button onClick={() => { setIsAuthOpen(true); setIsMenuOpen(false); }} className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 w-full text-left transition-opacity">
+                          <UserIcon className="h-5 w-5" /> Sign In
                         </button>
                       )}
                     </div>
@@ -209,18 +194,18 @@ export function Header() {
                   <NextImage src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                 </div>
               )}
-              <h1 className="text-lg sm:text-2xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
+              <h1 className="text-sm sm:text-xl md:text-2xl font-headline font-bold tracking-tighter text-primary truncate max-w-[120px] xs:max-w-none">
                 {storeConfig?.businessName || ""}
               </h1>
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <div className="relative flex items-center" ref={searchRef}>
               <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <Input 
                 placeholder="SEARCH" 
-                className="pl-8 h-8 sm:h-9 w-24 sm:w-40 md:w-56 bg-gray-50 border-none text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black transition-all"
+                className="pl-8 h-8 sm:h-9 w-20 xs:w-32 sm:w-40 md:w-56 bg-gray-50 border-none text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black transition-all"
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setIsSearching(true); }}
                 onFocus={() => setIsSearching(true)}
@@ -229,13 +214,13 @@ export function Header() {
                 <div className="absolute top-full right-0 mt-2 w-[280px] md:w-[400px] bg-white border shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
                   <ScrollArea className="max-h-[50vh]">
                     {filteredProducts.length === 0 ? (
-                      <div className="p-8 text-center text-[10px] font-bold text-gray-400">No products found.</div>
+                      <div className="p-8 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">No products found.</div>
                     ) : (
                       <div className="divide-y">
                         {filteredProducts.map((p: any) => (
                           <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
                             <div className="w-12 h-12 relative bg-gray-100 border shrink-0">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill className="object-cover" />}</div>
-                            <div className="flex flex-col justify-center overflow-hidden">
+                            <div className="flex flex-col justify-center overflow-hidden text-left">
                               <h3 className="text-[10px] font-bold uppercase truncate">{p.name}</h3>
                               <p className="text-[9px] font-bold text-gray-400">C${Number(p.price).toFixed(2)}</p>
                             </div>
@@ -249,7 +234,7 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-0.5">
-              <Button variant="ghost" size="icon" className="h-9 w-9 hidden lg:flex" onClick={() => user ? null : setIsAuthOpen(true)}>
+              <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:flex" onClick={() => user ? null : setIsAuthOpen(true)}>
                 {user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><UserIcon className="h-4 w-4" /></DropdownMenuTrigger>
@@ -287,7 +272,7 @@ export function Header() {
                           <div key={item.id} className="flex gap-4">
                             <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-20 relative bg-gray-100 border shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
                             <div className="flex-1 flex flex-col justify-between py-1">
-                              <div>
+                              <div className="text-left">
                                 <h3 className="text-[10px] font-bold uppercase leading-tight">{item.name}</h3>
                                 <p className="text-[10px] font-bold mt-1">C${item.price.toFixed(2)}</p>
                               </div>
@@ -311,7 +296,7 @@ export function Header() {
                 <SheetContent 
                   className={cn(
                     "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(10dvh-theme(spacing.7))] sm:h-[calc(10dvh-theme(spacing.10))]" : "h-[100dvh]"
+                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
                   )}
                 >
                   <SheetHeader className="p-6 border-b shrink-0">
@@ -331,7 +316,7 @@ export function Header() {
                               {item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}
                             </div>
                             <div className="flex-1 flex flex-col justify-between py-1">
-                              <div>
+                              <div className="text-left">
                                 <div className="flex justify-between items-start gap-2">
                                   <h3 className="text-[10px] font-bold uppercase leading-tight truncate max-w-[180px]">{item.name}</h3>
                                   <p className="text-[10px] font-bold whitespace-nowrap">C${formatCurrency(item.price * item.quantity)}</p>
@@ -373,25 +358,12 @@ export function Header() {
           </div>
 
           {!isAdmin && !isProductPage && theme && (
-            <>
-              {theme?.ratingBadgePosition === 'split' ? (
-                <>
-                  <div className="fixed bottom-4 left-4 z-[60] flex items-center gap-1" style={{ bottom: `calc(1rem + ${theme.ratingBadgeVerticalOffset || 0}px)` }}>
-                    <ReviewSystem productId="global" />
-                  </div>
-                  <div className="fixed bottom-4 right-4 z-[60] flex items-center gap-1" style={{ bottom: `calc(1rem + ${theme.ratingBadgeVerticalOffset || 0}px)` }}>
-                    <ReviewSystem productId="global" />
-                  </div>
-                </>
-              ) : (
-                <div 
-                  className="z-[60] flex items-center gap-1"
-                  style={getBadgePositionStyle()}
-                >
-                  <ReviewSystem productId="global" />
-                </div>
-              )}
-            </>
+            <div 
+              className="z-[60] hidden sm:flex items-center gap-1"
+              style={getBadgePositionStyle()}
+            >
+              <ReviewSystem productId="global" />
+            </div>
           )}
         </div>
       </header>
