@@ -105,7 +105,7 @@ export function ThemeStyleInjector() {
     const productPriceColor = theme.productPriceColor || theme.primaryColor || '#000000';
 
     const ratingBadgeBg = theme.ratingBadgeBgColor || '#000000';
-    const ratingBadgeText = theme.ratingBadgeTextColor || '#FFFFFF';
+    const ratingBadgeText = theme.ratingBadgeTextColor || getContrastColor(ratingBadgeBg);
     const ratingBadgeScale = theme.ratingBadgeScale || 1.0;
     const ratingBadgePosition = theme.ratingBadgePosition || 'right';
     const ratingBadgeVerticalOffset = theme.ratingBadgeVerticalOffset || 0;
@@ -226,8 +226,6 @@ export function ThemeStyleInjector() {
       .category-card-content {
         display: flex !important;
         flex-direction: column !important;
-        justify(var(--category-card-vertical-align) !important;
-        align-items: var(--category-card-flex-align) !important;
         text-align: var(--category-card-text-align) !important;
       }
       .category-card-title {

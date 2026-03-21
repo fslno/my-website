@@ -151,7 +151,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                 <Star 
                   key={s} 
                   className={cn(
-                    "h-2.5 w-2.5 transition-all duration-500", 
+                    "h-2.5 sm:h-2.5 w-2.5 sm:w-2.5 transition-all duration-500", 
                     s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "opacity-20"
                   )} 
                 />
