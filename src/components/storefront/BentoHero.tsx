@@ -28,6 +28,7 @@ interface BentoHeroProps {
 /**
  * Main Hero section for the home page.
  * Optimized for Direct-Entry velocity by removing structural hydration gates.
+ * Forensicly purged of "flashback" artifacts and hardcoded placeholders.
  */
 export function BentoHero({ 
   heroImages = [], 
@@ -38,21 +39,24 @@ export function BentoHero({
   verticalAlign = 'center'
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
+  
   const autoplayPlugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  const images = heroImages && heroImages.length > 0 ? heroImages : ['https://placehold.co/1200x800?text=THE+ARCHIVE'];
+  // Authoritative Priority: If no Firestore images manifest, return a stable white viewport shell.
+  // This eliminates the "black banner" and "placeholder" flashback.
+  if (!heroImages || heroImages.length === 0) {
+    return (
+      <section className="pt-32 sm:pt-40">
+        <div className="w-full bg-white h-[90vh]" />
+      </section>
+    );
+  }
 
   return (
     <section className="pt-32 sm:pt-40">
-      <div className="w-full bg-primary overflow-hidden group shadow-2xl relative h-[90vh]">
+      <div className="w-full bg-white overflow-hidden group shadow-2xl relative h-[90vh]">
         <Carousel 
           setApi={setApi}
           plugins={[autoplayPlugin.current]}
@@ -62,7 +66,7 @@ export function BentoHero({
           }}
         >
           <CarouselContent className="h-full ml-0">
-            {images.map((url, idx) => (
+            {heroImages.map((url, idx) => (
               <CarouselItem key={idx} className="relative h-[90vh] w-full pl-0">
                 <Image
                   src={url}
@@ -75,7 +79,7 @@ export function BentoHero({
             ))}
           </CarouselContent>
 
-          {images.length > 1 && (
+          {heroImages.length > 1 && (
             <div className="absolute inset-0 z-20 pointer-events-none group-hover:pointer-events-auto">
               <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-none border-none bg-black/20 text-white hover:bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-auto" />
               <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-none border-none bg-black/20 text-white hover:bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-auto" />
@@ -86,12 +90,12 @@ export function BentoHero({
             "absolute inset-0 p-6 sm:p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 hero-vertical-align hero-text-align pointer-events-none"
           )}>
             <div className="pointer-events-auto w-full">
-              {isMounted && subheadline && (
+              {subheadline && (
                 <span className="hero-subheadline-color hero-subheadline-size text-[10px] uppercase tracking-[0.5em] font-bold mb-6 block">
                   {subheadline}
                 </span>
               )}
-              {isMounted && headline && (
+              {headline && (
                 <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none block">
                   {headline}
                 </span>
