@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  ChevronDown,
   ShieldCheck,
   Tag,
   Sparkles,
@@ -217,14 +218,26 @@ export function Header() {
               </h1>
             </Link>
 
-            {/* DESKTOP CATEGORY LINKS */}
+            {/* DESKTOP CATEGORY LINKS - DROPDOWN MANIFEST */}
             <nav className="hidden lg:flex items-center gap-6 ml-4">
-              <Link href="/collections/all" className="text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">Shop All</Link>
-              {categories?.slice(0, 4).map((cat: any) => (
-                <Link key={cat.id} href={`/collections/${cat.id}`} className="text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
-                  {cat.name}
-                </Link>
-              ))}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="text-[10px] font-bold uppercase tracking-widest hover:text-gray-400 transition-colors flex items-center gap-1.5 outline-none">
+                    Shop <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 rounded-none p-1 border-black/10 shadow-2xl bg-white mt-2">
+                  <DropdownMenuItem asChild className="focus:bg-black focus:text-white rounded-none cursor-pointer">
+                    <Link href="/collections/all" className="text-[10px] font-bold uppercase tracking-widest w-full py-2.5">All Products</Link>
+                  </DropdownMenuItem>
+                  <Separator className="my-1 opacity-50" />
+                  {categories?.map((cat: any) => (
+                    <DropdownMenuItem key={cat.id} asChild className="focus:bg-black focus:text-white rounded-none cursor-pointer">
+                      <Link href={`/collections/${cat.id}`} className="text-[10px] font-bold uppercase tracking-widest w-full py-2.5">{cat.name}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
           </div>
 
