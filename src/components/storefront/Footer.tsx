@@ -122,7 +122,7 @@ export function Footer() {
           </div>
           
           <div className="space-y-6 flex flex-col items-start">
-            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Help</h4>
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config.footerSupportLinks?.map((link: any, idx: number) => (
                 <li key={idx}><Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link></li>
