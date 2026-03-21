@@ -26,7 +26,8 @@ import {
   Plus,
   Upload,
   X,
-  Save
+  Save,
+  Calendar
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -80,15 +81,18 @@ export default function AdminReviewsPage() {
   const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
   const { data: products } = useCollection(productsQuery);
 
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [newReview, setNewReview] = useState({
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState({
     productId: '',
     userName: '',
     rating: 5,
     comment: '',
     imageUrl: '',
-    published: true
+    published: true,
+    createdAt: '' // YYYY-MM-DD
   });
 
   const handleToggleGlobal = async (enabled: boolean) => {
@@ -102,13 +106,14 @@ export default function AdminReviewsPage() {
       });
   };
 
-  const handleTogglePublish = async (review: any) => {
+  const handleTogglePublish = async (review: any, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!db) return;
     const newStatus = !review.published;
     
     updateDoc(doc(db, 'reviews', review.id), {
       published: newStatus,
-      updatedAt: new Date().toISOString()
+      updatedAt: serverTimestamp()
     }).then(() => {
       toast({
         title: newStatus ? "Published" : "Hidden",
@@ -117,7 +122,8 @@ export default function AdminReviewsPage() {
     });
   };
 
-  const handleDeleteReview = async (review: any) => {
+  const handleDeleteReview = async (review: any, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!db || !confirm("Delete review?")) return;
     deleteDoc(doc(db, 'reviews', review.id)).then(() => {
       toast({
@@ -131,35 +137,86 @@ export default function AdminReviewsPage() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setNewReview({ ...newReview, imageUrl: reader.result as string });
+      reader.onloadend = () => setFormData({ ...formData, imageUrl: reader.result as string });
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSaveNewReview = async () => {
-    if (!db || !newReview.productId || !newReview.userName || !newReview.comment) return;
+  const handleSaveReview = async () => {
+    if (!db || !formData.productId || !formData.userName || !formData.comment) return;
     setIsSaving(true);
 
-    const reviewData = {
-      ...newReview,
-      createdAt: serverTimestamp(),
+    const reviewData: any = {
+      productId: formData.productId,
+      userName: formData.userName.toUpperCase(),
+      rating: Number(formData.rating),
+      comment: formData.comment,
+      imageUrl: formData.imageUrl || '',
+      published: formData.published,
       updatedAt: serverTimestamp()
     };
 
-    addDoc(collection(db, 'reviews'), reviewData)
-      .then(() => {
-        setIsAddOpen(false);
-        setNewReview({
-          productId: '',
-          userName: '',
-          rating: 5,
-          comment: '',
-          imageUrl: '',
-          published: true
-        });
-        toast({ title: "Saved", description: "Review added." });
-      })
-      .finally(() => setIsSaving(false));
+    // Forensic Timestamp Synchronization
+    if (formData.createdAt) {
+      const parts = formData.createdAt.split('-');
+      if (parts.length === 3) {
+        // Construct date at noon to avoid timezone shifts
+        const dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
+        reviewData.createdAt = dateObj;
+      }
+    }
+
+    if (editingId) {
+      updateDoc(doc(db, 'reviews', editingId), reviewData)
+        .then(() => {
+          setIsDialogOpen(false);
+          setEditingId(null);
+          resetForm();
+          toast({ title: "Updated", description: "Review synchronized." });
+        })
+        .finally(() => setIsSaving(false));
+    } else {
+      if (!reviewData.createdAt) {
+        reviewData.createdAt = serverTimestamp();
+      }
+      addDoc(collection(db, 'reviews'), reviewData)
+        .then(() => {
+          setIsDialogOpen(false);
+          resetForm();
+          toast({ title: "Saved", description: "Review added." });
+        })
+        .finally(() => setIsSaving(false));
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      productId: '',
+      userName: '',
+      rating: 5,
+      comment: '',
+      imageUrl: '',
+      published: true,
+      createdAt: ''
+    });
+    setEditingId(null);
+  };
+
+  const openEdit = (review: any) => {
+    const rDate = review.createdAt?.toDate ? review.createdAt.toDate() : new Date(review.createdAt);
+    const dateStr = rDate.toISOString().split('T')[0];
+
+    setFormData({
+      productId: review.productId || '',
+      userName: review.userName || '',
+      rating: review.rating || 5,
+      comment: review.comment || '',
+      imageUrl: review.imageUrl || '',
+      published: review.published ?? true,
+      createdAt: dateStr
+    });
+    setEditingId(review.id);
+    setIsDialogOpen(true);
   };
 
   if (reviewsLoading || configLoading) {
@@ -177,7 +234,7 @@ export default function AdminReviewsPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Reviews</h1>
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Moderate studio feedback.</p>
         </div>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="w-full sm:w-auto bg-black text-white font-bold h-10 gap-2 uppercase tracking-widest text-[10px]">
               <Plus className="h-4 w-4" /> Add Review
@@ -185,14 +242,16 @@ export default function AdminReviewsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl p-0 flex flex-col h-fit max-h-[95vh]">
             <DialogHeader className="p-4 sm:p-6 border-b shrink-0">
-              <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">New Review</DialogTitle>
-              <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Add feedback for the studio.</DialogDescription>
+              <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">
+                {editingId ? 'Edit Review' : 'New Review'}
+              </DialogTitle>
+              <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Adjust archival feedback manifest.</DialogDescription>
             </DialogHeader>
             <ScrollArea className="flex-1">
               <div className="p-4 sm:p-6 space-y-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-gray-500">Product</Label>
-                  <Select value={newReview.productId} onValueChange={(v) => setNewReview({ ...newReview, productId: v })}>
+                  <Select value={formData.productId} onValueChange={(v) => setFormData({ ...formData, productId: v })}>
                     <SelectTrigger className="h-12 uppercase font-bold text-[10px]">
                       <SelectValue placeholder="SELECT PIECE" />
                     </SelectTrigger>
@@ -207,15 +266,15 @@ export default function AdminReviewsPage() {
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label>
                     <Input 
-                      value={newReview.userName} 
-                      onChange={(e) => setNewReview({ ...newReview, userName: e.target.value })}
-                      placeholder="Name"
+                      value={formData.userName} 
+                      onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
+                      placeholder="Participant Name"
                       className="h-12 uppercase font-bold text-[10px]"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-gray-500">Rating</Label>
-                    <Select value={String(newReview.rating)} onValueChange={(v) => setNewReview({ ...newReview, rating: Number(v) })}>
+                    <Select value={String(formData.rating)} onValueChange={(v) => setFormData({ ...formData, rating: Number(v) })}>
                       <SelectTrigger className="h-12 font-bold text-[10px]">
                         <SelectValue />
                       </SelectTrigger>
@@ -227,11 +286,25 @@ export default function AdminReviewsPage() {
                     </Select>
                   </div>
                 </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Chronological Date</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input 
+                      type="date"
+                      value={formData.createdAt}
+                      onChange={(e) => setFormData({ ...formData, createdAt: e.target.value })}
+                      className="h-12 pl-10 uppercase font-bold text-[10px]"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-gray-500">Feedback</Label>
                   <Textarea 
-                    value={newReview.comment}
-                    onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                    value={formData.comment}
+                    onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
                     placeholder="Feedback text"
                     className="min-h-[100px] resize-none uppercase font-medium text-[11px]"
                   />
@@ -241,19 +314,19 @@ export default function AdminReviewsPage() {
                     <p className="text-[10px] font-bold uppercase">Publish now</p>
                     <p className="text-[8px] text-muted-foreground uppercase font-bold">Visibility active</p>
                   </div>
-                  <Switch checked={newReview.published} onCheckedChange={(v) => setNewReview({ ...newReview, published: v })} />
+                  <Switch checked={formData.published} onCheckedChange={(v) => setFormData({ ...formData, published: v })} />
                 </div>
                 <div className="space-y-4">
                   <Label className="text-[10px] uppercase font-bold text-gray-500">Photo</Label>
                   <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
                   <div 
-                    onClick={() => !newReview.imageUrl && fileInputRef.current?.click()}
+                    onClick={() => !formData.imageUrl && fileInputRef.current?.click()}
                     className="border-2 border-dashed rounded-none h-24 flex items-center justify-center gap-3 bg-gray-50 cursor-pointer hover:border-black transition-all"
                   >
-                    {newReview.imageUrl ? (
+                    {formData.imageUrl ? (
                       <div className="relative w-16 h-16 rounded-sm overflow-hidden border shadow-sm">
-                        <Image src={newReview.imageUrl} alt="Preview" fill className="object-cover" />
-                        <button onClick={(e) => { e.stopPropagation(); setNewReview({ ...newReview, imageUrl: '' }); }} className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                        <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" />
+                        <button onClick={(e) => { e.stopPropagation(); setFormData({ ...formData, imageUrl: '' }); }} className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                           <X className="h-4 w-4 text-white" />
                         </button>
                       </div>
@@ -266,12 +339,12 @@ export default function AdminReviewsPage() {
             </ScrollArea>
             <DialogFooter className="p-4 sm:p-6 border-t shrink-0">
               <Button 
-                onClick={handleSaveNewReview} 
-                disabled={isSaving || !newReview.productId || !newReview.userName || !newReview.comment}
+                onClick={handleSaveReview} 
+                disabled={isSaving || !formData.productId || !formData.userName || !formData.comment}
                 className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Save Review
+                {editingId ? 'Save Changes' : 'Save Review'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -326,7 +399,7 @@ export default function AdminReviewsPage() {
                 </TableRow>
               ) : (
                 reviews.map((review) => (
-                  <TableRow key={review.id} className="hover:bg-gray-50/30 transition-colors group border-b last:border-0">
+                  <TableRow key={review.id} className="hover:bg-gray-50/30 transition-colors group border-b last:border-0 cursor-pointer" onClick={() => openEdit(review)}>
                     <TableCell className="p-6">
                       <Badge variant="outline" className={cn(
                         "text-[8px] font-bold uppercase tracking-widest border-none px-2 py-1",
@@ -363,11 +436,11 @@ export default function AdminReviewsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="pr-6">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          onClick={() => handleTogglePublish(review)}
+                          onClick={(e) => handleTogglePublish(review, e)}
                           className="h-8 w-8"
                         >
                           {review.published ? <EyeOff className="h-4 w-4 text-orange-500" /> : <Eye className="h-4 w-4 text-green-600" />}
@@ -375,7 +448,7 @@ export default function AdminReviewsPage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          onClick={() => handleDeleteReview(review)}
+                          onClick={(e) => handleDeleteReview(review, e)}
                           className="h-8 w-8 text-red-500 hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -396,7 +469,7 @@ export default function AdminReviewsPage() {
             </div>
           ) : (
             reviews.map((review) => (
-              <div key={review.id} className="p-4 space-y-4 bg-white hover:bg-gray-50 transition-colors">
+              <div key={review.id} className="p-4 space-y-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => openEdit(review)}>
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <Badge variant="outline" className={cn(
@@ -428,11 +501,11 @@ export default function AdminReviewsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-black/5">
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-black/5" onClick={e => e.stopPropagation()}>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => handleTogglePublish(review)}
+                    onClick={(e) => handleTogglePublish(review, e)}
                     className="h-9 px-3 gap-2 font-bold uppercase tracking-widest text-[9px]"
                   >
                     {review.published ? <EyeOff className="h-3.5 w-3.5 text-orange-500" /> : <Eye className="h-3.5 w-3.5 text-green-600" />}
@@ -441,7 +514,7 @@ export default function AdminReviewsPage() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => handleDeleteReview(review)}
+                    onClick={(e) => handleDeleteReview(review, e)}
                     className="h-9 px-3 gap-2 font-bold uppercase tracking-widest text-[9px] text-red-500 hover:bg-red-50"
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Delete
