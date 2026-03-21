@@ -64,7 +64,7 @@ interface PageProps {
 
 /**
  * Authoritative Product Details manifest.
- * Stabilized with fixed min-height and prioritized 1:1 visuals.
+ * Recalibrated for instant visual response and fixed 1:1 visuals.
  */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = use(props.params);
@@ -234,7 +234,7 @@ export default function ProductDetailPage(props: PageProps) {
                               fill 
                               className="object-cover" 
                               priority={idx === 0}
-                              loading={idx === 0 ? "eager" : "lazy"}
+                              loading="eager"
                             />
                           </div>
                         </CarouselItem>

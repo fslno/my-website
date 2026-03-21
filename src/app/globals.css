@@ -29,11 +29,11 @@
   html, body {
     background-color: #FFFFFF !important;
     color: #000000 !important;
-    margin: 0;
-    padding: 0;
     visibility: visible !important;
     opacity: 1 !important;
     transition: none !important;
+    margin: 0;
+    padding: 0;
   }
 }
 

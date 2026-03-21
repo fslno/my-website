@@ -136,7 +136,6 @@ export default function ProductsPage() {
   const [length, setLength] = useState('');
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
-  const [shippingClass, setShippingClass] = useState('standard');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [features, setFeatures] = useState('');
 
@@ -517,8 +516,7 @@ export default function ProductsPage() {
         weight: parseFloat(weight) || Number(shippingConfig?.defaultWeight) || 0.6,
         length: parseFloat(length) || Number(shippingConfig?.defaultLength) || 35,
         width: parseFloat(width) || Number(shippingConfig?.defaultWidth) || 25,
-        height: parseFloat(height) || Number(shippingConfig?.defaultHeight) || 10,
-        shippingClass
+        height: parseFloat(height) || Number(shippingConfig?.defaultHeight) || 10
       },
       status: 'active',
       updatedAt: serverTimestamp(),
@@ -586,7 +584,6 @@ export default function ProductsPage() {
     setLength(String(product.logistics?.length || ''));
     setWidth(String(product.logistics?.width || ''));
     setHeight(String(product.logistics?.height || ''));
-    setShippingClass(product.logistics?.shippingClass || 'standard');
     
     setEditingId(product.id);
     setIsDialogOpen(true);
@@ -704,12 +701,12 @@ export default function ProductsPage() {
                     <div className="grid gap-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Name</Label><Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand</Label><Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} className="h-12 bg-white" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Brand</Label><Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} className="h-12 bg-white" /></div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Price ($)</Label><Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} className="h-12 bg-white font-mono" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Regular Price ($)</Label><Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} className="h-12 bg-white font-mono opacity-60" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category</Label>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Regular Price ($)</Label><Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} className="h-12 bg-white font-mono opacity-60" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Category</Label>
                           <Select value={categoryId} onValueChange={setCategoryId}>
                             <SelectTrigger className="h-12 bg-white"><SelectValue placeholder="Select category..." /></SelectTrigger>
                             <SelectContent>{categories?.map((cat: any) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent>
@@ -718,8 +715,8 @@ export default function ProductsPage() {
                       </div>
                       <Separator className="my-2" />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Fit Info</Label><Input placeholder="e.g. True to size" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} className="h-12 bg-white" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Label/Badge</Label>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Fit Info</Label><Input placeholder="e.g. True to size" value={sizeFit} onChange={(e) => setSizeFit(e.target.value)} className="h-12 bg-white" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase font-bold text-gray-500">Label/Badge</Label>
                           <Select value={badge} onValueChange={setBadge}>
                             <SelectTrigger className="h-12 bg-white"><SelectValue /></SelectTrigger>
                             <SelectContent><SelectItem value="none" className="text-[10px] font-bold uppercase">No Label</SelectItem><SelectItem value="NEW DROP" className="text-[10px] font-bold uppercase">New Drop</SelectItem><SelectItem value="LIMITED" className="text-[10px] font-bold uppercase">Limited</SelectItem><SelectItem value="RESTOCK" className="text-[10px] font-bold uppercase">Restock</SelectItem><SelectItem value="ARCHIVE" className="text-[10px] font-bold uppercase">Archive</SelectItem></SelectContent>
@@ -762,7 +759,17 @@ export default function ProductsPage() {
                     <div className="text-center sm:text-left"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Total In Stock</p><p className="text-3xl font-bold font-headline">{totalInventory} PCS</p></div>
                     <div className="w-full sm:w-[300px] text-center sm:text-right"><Label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Master SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1 text-center sm:text-right h-11" /></div>
                   </div>
-                  <div className="p-6 bg-orange-50 border border-orange-100 rounded-xl flex items-center justify-between"><div className="space-y-1"><div className="flex items-center gap-2"><Clock className="h-4 w-4 text-orange-600" /><h3 className="text-xs font-bold uppercase tracking-widest text-orange-900">Pre-order</h3></div><p className="text-[9px] uppercase font-bold text-orange-700 tracking-tight">Enable pre-orders for this product.</p></div><Switch checked={preorderEnabled} onCheckedChange={handleToggleGlobalPreorder} className="data-[state=checked]:bg-orange-600"/></div>
+                  <div className="p-6 bg-orange-50 border border-orange-100 rounded-xl flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-orange-600" />
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-orange-900">Pre-order</h3>
+                      </div>
+                      <p className="text-[9px] uppercase font-bold text-orange-700 tracking-tight">Enable pre-orders for this product.</p>
+                      <p className="text-[8px] font-bold text-orange-800 uppercase mt-1 italic">Est. Shipping: 2-3 Weeks after purchase.</p>
+                    </div>
+                    <Switch checked={preorderEnabled} onCheckedChange={handleToggleGlobalPreorder} className="data-[state=checked]:bg-orange-600"/>
+                  </div>
                   
                   <div className="flex items-center justify-between">
                     <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size Variants</h3>
@@ -911,8 +918,8 @@ export default function ProductsPage() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={handleBulkDuplicate}
                   className="h-9 border-blue-200 text-blue-700 font-bold uppercase tracking-widest text-[9px] gap-2 bg-white hover:bg-blue-50"
+                  onClick={handleBulkDuplicate}
                 >
                   <Copy className="h-3.5 w-3.5" /> Duplicate
                 </Button>

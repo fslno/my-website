@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
@@ -29,17 +29,6 @@ export default function RootLayout({
     // Authoritative Navigation Protocol: Ensure scroll to top on every path change
     window.scrollTo(0, 0);
   }, [pathname]);
-
-  useEffect(() => {
-    // Authoritative PWA Service Worker Registration
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').catch(function(err) {
-          console.error('PWA Registration Failure:', err);
-        });
-      });
-    }
-  }, []);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -78,8 +67,8 @@ export default function RootLayout({
 }
 
 function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
-  const isAdmin = pathname?.startsWith('/admin');
-  const isDetailsPage = pathname?.startsWith('/products/');
+  const isAdmin = useMemo(() => pathname?.startsWith('/admin'), [pathname]);
+  const isDetailsPage = useMemo(() => pathname?.startsWith('/products/'), [pathname]);
 
   return (
     <>
