@@ -63,8 +63,13 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const filteredProducts = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
@@ -125,7 +130,7 @@ export function Header() {
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">
-                    {!storeLoading && (storeConfig?.businessName || "")}
+                    {isMounted && storeConfig?.businessName}
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-8">
@@ -181,7 +186,7 @@ export function Header() {
                 </div>
               )}
               <h1 className="text-lg sm:text-2xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
-                {!storeLoading && (storeConfig?.businessName || "")}
+                {isMounted && storeConfig?.businessName}
               </h1>
             </Link>
           </div>
