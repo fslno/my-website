@@ -1,20 +1,26 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { Loader2, ShoppingBag, ChevronRight } from 'lucide-react';
+import { ShoppingBag, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 /**
  * Order History page.
+ * Optimized for Direct-Entry velocity by removing loaders and skeletons.
  */
 export default function OrderHistoryPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -49,12 +55,9 @@ export default function OrderHistoryPage() {
     }
   };
 
-  if (isUserLoading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-black" />
-      </div>
-    );
+  // Direct-Entry Protocol: Return a clean white screen while mounting or loading
+  if (!mounted || isUserLoading) {
+    return <div className="min-h-screen bg-white" />;
   }
 
   if (!user) {
@@ -76,9 +79,7 @@ export default function OrderHistoryPage() {
         </div>
 
         {ordersLoading ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
-          </div>
+          <div className="py-20 flex justify-center min-h-[400px]" />
         ) : !orders || orders.length === 0 ? (
           <div className="text-center py-32 border-2 border-dashed rounded-none bg-gray-50/50">
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">You haven't placed any orders yet.</p>

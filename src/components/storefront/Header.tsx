@@ -125,9 +125,15 @@ export function Header() {
     return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
   };
 
-  // Authoritative Flashback Purge: Strictly render nothing until hydration is complete.
-  // This ensures the first frame is clean white and matches the server-client initial state.
-  if (!mounted) return null;
+  // Direct-Entry Protocol: Render a perfectly matching white placeholder bar during the server-client handshake
+  if (!mounted) {
+    return (
+      <div className={cn(
+        "fixed left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b",
+        theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
+      )} />
+    );
+  }
 
   return (
     <>
