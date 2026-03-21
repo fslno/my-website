@@ -425,7 +425,7 @@ export default function ProductDetailPage(props: PageProps) {
                       type="button"
                       onClick={() => setWantsCustomization(false)} 
                       className={cn(
-                        "flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest transition-colors", 
+                        "flex-1 sm:flex-none h-14 px-8 border text-[10px] font-bold uppercase tracking-widest transition-colors", 
                         !wantsCustomization ? "bg-black text-white border-black" : "bg-white hover:bg-gray-50"
                       )}
                     >
@@ -435,7 +435,7 @@ export default function ProductDetailPage(props: PageProps) {
                       type="button"
                       onClick={() => setWantsCustomization(true)} 
                       className={cn(
-                        "flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest transition-colors", 
+                        "flex-1 sm:flex-none h-14 px-8 border text-[10px] font-bold uppercase tracking-widest transition-colors", 
                         wantsCustomization ? "bg-black text-white border-black" : "bg-white hover:bg-gray-50"
                       )}
                     >
