@@ -10,7 +10,6 @@ import {
   X, 
   Heart, 
   User as UserIcon,
-  Sparkles,
   LogOut,
   Package
 } from 'lucide-react';
@@ -312,19 +311,6 @@ export function Header() {
                                   <p className="text-[8px] font-bold text-gray-400 uppercase">Size: {item.size}</p>
                                   <p className="text-[8px] font-bold text-primary uppercase">Qty: {item.quantity}</p>
                                 </div>
-                                
-                                {(item.customName || item.customNumber || item.specialNote) && (
-                                  <div className="mt-2 space-y-0.5 border-t border-dashed border-gray-100 pt-1">
-                                    {(item.customName || item.customNumber) && (
-                                      <p className="text-[8px] font-bold text-blue-600 uppercase flex items-center gap-1">
-                                        <Sparkles className="h-2 w-2" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
-                                      </p>
-                                    )}
-                                    {item.specialNote && (
-                                      <p className="text-[8px] text-gray-400 italic leading-tight">"{item.specialNote}"</p>
-                                    )}
-                                  </div>
-                                )}
                               </div>
                               <button onClick={() => removeFromCart(item.variantId)} className="text-[8px] font-bold uppercase tracking-widest text-destructive text-left hover:underline mt-2">Remove</button>
                             </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import './globals.css';
-import { FirebaseClientProvider, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
@@ -12,10 +12,7 @@ import { Chatbot } from '@/components/storefront/Chatbot';
 import { PromotionPopup } from '@/components/storefront/PromotionPopup';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
-import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-import { doc } from 'firebase/firestore';
-import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative Direct-Open Root Layout.

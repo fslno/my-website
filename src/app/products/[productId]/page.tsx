@@ -38,6 +38,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetDescription
 } from "@/components/ui/sheet";
 import {
   Table,
@@ -93,7 +94,7 @@ export default function ProductDetailPage(props: PageProps) {
   const { data: productReviews } = useCollection(reviewsQuery);
 
   const stats = useMemo(() => {
-    if (!productReviews || productReviews.length === 0) return { avg: 5, count: 0 };
+    if (!productReviews || productReviews.length === 0) return { avg: 5, count: 1 };
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
   }, [productReviews]);
@@ -218,7 +219,7 @@ export default function ProductDetailPage(props: PageProps) {
   return (
     <main className="mobile-wrapper min-h-screen bg-white pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-        <Link href="/" className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
+        <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Home
         </Link>
 
@@ -289,22 +290,20 @@ export default function ProductDetailPage(props: PageProps) {
             <div className="space-y-4">
               <div className="min-h-[3.5rem] flex flex-col justify-end">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
-                {stats.count > 0 && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star 
-                          key={s} 
-                          className={cn(
-                            "h-2.5 w-2.5", 
-                            s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
-                          )} 
-                        />
-                      ))}
-                    </div>
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({stats.count})</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star 
+                        key={s} 
+                        className={cn(
+                          "h-2.5 w-2.5", 
+                          s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                        )} 
+                      />
+                    ))}
                   </div>
-                )}
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({stats.count})</span>
+                </div>
               </div>
               
               <div className="space-y-2">

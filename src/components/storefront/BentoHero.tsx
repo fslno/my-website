@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
@@ -16,12 +16,11 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 
 interface BentoHeroProps {
-  isLoading: boolean;
+  isLoading?: boolean;
   heroImages?: string[];
   headline?: string;
   subheadline?: string;
   buttonText?: string;
-  fallbackImageUrl?: string;
   textAlign?: string;
   verticalAlign?: string;
 }
@@ -31,7 +30,6 @@ interface BentoHeroProps {
  * Optimized for peak velocity by rendering architecture instantly with fallback visuals.
  */
 export function BentoHero({ 
-  isLoading, 
   heroImages = [], 
   headline = 'Our Collection', 
   subheadline = 'Modern Styles',
