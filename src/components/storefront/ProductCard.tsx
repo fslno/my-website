@@ -23,7 +23,7 @@ interface ProductCardProps {
 
 /**
  * Authoritative Product Card component.
- * Recalibrated for a perfect 1:1 Geometric ratio.
+ * Recalibrated for a perfect 1:1 Geometric ratio with a high-fidelity "FREE KIT" manifest.
  */
 export function ProductCard({ 
   id, name, price, comparedPrice, image, hoverImage, category, 
@@ -77,13 +77,16 @@ export function ProductCard({
           </div>
         )}
 
-        {!isSoldOut && hasDiscount && (
-          <div className="absolute top-0 left-0 z-10 p-1.5 sm:p-2 pointer-events-none">
+        <div className="absolute top-0 left-0 z-10 p-1.5 sm:p-2 pointer-events-none flex flex-col gap-1 items-start">
+          <span className="bg-black text-white text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-2 py-1 sm:px-3 sm:py-1.5 shadow-xl">
+            FREE KIT
+          </span>
+          {!isSoldOut && hasDiscount && (
             <span className="bg-white text-black text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-2 py-1 sm:px-3 sm:py-1.5 shadow-xl border border-black/5">
               {discountPercent}% OFF
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </Link>
       
       <div className="flex flex-col gap-0 py-1 product-flex-align">
