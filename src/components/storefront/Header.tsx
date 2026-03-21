@@ -38,6 +38,7 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 /**
  * Authoritative Header Manifest.
  * Forensicly stabilized to provide a clean white entry during hydration.
+ * Optimized for Mobile Ergonomics.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -121,9 +122,9 @@ export function Header() {
     return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
   };
 
-  // Direct-Entry Protocol: Return null while mounting to ensure a clean, opaque white start.
+  // Direct-Entry Protocol: Return a perfectly stable white plane to eliminate hydration flashbacks.
   if (!mounted) {
-    return null;
+    return <header className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b" />;
   }
 
   return (
@@ -150,9 +151,9 @@ export function Header() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
+              <SheetContent side="left" className="w-[85vw] sm:w-[350px] bg-white border-none p-0 flex flex-col shadow-2xl">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">
+                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary text-left">
                     {storeConfig?.businessName || ""}
                   </SheetTitle>
                 </SheetHeader>
@@ -163,13 +164,13 @@ export function Header() {
                         key={cat.id} 
                         href={`/collections/${cat.id}`} 
                         onClick={() => setIsMenuOpen(false)} 
-                        className="text-lg font-headline uppercase text-primary hover:opacity-60"
+                        className="text-lg font-headline uppercase text-primary hover:opacity-60 transition-opacity"
                       >
                         {cat.name}
                       </Link>
                     ))}
                     
-                    <Separator className="my-2" />
+                    <Separator className="my-2 opacity-50" />
                     
                     <div className="space-y-2">
                       {user ? (
@@ -177,13 +178,13 @@ export function Header() {
                           <Link 
                             href="/account/orders" 
                             onClick={() => setIsMenuOpen(false)} 
-                            className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3"
+                            className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 transition-opacity"
                           >
                             <Package className="h-5 w-5" /> My Orders
                           </Link>
                           <button 
                             onClick={() => { handleLogout(); setIsMenuOpen(false); }} 
-                            className="text-lg font-headline uppercase text-destructive hover:opacity-60 flex items-center gap-3 w-full text-left"
+                            className="text-lg font-headline uppercase text-destructive hover:opacity-60 flex items-center gap-3 w-full text-left transition-opacity"
                           >
                             <LogOut className="h-5 w-5" /> Sign Out
                           </button>
@@ -191,7 +192,7 @@ export function Header() {
                       ) : (
                         <button 
                           onClick={() => { setIsAuthOpen(true); setIsMenuOpen(false); }} 
-                          className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 w-full text-left"
+                          className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 w-full text-left transition-opacity"
                         >
                           <UserIcon className="h-5 w-5" /> Account / Sign In
                         </button>
@@ -219,7 +220,7 @@ export function Header() {
               <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <Input 
                 placeholder="SEARCH" 
-                className="pl-8 h-8 sm:h-9 w-24 sm:w-40 md:w-56 bg-gray-50 border-none text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black"
+                className="pl-8 h-8 sm:h-9 w-24 sm:w-40 md:w-56 bg-gray-50 border-none text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black transition-all"
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setIsSearching(true); }}
                 onFocus={() => setIsSearching(true)}
@@ -273,7 +274,7 @@ export function Header() {
                     theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
                   )}
                 >
-                  <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
+                  <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {wishlist.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
@@ -310,10 +311,12 @@ export function Header() {
                 <SheetContent 
                   className={cn(
                     "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
+                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
                   )}
                 >
-                  <SheetHeader className="p-3 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Cart ({cartCount})</SheetTitle></SheetHeader>
+                  <SheetHeader className="p-6 border-b shrink-0">
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Cart ({cartCount})</SheetTitle>
+                  </SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {cart.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
@@ -323,8 +326,10 @@ export function Header() {
                     ) : (
                       <div className="space-y-6">
                         {cart.map((item) => (
-                          <div key={item.variantId} className="flex gap-4">
-                            <div className="w-20 h-20 relative bg-gray-50 border shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</div>
+                          <div key={item.variantId} className="flex gap-4 group">
+                            <div className="w-20 h-24 relative bg-gray-50 border shrink-0 overflow-hidden rounded-sm">
+                              {item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}
+                            </div>
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div>
                                 <div className="flex justify-between items-start gap-2">
@@ -344,20 +349,20 @@ export function Header() {
                     )}
                   </ScrollArea>
                   {cart.length > 0 && (
-                    <div className="p-4 border-t bg-gray-50 flex flex-col gap-4 shrink-0">
-                      <div className="space-y-2">
+                    <div className="p-6 pb-10 sm:pb-8 border-t bg-white flex flex-col gap-6 shrink-0 shadow-[0_-4px_15px_rgba(0,0,0,0.05)]">
+                      <div className="space-y-3">
                         <div className="flex justify-between items-end">
-                          <span className="text-[10px] font-bold uppercase text-gray-400">Subtotal</span>
-                          <span className="text-[11px] font-bold">C${formatCurrency(cartSubtotal)}</span>
+                          <span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Subtotal</span>
+                          <span className="text-sm font-bold">C${formatCurrency(cartSubtotal)}</span>
                         </div>
                         {discountTotal > 0 && (
                           <div className="flex justify-between items-end text-emerald-600">
-                            <span className="text-[10px] font-bold uppercase">Savings Applied</span>
-                            <span className="text-[11px] font-bold">-C${formatCurrency(discountTotal)}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Savings Applied</span>
+                            <span className="text-sm font-bold">-C${formatCurrency(discountTotal)}</span>
                           </div>
                         )}
                       </div>
-                      <Button asChild className="w-full h-11 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
+                      <Button asChild className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.3em] text-[11px] rounded-none hover:bg-black/90 transition-all shadow-xl active:scale-[0.98]">
                         <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout</Link>
                       </Button>
                     </div>

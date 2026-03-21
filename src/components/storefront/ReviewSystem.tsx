@@ -31,6 +31,7 @@ interface ReviewSystemProps {
 /**
  * Authoritative Review Manifest.
  * Calibrated to the Yellow Star Protocol and zero-flicker Direct-Entry.
+ * Optimized for mobile fit.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -170,7 +171,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
       <SheetContent 
         className={cn(
           "w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10 transition-all duration-500",
-          theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
+          theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
         )}
       >
         <SheetHeader className="p-8 border-b bg-gray-50/50 shrink-0">
@@ -180,7 +181,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                 <MessageSquare className="h-5 w-5 text-primary" />
                 <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">Customer Reviews</SheetTitle>
               </div>
-              <SheetDescription className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
+              <SheetDescription className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest text-left">
                 {productId === 'global' ? 'See what others say about the studio.' : 'See what others say about this piece.'}
               </SheetDescription>
             </div>
