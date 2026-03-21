@@ -68,7 +68,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useFirebaseApp, useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
-import { doc, setDoc, collection, addDoc, query, orderBy } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { getMessagingInstance } from '@/firebase';
 import { getToken } from 'firebase/messaging';
 import { getFunctions, httpsCallable } from 'firebase/functions';
