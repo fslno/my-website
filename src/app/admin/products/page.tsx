@@ -456,6 +456,7 @@ export default function ProductsPage() {
 
     try {
       const results = await Promise.all(newMediaPromises);
+      // Authoritative Sequential Ingestion: preserve selection order and append to existing manifest.
       setMedia(prev => [...prev, ...results]);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {

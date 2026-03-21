@@ -68,7 +68,7 @@ export default function RootLayout({
 
 function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
   const isAdmin = useMemo(() => pathname?.startsWith('/admin'), [pathname]);
-  const isDetailsPage = useMemo(() => pathname?.startsWith('/products/'), [pathname]);
+  const isDetailsPage = useMemo(() => pathname?.includes('/products/'), [pathname]);
 
   return (
     <>
