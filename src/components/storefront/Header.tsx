@@ -42,7 +42,6 @@ export function Header() {
   const auth = useAuth();
   const { toast } = useToast();
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith('/admin');
   
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
@@ -71,6 +70,9 @@ export function Header() {
     setMounted(true);
   }, []);
 
+  const isAdmin = useMemo(() => pathname?.startsWith('/admin'), [pathname]);
+  const isProductPage = useMemo(() => pathname?.includes('/products/'), [pathname]);
+
   const filteredProducts = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
     return allProducts?.filter(p => 
@@ -78,8 +80,6 @@ export function Header() {
       p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 6) || [];
   }, [allProducts, searchQuery]);
-
-  const isProductPage = pathname?.includes('/products/');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -127,7 +127,7 @@ export function Header() {
 
   return (
     <>
-      {theme?.bannerEnabled && (
+      {mounted && theme?.bannerEnabled && (
         <div 
           className="fixed top-0 left-0 right-0 z-[60] h-7 sm:h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center"
           style={{ backgroundColor: theme.bannerBgColor || '#000000' }}
@@ -138,7 +138,7 @@ export function Header() {
       <header
         className={cn(
           'fixed left-0 right-0 z-50 transition-all duration-300 h-12 sm:h-16 flex items-center bg-white border-b shadow-sm',
-          theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
+          mounted && theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
         )}
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between relative h-full">
@@ -202,7 +202,7 @@ export function Header() {
             </Sheet>
 
             <Link href="/" className="flex items-center gap-2 group">
-              {storeConfig?.logoUrl && (
+              {mounted && storeConfig?.logoUrl && (
                 <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-sm overflow-hidden">
                   <NextImage src={storeConfig.logoUrl} alt="Logo" fill className="object-cover" />
                 </div>
@@ -269,7 +269,7 @@ export function Header() {
                 <SheetContent 
                   className={cn(
                     "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
+                    mounted && theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
                   )}
                 >
                   <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
@@ -309,7 +309,7 @@ export function Header() {
                 <SheetContent 
                   className={cn(
                     "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
+                    mounted && theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
                   )}
                 >
                   <SheetHeader className="p-3 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Cart ({cartCount})</SheetTitle></SheetHeader>
@@ -370,10 +370,10 @@ export function Header() {
             <>
               {theme?.ratingBadgePosition === 'split' ? (
                 <>
-                  <div className="fixed bottom-4 left-4 z-[60] flex items-center gap-1" style={{ bottom: `calc(1rem + ${theme.ratingBadgeVerticalOffset || 0}px)` }} suppressHydrationWarning>
+                  <div className="fixed bottom-4 left-4 z-[60] flex items-center gap-1" style={{ bottom: `calc(1rem + ${theme.ratingBadgeVerticalOffset || 0}px)` }}>
                     <ReviewSystem productId="global" />
                   </div>
-                  <div className="fixed bottom-4 right-4 z-[60] flex items-center gap-1" style={{ bottom: `calc(1rem + ${theme.ratingBadgeVerticalOffset || 0}px)` }} suppressHydrationWarning>
+                  <div className="fixed bottom-4 right-4 z-[60] flex items-center gap-1" style={{ bottom: `calc(1rem + ${theme.ratingBadgeVerticalOffset || 0}px)` }}>
                     <ReviewSystem productId="global" />
                   </div>
                 </>
@@ -381,7 +381,6 @@ export function Header() {
                 <div 
                   className="z-[60] flex items-center gap-1"
                   style={getBadgePositionStyle()}
-                  suppressHydrationWarning
                 >
                   <ReviewSystem productId="global" />
                 </div>
