@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
@@ -16,7 +16,7 @@ import { usePathname } from 'next/navigation';
 
 /**
  * Authoritative Direct-Open Root Layout.
- * Refactored for zero-latency entry sequence by bypassing mounting gates.
+ * Refactored for zero-latency entry sequence and app-like navigation.
  */
 export default function RootLayout({
   children,
@@ -24,6 +24,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    // Authoritative Navigation Protocol: Ensure scroll to top on every path change
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     // Authoritative PWA Service Worker Registration
@@ -74,6 +79,7 @@ export default function RootLayout({
 
 function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
   const isAdmin = pathname?.startsWith('/admin');
+  const isDetailsPage = pathname?.startsWith('/products/');
 
   return (
     <>
@@ -81,7 +87,7 @@ function LayoutContent({ children, pathname }: { children: React.ReactNode, path
       <main className="min-h-screen bg-white">
         {children}
       </main>
-      {!isAdmin && <Footer />}
+      {!isAdmin && !isDetailsPage && <Footer />}
     </>
   );
 }

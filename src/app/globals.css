@@ -28,7 +28,7 @@
 
   html, body {
     background-color: #FFFFFF !important;
-    color: transparent !important; /* Restored by ThemeStyleInjector when ready */
+    color: #000000 !important;
     margin: 0;
     padding: 0;
     visibility: visible !important;
