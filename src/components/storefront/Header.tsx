@@ -63,12 +63,12 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setIsMounted(true);
+    setMounted(true);
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -109,9 +109,20 @@ export function Header() {
     const offset = `${theme.ratingBadgeVerticalOffset || 0}px`;
     const pos = theme.ratingBadgePosition || 'right';
     
-    if (pos === 'left') return { left: '1rem', top: `calc(100% + ${offset})` };
-    if (pos === 'center') return { left: '50%', transform: 'translateX(-50%) translateY(100%)', top: `calc(100% + ${offset})` };
-    return { right: '1rem', top: `calc(100% + ${offset})` };
+    // Header-relative positions
+    if (pos === 'left') return { left: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
+    if (pos === 'center') return { left: '50%', transform: 'translateX(-50%) translateY(100%)', top: `calc(100% + ${offset})`, position: 'absolute' as const };
+    if (pos === 'right') return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
+
+    // Viewport-fixed bottom positions
+    if (pos === 'bottom-left') return { left: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
+    if (pos === 'bottom-center') return { left: '50%', transform: 'translateX(-50%)', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
+    if (pos === 'bottom-right') return { right: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
+    
+    // Split handled in main render
+    if (pos === 'split') return { display: 'none' };
+
+    return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
   };
 
   return (
@@ -141,7 +152,7 @@ export function Header() {
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">
-                    {isMounted ? storeConfig?.businessName : ""}
+                    {mounted ? storeConfig?.businessName : ""}
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-8">
@@ -197,7 +208,7 @@ export function Header() {
                 </div>
               )}
               <h1 className="text-lg sm:text-2xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
-                {isMounted ? (storeConfig?.businessName || "") : ""}
+                {mounted ? (storeConfig?.businessName || "") : ""}
               </h1>
             </Link>
           </div>
@@ -355,14 +366,27 @@ export function Header() {
             </div>
           </div>
 
-          {isMounted && !isAdmin && (
-            <div 
-              className="absolute z-[60] flex items-center gap-1"
-              style={getBadgePositionStyle()}
-              suppressHydrationWarning
-            >
-              {!isProductPage && <ReviewSystem productId="global" />}
-            </div>
+          {mounted && !isAdmin && !isProductPage && (
+            <>
+              {theme?.ratingBadgePosition === 'split' ? (
+                <>
+                  <div className="fixed bottom-4 left-4 z-[60] flex items-center gap-1" style={{ bottom: `calc(1rem + ${theme.ratingBadgeVerticalOffset || 0}px)` }} suppressHydrationWarning>
+                    <ReviewSystem productId="global" />
+                  </div>
+                  <div className="fixed bottom-4 right-4 z-[60] flex items-center gap-1" style={{ bottom: `calc(1rem + ${theme.ratingBadgeVerticalOffset || 0}px)` }} suppressHydrationWarning>
+                    <ReviewSystem productId="global" />
+                  </div>
+                </>
+              ) : (
+                <div 
+                  className="z-[60] flex items-center gap-1"
+                  style={getBadgePositionStyle()}
+                  suppressHydrationWarning
+                >
+                  <ReviewSystem productId="global" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </header>

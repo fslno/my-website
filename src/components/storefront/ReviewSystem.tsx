@@ -136,11 +136,16 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   // Hydration Stability Protocol:
   if (!isMounted || (config && config.enabled === false)) return null;
 
+  const isBottom = theme?.ratingBadgePosition?.startsWith('bottom') || theme?.ratingBadgePosition === 'split';
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <div className="inline-block cursor-pointer group" suppressHydrationWarning>
-          <div className="rating-badge-style py-1 px-2.5 rounded-none shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/10 h-7 origin-top" suppressHydrationWarning>
+          <div className={cn(
+            "rating-badge-style py-1 px-2.5 rounded-none shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/10 h-7",
+            isBottom ? "origin-bottom" : "origin-top"
+          )} suppressHydrationWarning>
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 

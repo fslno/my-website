@@ -522,16 +522,25 @@ export default function ThemeEnginePage() {
                         <input type="range" min="0.5" max="2.0" step="0.1" value={ratingBadgeScale} onChange={(e) => setRatingBadgeScale(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
                       </div>
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Vertical Offset (Top Gutter)</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{ratingBadgeVerticalOffset}PX</Badge></div>
+                        <div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Vertical Offset (Top/Bottom Gutter)</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{ratingBadgeVerticalOffset}PX</Badge></div>
                         <input type="range" min="0" max="100" value={ratingBadgeVerticalOffset} onChange={(e) => setRatingBadgeVerticalOffset(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[9px] uppercase font-bold text-gray-400">Badge Alignment</Label>
-                        <div className="grid grid-cols-3 gap-2">
-                          <button onClick={() => setRatingBadgePosition('left')} className={cn("h-10 border rounded-none text-[9px] font-bold uppercase tracking-widest", ratingBadgePosition === 'left' ? "bg-black text-white" : "bg-white")}>Left</button>
-                          <button onClick={() => setRatingBadgePosition('center')} className={cn("h-10 border rounded-none text-[9px] font-bold uppercase tracking-widest", ratingBadgePosition === 'center' ? "bg-black text-white" : "bg-white")}>Center</button>
-                          <button onClick={() => setRatingBadgePosition('right')} className={cn("h-10 border rounded-none text-[9px] font-bold uppercase tracking-widest", ratingBadgePosition === 'right' ? "bg-black text-white" : "bg-white")}>Right</button>
-                        </div>
+                        <Select value={ratingBadgePosition} onValueChange={setRatingBadgePosition}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="left" className="text-[10px] font-bold uppercase">Top Left</SelectItem>
+                            <SelectItem value="center" className="text-[10px] font-bold uppercase">Top Center</SelectItem>
+                            <SelectItem value="right" className="text-[10px] font-bold uppercase">Top Right</SelectItem>
+                            <SelectItem value="bottom-left" className="text-[10px] font-bold uppercase">Bottom Left</SelectItem>
+                            <SelectItem value="bottom-center" className="text-[10px] font-bold uppercase">Bottom Center</SelectItem>
+                            <SelectItem value="bottom-right" className="text-[10px] font-bold uppercase">Bottom Right</SelectItem>
+                            <SelectItem value="split" className="text-[10px] font-bold uppercase">Bottom Two Sides</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </CardContent>
                   </Card>
