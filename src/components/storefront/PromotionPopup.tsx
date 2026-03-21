@@ -17,7 +17,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Promotion popup alert for customers.
- * Authoritatively recalibrated to fit viewport height on all devices.
+ * Authoritatively recalibrated to reduce height and avoid scrolling on all devices.
  */
 export function PromotionPopup() {
   const pathname = usePathname();
@@ -52,44 +52,44 @@ export function PromotionPopup() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
-      <DialogContent className="sm:max-w-md bg-white border-none rounded-none p-0 overflow-y-auto max-h-[95vh] shadow-2xl scrollbar-hide">
+      <DialogContent className="sm:max-w-md bg-white border-none rounded-none p-0 shadow-2xl overflow-hidden">
         <DialogHeader className="sr-only">
           <DialogTitle>Limited Offer Promotion</DialogTitle>
           <DialogDescription>Information about the current reward offer.</DialogDescription>
         </DialogHeader>
-        <div className="relative p-8 sm:p-12 text-center space-y-8 h-fit">
+        <div className="relative p-6 sm:p-10 text-center space-y-6">
           
           <div className="flex justify-center">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center shadow-xl border border-black/5 relative">
-              <Gift className="h-8 w-8 text-primary" />
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center shadow-xl border border-black/5 relative">
+              <Gift className="h-6 w-6 text-primary" />
               <div className="absolute -top-1 -right-1">
-                <Sparkles className="h-5 w-5 text-yellow-500 animate-pulse" />
+                <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
               </div>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground block">Limited Offer</span>
-            <h2 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight text-primary leading-tight">
+          <div className="space-y-2">
+            <span className="text-[8px] sm:text-[9px] uppercase tracking-[0.5em] font-bold text-muted-foreground block">Limited Offer</span>
+            <h2 className="text-xl sm:text-2xl font-headline font-bold uppercase tracking-tight text-primary leading-tight">
               Get a Free Gift<br />With Your Order
             </h2>
-            <div className="space-y-4">
-              <p className="text-[10px] sm:text-xs text-muted-foreground uppercase font-bold tracking-widest leading-relaxed max-w-[280px] mx-auto">
+            <div className="space-y-3">
+              <p className="text-[10px] sm:text-xs text-muted-foreground uppercase font-bold tracking-widest leading-relaxed max-w-[260px] mx-auto">
                 Buy {config.bogoMinQty || 2} items from our collection and get a free {config.bogoItemName || 'gift'} at checkout.
               </p>
             </div>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-2">
             <Button 
               onClick={handleClose}
-              className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl group"
+              className="w-full h-12 bg-black text-white font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl group"
             >
-              Start Shopping <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              Start Shopping <ArrowRight className="ml-2 h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
 
-          <div className="pt-2 flex flex-col items-center gap-2">
+          <div className="pt-1 flex flex-col items-center gap-2">
             <p className="text-[8px] text-gray-400 uppercase font-bold tracking-widest">
               Offer automatically applied in your cart.
             </p>
