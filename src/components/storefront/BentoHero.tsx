@@ -51,20 +51,12 @@ export function BentoHero({
 
   // Authoritative Flashback Purge: Strictly render a clean white box until mounted.
   if (!mounted) {
-    return (
-      <section className="pt-[76px] sm:pt-[104px]">
-        <div className="w-full bg-white h-[72vh]" />
-      </section>
-    );
+    return <div className="w-full bg-white h-[72vh]" />;
   }
 
   // Authoritative Priority: If no Firestore images manifest, return a stable white viewport shell.
   if (!heroImages || heroImages.length === 0) {
-    return (
-      <section className="pt-[76px] sm:pt-[104px]">
-        <div className="w-full bg-white h-[72vh]" />
-      </section>
-    );
+    return <div className="w-full bg-white h-[72vh]" />;
   }
 
   return (

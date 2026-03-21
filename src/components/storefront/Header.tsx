@@ -130,7 +130,7 @@ export function Header() {
 
   // Direct-Entry Protocol: Return a perfectly stable white placeholder to eliminate hydration glitches.
   if (!mounted) {
-    return <div className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b" />;
+    return <div className="h-12 sm:h-16 bg-white w-full" />;
   }
 
   return (

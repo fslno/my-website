@@ -188,11 +188,8 @@ export default function ProductDetailPage(props: PageProps) {
     toast({ title: "Added to Cart", description: `${product.name} is in your cart.` });
   };
 
-  if (!mounted) {
-    return <div className="min-h-screen bg-white" />;
-  }
-
-  if (loading || !product) {
+  // Direct-Entry Protocol: Return a clean white screen while mounting to purge hydration flashbacks.
+  if (!mounted || loading || !product) {
     return <div className="min-h-screen bg-white" />;
   }
 
@@ -276,7 +273,7 @@ export default function ProductDetailPage(props: PageProps) {
                       <Star 
                         key={s} 
                         className={cn(
-                          "h-2.5 sm:h-2.5 w-2.5 sm:w-2.5", 
+                          "h-2.5 sm:h-2.5 w-2.5 sm:w-2.5 transition-all duration-500", 
                           s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20"
                         )} 
                       />

@@ -222,7 +222,7 @@ export default function CheckoutPage() {
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  // Direct-Entry Protocol: Return a clean white screen while mounting
+  // Direct-Entry Protocol: Ensure a stable white screen while mounting to purge hydration glitches.
   if (!mounted) {
     return <div className="min-h-screen bg-white" />;
   }
