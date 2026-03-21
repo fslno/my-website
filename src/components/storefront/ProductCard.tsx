@@ -112,7 +112,7 @@ export function ProductCard({
                   key={s} 
                   className={cn(
                     "h-2 sm:h-2.5 w-2 sm:w-2.5", 
-                    s <= Math.round(rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                    s <= Math.round(rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20"
                   )} 
                 />
               ))}

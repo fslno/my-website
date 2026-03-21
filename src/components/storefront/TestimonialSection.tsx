@@ -85,7 +85,7 @@ export function TestimonialSection() {
                               key={s} 
                               className={cn(
                                 "h-3 w-3", 
-                                s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                                s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20"
                               )} 
                             />
                           ))}

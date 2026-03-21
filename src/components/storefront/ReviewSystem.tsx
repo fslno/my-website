@@ -158,7 +158,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                   key={s} 
                   className={cn(
                     "h-2.5 sm:h-2.5 w-2.5 sm:w-2.5 transition-all duration-500", 
-                    s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "opacity-20"
+                    s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20"
                   )} 
                 />
               ))}
@@ -206,7 +206,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                       <div className="flex gap-3">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <button key={s} type="button" onClick={() => setRating(s)} className="transition-transform active:scale-90">
-                            <Star className={cn("h-7 w-7 transition-all duration-300", s <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-100")} />
+                            <Star className={cn("h-7 w-7 transition-all duration-300", s <= rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />
                           </button>
                         ))}
                       </div>
@@ -270,7 +270,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                       <div className="flex items-center justify-between">
                         <div className="flex gap-0.5">
                           {[1, 2, 3, 4, 5].map((s) => (
-                            <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-100")} />
+                            <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />
                           ))}
                         </div>
                         <div className="flex items-center gap-4">
