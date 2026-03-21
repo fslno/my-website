@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
@@ -58,11 +57,6 @@ const TAX_RATES: Record<string, number> = {
   'ON': 0.13, 'BC': 0.12, 'QC': 0.14975, 'AB': 0.05, 'MB': 0.12, 'NB': 0.15, 'NL': 0.15, 'NS': 0.15, 'PE': 0.15, 'SK': 0.11, 'NY': 0.08875, 'CA': 0.0725, 'TX': 0.0625, 'FL': 0.06, 'DEFAULT': 0.10
 };
 
-/**
- * Authoritative Checkout Manifest.
- * Optimized for zero-flicker Direct-Entry.
- * Forensicly stabilized to eliminate hydration mismatches.
- */
 export default function CheckoutPage() {
   const router = useRouter();
   const db = useFirestore();
@@ -70,12 +64,7 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const { cart, cartSubtotal, cartCount, clearCart, updateCartItem, discountTotal, totalBeforeTax, appliedCoupon, applyCoupon } = useCart();
   
-  const [mounted, setMounted] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
   const { data: paymentConfig } = useDoc(paymentConfigRef);
@@ -223,11 +212,6 @@ export default function CheckoutPage() {
   };
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  // Direct-Entry Protocol: Ensure a perfectly stable white plane while mounting to purge hydration flashbacks.
-  if (!mounted) {
-    return <div className="fixed inset-0 bg-white z-[100]" />;
-  }
 
   return (
     <div className="max-w-[1440px] mx-auto w-full flex-1 pt-28 sm:pt-40 pb-12 px-4">

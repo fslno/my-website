@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
@@ -27,34 +27,21 @@ interface BentoHeroProps {
 
 /**
  * Main Hero section for the home page.
- * Optimized for Direct-Entry velocity by removing structural hydration gates.
- * Forensicly purged of "flashback" artifacts and hardcoded placeholders.
  */
 export function BentoHero({ 
   heroImages = [], 
   headline = '', 
   subheadline = '',
-  buttonText = 'Shop Now',
+  buttonText = '',
   textAlign = 'center',
   verticalAlign = 'center'
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
-  const [mounted, setMounted] = useState(false);
   
   const autoplayPlugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Authoritative Flashback Purge: Strictly render a clean white box until mounted.
-  if (!mounted) {
-    return <div className="w-full bg-white h-[72vh]" />;
-  }
-
-  // Authoritative Priority: If no Firestore images manifest, return a stable white viewport shell.
   if (!heroImages || heroImages.length === 0) {
     return <div className="w-full bg-white h-[72vh]" />;
   }
@@ -105,15 +92,17 @@ export function BentoHero({
                   {headline}
                 </span>
               )}
-              <Link 
-                href="/collections/all" 
-                className={cn(
-                  "hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95 w-fit",
-                  textAlign === 'left' ? 'ml-0 mr-auto' : textAlign === 'right' ? 'ml-auto mr-0' : 'mx-auto'
-                )}
-              >
-                {buttonText} <ArrowRight className="ml-3 h-4 w-4" />
-              </Link>
+              {buttonText && (
+                <Link 
+                  href="/collections/all" 
+                  className={cn(
+                    "hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95 w-fit",
+                    textAlign === 'left' ? 'ml-0 mr-auto' : textAlign === 'right' ? 'ml-auto mr-0' : 'mx-auto'
+                  )}
+                >
+                  {buttonText} <ArrowRight className="ml-3 h-4 w-4" />
+                </Link>
+              )}
             </div>
           </div>
         </Carousel>

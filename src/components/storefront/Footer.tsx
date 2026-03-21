@@ -25,8 +25,6 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Dynamic Storefront Footer.
- * Authoritatively driven by the Admin Footer Editor manifest.
- * Optimized for Direct-Entry velocity.
  */
 export function Footer() {
   const db = useFirestore();
@@ -36,11 +34,9 @@ export function Footer() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
-    setMounted(true);
     setCurrentYear(new Date().getFullYear());
   }, []);
 
@@ -48,7 +44,6 @@ export function Footer() {
     e.preventDefault();
     if (!email) return;
     setIsSubmitting(true);
-    // Simulation of subscription ingest
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubscribed(true);
@@ -58,22 +53,20 @@ export function Footer() {
 
   const mapsUrl = config?.googleMapsUrl || (config?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.address)}` : '#');
 
-  // Direct-Entry Protocol: Ensure zero trace until mounted and synchronized.
-  if (!mounted || !config) return null;
+  if (!config) return null;
 
   return (
     <footer className="bg-primary text-primary-foreground py-16 mt-0 border-t border-primary-foreground/10">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 items-start text-left">
           
-          {/* Column 01: Brand Identity */}
           <div className="space-y-8 flex flex-col items-start text-left">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
-              {config.businessName || "FSLNO"}
+              {config.businessName || ""}
             </h2>
             <div className="space-y-6">
               <p className="max-w-xs text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed text-left">
-                {config.footerDescription || "Built for Speed. Made for Victory."}
+                {config.footerDescription || ""}
               </p>
               
               <div className="space-y-4 flex flex-col items-start text-left">
@@ -122,7 +115,6 @@ export function Footer() {
             </div>
           </div>
           
-          {/* Column 02: Support Manifest */}
           <div className="space-y-6 flex flex-col items-start text-left">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-left">
@@ -133,13 +125,9 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
-              {(!config.footerSupportLinks || config.footerSupportLinks.length === 0) && (
-                <li className="opacity-20 italic">No links configured</li>
-              )}
             </ul>
           </div>
 
-          {/* Column 03: Legal Manifest */}
           <div className="space-y-6 flex flex-col items-start text-left">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-left">
@@ -150,13 +138,9 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
-              {(!config.footerLegalLinks || config.footerLegalLinks.length === 0) && (
-                <li className="opacity-20 italic">No links configured</li>
-              )}
             </ul>
           </div>
 
-          {/* Column 04: Newsletter Dispatch */}
           <div className="space-y-8 flex flex-col items-start text-left">
             {config.newsletterEnabled !== false && (
               <>
@@ -164,10 +148,10 @@ export function Footer() {
                   <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
                   <div className="space-y-1">
                     <h3 className="text-3xl font-headline font-bold uppercase tracking-tight leading-none text-left">
-                      {config.newsletterHeadline || "Join Us"}
+                      {config.newsletterHeadline || ""}
                     </h3>
                     <p className="text-[10px] uppercase tracking-widest font-bold opacity-60 text-left">
-                      {config.newsletterSubtext || "Get our latest updates."}
+                      {config.newsletterSubtext || ""}
                     </p>
                   </div>
                 </div>
@@ -196,11 +180,10 @@ export function Footer() {
           </div>
         </div>
         
-        {/* Footer Meta & Logistics */}
         <div className="border-t border-primary-foreground/10 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-2">
             <p className="text-[9px] uppercase tracking-[0.2em] font-bold opacity-40 text-left">
-              {config.copyrightText || `© ${currentYear} ${config.businessName || "FSLNO"}. ALL RIGHTS RESERVED.`}
+              {config.copyrightText || `© ${currentYear} ${config.businessName || ""}. ALL RIGHTS RESERVED.`}
             </p>
           </div>
 

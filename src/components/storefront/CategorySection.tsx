@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -10,15 +10,9 @@ import { cn } from '@/lib/utils';
 
 /**
  * Category section display.
- * Authoritatively removed loading spinners for peak velocity.
  */
 export function CategorySection() {
   const db = useFirestore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
@@ -30,8 +24,7 @@ export function CategorySection() {
 
   const { data: categories, isLoading } = useCollection(categoriesQuery);
 
-  // Authoritative Flashback Purge: Render nothing until hydration is complete.
-  if (!mounted || isLoading || !categories || categories.length === 0) {
+  if (isLoading || !categories || categories.length === 0) {
     return null;
   }
 
@@ -53,10 +46,10 @@ export function CategorySection() {
             theme?.categoryTextAlign === 'right' ? 'ml-auto' : ''
           )}>
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">
-              {theme?.categorySectionSubtitle || 'Browse Collections'}
+              {theme?.categorySectionSubtitle || ''}
             </span>
             <h2 className="font-headline font-bold uppercase tracking-tight category-title-size category-title-color">
-              {theme?.categorySectionTitle || 'Shop by Category'}
+              {theme?.categorySectionTitle || ''}
             </h2>
           </div>
         </div>

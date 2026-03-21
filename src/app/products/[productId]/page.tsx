@@ -71,12 +71,6 @@ export default function ProductDetailPage(props: PageProps) {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
 
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const productRef = useMemoFirebase(() => 
     db ? doc(db, getLivePath(`products/${productId}`)) : null, 
     [db, productId]
@@ -188,9 +182,8 @@ export default function ProductDetailPage(props: PageProps) {
     toast({ title: "Added to Cart", description: `${product.name} is in your cart.` });
   };
 
-  // Direct-Entry Protocol: Return a clean white screen while mounting to purge hydration flashbacks.
-  if (!mounted || loading || !product) {
-    return <div className="min-h-screen bg-white" />;
+  if (loading || !product) {
+    return <div className="fixed inset-0 bg-white z-[100]" />;
   }
 
   return (

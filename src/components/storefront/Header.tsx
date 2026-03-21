@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -38,8 +37,6 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 /**
  * Authoritative Header Manifest.
- * Optimized for Direct-Entry velocity with a zero-flicker white entry protocol.
- * Forensicly stabilized to eliminate hydration mismatches.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -68,13 +65,8 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const isAdmin = useMemo(() => pathname?.startsWith('/admin'), [pathname]);
   const isProductPage = useMemo(() => pathname?.includes('/products/'), [pathname]);
@@ -123,17 +115,6 @@ export function Header() {
     return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
   };
 
-  // Direct-Entry Protocol: Return a perfectly stable header placeholder to eliminate hydration mismatches.
-  // This must exactly match the base structure rendered by the server to prevent "Notifications (F8)" Confusions.
-  if (!mounted) {
-    return (
-      <header 
-        className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b" 
-        style={{ marginTop: '0' }}
-      />
-    );
-  }
-
   return (
     <>
       {theme?.bannerEnabled && (
@@ -141,7 +122,7 @@ export function Header() {
           className="fixed top-0 left-0 right-0 z-[60] h-7 sm:h-10 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white px-4 text-center"
           style={{ backgroundColor: theme.bannerBgColor || '#000000' }}
         >
-          <span className="text-[7px] sm:text-[10px]">{theme.bannerText}</span>
+          <span className="text-[7px] sm:text-[10px]">{theme.bannerText || ''}</span>
         </div>
       )}
       <header

@@ -169,6 +169,7 @@ export function ThemeStyleInjector() {
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
+        color: var(--foreground) !important;
       }
       h1, h2, h3, h4, h5, h6, .font-headline {
         font-family: var(--font-headline) !important;
@@ -194,7 +195,6 @@ export function ThemeStyleInjector() {
         border-color: var(--accent) !important;
       }
       
-      /* RESPONSIVE BANNER PROTOCOL */
       .banner-style {
         font-family: var(--banner-font) !important;
         font-size: clamp(7px, 2.5vw, var(--banner-font-size)) !important;
@@ -208,7 +208,6 @@ export function ThemeStyleInjector() {
         align-items: var(--hero-flex-align) !important;
       }
       
-      /* AUTOMATIC FLUID SCALING PROTOCOL */
       .hero-headline-size {
         font-size: clamp(calc(var(--hero-headline-size) * 0.5), 8vw, var(--hero-headline-size)) !important;
         color: var(--hero-headline-color) !important;
