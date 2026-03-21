@@ -437,11 +437,19 @@ export default function ProductsPage() {
     setVariants(prev => prev.map(v => ({ ...v, isPreorder: checked })));
   };
 
+  /**
+   * handleMediaUpload Protocol (Authoritative Selection Order)
+   * Forensicly preserves the chronological order of file selection.
+   * The first file processed is always index 0 (Primary).
+   */
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    
+    // 01. Ingestion Manifest: Convert to Array to preserve chronological selection order
     const fileArray = Array.from(files);
     
+    // 02. Sequential Orchestration: Map files to ordered promise manifest
     const newMediaPromises = fileArray.map(file => {
       return new Promise<MediaItem>((resolve) => {
         let type: 'image' | 'video' | 'file' = 'file';
@@ -455,12 +463,15 @@ export default function ProductsPage() {
     });
 
     try {
+      // 03. Authoritative Sync: Promise.all preserves input order in the resulting array
       const results = await Promise.all(newMediaPromises);
-      // Authoritative Sequential Ingestion: preserve selection order and append to existing manifest.
+      
+      // 04. Appending Protocol: Ingest new assets while maintaining existing order
       setMedia(prev => [...prev, ...results]);
+      
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
-      toast({ variant: "destructive", title: "Upload Error", description: "Failed to process files." });
+      toast({ variant: "destructive", title: "Upload Error", description: "Failed to process files sequentially." });
     }
   };
 
