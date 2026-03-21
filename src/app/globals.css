@@ -28,9 +28,12 @@
 
   html, body {
     background-color: #FFFFFF !important;
-    color: transparent !important;
+    color: transparent !important; /* Restored by ThemeStyleInjector when ready */
     margin: 0;
     padding: 0;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transition: none !important;
   }
 }
 
@@ -39,7 +42,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background font-body;
     background-color: #FFFFFF !important;
   }
   h1, h2, h3, h4, h5, h6 {

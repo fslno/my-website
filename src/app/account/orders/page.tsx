@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 /**
  * Order History page.
- * Optimized for Direct-Entry velocity by removing loaders and skeletons.
+ * Thumbnails recalibrated to 1:1 geometric ratio.
  */
 export default function OrderHistoryPage() {
   const { user, isUserLoading } = useUser();
@@ -55,7 +55,6 @@ export default function OrderHistoryPage() {
     }
   };
 
-  // Direct-Entry Protocol: Return a clean white screen while mounting or loading
   if (!mounted || isUserLoading) {
     return <div className="min-h-screen bg-white" />;
   }
@@ -113,7 +112,7 @@ export default function OrderHistoryPage() {
                     <div className="flex-1 space-y-4">
                       {order.items?.map((item: any, i: number) => (
                         <div key={i} className="flex gap-4">
-                          <div className="w-16 h-20 bg-gray-100 relative overflow-hidden border shrink-0">
+                          <div className="w-16 h-16 bg-gray-100 relative overflow-hidden border shrink-0">
                             {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
                           </div>
                           <div className="flex flex-col justify-center">

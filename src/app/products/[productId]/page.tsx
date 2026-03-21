@@ -62,6 +62,10 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+/**
+ * Authoritative Product Details manifest.
+ * Stabilized with fixed min-height and prioritized 1:1 visuals.
+ */
 export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = use(props.params);
   const { productId } = resolvedParams;
@@ -188,13 +192,12 @@ export default function ProductDetailPage(props: PageProps) {
     toast({ title: "Added to Cart", description: `${product.name} is in your cart.` });
   };
 
-  // Direct-Entry Protocol: Return a perfectly stable white plane to eliminate hydration glitches.
   if (!mounted || loading || !product) {
     return <div className="fixed inset-0 bg-white z-[100]" />;
   }
 
   return (
-    <main className="mobile-wrapper min-h-screen bg-white pt-20 sm:pt-32 pb-32">
+    <main className="mobile-wrapper min-h-[100vh] bg-white pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
         <Link href="/" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
           <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Home
@@ -225,7 +228,14 @@ export default function ProductDetailPage(props: PageProps) {
                       media.map((item: any, idx: number) => (
                         <CarouselItem key={idx}>
                           <div className="relative aspect-square bg-white overflow-hidden border rounded-sm">
-                            <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
+                            <Image 
+                              src={item.url} 
+                              alt={product.name} 
+                              fill 
+                              className="object-cover" 
+                              priority={idx === 0}
+                              loading={idx === 0 ? "eager" : "lazy"}
+                            />
                           </div>
                         </CarouselItem>
                       ))

@@ -30,8 +30,7 @@ interface ReviewSystemProps {
 
 /**
  * Authoritative Review Manifest.
- * Calibrated to the Yellow Star Protocol and zero-flicker Direct-Entry.
- * Optimized for mobile fit.
+ * Recalibrated for 1:1 square media displays.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -278,7 +277,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                       </div>
                       
                       <div className="flex gap-6">
-                        {review.imageUrl && <div className="w-20 h-28 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm"><Image src={review.imageUrl} alt="Review" fill className="object-cover" /></div>}
+                        {review.imageUrl && <div className="w-20 h-20 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm"><Image src={review.imageUrl} alt="Review" fill className="object-cover" /></div>}
                         <div className="space-y-3 flex-1">
                           <p className="text-sm font-medium leading-relaxed italic text-gray-600">"{review.comment}"</p>
                           <div className="text-[10px] font-bold text-yellow-400 uppercase tracking-widest flex items-center gap-2">

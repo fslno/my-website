@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * Main Home Page.
- * Displays the hero section, categories, and product grid.
+ * Forensicly purged of hardcoded placeholders for an opaque white start.
  */
 export default function Home() {
   const db = useFirestore();

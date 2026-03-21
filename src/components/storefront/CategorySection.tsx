@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * Category section display.
+ * Purged of hardcoded template titles.
  */
 export function CategorySection() {
   const db = useFirestore();

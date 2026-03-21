@@ -23,7 +23,7 @@ interface ProductCardProps {
 
 /**
  * Authoritative Product Card component.
- * Recalibrated for high-density mobile displays and high-velocity performance.
+ * Recalibrated for a perfect 1:1 Geometric ratio.
  */
 export function ProductCard({ 
   id, name, price, comparedPrice, image, hoverImage, category, 
@@ -37,7 +37,7 @@ export function ProductCard({
     <div className="group flex flex-col gap-1 product-text-align">
       <Link 
         href={`/products/${id}`} 
-        className="relative block overflow-hidden bg-gray-50 aspect-[3/4] rounded-sm border shadow-sm" 
+        className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm" 
         style={{ borderRadius: 'var(--radius)' }}
       >
         {image ? (

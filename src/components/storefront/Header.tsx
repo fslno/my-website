@@ -5,9 +5,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ShoppingBag, 
-  Menu, 
-  Search, 
-  X, 
   Heart, 
   User as UserIcon,
   LogOut,
@@ -22,7 +19,6 @@ import NextImage from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, useAuth } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,12 +28,12 @@ import {
 import { AuthDialog } from '@/components/storefront/AuthDialog';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
-import { Separator } from '@/components/ui/separator';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 /**
  * Authoritative Header Manifest.
- * Forensicly recalibrated for mobile ergonomics and zero-flicker Direct-Entry.
+ * Forensicly purged of search and menu interaction points for an opaque white start.
+ * Thumbnails recalibrated to 1:1 geometric ratio.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -54,21 +50,10 @@ export function Header() {
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
 
-  const categoriesQuery = useMemoFirebase(() => db ? collection(db, getLivePath('categories')) : null, [db]);
-  const { data: categories } = useCollection(categoriesQuery);
-
-  const productsQuery = useMemoFirebase(() => db ? collection(db, getLivePath('products')) : null, [db]);
-  const { data: allProducts } = useCollection(productsQuery);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-
-  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -76,24 +61,6 @@ export function Header() {
 
   const isAdmin = useMemo(() => pathname?.startsWith('/admin'), [pathname]);
   const isProductPage = useMemo(() => pathname?.includes('/products/'), [pathname]);
-
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery || searchQuery.length < 2) return [];
-    return allProducts?.filter(p => 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 6) || [];
-  }, [allProducts, searchQuery]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearching(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -120,10 +87,6 @@ export function Header() {
     return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
   };
 
-  if (!mounted) {
-    return <header className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b" />;
-  }
-
   return (
     <>
       {theme?.bannerEnabled && (
@@ -136,58 +99,12 @@ export function Header() {
       )}
       <header
         className={cn(
-          'fixed left-0 right-0 z-50 transition-all duration-300 h-12 sm:h-16 flex items-center bg-white border-b shadow-sm',
+          'fixed left-0 right-0 z-50 transition-all duration-300 h-12 sm:h-16 flex items-center bg-white',
           theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
         )}
       >
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between relative h-full">
           <div className="flex items-center gap-1 sm:gap-4">
-            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-primary h-9 w-9">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[85vw] sm:w-[350px] bg-white border-none p-0 flex flex-col shadow-2xl">
-                <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
-                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary text-left">
-                    {storeConfig?.businessName || ""}
-                  </SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-1 p-8">
-                  <nav className="flex flex-col gap-2">
-                    {categories?.map((cat: any) => (
-                      <Link 
-                        key={cat.id} 
-                        href={`/collections/${cat.id}`} 
-                        onClick={() => setIsMenuOpen(false)} 
-                        className="text-lg font-headline uppercase text-primary hover:opacity-60 transition-opacity py-2"
-                      >
-                        {cat.name}
-                      </Link>
-                    ))}
-                    <Separator className="my-4 opacity-50" />
-                    <div className="space-y-4">
-                      {user ? (
-                        <>
-                          <Link href="/account/orders" onClick={() => setIsMenuOpen(false)} className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 transition-opacity">
-                            <Package className="h-5 w-5" /> My Orders
-                          </Link>
-                          <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="text-lg font-headline uppercase text-destructive hover:opacity-60 flex items-center gap-3 w-full text-left transition-opacity">
-                            <LogOut className="h-5 w-5" /> Sign Out
-                          </button>
-                        </>
-                      ) : (
-                        <button onClick={() => { setIsAuthOpen(true); setIsMenuOpen(false); }} className="text-lg font-headline uppercase text-primary hover:opacity-60 flex items-center gap-3 w-full text-left transition-opacity">
-                          <UserIcon className="h-5 w-5" /> Sign In
-                        </button>
-                      )}
-                    </div>
-                  </nav>
-                </ScrollArea>
-              </SheetContent>
-            </Sheet>
-
             <Link href="/" className="flex items-center gap-2 group">
               {storeConfig?.logoUrl && (
                 <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-sm overflow-hidden">
@@ -201,38 +118,6 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <div className="relative flex items-center" ref={searchRef}>
-              <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-              <Input 
-                placeholder="SEARCH" 
-                className="pl-8 h-8 sm:h-9 w-20 xs:w-32 sm:w-40 md:w-56 bg-gray-50 border-none text-[9px] font-bold uppercase tracking-widest rounded-none focus-visible:ring-1 focus-visible:ring-black transition-all"
-                value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setIsSearching(true); }}
-                onFocus={() => setIsSearching(true)}
-              />
-              {isSearching && searchQuery.length >= 2 && (
-                <div className="absolute top-full right-0 mt-2 w-[280px] md:w-[400px] bg-white border shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
-                  <ScrollArea className="max-h-[50vh]">
-                    {filteredProducts.length === 0 ? (
-                      <div className="p-8 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">No products found.</div>
-                    ) : (
-                      <div className="divide-y">
-                        {filteredProducts.map((p: any) => (
-                          <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
-                            <div className="w-12 h-12 relative bg-gray-100 border shrink-0">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill className="object-cover" />}</div>
-                            <div className="flex flex-col justify-center overflow-hidden text-left">
-                              <h3 className="text-[10px] font-bold uppercase truncate">{p.name}</h3>
-                              <p className="text-[9px] font-bold text-gray-400">C${Number(p.price).toFixed(2)}</p>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </div>
-              )}
-            </div>
-
             <div className="flex items-center gap-0.5">
               <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:flex" onClick={() => user ? null : setIsAuthOpen(true)}>
                 {user ? (
@@ -312,7 +197,7 @@ export function Header() {
                       <div className="space-y-6">
                         {cart.map((item) => (
                           <div key={item.variantId} className="flex gap-4 group">
-                            <div className="w-20 h-24 relative bg-gray-50 border shrink-0 overflow-hidden rounded-sm">
+                            <div className="w-20 h-20 relative bg-gray-50 border shrink-0 overflow-hidden rounded-sm">
                               {item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}
                             </div>
                             <div className="flex-1 flex flex-col justify-between py-1">
@@ -357,7 +242,7 @@ export function Header() {
             </div>
           </div>
 
-          {!isAdmin && !isProductPage && theme && (
+          {!isAdmin && !isProductPage && theme && mounted && (
             <div 
               className="z-[60] hidden sm:flex items-center gap-1"
               style={getBadgePositionStyle()}

@@ -27,8 +27,7 @@ interface BentoHeroProps {
 
 /**
  * Main Hero section for the home page.
- * Forensicly stabilized to ensure structural shell consistency between server and client.
- * Optimized with high-fidelity image scaling for peak performance.
+ * Forensicly purged of template placeholders for an opaque white start.
  */
 export function BentoHero({ 
   heroImages = [], 

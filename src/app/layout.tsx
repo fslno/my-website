@@ -15,9 +15,8 @@ import { Footer } from '@/components/storefront/Footer';
 import { usePathname } from 'next/navigation';
 
 /**
- * Authoritative Direct-Entry Root Layout.
- * Refactored for Opaque White Start to eliminate visual flashbacks.
- * Injected PWA Service Worker registration and mobile meta-tags.
+ * Authoritative Direct-Open Root Layout.
+ * Refactored for zero-latency entry sequence by bypassing mounting gates.
  */
 export default function RootLayout({
   children,
@@ -25,11 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    
     // Authoritative PWA Service Worker Registration
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
@@ -60,18 +56,14 @@ export default function RootLayout({
           <MetaTagInjector />
           <WishlistProvider>
             <CartProvider>
-              <LayoutContent pathname={pathname} mounted={mounted}>
+              <LayoutContent pathname={pathname}>
                 <div className="mobile-wrapper min-h-screen bg-white">
                   {children}
                 </div>
               </LayoutContent>
-              {mounted && (
-                <>
-                  <Toaster />
-                  <Chatbot />
-                  <PromotionPopup />
-                </>
-              )}
+              <Toaster />
+              <Chatbot />
+              <PromotionPopup />
             </CartProvider>
           </WishlistProvider>
         </FirebaseClientProvider>
@@ -80,16 +72,16 @@ export default function RootLayout({
   );
 }
 
-function LayoutContent({ children, pathname, mounted }: { children: React.ReactNode, pathname: string | null, mounted: boolean }) {
+function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
   const isAdmin = pathname?.startsWith('/admin');
 
   return (
     <>
-      {!isAdmin && mounted && <Header />}
+      {!isAdmin && <Header />}
       <main className="min-h-screen bg-white">
         {children}
       </main>
-      {!isAdmin && mounted && <Footer />}
+      {!isAdmin && <Footer />}
     </>
   );
 }
