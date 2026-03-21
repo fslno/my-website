@@ -2,14 +2,14 @@
 
 import React, { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { getLivePath } from '@/lib/deployment';
 
 /**
  * Curated Featured Products segment.
- * Displays high-velocity drops and premium silhouettes.
+ * Authoritatively removed loading spinners for peak velocity.
  */
 export function FeaturedProducts() {
   const db = useFirestore();
@@ -31,15 +31,9 @@ export function FeaturedProducts() {
   }, [db]);
   const { data: categories } = useCollection(categoriesQuery);
 
-  if (isLoading) {
-    return (
-      <div className="py-20 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-black/10" />
-      </div>
-    );
+  if (isLoading || !products || products.length === 0) {
+    return null;
   }
-
-  if (!products || products.length === 0) return null;
 
   return (
     <section className="py-24 bg-background">

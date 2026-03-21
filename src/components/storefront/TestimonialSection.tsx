@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import Image from 'next/image';
-import { Star, Quote, Loader2 } from 'lucide-react';
+import { Star, Quote } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Carousel,
@@ -16,6 +16,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Customer testimonial section.
+ * Authoritatively removed loading spinners for peak velocity.
  */
 export function TestimonialSection() {
   const db = useFirestore();
@@ -34,15 +35,9 @@ export function TestimonialSection() {
 
   const autoplayPlugin = useMemo(() => Autoplay({ delay: 4000, stopOnInteraction: false }), []);
 
-  if (isLoading) {
-    return (
-      <div className="py-20 flex justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-black/10" />
-      </div>
-    );
+  if (isLoading || !testimonials || testimonials.length === 0) {
+    return null;
   }
-
-  if (!testimonials || testimonials.length === 0) return null;
 
   return (
     <section className="py-20 bg-white border-t border-b overflow-hidden">

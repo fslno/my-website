@@ -5,12 +5,12 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
 import { getLivePath } from '@/lib/deployment';
 import { cn } from '@/lib/utils';
 
 /**
  * Category section display.
+ * Authoritatively removed loading spinners for peak velocity.
  */
 export function CategorySection() {
   const db = useFirestore();
@@ -25,15 +25,9 @@ export function CategorySection() {
 
   const { data: categories, isLoading } = useCollection(categoriesQuery);
 
-  if (isLoading) {
-    return (
-      <div className="py-20 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-black/10" />
-      </div>
-    );
+  if (isLoading || !categories || categories.length === 0) {
+    return null;
   }
-
-  if (!categories || categories.length === 0) return null;
 
   const getFlexAlign = (align: string) => 
     align === 'center' ? 'items-center text-center' : 
