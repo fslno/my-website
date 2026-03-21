@@ -24,7 +24,8 @@ import {
   AlertCircle,
   Sparkles,
   Info,
-  Star
+  Star,
+  Clock
 } from 'lucide-react';
 import {
   Carousel,
@@ -314,6 +315,18 @@ export default function ProductDetailPage(props: PageProps) {
             </div>
 
             <Separator />
+
+            {product.preorderEnabled && (
+              <div className="bg-orange-50/50 border border-orange-100 p-4 space-y-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="flex items-center gap-2 text-orange-700">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Pre-order Manifest</span>
+                </div>
+                <p className="text-[11px] font-bold text-orange-800 uppercase tracking-tight italic">
+                  {product.preorderEstimate || "2-3 Weeks after purchase."}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">

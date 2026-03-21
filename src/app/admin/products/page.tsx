@@ -123,6 +123,7 @@ export default function ProductsPage() {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [preorderEnabled, setPreorderEnabled] = useState(false);
+  const [preorderEstimate, setPreorderEstimate] = useState('2-3 Weeks after purchase.');
   
   const [customizationEnabled, setCustomizationEnabled] = useState(true);
   const [customizationFee, setCustomizationFee] = useState('10');
@@ -504,6 +505,7 @@ export default function ProductsPage() {
       customizationFee: customizationEnabled ? parseFloat(customizationFee) : 0,
       inventory: totalInventory,
       preorderEnabled,
+      preorderEstimate,
       variants,
       media,
       features: features.split(',').map(f => f.trim()).filter(Boolean),
@@ -555,7 +557,7 @@ export default function ProductsPage() {
 
   const resetForm = () => {
     setName(''); setPrice(''); setComparedPrice(''); setBrand(''); setSku(''); setSizeFit(''); setBadge('none'); setDescription(''); setCategoryId('');
-    setCustomizationEnabled(true); setCustomizationFee('10'); setPreorderEnabled(false);
+    setCustomizationEnabled(true); setCustomizationFee('10'); setPreorderEnabled(false); setPreorderEstimate('2-3 Weeks after purchase.');
     setVariants([]);
     setMedia([]); setFeatures(''); setSeoTitle(''); setSeoDescription(''); setSeoHandle(''); setWeight(''); setLength(''); setWidth(''); setHeight(''); setActiveTab('general');
     setEditingId(null);
@@ -574,6 +576,7 @@ export default function ProductsPage() {
     setCustomizationEnabled(product.customizationEnabled ?? true);
     setCustomizationFee(String(product.customizationFee ?? '10'));
     setPreorderEnabled(product.preorderEnabled ?? false);
+    setPreorderEstimate(product.preorderEstimate || '2-3 Weeks after purchase.');
     setVariants(product.variants || []);
     setMedia(product.media || []);
     setFeatures(product.features?.join(', ') || '');
@@ -760,13 +763,21 @@ export default function ProductsPage() {
                     <div className="w-full sm:w-[300px] text-center sm:text-right"><Label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Master SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1 text-center sm:text-right h-11" /></div>
                   </div>
                   <div className="p-6 bg-orange-50 border border-orange-100 rounded-xl flex items-center justify-between">
-                    <div className="space-y-1">
+                    <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-orange-600" />
                         <h3 className="text-xs font-bold uppercase tracking-widest text-orange-900">Pre-order</h3>
                       </div>
                       <p className="text-[9px] uppercase font-bold text-orange-700 tracking-tight">Enable pre-orders for this product.</p>
-                      <p className="text-[8px] font-bold text-orange-800 uppercase mt-1 italic">Est. Shipping: 2-3 Weeks after purchase.</p>
+                      <div className="mt-2 space-y-1.5 max-w-sm">
+                        <Label className="text-[8px] uppercase font-bold text-orange-800">Est. Shipping Details</Label>
+                        <Input 
+                          value={preorderEstimate} 
+                          onChange={(e) => setPreorderEstimate(e.target.value)}
+                          className="h-8 text-[9px] font-bold bg-white border-orange-200 text-orange-900"
+                          placeholder="e.g. 2-3 Weeks after purchase."
+                        />
+                      </div>
                     </div>
                     <Switch checked={preorderEnabled} onCheckedChange={handleToggleGlobalPreorder} className="data-[state=checked]:bg-orange-600"/>
                   </div>
