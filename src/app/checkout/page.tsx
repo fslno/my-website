@@ -238,8 +238,8 @@ export default function CheckoutPage() {
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-7 space-y-12">
-          <section className="space-y-6">
+        <div className="lg:col-span-7 space-y-8">
+          <section className="space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">01. Shipping Method</h2>
             <div className="grid grid-cols-2 gap-4">
               <button onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }} className={cn("p-4 border-2 text-left flex flex-col gap-3 transition-all duration-300", deliveryMethod === 'shipping' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}>
@@ -253,74 +253,74 @@ export default function CheckoutPage() {
             </div>
           </section>
           
-          <section className="space-y-8 bg-white p-8 border shadow-sm rounded-none">
+          <section className="space-y-4 bg-white p-6 border shadow-sm rounded-none">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Your Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2"><Label htmlFor="email" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email</Label><Input id="email" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} /></div>
-              <div className="space-y-2"><Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone</Label><Input id="tel" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} /></div>
-              <div className="md:col-span-2 space-y-2"><Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name</Label><Input id="name" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5"><Label htmlFor="email" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email</Label><Input id="email" className="h-11 bg-[#F9F9F9] uppercase rounded-none" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} /></div>
+              <div className="space-y-1.5"><Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone</Label><Input id="tel" className="h-11 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} /></div>
+              <div className="md:col-span-2 space-y-1.5"><Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name</Label><Input id="name" className="h-11 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} /></div>
             </div>
 
             {deliveryMethod === 'shipping' ? (
-              <div className="space-y-10 pt-4 border-t">
-                <div className="grid gap-4">
-                  <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Shipping Address</Label><Input value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City</Label><Input value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                    <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+              <div className="space-y-6 pt-4 border-t">
+                <div className="grid gap-3">
+                  <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Shipping Address</Label><Input value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City</Label><Input value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                    <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} className="h-11 uppercase rounded-none" /></div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.country} onValueChange={(val) => handleInputChange('country', val)}><SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                    <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.country} onValueChange={(val) => handleInputChange('country', val)}><SelectTrigger className="h-11 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 pt-6">
+                <div className="flex items-center space-x-2 pt-2">
                   <Checkbox id="billing-same" checked={billingSameAsShipping} onCheckedChange={(checked) => setBillingSameAsShipping(checked === true)} />
                   <Label htmlFor="billing-same" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer">Billing same as shipping</Label>
                 </div>
 
                 {!billingSameAsShipping && (
-                  <div className="space-y-6 pt-10 border-t mt-10 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="space-y-4 pt-6 border-t mt-4 animate-in fade-in slide-in-from-top-2 duration-500">
                     <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><CreditCard className="h-3.5 w-3.5" /> Billing Address</h3>
-                    <div className="grid gap-4">
-                      <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label><Input value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City</Label><Input value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                        <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                    <div className="grid gap-3">
+                      <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label><Input value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City</Label><Input value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                        <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} className="h-11 uppercase rounded-none" /></div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                        <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}><SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                        <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}><SelectTrigger className="h-11 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                <div className="space-y-4 pt-6 border-t"><StallionRates address={{ city: formData.city, postalCode: formData.postalCode, province: formData.province, country: formData.country }} cartItems={cart} onRateSelect={handleRateSelect} selectedRateId={stallionRateId} manualRates={shippingConfig?.provinceRates} /></div>
+                <div className="space-y-4 pt-4 border-t"><StallionRates address={{ city: formData.city, postalCode: formData.postalCode, province: formData.province, country: formData.country }} cartItems={cart} onRateSelect={handleRateSelect} selectedRateId={stallionRateId} manualRates={shippingConfig?.provinceRates} /></div>
               </div>
             ) : (
-              <div className="space-y-10 pt-4 border-t">
-                <div className="space-y-6">
+              <div className="space-y-6 pt-4 border-t">
+                <div className="space-y-4">
                   <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><CreditCard className="h-3.5 w-3.5" /> Billing Address</h3>
-                  <div className="grid gap-4">
-                    <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label><Input value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City</Label><Input value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                      <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                  <div className="grid gap-3">
+                    <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label><Input value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City</Label><Input value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                      <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} className="h-11 uppercase rounded-none" /></div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                      <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}><SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-11 uppercase rounded-none" /></div>
+                      <div className="space-y-1.5"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}><SelectTrigger className="h-11 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6 pt-10 border-t">
+                <div className="space-y-4 pt-6 border-t">
                   <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Pickup Time</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupDate ? "text-destructive" : "")}>Date</Label><Input type="date" className="h-12 rounded-none" value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div>
-                    <div className="space-y-2"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupTime ? "text-destructive" : "")}>Time</Label><Input type="time" className="h-12 rounded-none" value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div>
+                    <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupDate ? "text-destructive" : "")}>Date</Label><Input type="date" className="h-11 rounded-none" value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div>
+                    <div className="space-y-1.5"><Label className={cn("text-[9px] uppercase font-bold", errors.pickupTime ? "text-destructive" : "")}>Time</Label><Input type="time" className="h-11 rounded-none" value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div>
                   </div>
                 </div>
               </div>
