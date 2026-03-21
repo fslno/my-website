@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc, deleteDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useStorage } from '@/firebase/provider';
 import { 
   Table, 
   TableBody, 
@@ -55,8 +57,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
+/**
+ * Authoritative Review Management Manifest.
+ * Forensicly recalibrated to allow modification of participant names and chronological timestamps.
+ */
 export default function AdminReviewsPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { user } = useUser();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,7 +99,7 @@ export default function AdminReviewsPage() {
     comment: '',
     imageUrl: '',
     published: true,
-    createdAt: '' // YYYY-MM-DD
+    createdAt: '' // YYYY-MM-DD string
   });
 
   const handleToggleGlobal = async (enabled: boolean) => {
@@ -160,9 +167,11 @@ export default function AdminReviewsPage() {
     if (formData.createdAt) {
       const parts = formData.createdAt.split('-');
       if (parts.length === 3) {
-        // Construct date at noon to avoid timezone shifts
+        // Construct date at noon to avoid timezone shifts during conversion
         const dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
-        reviewData.createdAt = dateObj;
+        if (!isNaN(dateObj.getTime())) {
+          reviewData.createdAt = dateObj;
+        }
       }
     }
 
@@ -170,9 +179,8 @@ export default function AdminReviewsPage() {
       updateDoc(doc(db, 'reviews', editingId), reviewData)
         .then(() => {
           setIsDialogOpen(false);
-          setEditingId(null);
           resetForm();
-          toast({ title: "Updated", description: "Review synchronized." });
+          toast({ title: "Updated", description: "Review metadata synchronized." });
         })
         .finally(() => setIsSaving(false));
     } else {
@@ -183,7 +191,7 @@ export default function AdminReviewsPage() {
         .then(() => {
           setIsDialogOpen(false);
           resetForm();
-          toast({ title: "Saved", description: "Review added." });
+          toast({ title: "Saved", description: "Archival review ingested." });
         })
         .finally(() => setIsSaving(false));
     }
@@ -204,7 +212,13 @@ export default function AdminReviewsPage() {
 
   const openEdit = (review: any) => {
     const rDate = review.createdAt?.toDate ? review.createdAt.toDate() : new Date(review.createdAt);
-    const dateStr = rDate.toISOString().split('T')[0];
+    // Format to YYYY-MM-DD for the HTML5 date input
+    let dateStr = '';
+    try {
+      dateStr = rDate.toISOString().split('T')[0];
+    } catch (e) {
+      dateStr = new Date().toISOString().split('T')[0];
+    }
 
     setFormData({
       productId: review.productId || '',
@@ -232,7 +246,7 @@ export default function AdminReviewsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Reviews</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Moderate studio feedback.</p>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Moderate studio feedback and recalibrate chronological metadata.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
@@ -243,14 +257,14 @@ export default function AdminReviewsPage() {
           <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl p-0 flex flex-col h-fit max-h-[95vh]">
             <DialogHeader className="p-4 sm:p-6 border-b shrink-0">
               <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">
-                {editingId ? 'Edit Review' : 'New Review'}
+                {editingId ? 'Edit Review Manifest' : 'New Review Ingestion'}
               </DialogTitle>
-              <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Adjust archival feedback manifest.</DialogDescription>
+              <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Adjust archival feedback parameters.</DialogDescription>
             </DialogHeader>
             <ScrollArea className="flex-1">
               <div className="p-4 sm:p-6 space-y-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Product</Label>
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Target Piece</Label>
                   <Select value={formData.productId} onValueChange={(v) => setFormData({ ...formData, productId: v })}>
                     <SelectTrigger className="h-12 uppercase font-bold text-[10px]">
                       <SelectValue placeholder="SELECT PIECE" />
@@ -262,18 +276,19 @@ export default function AdminReviewsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500">Name</Label>
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Participant Name</Label>
                     <Input 
                       value={formData.userName} 
                       onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
-                      placeholder="Participant Name"
+                      placeholder="NAME"
                       className="h-12 uppercase font-bold text-[10px]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-gray-500">Rating</Label>
+                    <Label className="text-[10px] uppercase font-bold text-gray-500">Rating Manifest</Label>
                     <Select value={String(formData.rating)} onValueChange={(v) => setFormData({ ...formData, rating: Number(v) })}>
                       <SelectTrigger className="h-12 font-bold text-[10px]">
                         <SelectValue />
@@ -288,7 +303,7 @@ export default function AdminReviewsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Chronological Date</Label>
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Chronological Timestamp</Label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input 
@@ -301,23 +316,25 @@ export default function AdminReviewsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Feedback</Label>
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Feedback Narrative</Label>
                   <Textarea 
                     value={formData.comment}
                     onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                    placeholder="Feedback text"
+                    placeholder="ENTER FEEDBACK..."
                     className="min-h-[100px] resize-none uppercase font-medium text-[11px]"
                   />
                 </div>
+
                 <div className="flex items-center justify-between p-4 bg-gray-50 border rounded-none">
                   <div className="space-y-0.5">
-                    <p className="text-[10px] font-bold uppercase">Publish now</p>
-                    <p className="text-[8px] text-muted-foreground uppercase font-bold">Visibility active</p>
+                    <p className="text-[10px] font-bold uppercase">Visibility Protocol</p>
+                    <p className="text-[8px] text-muted-foreground uppercase font-bold">Manifest on Storefront</p>
                   </div>
                   <Switch checked={formData.published} onCheckedChange={(v) => setFormData({ ...formData, published: v })} />
                 </div>
+
                 <div className="space-y-4">
-                  <Label className="text-[10px] uppercase font-bold text-gray-500">Photo</Label>
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Archival Photo</Label>
                   <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
                   <div 
                     onClick={() => !formData.imageUrl && fileInputRef.current?.click()}
@@ -331,7 +348,7 @@ export default function AdminReviewsPage() {
                         </button>
                       </div>
                     ) : (
-                      <><Upload className="h-5 w-5 text-gray-400" /><span className="text-[10px] font-bold uppercase text-gray-500">Add Photo</span></>
+                      <><Upload className="h-5 w-5 text-gray-400" /><span className="text-[10px] font-bold uppercase text-gray-500">Upload Media</span></>
                     )}
                   </div>
                 </div>
@@ -344,7 +361,7 @@ export default function AdminReviewsPage() {
                 className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                {editingId ? 'Save Changes' : 'Save Review'}
+                {editingId ? 'Synchronize Review' : 'Ingest Review'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -355,9 +372,9 @@ export default function AdminReviewsPage() {
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b bg-gray-50/30 p-4 sm:p-6 gap-4">
           <div className="space-y-1">
             <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-              <Settings2 className="h-3.5 w-3.5" /> System Status
+              <Settings2 className="h-3.5 w-3.5" /> Global Review Control
             </CardTitle>
-            <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Control all storefront reviews.</CardDescription>
+            <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Authoritatively toggle all feedback visibility.</CardDescription>
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0">
             <div className="flex items-center gap-2">
@@ -371,7 +388,7 @@ export default function AdminReviewsPage() {
           <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-none">
             <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
             <p className="text-[10px] text-blue-800 uppercase font-medium leading-relaxed">
-              When disabled, reviews and ratings stay hidden from the store.
+              When the protocol is offline, reviews stay hidden from the participant view.
             </p>
           </div>
         </CardContent>
@@ -383,7 +400,7 @@ export default function AdminReviewsPage() {
             <TableHeader className="bg-gray-50/50">
               <TableRow>
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6">Status</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-widest">Name</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-widest">Participant</TableHead>
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Rating</TableHead>
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest w-[300px]">Feedback</TableHead>
                 <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Photo</TableHead>
@@ -394,7 +411,7 @@ export default function AdminReviewsPage() {
               {(!reviews || reviews.length === 0) ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-                    No reviews found.
+                    No reviews cataloged.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -411,7 +428,9 @@ export default function AdminReviewsPage() {
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-bold text-xs uppercase">{review.userName}</span>
-                        <span className="text-[9px] text-gray-400 font-mono">{new Date(review.createdAt?.toDate?.() || review.createdAt).toLocaleDateString()}</span>
+                        <span className="text-[9px] text-gray-400 font-mono uppercase">
+                          {new Date(review.createdAt?.toDate?.() || review.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -427,7 +446,7 @@ export default function AdminReviewsPage() {
                     <TableCell>
                       <div className="flex justify-center">
                         {review.imageUrl ? (
-                          <div className="relative w-10 h-10 border rounded overflow-hidden shadow-sm">
+                          <div className="relative w-10 h-10 border rounded-none overflow-hidden shadow-sm aspect-square">
                             <Image src={review.imageUrl} alt="Review" fill className="object-cover" />
                           </div>
                         ) : (
@@ -465,7 +484,7 @@ export default function AdminReviewsPage() {
         <div className="lg:hidden divide-y">
           {(!reviews || reviews.length === 0) ? (
             <div className="text-center py-20 text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-              No reviews found.
+              Empty manifest.
             </div>
           ) : (
             reviews.map((review) => (
@@ -485,14 +504,14 @@ export default function AdminReviewsPage() {
                   </div>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className={cn("h-3 w-3 transition-all", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />
+                      <Star key={s} className={cn("h-2.5 w-2.5 transition-all", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-yellow-400/20")} />
                     ))}
                   </div>
                 </div>
 
                 <div className="flex gap-4">
                   {review.imageUrl && (
-                    <div className="w-16 h-20 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm">
+                    <div className="w-16 h-16 relative bg-gray-100 rounded-none border overflow-hidden shrink-0 shadow-sm aspect-square">
                       <Image src={review.imageUrl} alt="Reviewer photo" fill className="object-cover" />
                     </div>
                   )}
