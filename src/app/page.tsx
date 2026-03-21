@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 /**
  * Main Home Page.
  * Displays the hero section, categories, and product grid.
- * Forensicly stabilized to eliminate hydration mismatches.
+ * Forensicly stabilized to eliminate hydration mismatches by ensuring class consistency.
  */
 export default function Home() {
   const db = useFirestore();
@@ -40,25 +40,27 @@ export default function Home() {
       
       <CategorySection />
       
-      <div className="bg-white">
-        <div className="max-w-[1440px] mx-auto px-4 pt-12">
-          <div className={cn(
-            "mb-6 md:mb-12 archive-text-align",
-            theme?.archiveTextAlign === 'center' ? 'mx-auto items-center' : 
-            theme?.archiveTextAlign === 'right' ? 'ml-auto items-end' : 'items-start'
-          )}>
-            <div className="space-y-2">
-              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground block">
-                {mounted ? (theme?.archiveSectionSubtitle || 'Our Collection') : 'Our Collection'}
-              </span>
-              <h2 className="font-headline font-bold uppercase tracking-tight archive-title-size archive-title-color leading-tight">
-                {mounted ? (theme?.archiveSectionTitle || 'Shop All Products') : 'Shop All Products'}
-              </h2>
+      {mounted && (
+        <div className="bg-white">
+          <div className="max-w-[1440px] mx-auto px-4 pt-12">
+            <div className={cn(
+              "mb-6 md:mb-12 archive-text-align",
+              theme?.archiveTextAlign === 'center' ? 'mx-auto items-center' : 
+              theme?.archiveTextAlign === 'right' ? 'ml-auto items-end' : 'items-start'
+            )}>
+              <div className="space-y-2">
+                <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground block">
+                  {theme?.archiveSectionSubtitle || 'Our Collection'}
+                </span>
+                <h2 className="font-headline font-bold uppercase tracking-tight archive-title-size archive-title-color leading-tight">
+                  {theme?.archiveSectionTitle || 'Shop All Products'}
+                </h2>
+              </div>
             </div>
           </div>
+          <ProductGrid />
         </div>
-        <ProductGrid />
-      </div>
+      )}
 
       <TestimonialSection />
     </div>

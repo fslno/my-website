@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { Skeleton } from '@/components/ui/skeleton';
 import { getLivePath } from '@/lib/deployment';
 
 /**
@@ -55,23 +54,9 @@ export function ProductGrid() {
   // Forensic Constant for grid classes to ensure zero hydration mismatch
   const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16";
 
+  // Authoritative Removal: Delete skeleton flashback to maintain a clean white entry
   if (productsLoading) {
-    return (
-      <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
-        <div className={gridClasses}>
-          {Array.from({ length: 8 }).map((_, idx) => (
-            <div key={idx} className="space-y-4">
-              <Skeleton className="aspect-square w-full rounded-sm" />
-              <div className="space-y-2">
-                <Skeleton className="h-3 w-1/3" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-1/4" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const reviewsEnabled = reviewConfig?.enabled !== false;
