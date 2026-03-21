@@ -31,7 +31,8 @@ import {
   Mail,
   Activity,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  UserCheck
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -57,7 +58,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, setDoc, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, setDoc, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -74,10 +75,12 @@ export default function PromotionsPage() {
   const couponsQuery = useMemoFirebase(() => db ? collection(db, 'coupons') : null, [db]);
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'promotions') : null, [db]);
+  const staffQuery = useMemoFirebase(() => db ? collection(db, 'staff') : null, [db]);
 
   const { data: coupons, isLoading: couponsLoading } = useCollection(couponsQuery);
   const { data: categories } = useCollection(categoriesQuery);
   const { data: config, loading: configLoading } = useDoc(configRef);
+  const { data: staffMembers } = useCollection(staffQuery);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -114,6 +117,7 @@ export default function PromotionsPage() {
   const [browseRecoveryEnabled, setBrowseRecoveryEnabled] = useState(false);
   const [winbackEnabled, setWinbackEnabled] = useState(false);
   const [loyaltyAppreciationPromoEnabled, setLoyaltyAppreciationPromoEnabled] = useState(true);
+  const [campaignSenderEmail, setCampaignSenderEmail] = useState('');
 
   // Coupon Form State
   const [code, setCode] = useState('');
@@ -152,6 +156,7 @@ export default function PromotionsPage() {
       setBrowseRecoveryEnabled(config.browseRecoveryEnabled ?? false);
       setWinbackEnabled(config.winbackEnabled ?? false);
       setLoyaltyAppreciationPromoEnabled(config.loyaltyAppreciationPromoEnabled ?? true);
+      setCampaignSenderEmail(config.campaignSenderEmail || '');
     }
   }, [config]);
 
@@ -179,6 +184,7 @@ export default function PromotionsPage() {
       browseRecoveryEnabled,
       winbackEnabled,
       loyaltyAppreciationPromoEnabled,
+      campaignSenderEmail,
       updatedAt: serverTimestamp()
     };
 
@@ -421,8 +427,7 @@ export default function PromotionsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase font-bold text-gray-500">Discount ($)</Label>
-                    <Input 
+                    <Label className="text-[9px] uppercase font-bold text-gray-500">Discount ($)</Label(Input 
                       type="number" 
                       value={thresholdDiscount} 
                       onChange={(e) => setThresholdDiscount(Number(e.target.value))}
@@ -546,6 +551,33 @@ export default function PromotionsPage() {
               </div>
               <Badge variant="secondary" className="bg-primary text-primary-foreground text-[9px] font-bold px-3 py-1">AUTOMATED</Badge>
             </div>
+
+            <Card className="border-[#e1e3e5] shadow-none bg-blue-50/10 border-blue-100 rounded-none mb-6">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-blue-600" />
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Dispatch Identity</CardTitle>
+                </div>
+                <CardDescription className="text-[9px] uppercase font-bold text-blue-800/60">Select the staff email manifest for outgoing campaigns.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Select value={campaignSenderEmail} onValueChange={setCampaignSenderEmail}>
+                  <SelectTrigger className="h-12 bg-white border-blue-200 uppercase font-bold text-[10px]">
+                    <SelectValue placeholder="SELECT SENDER EMAIL" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffMembers?.map((staff: any) => (
+                      <SelectItem key={staff.id} value={staff.email} className="font-bold uppercase text-[10px]">
+                        {staff.fullName} ({staff.email})
+                      </SelectItem>
+                    ))}
+                    {(!staffMembers || staffMembers.length === 0) && (
+                      <SelectItem value="none" disabled>No staff registered</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
             
             <div className="hidden md:block bg-white border rounded-xl overflow-hidden shadow-sm">
               <Table>
