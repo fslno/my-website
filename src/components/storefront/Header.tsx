@@ -141,7 +141,7 @@ export function Header() {
               <SheetContent side="left" className="w-[300px] bg-white border-none p-0 flex flex-col">
                 <SheetHeader className="pt-12 px-8 pb-8 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-primary">
-                    {isMounted && storeConfig?.businessName}
+                    {isMounted ? storeConfig?.businessName : ""}
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-8">
@@ -272,7 +272,7 @@ export function Header() {
                       <div className="space-y-6">
                         {wishlist.map((item) => (
                           <div key={item.id} className="flex gap-4">
-                            <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-20 relative bg-gray-50 border shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
+                            <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-20 relative bg-gray-100 border shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
                             <div className="flex-1 flex flex-col justify-between py-1">
                               <div>
                                 <h3 className="text-[10px] font-bold uppercase leading-tight">{item.name}</h3>
@@ -355,10 +355,11 @@ export function Header() {
             </div>
           </div>
 
-          {!isAdmin && isMounted && (
+          {isMounted && !isAdmin && (
             <div 
               className="absolute z-[60] flex items-center gap-1"
               style={getBadgePositionStyle()}
+              suppressHydrationWarning
             >
               {!isProductPage && <ReviewSystem productId="global" />}
             </div>
