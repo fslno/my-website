@@ -40,7 +40,7 @@ export function TestimonialSection() {
   }
 
   return (
-    <section className="py-20 bg-white border-t border-b overflow-hidden">
+    <section className="pt-20 pb-8 bg-white border-t border-b overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="text-center mb-16 space-y-3">
           <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground">Feedback</span>

@@ -62,7 +62,7 @@ export function Footer() {
   if (!mounted || !config) return null;
 
   return (
-    <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10" suppressHydrationWarning>
+    <footer className="bg-primary text-primary-foreground py-16 mt-0 border-t border-primary-foreground/10" suppressHydrationWarning>
       <div className="max-w-[1440px] mx-auto px-4">
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 items-start">
@@ -100,7 +100,7 @@ export function Footer() {
                     else if (s.platform === 'Twitter' || s.platform === 'X') Icon = Twitter;
                     else if (s.platform === 'Facebook') Icon = Facebook;
                     else if (s.platform === 'YouTube') Icon = Youtube;
-                    else if (s.platform === 'LinkedIn') Icon = Linkedin;
+                    else if (s.platform === 'Linkedin') Icon = Linkedin;
                     else if (s.platform === 'TikTok') Icon = Music;
 
                     return (
