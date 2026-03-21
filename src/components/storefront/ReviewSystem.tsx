@@ -134,7 +134,10 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   };
 
   // Hydration Stability Protocol:
-  if (!isMounted || (config && config.enabled === false) || stats.count === 0) return null;
+  if (!isMounted || (config && config.enabled === false)) return null;
+
+  // Authoritative Visibility Logic: Hide global badge if empty, but keep product trigger visible for input.
+  if (productId === 'global' && stats.count === 0) return null;
 
   const isBottom = theme?.ratingBadgePosition?.startsWith('bottom') || theme?.ratingBadgePosition === 'split';
 
@@ -161,7 +164,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
               ))}
             </div>
             <p className="text-[7px] font-bold uppercase tracking-[0.15em] whitespace-nowrap">
-              BASED ON {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
+              {stats.count === 0 ? 'WRITE A REVIEW' : `BASED ON ${stats.count} ${stats.count === 1 ? 'REVIEW' : 'REVIEWS'}`}
             </p>
           </div>
         </div>
