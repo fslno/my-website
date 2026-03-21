@@ -38,9 +38,8 @@ import { Separator } from '@/components/ui/separator';
 
 /**
  * Authoritative Header Manifest.
- * Responsive navigation: Side menu for mobile/tablet, Inline for desktop.
- * Thumbnails recalibrated to 1:1 geometric ratio.
- * Cart items optimized for high-density mobile fitting.
+ * Recalibrated for hydration stability and zero-latency mobile fitting.
+ * High-density cart scaling (w-14) implemented for mobile real estate.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -86,7 +85,7 @@ export function Header() {
     }
   };
 
-  const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatCurrency = (val: number) => (val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const getBadgePositionStyle = () => {
     if (!theme) return { right: '1rem', top: '100%' };
@@ -102,6 +101,9 @@ export function Header() {
   };
 
   if (isAdmin) return null;
+
+  // Hydration Shield: Strictly return null until mounted to ensure server/client tree parity.
+  if (!mounted) return null;
 
   return (
     <>
@@ -207,7 +209,7 @@ export function Header() {
                 {user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><UserIcon className="h-4 w-4" /></DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 rounded-none p-1 border-black/10 shadow-xl">
+                    <DropdownMenuContent align="end" className="w-48 rounded-none p-1 border-black/10 shadow-xl bg-white">
                       <DropdownMenuItem asChild className="focus:bg-black focus:text-white rounded-none cursor-pointer">
                         <Link href="/account/orders" className="text-[10px] font-bold uppercase tracking-widest w-full py-2">My Orders</Link>
                       </DropdownMenuItem>
@@ -287,14 +289,14 @@ export function Header() {
                       <div className="space-y-6">
                         {cart.map((item) => (
                           <div key={item.variantId} className="flex gap-2 group border-b border-gray-50 pb-4 last:border-0 last:pb-0">
-                            <div className="w-14 h-14 sm:w-20 sm:h-20 relative bg-gray-50 border shrink-0 overflow-hidden rounded-sm">
+                            <div className="w-14 h-14 relative bg-gray-50 border shrink-0 overflow-hidden rounded-sm">
                               {item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}
                             </div>
                             <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
                               <div className="text-left">
                                 <div className="flex justify-between items-start gap-1.5">
                                   <h3 className="text-[10px] font-bold uppercase leading-tight line-clamp-2 flex-1">{item.name}</h3>
-                                  <p className="text-[10px] font-bold whitespace-nowrap shrink-0">C${formatCurrency(item.price * item.quantity)}</p>
+                                  <p className="text-[10px] font-bold whitespace-nowrap shrink-0 ml-2">C${formatCurrency(item.price * item.quantity)}</p>
                                 </div>
                                 <div className="flex items-center gap-3 mt-1.5">
                                   <p className="text-[8px] font-bold text-gray-400 uppercase">Size: {item.size}</p>
