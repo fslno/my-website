@@ -48,7 +48,7 @@ export function Header() {
   const { data: theme } = useDoc(themeRef);
 
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
-  const { data: storeConfig, isLoading: storeLoading } = useDoc(storeConfigRef);
+  const { data: storeConfig } = useDoc(storeConfigRef);
 
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, getLivePath('categories')) : null, [db]);
   const { data: categories } = useCollection(categoriesQuery);
@@ -109,24 +109,25 @@ export function Header() {
     const offset = `${theme.ratingBadgeVerticalOffset || 0}px`;
     const pos = theme.ratingBadgePosition || 'right';
     
-    // Header-relative positions
-    if (pos === 'left') return { left: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
-    if (pos === 'center') return { left: '50%', transform: 'translateX(-50%)', top: `calc(100% + ${offset})`, position: 'absolute' as const };
-    if (pos === 'right') return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
+    // Header-relative positions - Adjusted to touch the line bar
+    if (pos === 'left') return { left: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
+    if (pos === 'center') return { left: '50%', transform: 'translateX(-50%)', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
+    if (pos === 'right') return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
 
     // Viewport-fixed bottom positions
     if (pos === 'bottom-left') return { left: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     if (pos === 'bottom-center') return { left: '50%', transform: 'translateX(-50%)', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     if (pos === 'bottom-right') return { right: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     
-    // Split handled in main render
     if (pos === 'split') return { display: 'none' };
 
-    return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
+    return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
   };
 
-  // Direct-Entry Protocol: Return null to ensure zero-flicker and fix hydration mismatches.
-  if (!mounted) return null;
+  // Direct-Entry Protocol: Return a perfectly stable white placeholder to eliminate hydration glitches.
+  if (!mounted) {
+    return <div className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b" />;
+  }
 
   return (
     <>

@@ -30,7 +30,7 @@ interface ReviewSystemProps {
 
 /**
  * Product Review and Rating system.
- * Optimized for Direct-Entry velocity.
+ * Optimized for Direct-Entry velocity and Yellow Manifest Protocol.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -72,7 +72,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   }, [allReviews, productId]);
 
   const stats = useMemo(() => {
-    if (!productReviews || productReviews.length === 0) return { avg: 0, count: 0 };
+    if (!productReviews || productReviews.length === 0) return { avg: 5, count: 0 };
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
   }, [productReviews]);

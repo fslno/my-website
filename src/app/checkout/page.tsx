@@ -218,7 +218,7 @@ export default function CheckoutPage() {
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  // Authoritative Direct-Entry Protocol: Ensure a perfectly simple white plane on both server and client during mounting.
+  // Direct-Entry Protocol: Return a perfectly stable white placeholder to eliminate hydration glitches.
   if (!mounted) {
     return <div className="min-h-screen bg-white" />;
   }
