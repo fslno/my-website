@@ -73,7 +73,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, updateDoc, query, where, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, query, where, collection, serverTimestamp, addDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -97,8 +97,8 @@ export default function OrderDetailPage(props: PageProps) {
   const orderRef = useMemoFirebase(() => db ? doc(db, 'orders', orderId) : null, [db, orderId]);
   const { data: order, isLoading: loading } = useDoc(orderRef);
 
-  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
-  const { data: storeConfig } = useDoc(storeConfigRef);
+  const notificationConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'notifications') : null, [db]);
+  const { data: notificationConfig } = useDoc(notificationConfigRef);
 
   const customerOrdersQuery = useMemoFirebase(() => {
     if (!db || !order?.email) return null;
@@ -106,29 +106,10 @@ export default function OrderDetailPage(props: PageProps) {
   }, [db, order?.email]);
 
   const { data: customerOrders } = useCollection(customerOrdersQuery);
-  const orderCount = customerOrders?.length || 0;
-
-  const addressHistory = useMemo(() => {
-    if (!customerOrders) return [];
-    const addresses = new Map<string, any>();
-    customerOrders.forEach(o => {
-      const ship = o.customer?.shipping;
-      if (ship && ship.address) {
-        const key = `${ship.address}-${ship.postalCode}`.toUpperCase();
-        if (!addresses.has(key)) {
-          addresses.set(key, ship);
-        }
-      }
-    });
-    return Array.from(addresses.values());
-  }, [customerOrders]);
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState('');
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   useEffect(() => {
     if (order?.trackingNumber) {
@@ -152,8 +133,28 @@ export default function OrderDetailPage(props: PageProps) {
     if (!db || !order || isUpdatingStatus) return;
     setIsUpdatingStatus(true);
 
-    updateDoc(doc(db, 'orders', orderId), { status: newStatus })
+    updateDoc(doc(db, 'orders', orderId), { status: newStatus, updatedAt: serverTimestamp() })
       .then(() => {
+        // Authoritative Staff Notification Protocol
+        const staffEmail = notificationConfig?.global?.senderEmail;
+        if (staffEmail) {
+          addDoc(collection(db, 'mail'), {
+            to: staffEmail,
+            from: staffEmail,
+            message: {
+              subject: `PROTOCOL_SYNC: Order #${orderId.substring(0, 6).toUpperCase()}`,
+              html: `
+                <div style="font-family: sans-serif; padding: 20px;">
+                  <h2 style="text-transform: uppercase; letter-spacing: -0.02em;">Status Synchronized</h2>
+                  <p>Order <strong>#${orderId}</strong> has been forensicly updated.</p>
+                  <p><strong>NEW_STATE:</strong> ${newStatus.toUpperCase()}</p>
+                  <p><strong>ACTOR:</strong> Staff Portal</p>
+                </div>
+              `
+            },
+            createdAt: serverTimestamp()
+          });
+        }
         toast({ title: "Status Updated", description: `Order status changed to ${newStatus.replace('_', ' ').toUpperCase()}.` });
       })
       .catch((error) => {
@@ -170,8 +171,27 @@ export default function OrderDetailPage(props: PageProps) {
     if (!db || !order || isUpdatingPayment) return;
     setIsUpdatingPayment(true);
 
-    updateDoc(doc(db, 'orders', orderId), { paymentStatus: newPaymentStatus })
+    updateDoc(doc(db, 'orders', orderId), { paymentStatus: newPaymentStatus, updatedAt: serverTimestamp() })
       .then(() => {
+        // Authoritative Staff Notification Protocol
+        const staffEmail = notificationConfig?.global?.senderEmail;
+        if (staffEmail) {
+          addDoc(collection(db, 'mail'), {
+            to: staffEmail,
+            from: staffEmail,
+            message: {
+              subject: `FINANCIAL_SYNC: Order #${orderId.substring(0, 6).toUpperCase()}`,
+              html: `
+                <div style="font-family: sans-serif; padding: 20px;">
+                  <h2 style="text-transform: uppercase; letter-spacing: -0.02em;">Payment Manifest Updated</h2>
+                  <p>Order <strong>#${orderId}</strong> payment state synchronized.</p>
+                  <p><strong>NEW_STATE:</strong> ${newPaymentStatus.toUpperCase()}</p>
+                </div>
+              `
+            },
+            createdAt: serverTimestamp()
+          });
+        }
         toast({ 
           title: "Payment Updated", 
           description: `Payment marked as ${newPaymentStatus.toUpperCase()}.` 
@@ -185,24 +205,6 @@ export default function OrderDetailPage(props: PageProps) {
         }));
       })
       .finally(() => setIsUpdatingPayment(false));
-  };
-
-  const handleSaveTracking = () => {
-    if (!db || !order) return;
-    setIsSavingTracking(true);
-    const updateData = { trackingNumber };
-    updateDoc(doc(db, 'orders', orderId), updateData)
-      .then(() => {
-        toast({ title: "Tracking Saved", description: "Logistics ID has been updated." });
-      })
-      .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: `orders/${orderId}`,
-          operation: 'update',
-          requestResourceData: updateData
-        }));
-      })
-      .finally(() => setIsSavingTracking(false));
   };
 
   const formatCurrency = (val: number) => {
@@ -238,18 +240,6 @@ export default function OrderDetailPage(props: PageProps) {
       default:
         return <Badge className="bg-amber-50 text-amber-700 border-amber-100 uppercase text-[10px] font-bold">Pending</Badge>;
     }
-  };
-
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return 'N/A';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
   };
 
   if (loading) return <div className="min-h-screen bg-white" />;

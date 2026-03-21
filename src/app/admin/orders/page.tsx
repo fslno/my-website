@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -78,6 +78,9 @@ export default function OrdersPage() {
 
   const { data: ordersData, loading } = useCollection(ordersQuery);
   const orders = ordersData || [];
+
+  const notificationConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'notifications') : null, [db]);
+  const { data: notificationConfig } = useDoc(notificationConfigRef);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -186,11 +189,27 @@ export default function OrdersPage() {
     setIsProcessing(true);
 
     const batch = writeBatch(db);
+    const staffEmail = notificationConfig?.global?.senderEmail;
+
     selectedIds.forEach(id => {
       batch.update(doc(db, 'orders', id), {
         status: bulkStatus,
         updatedAt: serverTimestamp()
       });
+
+      // Authoritative Bulk Email Protocol
+      if (staffEmail) {
+        const mailRef = doc(collection(db, 'mail'));
+        batch.set(mailRef, {
+          to: staffEmail,
+          from: staffEmail,
+          message: {
+            subject: `BULK_SYNC: Order #${id.substring(0, 6).toUpperCase()}`,
+            html: `Status synchronized to: <strong>${bulkStatus.toUpperCase()}</strong> via bulk manifest update.`
+          },
+          createdAt: serverTimestamp()
+        });
+      }
     });
 
     try {
