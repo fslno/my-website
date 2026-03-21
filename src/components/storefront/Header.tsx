@@ -205,7 +205,7 @@ export function Header() {
                               <div className="text-left">
                                 <div className="flex justify-between items-start gap-2">
                                   <h3 className="text-[10px] font-bold uppercase leading-tight line-clamp-2 flex-1">{item.name}</h3>
-                                  <p className="text-[10px] font-bold whitespace-nowrap">C${formatCurrency(item.price * item.quantity)}</p>
+                                  <p className="text-[10px] font-bold whitespace-nowrap shrink-0">C${formatCurrency(item.price * item.quantity)}</p>
                                 </div>
                                 <div className="flex items-center gap-3 mt-1.5">
                                   <p className="text-[8px] font-bold text-gray-400 uppercase">Size: {item.size}</p>
