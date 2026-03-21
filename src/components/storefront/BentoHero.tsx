@@ -48,15 +48,15 @@ export function BentoHero({
   // This eliminates the "black banner" and "placeholder" flashback.
   if (!heroImages || heroImages.length === 0) {
     return (
-      <section className="pt-32 sm:pt-40">
-        <div className="w-full bg-white h-[90vh]" />
+      <section className="pt-[76px] sm:pt-[104px]">
+        <div className="w-full bg-white h-[72vh]" />
       </section>
     );
   }
 
   return (
-    <section className="pt-32 sm:pt-40">
-      <div className="w-full bg-white overflow-hidden group shadow-2xl relative h-[90vh]">
+    <section className="pt-[76px] sm:pt-[104px]">
+      <div className="w-full bg-white overflow-hidden group shadow-2xl relative h-[72vh]">
         <Carousel 
           setApi={setApi}
           plugins={[autoplayPlugin.current]}
@@ -67,7 +67,7 @@ export function BentoHero({
         >
           <CarouselContent className="h-full ml-0">
             {heroImages.map((url, idx) => (
-              <CarouselItem key={idx} className="relative h-[90vh] w-full pl-0">
+              <CarouselItem key={idx} className="relative h-[72vh] w-full pl-0">
                 <Image
                   src={url}
                   alt={`${headline} ${idx + 1}`}
