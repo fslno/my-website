@@ -331,7 +331,7 @@ export default function ProductDetailPage(props: PageProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Size</span>
-                {categoryCharts?.length > 0 && (
+                {categoryCharts && categoryCharts.length > 0 && (
                   <Sheet>
                     <SheetTrigger asChild>
                       <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Size Chart</button>

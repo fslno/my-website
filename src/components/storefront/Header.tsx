@@ -36,8 +36,7 @@ import { Separator } from '@/components/ui/separator';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 export function Header() {
-  const [mounted, setMounted] = useState(false);
-  const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal, totalBeforeTax } = useCart();
+  const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
   const { user } = useUser();
   const auth = useAuth();
@@ -78,7 +77,6 @@ export function Header() {
   const isProductPage = pathname?.includes('/products/');
 
   useEffect(() => {
-    setMounted(true);
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearching(false);
@@ -99,8 +97,6 @@ export function Header() {
   };
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  if (!mounted) return null;
 
   return (
     <>
@@ -335,7 +331,7 @@ export function Header() {
                         <Separator />
                         <div className="flex justify-between items-end pt-1">
                           <span className="text-[10px] font-bold uppercase text-primary">Estimated Total</span>
-                          <span className="text-sm font-bold">C${formatCurrency(totalBeforeTax)}</span>
+                          <span className="text-sm font-bold">C${formatCurrency(cartSubtotal - discountTotal)}</span>
                         </div>
                       </div>
                       <Button asChild className="w-full h-11 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
