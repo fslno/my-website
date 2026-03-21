@@ -51,6 +51,7 @@ import { Separator } from '@/components/ui/separator';
  * Authoritative Header Manifest.
  * Recalibrated for hydration stability and zero-latency mobile fitting.
  * High-density cart scaling (w-14) implemented for mobile real estate.
+ * Persistent 1-inch search bar implemented for desktop viewports.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -243,9 +244,19 @@ export function Header() {
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="flex items-center gap-0.5">
-              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setIsSearchOpen(true)}>
+              {/* MOBILE SEARCH TRIGGER */}
+              <Button variant="ghost" size="icon" className="h-9 w-9 lg:hidden" onClick={() => setIsSearchOpen(true)}>
                 <SearchIcon className="h-4 w-4" />
               </Button>
+
+              {/* DESKTOP SEARCH BAR - 1 INCH MANIFEST */}
+              <div 
+                onClick={() => setIsSearchOpen(true)}
+                className="hidden lg:flex items-center gap-2 h-9 px-3 bg-gray-50 border border-black/5 hover:border-black/20 cursor-pointer transition-all w-[1in] group"
+              >
+                <SearchIcon className="h-3.5 w-3.5 text-gray-400 group-hover:text-black shrink-0" />
+                <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black truncate">Search</span>
+              </div>
 
               {/* DESKTOP AUTH BUTTON */}
               <Button variant="ghost" size="icon" className="h-9 w-9 hidden lg:flex" onClick={() => user ? null : setIsAuthOpen(true)}>
