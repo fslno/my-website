@@ -37,6 +37,7 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 /**
  * Authoritative Header Manifest.
+ * Forensicly stabilized to provide a clean white entry during hydration.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -65,8 +66,13 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isAdmin = useMemo(() => pathname?.startsWith('/admin'), [pathname]);
   const isProductPage = useMemo(() => pathname?.includes('/products/'), [pathname]);
@@ -114,6 +120,11 @@ export function Header() {
     if (pos === 'split') return { display: 'none' };
     return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
   };
+
+  // Direct-Entry Protocol: Return null while mounting to ensure a clean, opaque white start.
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <>
