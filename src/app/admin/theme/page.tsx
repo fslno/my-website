@@ -41,7 +41,8 @@ import {
   CreditCard,
   Terminal,
   Globe,
-  Fingerprint
+  Fingerprint,
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -111,7 +112,12 @@ const DEFAULT_THEME = {
   categorySectionTitle: 'Shop by Drop',
   categorySectionSubtitle: 'The Collections',
   archiveSectionTitle: 'All Studio Pieces',
-  archiveSectionSubtitle: 'The Archive'
+  archiveSectionSubtitle: 'The Archive',
+  ratingBadgeBgColor: '#000000',
+  ratingBadgeTextColor: '#FFFFFF',
+  ratingBadgeScale: '1.0',
+  ratingBadgePosition: 'right',
+  ratingBadgeVerticalOffset: '0'
 };
 
 export default function ThemeEnginePage() {
@@ -166,6 +172,12 @@ export default function ThemeEnginePage() {
   const [archiveSectionTitle, setArchiveSectionTitle] = useState(DEFAULT_THEME.archiveSectionTitle);
   const [archiveSectionSubtitle, setArchiveSectionSubtitle] = useState(DEFAULT_THEME.archiveSectionSubtitle);
 
+  const [ratingBadgeBgColor, setRatingBadgeBgColor] = useState(DEFAULT_THEME.ratingBadgeBgColor);
+  const [ratingBadgeTextColor, setRatingBadgeTextColor] = useState(DEFAULT_THEME.ratingBadgeTextColor);
+  const [ratingBadgeScale, setRatingBadgeScale] = useState(DEFAULT_THEME.ratingBadgeScale);
+  const [ratingBadgePosition, setRatingBadgePosition] = useState(DEFAULT_THEME.ratingBadgePosition);
+  const [ratingBadgeVerticalOffset, setRatingBadgeVerticalOffset] = useState(DEFAULT_THEME.ratingBadgeVerticalOffset);
+
   // Form State - Admin
   const [adminPrimaryColor, setAdminPrimaryColor] = useState(DEFAULT_THEME.adminPrimaryColor);
   const [adminAccentColor, setAdminAccentColor] = useState(DEFAULT_THEME.adminAccentColor);
@@ -219,6 +231,12 @@ export default function ThemeEnginePage() {
       setCategorySectionSubtitle(themeData.categorySectionSubtitle || DEFAULT_THEME.categorySectionSubtitle);
       setArchiveSectionTitle(themeData.archiveSectionTitle || DEFAULT_THEME.archiveSectionTitle);
       setArchiveSectionSubtitle(themeData.archiveSectionSubtitle || DEFAULT_THEME.archiveSectionSubtitle);
+
+      setRatingBadgeBgColor(themeData.ratingBadgeBgColor || DEFAULT_THEME.ratingBadgeBgColor);
+      setRatingBadgeTextColor(themeData.ratingBadgeTextColor || DEFAULT_THEME.ratingBadgeTextColor);
+      setRatingBadgeScale(themeData.ratingBadgeScale?.toString() || DEFAULT_THEME.ratingBadgeScale);
+      setRatingBadgePosition(themeData.ratingBadgePosition || DEFAULT_THEME.ratingBadgePosition);
+      setRatingBadgeVerticalOffset(themeData.ratingBadgeVerticalOffset?.toString() || DEFAULT_THEME.ratingBadgeVerticalOffset);
 
       // Admin Sync
       setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
@@ -278,6 +296,11 @@ export default function ThemeEnginePage() {
       categorySectionSubtitle,
       archiveSectionTitle,
       archiveSectionSubtitle,
+      ratingBadgeBgColor,
+      ratingBadgeTextColor,
+      ratingBadgeScale: Number(ratingBadgeScale),
+      ratingBadgePosition,
+      ratingBadgeVerticalOffset: Number(ratingBadgeVerticalOffset),
       adminPrimaryColor,
       adminAccentColor,
       adminTextColor,
@@ -347,6 +370,9 @@ export default function ThemeEnginePage() {
           --preview-prod-color: ${productTitleColor};
           --preview-price-size: ${productPriceSize}px;
           --preview-price-color: ${productPriceColor};
+          --preview-rating-bg: ${ratingBadgeBgColor};
+          --preview-rating-text: ${ratingBadgeTextColor};
+          --preview-rating-scale: ${ratingBadgeScale};
         }
         #theme-preview-root .font-headline { font-family: var(--preview-headline) !important; }
         #theme-preview-root .font-body { font-family: var(--preview-body) !important; }
@@ -358,6 +384,7 @@ export default function ThemeEnginePage() {
         #theme-preview-root .preview-prod-card { text-align: var(--preview-prod-align) !important; }
         #theme-preview-root .preview-prod-title { font-size: var(--preview-prod-size) !important; color: var(--preview-prod-color) !important; }
         #theme-preview-root .preview-price { font-size: var(--preview-price-size) !important; color: var(--preview-price-color) !important; }
+        #theme-preview-root .preview-rating-badge { background-color: var(--preview-rating-bg) !important; color: var(--preview-rating-text) !important; transform: scale(var(--preview-rating-scale)) !important; }
       `}</style>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -391,11 +418,12 @@ export default function ThemeEnginePage() {
             {/* LAYER 02: STYLES SUB-TABS */}
             <TabsContent value="styles" className="m-0 space-y-6 animate-in fade-in duration-300">
               <Tabs defaultValue="identity" className="w-full">
-                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 sm:grid-cols-4 rounded-none mb-6">
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 sm:grid-cols-5 rounded-none mb-6">
                   <TabsTrigger value="identity" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Identity</TabsTrigger>
                   <TabsTrigger value="categories" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Category</TabsTrigger>
                   <TabsTrigger value="products" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Product</TabsTrigger>
                   <TabsTrigger value="archive" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Archive</TabsTrigger>
+                  <TabsTrigger value="rating" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Rating</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="identity" className="space-y-6">
@@ -465,6 +493,46 @@ export default function ThemeEnginePage() {
                       <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{archiveTitleSize}PX</Badge></div><input type="range" min="16" max="120" value={archiveTitleSize} onChange={(e) => setArchiveTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
                       <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Title Color</Label><div className="flex gap-2"><Input type="color" value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={archiveTitleColor} onChange={(e) => setArchiveTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
                       <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Archive Alignment</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={archiveTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button><Button variant={archiveTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button><Button variant={archiveTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setArchiveTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button></div></div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="rating" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Star className="h-3.5 w-3.5" /> Rating Badge Manifest</CardTitle></CardHeader>
+                    <CardContent className="pt-6 space-y-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Background Color</Label>
+                          <div className="flex gap-2">
+                            <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={ratingBadgeBgColor} onChange={(e) => setRatingBadgeBgColor(e.target.value)} /></div>
+                            <Input value={ratingBadgeBgColor} onChange={(e) => setRatingBadgeBgColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Text Color</Label>
+                          <div className="flex gap-2">
+                            <div className="w-10 h-10 rounded border p-1 bg-white shadow-sm overflow-hidden"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={ratingBadgeTextColor} onChange={(e) => setRatingBadgeTextColor(e.target.value)} /></div>
+                            <Input value={ratingBadgeTextColor} onChange={(e) => setRatingBadgeTextColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Badge Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{ratingBadgeScale}X</Badge></div>
+                        <input type="range" min="0.5" max="2.0" step="0.1" value={ratingBadgeScale} onChange={(e) => setRatingBadgeScale(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Vertical Offset (Top Gutter)</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{ratingBadgeVerticalOffset}PX</Badge></div>
+                        <input type="range" min="0" max="100" value={ratingBadgeVerticalOffset} onChange={(e) => setRatingBadgeVerticalOffset(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Badge Alignment</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button onClick={() => setRatingBadgePosition('left')} className={cn("h-10 border rounded-none text-[9px] font-bold uppercase tracking-widest", ratingBadgePosition === 'left' ? "bg-black text-white" : "bg-white")}>Left</button>
+                          <button onClick={() => setRatingBadgePosition('center')} className={cn("h-10 border rounded-none text-[9px] font-bold uppercase tracking-widest", ratingBadgePosition === 'center' ? "bg-black text-white" : "bg-white")}>Center</button>
+                          <button onClick={() => setRatingBadgePosition('right')} className={cn("h-10 border rounded-none text-[9px] font-bold uppercase tracking-widest", ratingBadgePosition === 'right' ? "bg-black text-white" : "bg-white")}>Right</button>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -587,6 +655,12 @@ export default function ThemeEnginePage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+              <div className="absolute bottom-4 right-4 z-50">
+                <div className="preview-rating-badge py-1 px-2.5 shadow-xl flex items-center gap-1.5 border border-white/10 h-7 origin-bottom-right">
+                  <div className="flex gap-0.5"><Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" /><Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" /><Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" /><Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" /><Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" /></div>
+                  <p className="text-[7px] font-bold uppercase tracking-[0.15em] whitespace-nowrap">BASED ON 42 REVIEWS</p>
                 </div>
               </div>
             </div>

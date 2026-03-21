@@ -30,7 +30,7 @@ interface ReviewSystemProps {
 
 /**
  * Product Review and Rating system.
- * High-fidelity rectangular geometry protocol with persistent manifestation.
+ * Visual properties controlled Authoritatively via Admin Theme Engine.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -145,19 +145,19 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <div className="inline-block cursor-pointer group">
-          <div className="bg-black text-white py-1 px-2.5 rounded-none shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/10 h-7">
+          <div className="rating-badge-style py-1 px-2.5 rounded-none shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/10 h-7 origin-top">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 
                   key={s} 
                   className={cn(
                     "h-2.5 w-2.5 transition-all duration-500", 
-                    s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
+                    s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "opacity-20"
                   )} 
                 />
               ))}
             </div>
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
+            <p className="text-[7px] font-bold uppercase tracking-[0.15em] whitespace-nowrap">
               BASED ON {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
             </p>
           </div>

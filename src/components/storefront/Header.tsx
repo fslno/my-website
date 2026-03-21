@@ -103,6 +103,17 @@ export function Header() {
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  const getBadgePositionStyle = () => {
+    if (!theme) return { right: '1rem', top: '100%' };
+    
+    const offset = `${theme.ratingBadgeVerticalOffset || 0}px`;
+    const pos = theme.ratingBadgePosition || 'right';
+    
+    if (pos === 'left') return { left: '1rem', top: `calc(100% + ${offset})` };
+    if (pos === 'center') return { left: '50%', transform: 'translateX(-50%) translateY(100%)', top: `calc(100% + ${offset})` };
+    return { right: '1rem', top: `calc(100% + ${offset})` };
+  };
+
   return (
     <>
       {theme?.bannerEnabled && (
@@ -345,7 +356,10 @@ export function Header() {
           </div>
 
           {!isAdmin && (
-            <div className="absolute right-4 bottom-0 translate-y-full z-[60] flex items-center gap-1">
+            <div 
+              className="absolute z-[60] flex items-center gap-1"
+              style={getBadgePositionStyle()}
+            >
               {!isProductPage && <ReviewSystem productId="global" />}
             </div>
           )}

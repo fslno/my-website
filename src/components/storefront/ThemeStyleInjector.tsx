@@ -104,6 +104,12 @@ export function ThemeStyleInjector() {
     const productPriceSize = theme.productPriceSize || 14;
     const productPriceColor = theme.productPriceColor || theme.primaryColor || '#000000';
 
+    const ratingBadgeBg = theme.ratingBadgeBgColor || '#000000';
+    const ratingBadgeText = theme.ratingBadgeTextColor || '#FFFFFF';
+    const ratingBadgeScale = theme.ratingBadgeScale || 1.0;
+    const ratingBadgePosition = theme.ratingBadgePosition || 'right';
+    const ratingBadgeVerticalOffset = theme.ratingBadgeVerticalOffset || 0;
+
     const heroButtonBg = theme.heroButtonBgColor || theme.accentColor || '#FFFFFF';
     const heroButtonText = theme.heroButtonTextColor || getContrastColor(heroButtonBg);
 
@@ -154,6 +160,12 @@ export function ThemeStyleInjector() {
         --hero-subheadline-color: ${heroSubheadlineColor};
         --hero-button-bg: ${heroButtonBg};
         --hero-button-text: ${heroButtonText};
+
+        --rating-badge-bg: ${ratingBadgeBg};
+        --rating-badge-text: ${ratingBadgeText};
+        --rating-badge-scale: ${ratingBadgeScale};
+        --rating-badge-pos: ${ratingBadgePosition};
+        --rating-badge-offset: ${ratingBadgeVerticalOffset}px;
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
@@ -214,7 +226,7 @@ export function ThemeStyleInjector() {
       .category-card-content {
         display: flex !important;
         flex-direction: column !important;
-        justify-content: var(--category-card-vertical-align) !important;
+        justify(var(--category-card-vertical-align) !important;
         align-items: var(--category-card-flex-align) !important;
         text-align: var(--category-card-text-align) !important;
       }
@@ -272,6 +284,12 @@ export function ThemeStyleInjector() {
       .hero-button {
         background-color: var(--hero-button-bg) !important;
         color: var(--hero-button-text) !important;
+      }
+
+      .rating-badge-style {
+        background-color: var(--rating-badge-bg) !important;
+        color: var(--rating-badge-text) !important;
+        transform: scale(var(--rating-badge-scale)) !important;
       }
     `;
 
