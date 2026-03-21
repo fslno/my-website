@@ -30,7 +30,8 @@ import {
   VolumeX,
   Monitor,
   Star,
-  Zap
+  Zap,
+  PanelBottom
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -222,6 +223,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 <Link href="/admin/storefront">
                   <Monitor />
                   <span>Storefront</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Footer" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/footer">
+                  <PanelBottom />
+                  <span>Footer</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
