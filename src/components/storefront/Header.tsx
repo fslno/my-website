@@ -45,10 +45,10 @@ export function Header() {
   const isAdmin = pathname?.startsWith('/admin');
   
   const db = useFirestore();
-  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
+  const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
-  const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig, isLoading: storeLoading } = useDoc(storeConfigRef);
 
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, getLivePath('categories')) : null, [db]);
@@ -333,11 +333,6 @@ export function Header() {
                             <span className="text-[11px] font-bold">-C${formatCurrency(discountTotal)}</span>
                           </div>
                         )}
-                        <Separator />
-                        <div className="flex justify-between items-end pt-1">
-                          <span className="text-[10px] font-bold uppercase text-primary">Estimated Total</span>
-                          <span className="text-sm font-bold">C${formatCurrency(cartSubtotal - discountTotal)}</span>
-                        </div>
                       </div>
                       <Button asChild className="w-full h-11 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none">
                         <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout</Link>
