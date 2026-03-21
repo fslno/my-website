@@ -49,7 +49,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
@@ -183,37 +182,9 @@ export default function ProductDetailPage(props: PageProps) {
     toast({ title: "Added to Cart", description: `${product.name} is in your cart.` });
   };
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-white pt-20 sm:pt-32 pb-32">
-        <div className="max-w-[1280px] mx-auto px-4 lg:px-8 space-y-12">
-          <div className="flex flex-col md:grid md:grid-cols-12 md:gap-12">
-            <Skeleton className="md:col-span-7 lg:col-span-8 aspect-square w-full rounded-sm" />
-            <div className="md:col-span-5 lg:col-span-4 space-y-8 py-6 md:py-0">
-              <div className="space-y-4">
-                <Skeleton className="h-10 w-3/4" />
-                <Skeleton className="h-6 w-1/4" />
-              </div>
-              <Skeleton className="h-24 w-full" />
-              <div className="grid grid-cols-4 gap-2">
-                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-              </div>
-              <Skeleton className="h-14 w-full" />
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!product) {
-    return (
-      <main className="min-h-screen pt-32 px-4 text-center bg-white flex flex-col items-center justify-center">
-        <AlertCircle className="h-12 w-12 text-gray-200 mb-4" />
-        <h1 className="text-xl font-bold uppercase">Product Not Found</h1>
-        <Button asChild variant="link" className="mt-4"><Link href="/">Back to Shop</Link></Button>
-      </main>
-    );
+  // Direct-Entry Protocol: Return a clean white viewport while data is loading.
+  if (loading || !product) {
+    return <div className="min-h-screen bg-white" />;
   }
 
   return (
@@ -264,7 +235,7 @@ export default function ProductDetailPage(props: PageProps) {
               <div className="space-y-3">
                 <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">About the Item</h3>
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                  {product.description || "Modern styles designed for everyday comfort."}
+                  {product.description || ""}
                 </div>
               </div>
 
@@ -318,7 +289,7 @@ export default function ProductDetailPage(props: PageProps) {
                 </div>
                 
                 <div className="flex flex-col gap-0.5">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{product.brand || ''}</p>
                   {product.sku && (
                     <p className="text-[8px] font-mono font-bold text-muted-foreground uppercase tracking-widest">SKU: {product.sku}</p>
                   )}
@@ -441,7 +412,7 @@ export default function ProductDetailPage(props: PageProps) {
               <div className="space-y-3">
                 <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">About the Item</h3>
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                  {product.description || "Modern styles designed for everyday comfort."}
+                  {product.description || ""}
                 </div>
               </div>
             </div>

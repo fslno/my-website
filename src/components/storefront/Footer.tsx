@@ -27,7 +27,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * High-fidelity responsive footer.
- * Optimized for peak velocity by return null when not mounted to prevent "flashback" of black.
+ * Optimized for peak velocity by return null when not mounted to prevent "flashback" of black or generic content.
  */
 export function Footer() {
   const db = useFirestore();
@@ -58,8 +58,8 @@ export function Footer() {
 
   const mapsUrl = config?.googleMapsUrl || (config?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.address)}` : '#');
 
-  // Authoritative Removal from Flashback: Ensure zero visible trace until mounted.
-  if (!mounted) return null;
+  // Authoritative Removal from Flashback: Ensure zero visible trace until mounted and synced.
+  if (!mounted || !config) return null;
 
   return (
     <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10" suppressHydrationWarning>
@@ -69,11 +69,11 @@ export function Footer() {
           
           <div className="space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
-              {config?.businessName || "HOME"}
+              {config.businessName || ""}
             </h2>
             <div className="space-y-6">
               <p className="max-w-xs text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">
-                {config?.footerDescription || "Modern clothing and accessories for every style."}
+                {config.footerDescription || ""}
               </p>
               
               <div className="space-y-4">
@@ -81,7 +81,7 @@ export function Footer() {
                   <MapPin className="h-4 w-4 opacity-40 group-hover:opacity-100 transition-opacity" />
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] underline decoration-white/20 underline-offset-4">Get Directions</span>
                 </a>
-                {config?.openingHours && (
+                {config.openingHours && (
                   <div className="flex items-start gap-3">
                     <Clock className="h-4 w-4 opacity-40 mt-0.5" />
                     <div className="space-y-1">
@@ -94,7 +94,7 @@ export function Footer() {
                 )}
 
                 <div className="flex items-center gap-5 pt-4">
-                  {config?.socialChannels?.map((s: any, idx: number) => {
+                  {config.socialChannels?.map((s: any, idx: number) => {
                     let Icon = Globe;
                     if (s.platform === 'Instagram') Icon = Instagram;
                     else if (s.platform === 'Twitter' || s.platform === 'X') Icon = Twitter;
@@ -115,9 +115,7 @@ export function Footer() {
                         <Icon className="h-4 w-4" />
                       </a>
                     );
-                  }) || (
-                    <p className="text-[8px] font-bold uppercase tracking-widest opacity-20">Connect with us</p>
-                  )}
+                  })}
                 </div>
               </div>
             </div>
@@ -126,28 +124,18 @@ export function Footer() {
           <div className="space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Help</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
-              {config?.footerSupportLinks?.map((link: any, idx: number) => (
+              {config.footerSupportLinks?.map((link: any, idx: number) => (
                 <li key={idx}><Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link></li>
-              )) || (
-                <>
-                  <li><Link href="/shipping" className="hover:opacity-60 transition-opacity">Shipping</Link></li>
-                  <li><Link href="/tracking" className="hover:opacity-60 transition-opacity">Tracking</Link></li>
-                </>
-              )}
+              ))}
             </ul>
           </div>
 
           <div className="space-y-6 md:text-right flex flex-col md:items-end">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
-              {config?.footerLegalLinks?.map((link: any, idx: number) => (
+              {config.footerLegalLinks?.map((link: any, idx: number) => (
                 <li key={idx}><Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link></li>
-              )) || (
-                <>
-                  <li><Link href="/terms" className="hover:opacity-60 transition-opacity">Terms</Link></li>
-                  <li><Link href="/privacy" className="hover:opacity-60 transition-opacity">Privacy</Link></li>
-                </>
-              )}
+              ))}
             </ul>
           </div>
 
@@ -185,12 +173,12 @@ export function Footer() {
         <div className="border-t border-primary-foreground/10 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-2">
             <p className="text-[9px] uppercase tracking-[0.2em] font-bold opacity-40">
-              © {currentYear} {config?.businessName || "HOME"}. All rights reserved.
+              © {currentYear} {config.businessName || ""}. All rights reserved.
             </p>
           </div>
 
           <div className="flex flex-wrap justify-center gap-6 opacity-30 grayscale hover:opacity-100 transition-all duration-700">
-            {config?.paymentIconsVisible?.map((icon: string) => (
+            {config.paymentIconsVisible?.map((icon: string) => (
               <span key={icon} className="text-[8px] font-bold uppercase tracking-[0.2em]">{icon}</span>
             ))}
           </div>
