@@ -13,7 +13,8 @@ import {
   X,
   ChevronRight,
   ShieldCheck,
-  Tag
+  Tag,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -302,6 +303,20 @@ export function Header() {
                                   <p className="text-[8px] font-bold text-gray-400 uppercase">Size: {item.size}</p>
                                   <p className="text-[8px] font-bold text-primary uppercase">Qty: {item.quantity}</p>
                                 </div>
+                                
+                                {/* Customization and Special Instructions Manifest */}
+                                {(item.customName || item.customNumber || item.specialNote) && (
+                                  <div className="mt-2 pl-2 border-l-2 border-blue-50 space-y-1">
+                                    {(item.customName || item.customNumber) && (
+                                      <p className="text-[8px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                                        <Sparkles className="h-2 w-2" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                      </p>
+                                    )}
+                                    {item.specialNote && (
+                                      <p className="text-[8px] text-gray-400 italic">"{item.specialNote}"</p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                               <button onClick={() => removeFromCart(item.variantId)} className="text-[8px] font-bold uppercase tracking-widest text-destructive text-left hover:underline mt-2">Remove</button>
                             </div>
