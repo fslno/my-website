@@ -88,14 +88,6 @@ export function BentoHero({
               "absolute inset-0 p-6 sm:p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 hero-vertical-align hero-text-align pointer-events-none"
             )}>
               <div className="pointer-events-auto w-full max-w-4xl">
-                <div className={cn(
-                  "mb-4 sm:mb-6",
-                  textAlign === 'left' ? 'text-left' : textAlign === 'right' ? 'text-right' : 'text-center'
-                )}>
-                  <span className="bg-white text-black px-3 py-1 sm:px-4 sm:py-1.5 text-[9px] sm:text-[11px] font-bold uppercase tracking-[0.3em] shadow-2xl inline-block border border-black/5">
-                    FREE KIT
-                  </span>
-                </div>
                 {subheadline && (
                   <span className="hero-subheadline-color hero-subheadline-size text-[8px] sm:text-[10px] uppercase tracking-[0.4em] sm:tracking-[0.5em] font-bold mb-4 sm:mb-6 block">
                     {subheadline}
