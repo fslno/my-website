@@ -67,7 +67,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 items-start text-left">
           
           {/* Column 01: Brand Identity */}
-          <div className="space-y-8 flex flex-col items-start">
+          <div className="space-y-8 flex flex-col items-start text-left">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
               {config.businessName || "FSLNO"}
             </h2>
@@ -76,7 +76,7 @@ export function Footer() {
                 {config.footerDescription || "Built for Speed. Made for Victory."}
               </p>
               
-              <div className="space-y-4 flex flex-col items-start">
+              <div className="space-y-4 flex flex-col items-start text-left">
                 <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group">
                   <MapPin className="h-4 w-4 opacity-40 group-hover:opacity-100 transition-opacity" />
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] underline decoration-white/20 underline-offset-4">Get Directions</span>
@@ -86,7 +86,7 @@ export function Footer() {
                   <div className="flex items-start gap-3">
                     <Clock className="h-4 w-4 opacity-40 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-40">Store Hours</p>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-40 text-left">Store Hours</p>
                       <p className="text-[10px] font-bold uppercase tracking-widest whitespace-pre-wrap leading-relaxed italic text-left">
                         {config.openingHours}
                       </p>
@@ -123,7 +123,7 @@ export function Footer() {
           </div>
           
           {/* Column 02: Support Manifest */}
-          <div className="space-y-6 flex flex-col items-start">
+          <div className="space-y-6 flex flex-col items-start text-left">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Support</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-left">
               {config.footerSupportLinks?.map((link: any, idx: number) => (
@@ -140,7 +140,7 @@ export function Footer() {
           </div>
 
           {/* Column 03: Legal Manifest */}
-          <div className="space-y-6 flex flex-col items-start">
+          <div className="space-y-6 flex flex-col items-start text-left">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest text-left">
               {config.footerLegalLinks?.map((link: any, idx: number) => (
@@ -157,10 +157,10 @@ export function Footer() {
           </div>
 
           {/* Column 04: Newsletter Dispatch */}
-          <div className="space-y-8 flex flex-col items-start">
+          <div className="space-y-8 flex flex-col items-start text-left">
             {config.newsletterEnabled !== false && (
               <>
-                <div className="space-y-4 flex flex-col items-start">
+                <div className="space-y-4 flex flex-col items-start text-left">
                   <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
                   <div className="space-y-1">
                     <h3 className="text-3xl font-headline font-bold uppercase tracking-tight leading-none text-left">

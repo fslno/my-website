@@ -159,7 +159,7 @@ export function Header() {
                   </SheetTitle>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-8">
-                  <nav className="flex flex-col gap-4">
+                  <nav className="flex flex-col gap-2"> {/* Authoritative Row Gap Reduction */}
                     {categories?.map((cat: any) => (
                       <Link 
                         key={cat.id} 
@@ -171,9 +171,9 @@ export function Header() {
                       </Link>
                     ))}
                     
-                    <Separator className="my-4" />
+                    <Separator className="my-2" /> {/* Authoritative Spacing Reduction */}
                     
-                    <div className="space-y-4">
+                    <div className="space-y-2"> {/* Authoritative Row Gap Reduction */}
                       {user ? (
                         <>
                           <Link 
