@@ -39,7 +39,8 @@ import {
   PlayCircle,
   ShieldAlert,
   Smartphone,
-  AlertCircle
+  AlertCircle,
+  UserCheck
 } from 'lucide-react';
 import { 
   Card, 
@@ -57,10 +58,17 @@ import {
   DialogFooter,
   DialogDescription 
 } from '@/components/ui/dialog';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { useFirebaseApp, useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { useFirebaseApp, useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
+import { doc, setDoc, collection, addDoc, query, orderBy } from 'firebase/firestore';
 import { getMessagingInstance } from '@/firebase';
 import { getToken } from 'firebase/messaging';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -104,7 +112,7 @@ const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
   },
   readyForPickup: {
     label: "Ready for Pickup",
-    description: "Sent when items are ready at store.",
+    description: "Sent to notify customers that their items are waiting at your physical location.",
     enabled: false,
     subject: "Ready for Pickup: #{{order_id}}",
     body: "Hi {{customer_name}},\n\nYour order #{{order_id}} is ready for pickup.\n\nADDRESS:\n{{business_address}}\n\nHOURS:\nMon-Fri: 10AM - 6PM\n\nBring order ID for validation."
@@ -125,23 +133,6 @@ const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
   }
 };
 
-const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
-  cartRecovery: {
-    label: "Abandoned Cart",
-    description: "Reminds shoppers about unfinished orders.",
-    enabled: true,
-    subject: "Incomplete order at {{business_name}}",
-    body: "Hi {{customer_name}},\n\nYou left items in your cart. Resume checkout now to secure these pieces.\n\nCHECKOUT:\nhttps://fslno.ca/checkout\n\nYour cart:\n{{product_list}}"
-  },
-  feedbackRequest: {
-    label: "Feedback Request",
-    description: "Requests reviews after delivery.",
-    enabled: true,
-    subject: "Review your {{business_name}} order",
-    body: "Hi {{customer_name}},\n\nHow is the fit? Share your thoughts on order #{{order_id}}.\n\n[LEAVE A REVIEW]\n\nYour feedback helps us improve."
-  }
-};
-
 export default function NotificationsPage() {
   const app = useFirebaseApp();
   const db = useFirestore();
@@ -152,6 +143,9 @@ export default function NotificationsPage() {
 
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'notifications') : null, [db]);
   const { data: config, isLoading: loading } = useDoc(configRef);
+
+  const staffQuery = useMemoFirebase(() => db ? collection(db, 'staff') : null, [db]);
+  const { data: staffMembers } = useCollection(staffQuery);
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
@@ -166,6 +160,7 @@ export default function NotificationsPage() {
   const [accentColor, setAccentColor] = useState('#000000');
   const [footerContent, setFooterContent] = useState('');
   const [attachInvoice, setAttachInvoice] = useState(true);
+  const [senderEmail, setSenderEmail] = useState('');
 
   const [orderAlarmEnabled, setOrderAlarmEnabled] = useState(true);
   const [orderAlarmUrl, setOrderAlarmUrl] = useState('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
@@ -176,6 +171,7 @@ export default function NotificationsPage() {
       setAccentColor(config.global.accentColor || '#000000');
       setFooterContent(config.global.footer || '');
       setAttachInvoice(config.global.attachInvoice ?? true);
+      setSenderEmail(config.global.senderEmail || '');
     }
     if (config) {
       setOrderAlarmEnabled(config.orderAlarmEnabled ?? true);
@@ -257,18 +253,22 @@ export default function NotificationsPage() {
     if (!db || !user?.email) return;
     const testOrder = {
       to: user.email,
+      from: senderEmail || 'studio@fslno.ca',
       message: {
         subject: "[TEST] FSLNO Confirmation",
-        html: `<p>Diagnostic email from FSLNO.</p>`
+        html: `<div style="font-family: sans-serif; padding: 20px;">
+          <h1 style="text-transform: uppercase;">Diagnostic Test</h1>
+          <p>This is a test email sent from the <strong>${senderEmail || 'default'}</strong> identity.</p>
+        </div>`
       },
-      createdAt: new Date().toISOString()
+      createdAt: serverTimestamp()
     };
 
     try {
       await addDoc(collection(db, 'mail'), testOrder);
       toast({
         title: "Email sent",
-        description: `Sent to ${user.email}.`
+        description: `Sent to ${user.email} from ${senderEmail || 'default'}.`
       });
     } catch (error) {
       toast({
@@ -279,9 +279,9 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleToggle = (key: string, enabled: boolean, isMarketing = false) => {
+  const handleToggle = (key: string, enabled: boolean) => {
     if (!configRef) return;
-    const base = isMarketing ? (config?.[key] || DEFAULT_MARKETING[key]) : (config?.[key] || DEFAULT_NOTIFICATIONS[key]);
+    const base = config?.[key] || DEFAULT_NOTIFICATIONS[key];
     const updates = { [key]: { ...base, enabled } };
     setDoc(configRef, updates, { merge: true }).catch(() => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -292,17 +292,17 @@ export default function NotificationsPage() {
     });
   };
 
-  const handleEdit = (key: string, isMarketing = false) => {
-    const data = isMarketing ? (config?.[key] || DEFAULT_MARKETING[key]) : (config?.[key] || DEFAULT_NOTIFICATIONS[key]);
+  const handleEdit = (key: string) => {
+    const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
     setEditingKey(key);
-    setIsMarketingEdit(isMarketing);
+    setIsMarketingEdit(false);
     setEditingSubject(data.subject);
     setEditingBody(data.body);
   };
 
   const saveNotificationEdit = () => {
     if (!configRef || !editingKey) return;
-    const base = isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey]);
+    const base = config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey];
     const updates = { 
       [editingKey]: { 
         ...base,
@@ -321,10 +321,10 @@ export default function NotificationsPage() {
     if (!configRef) return;
     setIsSaving(true);
     const payload = { 
-      global: { logoUrl, accentColor, footer: footerContent, attachInvoice },
+      global: { logoUrl, accentColor, footer: footerContent, attachInvoice, senderEmail },
       orderAlarmEnabled,
       orderAlarmUrl,
-      updatedAt: new Date().toISOString() 
+      updatedAt: serverTimestamp()
     };
 
     setDoc(configRef, payload, { merge: true })
@@ -335,7 +335,7 @@ export default function NotificationsPage() {
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>;
 
   const activeNotification = editingKey 
-    ? (isMarketingEdit ? (config?.[editingKey] || DEFAULT_MARKETING[editingKey]) : (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey])) 
+    ? (config?.[editingKey] || DEFAULT_NOTIFICATIONS[editingKey]) 
     : null;
 
   const isAdminUser = user?.email === 'fslno.dev@gmail.com' || user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
@@ -452,6 +452,34 @@ export default function NotificationsPage() {
               <Mail className="h-5 w-5 text-gray-400" />
               <h2 className="text-sm font-bold uppercase tracking-widest">Emails</h2>
             </div>
+
+            <Card className="border-[#e1e3e5] shadow-none bg-blue-50/10 border-blue-100 rounded-none">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-blue-600" />
+                  <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Transactional Identity</CardTitle>
+                </div>
+                <CardDescription className="text-[9px] uppercase font-bold text-blue-800/60">Select the registered staff email for all transactional dispatches.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Select value={senderEmail} onValueChange={setSenderEmail}>
+                  <SelectTrigger className="h-12 bg-white border-blue-200 uppercase font-bold text-[10px]">
+                    <SelectValue placeholder="SELECT SENDER EMAIL" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffMembers?.map((staff: any) => (
+                      <SelectItem key={staff.id} value={staff.email} className="font-bold uppercase text-[10px]">
+                        {staff.fullName} ({staff.email})
+                      </SelectItem>
+                    ))}
+                    {(!staffMembers || staffMembers.length === 0) && (
+                      <SelectItem value="none" disabled>No staff registered</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
             <div className="bg-white border rounded-none overflow-hidden shadow-sm">
               <Table>
                 <TableHeader className="bg-gray-50/50">
@@ -473,10 +501,10 @@ export default function NotificationsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, false)} />
+                          <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked)} />
                         </TableCell>
                         <TableCell className="pr-6">
-                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, false)}>Edit</Button>
+                          <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key)}>Edit</Button>
                         </TableCell>
                       </TableRow>
                     );
