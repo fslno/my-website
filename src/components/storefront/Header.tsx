@@ -75,12 +75,7 @@ export function Header() {
     ).slice(0, 6) || [];
   }, [allProducts, searchQuery]);
 
-  const currentProductId = useMemo(() => {
-    const match = pathname?.match(/\/products\/([^/]+)/);
-    return match ? match[1] : null;
-  }, [pathname]);
-
-  const isAdmin = pathname?.startsWith('/admin');
+  const isProductPage = pathname?.includes('/products/');
 
   useEffect(() => {
     setMounted(true);
@@ -368,7 +363,7 @@ export function Header() {
 
           {!isAdmin && (
             <div className="absolute right-4 bottom-0 translate-y-full z-[60] flex items-center gap-1">
-              {!currentProductId && <ReviewSystem productId="global" />}
+              {!isProductPage && <ReviewSystem productId="global" />}
             </div>
           )}
         </div>

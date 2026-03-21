@@ -59,15 +59,22 @@ export default function RootLayout({
 }
 
 function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
+  const [mounted, setMounted] = useState(false);
   const isAdmin = pathname?.startsWith('/admin');
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Structural Persistence Protocol: Ensure server and client render the same tags.
+  // We manifest Header/Footer only after mounting to prevent hydration mismatches from client-only path detection.
   return (
     <>
-      {!isAdmin && <Header />}
-      <main className={cn("min-h-screen bg-white", !isAdmin && "pt-0")}>
+      {mounted && !isAdmin && <Header />}
+      <main className={cn("min-h-screen bg-white", mounted && !isAdmin ? "pt-0" : "pt-0")}>
         {children}
       </main>
-      {!isAdmin && <Footer />}
+      {mounted && !isAdmin && <Footer />}
     </>
   );
 }

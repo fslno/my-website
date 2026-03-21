@@ -371,7 +371,7 @@ export default function ProductDetailPage(props: PageProps) {
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", !wantsCustomization ? "bg-black text-white" : "bg-white")}>No</button>
-                    <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
+                    <button onClick={() => wantsCustomization && setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")} onClick={() => setWantsCustomization(true)}>Yes</button>
                   </div>
                 </div>
                 {wantsCustomization && (
@@ -403,7 +403,6 @@ export default function ProductDetailPage(props: PageProps) {
                 </Button>
               </div>
               
-              {/* Relocated Review System for Product specific reviews */}
               <div className="pt-2 flex justify-start">
                 <ReviewSystem productId={product.id} />
               </div>
