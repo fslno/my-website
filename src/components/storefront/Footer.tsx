@@ -121,7 +121,7 @@ export function Footer() {
             </div>
           </div>
           
-          <div className="space-y-6 md:text-right flex flex-col md:items-end">
+          <div className="space-y-6 flex flex-col items-start">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Help</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config.footerSupportLinks?.map((link: any, idx: number) => (
@@ -130,7 +130,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="space-y-6 md:text-right flex flex-col md:items-end">
+          <div className="space-y-6 flex flex-col items-start">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {config.footerLegalLinks?.map((link: any, idx: number) => (
@@ -139,7 +139,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="space-y-8 md:text-right flex flex-col md:items-end">
+          <div className="space-y-8 flex flex-col items-start">
             <div className="space-y-4">
               <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
               <div className="space-y-1">
@@ -148,7 +148,7 @@ export function Footer() {
               </div>
             </div>
             
-            <form onSubmit={handleSubscribe} className="space-y-6 w-full max-w-sm">
+            <form onSubmit={handleSubscribe} className="space-y-6 w-full max-w-sm text-left">
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase tracking-[0.1em] font-bold opacity-60">Email Address</Label>
                 <Input 
@@ -156,7 +156,7 @@ export function Footer() {
                   placeholder="" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-transparent border-0 border-b border-primary-foreground/20 rounded-none h-12 px-0 focus-visible:ring-0 placeholder:text-primary-foreground/20 font-bold uppercase text-xs md:text-right" 
+                  className="bg-transparent border-0 border-b border-primary-foreground/20 rounded-none h-12 px-0 focus-visible:ring-0 placeholder:text-primary-foreground/20 font-bold uppercase text-xs" 
                 />
               </div>
               <Button 
