@@ -44,6 +44,7 @@ export function Header() {
   const auth = useAuth();
   const { toast } = useToast();
   const pathname = usePathname();
+  const isAdmin = pathname?.startsWith('/admin');
   
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -62,7 +62,7 @@ interface PageProps {
 }
 
 export default function ProductDetailPage(props: PageProps) {
-  const resolvedParams = React.use(props.params);
+  const resolvedParams = use(props.params);
   const { productId } = resolvedParams;
   
   const db = useFirestore();
@@ -371,7 +371,7 @@ export default function ProductDetailPage(props: PageProps) {
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", !wantsCustomization ? "bg-black text-white" : "bg-white")}>No</button>
-                    <button onClick={() => wantsCustomization && setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")} onClick={() => setWantsCustomization(true)}>Yes</button>
+                    <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
                   </div>
                 </div>
                 {wantsCustomization && (
