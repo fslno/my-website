@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
@@ -38,12 +38,25 @@ export function BentoHero({
   verticalAlign = 'center'
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const autoplayPlugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  // Velocity Protocol: Always render full manifest to ensure zero-flicker perceived speed.
+  // Velocity Protocol: Ensure zero-flicker by returning a white placeholder div during initial paint (flashback).
+  if (!mounted) {
+    return (
+      <section className="pt-32 sm:pt-40">
+        <div className="w-full h-[90vh] bg-white" />
+      </section>
+    );
+  }
+
   const images = heroImages && heroImages.length > 0 
     ? heroImages 
     : ["https://placehold.co/1200x800?text=FSLNO+EDITORIAL"];
