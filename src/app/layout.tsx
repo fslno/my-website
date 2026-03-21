@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
@@ -16,7 +16,7 @@ import { usePathname } from 'next/navigation';
 
 /**
  * Authoritative Direct-Entry Root Layout.
- * Optimized for instantaneous storefront manifestation by removing hydration gates.
+ * Refactored for Opaque White Start to eliminate visual flashbacks.
  * Injected suppressHydrationWarning to neutralize frame-one mismatches.
  */
 export default function RootLayout({
@@ -25,6 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -39,14 +44,18 @@ export default function RootLayout({
           <MetaTagInjector />
           <WishlistProvider>
             <CartProvider>
-              <LayoutContent pathname={pathname}>
+              <LayoutContent pathname={pathname} mounted={mounted}>
                 <div className="mobile-wrapper min-h-screen bg-white">
                   {children}
                 </div>
               </LayoutContent>
-              <Toaster />
-              <Chatbot />
-              <PromotionPopup />
+              {mounted && (
+                <>
+                  <Toaster />
+                  <Chatbot />
+                  <PromotionPopup />
+                </>
+              )}
             </CartProvider>
           </WishlistProvider>
         </FirebaseClientProvider>
@@ -55,16 +64,16 @@ export default function RootLayout({
   );
 }
 
-function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
+function LayoutContent({ children, pathname, mounted }: { children: React.ReactNode, pathname: string | null, mounted: boolean }) {
   const isAdmin = pathname?.startsWith('/admin');
 
   return (
     <>
-      {!isAdmin && <Header />}
+      {!isAdmin && mounted && <Header />}
       <main className="min-h-screen bg-white">
         {children}
       </main>
-      {!isAdmin && <Footer />}
+      {!isAdmin && mounted && <Footer />}
     </>
   );
 }

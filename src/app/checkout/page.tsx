@@ -64,7 +64,12 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const { cart, cartSubtotal, cartCount, clearCart, updateCartItem, discountTotal, totalBeforeTax, appliedCoupon, applyCoupon } = useCart();
   
+  const [mounted, setMounted] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
   const { data: paymentConfig } = useDoc(paymentConfigRef);
@@ -212,6 +217,11 @@ export default function CheckoutPage() {
   };
 
   const formatCurrency = (val: number) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // Direct-Entry Protocol: Return a perfectly stable white plane to eliminate hydration glitches.
+  if (!mounted) {
+    return <div className="fixed inset-0 bg-white z-[100]" />;
+  }
 
   return (
     <div className="max-w-[1440px] mx-auto w-full flex-1 pt-28 sm:pt-40 pb-12 px-4">

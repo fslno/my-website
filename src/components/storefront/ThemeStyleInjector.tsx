@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { getLivePath } from '@/lib/deployment';
@@ -11,12 +11,17 @@ import { getLivePath } from '@/lib/deployment';
  * Implements a high-fidelity fluid typography protocol for automatic mobile scaling.
  */
 export function ThemeStyleInjector() {
+  const [mounted, setMounted] = useState(false);
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
   useEffect(() => {
-    if (!theme) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!theme || !mounted) return;
 
     const root = document.documentElement;
     
@@ -68,7 +73,7 @@ export function ThemeStyleInjector() {
       document.head.appendChild(styleTag);
     }
 
-    const headlineFont = theme.headlineFont || 'Playfair Display';
+    const headlineFont = theme.headlineFont || 'Anton';
     const bodyFont = theme.bodyFont || 'Inter';
     const bannerFont = theme.bannerFont || 'Inter';
     const bannerFontSize = theme.bannerFontSize || 10;
@@ -118,7 +123,7 @@ export function ThemeStyleInjector() {
 
     styleTag.innerHTML = `
       :root {
-        --font-headline: "${headlineFont}", "Playfair Display", serif;
+        --font-headline: "${headlineFont}", "Anton", serif;
         --font-body: "${bodyFont}", "Inter", sans-serif;
         --banner-font: "${bannerFont}", sans-serif;
         --banner-font-size: ${bannerFontSize}px;
@@ -290,7 +295,7 @@ export function ThemeStyleInjector() {
       }
     `;
 
-  }, [theme]);
+  }, [theme, mounted]);
 
   return null;
 }

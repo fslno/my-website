@@ -37,7 +37,7 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 /**
  * Authoritative Header Manifest.
- * Forensicly stabilized to provide a clean white entry during hydration.
+ * Refactored for Opaque White Start to eliminate hydration flashbacks.
  * Optimized for Mobile Ergonomics.
  */
 export function Header() {
@@ -311,7 +311,7 @@ export function Header() {
                 <SheetContent 
                   className={cn(
                     "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
+                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(10dvh-theme(spacing.7))] sm:h-[calc(10dvh-theme(spacing.10))]" : "h-[100dvh]"
                   )}
                 >
                   <SheetHeader className="p-6 border-b shrink-0">
