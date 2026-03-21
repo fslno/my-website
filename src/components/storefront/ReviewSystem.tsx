@@ -280,8 +280,8 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                         {review.imageUrl && <div className="w-20 h-28 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm"><Image src={review.imageUrl} alt="Review" fill className="object-cover" /></div>}
                         <div className="space-y-3 flex-1">
                           <p className="text-sm font-medium leading-relaxed italic text-gray-600">"{review.comment}"</p>
-                          <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {review.userName}
+                          <div className="text-[10px] font-bold text-yellow-400 uppercase tracking-widest flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-yellow-400" /> {review.userName}
                           </div>
                         </div>
                       </div>
