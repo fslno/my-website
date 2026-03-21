@@ -197,7 +197,7 @@ export function Header() {
                 </div>
               )}
               <h1 className="text-lg sm:text-2xl font-headline font-bold tracking-tighter text-primary hidden sm:block">
-                {isMounted && storeConfig?.businessName}
+                {isMounted ? (storeConfig?.businessName || "") : ""}
               </h1>
             </Link>
           </div>
@@ -355,7 +355,7 @@ export function Header() {
             </div>
           </div>
 
-          {!isAdmin && (
+          {!isAdmin && isMounted && (
             <div 
               className="absolute z-[60] flex items-center gap-1"
               style={getBadgePositionStyle()}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, addDoc, query, orderBy, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -30,7 +30,7 @@ interface ReviewSystemProps {
 
 /**
  * Product Review and Rating system.
- * Visual properties controlled Authoritatively via Admin Theme Engine.
+ * Optimized for Direct-Entry velocity.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
@@ -44,10 +44,14 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const isAdmin = user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
 
-  // Global Config Discovery
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
@@ -63,13 +67,11 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
 
   const productReviews = useMemo(() => {
     if (!allReviews || !productId) return [];
-    // Handle 'global' identifier for non-product specific persistent view
     if (productId === 'global') return allReviews.filter(r => r.published === true);
     return allReviews.filter(r => r.productId === productId && r.published === true);
   }, [allReviews, productId]);
 
   const stats = useMemo(() => {
-    // Authoritative Baseline Manifest: Start from 1 review and 5 stars if empty
     if (productReviews.length === 0) return { avg: 5, count: 1 };
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
@@ -78,10 +80,10 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
+      setImageFile(file);
     }
   };
 
@@ -112,21 +114,13 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
 
       await addDoc(collection(db, 'reviews'), reviewData);
 
-      toast({
-        title: "Review Sent",
-        description: "Your review is waiting for approval.",
-      });
-
+      toast({ title: "Review Sent", description: "Review pending approval." });
       setComment('');
       setRating(5);
       setImageFile(null);
       setImagePreview(null);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Submission Error",
-        description: "Could not save your review.",
-      });
+      toast({ variant: "destructive", title: "Error", description: "Submission failed." });
     } finally {
       setIsSubmitting(false);
     }
@@ -139,7 +133,8 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     });
   };
 
-  if (config && config.enabled === false) return null;
+  // Hydration Stability Protocol:
+  if (!isMounted || (config && config.enabled === false)) return null;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -199,16 +194,8 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                       <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Rating</Label>
                       <div className="flex gap-3">
                         {[1, 2, 3, 4, 5].map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => setRating(s)}
-                            className="transition-transform active:scale-90"
-                          >
-                            <Star className={cn(
-                              "h-7 w-7 transition-all duration-300",
-                              s <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-100"
-                            )} />
+                          <button key={s} type="button" onClick={() => setRating(s)} className="transition-transform active:scale-90">
+                            <Star className={cn("h-7 w-7 transition-all duration-300", s <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-100")} />
                           </button>
                         ))}
                       </div>
@@ -228,33 +215,19 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                     <div className="space-y-4">
                       <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Add a Photo</Label>
                       <div className="flex items-center gap-4">
-                        <div 
-                          onClick={() => document.getElementById('review-image-drawer')?.click()}
-                          className="w-24 h-24 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-2 bg-gray-50 cursor-pointer hover:border-black transition-all group"
-                        >
+                        <div onClick={() => document.getElementById('review-image-drawer')?.click()} className="w-24 h-24 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-2 bg-gray-50 cursor-pointer hover:border-black transition-all group">
                           {imagePreview ? (
-                            <div className="relative w-full h-full">
-                              <Image src={imagePreview} alt="Preview" fill className="object-cover" />
-                            </div>
+                            <div className="relative w-full h-full"><Image src={imagePreview} alt="Preview" fill className="object-cover" /></div>
                           ) : (
-                            <>
-                              <Camera className="h-5 w-5 text-gray-300 group-hover:text-black transition-colors" />
-                              <span className="text-[8px] font-bold uppercase text-gray-400">Upload</span>
-                            </>
+                            <><Camera className="h-5 w-5 text-gray-300 group-hover:text-black transition-colors" /><span className="text-[8px] font-bold uppercase text-gray-400">Upload</span></>
                           )}
                         </div>
                         <input id="review-image-drawer" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                        {imagePreview && (
-                          <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="text-[9px] font-bold text-red-500 uppercase underline">Clear</button>
-                        )}
+                        {imagePreview && <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="text-[9px] font-bold text-red-500 uppercase underline">Clear</button>}
                       </div>
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      disabled={isSubmitting}
-                      className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
-                    >
+                    <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl">
                       {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Review"}
                     </Button>
                   </form>
@@ -278,7 +251,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
               {reviewsLoading ? (
                 <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-200" /></div>
               ) : productReviews.length === 0 ? (
-                <div className="py-8 text-center"><p className="text-[10px] font-bold uppercase text-gray-300 tracking-widest italic">No reviews for this item yet.</p></div>
+                <div className="py-8 text-center"><p className="text-[10px] font-bold uppercase text-gray-300 tracking-widest italic">No reviews yet.</p></div>
               ) : (
                 <div className="space-y-12">
                   {productReviews.map((review) => (
@@ -291,20 +264,12 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-[9px] font-mono text-gray-300 uppercase">{new Date(review.createdAt?.toDate?.() || review.createdAt).toLocaleDateString()}</span>
-                          {isAdmin && (
-                            <button onClick={() => handleDelete(review.id)} className="text-red-500 hover:scale-110 transition-transform">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          )}
+                          {isAdmin && <button onClick={() => handleDelete(review.id)} className="text-red-500 hover:scale-110 transition-transform"><Trash2 className="h-3.5 w-3.5" /></button>}
                         </div>
                       </div>
                       
                       <div className="flex gap-6">
-                        {review.imageUrl && (
-                          <div className="w-20 h-28 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm">
-                            <Image src={review.imageUrl} alt="Review photo" fill className="object-cover" />
-                          </div>
-                        )}
+                        {review.imageUrl && <div className="w-20 h-28 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm"><Image src={review.imageUrl} alt="Review" fill className="object-cover" /></div>}
                         <div className="space-y-3 flex-1">
                           <p className="text-sm font-medium leading-relaxed italic text-gray-600">"{review.comment}"</p>
                           <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">

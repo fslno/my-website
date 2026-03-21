@@ -17,6 +17,7 @@ import { usePathname } from 'next/navigation';
 /**
  * Authoritative Direct-Entry Root Layout.
  * Optimized for instantaneous storefront manifestation by removing hydration gates.
+ * Injected suppressHydrationWarning to neutralize frame-one mismatches.
  */
 export default function RootLayout({
   children,
