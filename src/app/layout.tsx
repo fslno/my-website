@@ -19,7 +19,7 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Authoritative Direct-Open Root Layout.
- * Forensicly purged of loading sequences to ensure instantaneous storefront manifestation.
+ * Optimized for instantaneous storefront manifestation.
  */
 export default function RootLayout({
   children,
@@ -59,19 +59,14 @@ export default function RootLayout({
 
 function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
   const isAdmin = pathname?.startsWith('/admin');
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <>
-      {isMounted && !isAdmin && <Header />}
+      {!isAdmin && <Header />}
       <main className={cn("min-h-screen bg-white", !isAdmin && "pt-0")}>
         {children}
       </main>
-      {isMounted && !isAdmin && <Footer />}
+      {!isAdmin && <Footer />}
     </>
   );
 }

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Carousel,
@@ -28,7 +28,7 @@ interface BentoHeroProps {
 
 /**
  * Main Hero section for the home page.
- * Recalibrated with increased height (90vh) for a commanding presence.
+ * Recalibrated with increased height (90vh) and immediate manifestation protocol.
  */
 export function BentoHero({ 
   isLoading, 
@@ -36,30 +36,19 @@ export function BentoHero({
   headline = 'Our Collection', 
   subheadline = 'Modern Styles',
   buttonText = 'Shop Now',
-  fallbackImageUrl,
   textAlign = 'center',
   verticalAlign = 'center'
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  if (isLoading || !mounted) {
-    return (
-      <section className="pt-32 sm:pt-40">
-        <div className="w-full h-[90vh] bg-white" />
-      </section>
-    );
-  }
-
-  const images = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
+  // Velocity Protocol: Prioritize placeholder if Firestore data is pending
+  const images = heroImages && heroImages.length > 0 
+    ? heroImages 
+    : ["https://placehold.co/1200x800?text=FSLNO+EDITORIAL"];
 
   return (
     <section className="pt-32 sm:pt-40">
@@ -84,11 +73,6 @@ export function BentoHero({
                 />
               </CarouselItem>
             ))}
-            {images.length === 0 && (
-              <CarouselItem className="relative h-[90vh] w-full pl-0">
-                <div className="absolute inset-0 bg-primary opacity-20" />
-              </CarouselItem>
-            )}
           </CarouselContent>
 
           {images.length > 1 && (
