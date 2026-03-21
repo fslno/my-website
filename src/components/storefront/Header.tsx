@@ -125,15 +125,8 @@ export function Header() {
     return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
   };
 
-  // Direct-Entry Protocol: Render a perfectly matching white placeholder bar during the server-client handshake
-  if (!mounted) {
-    return (
-      <div className={cn(
-        "fixed left-0 right-0 z-50 h-12 sm:h-16 bg-white border-b",
-        theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
-      )} />
-    );
-  }
+  // Direct-Entry Protocol: Return null to ensure zero-flicker and fix hydration mismatches during the server-client handshake.
+  if (!mounted) return null;
 
   return (
     <>
