@@ -23,7 +23,8 @@ import {
   ChevronLeft,
   AlertCircle,
   Sparkles,
-  Info
+  Info,
+  Star
 } from 'lucide-react';
 import {
   Carousel,
@@ -83,6 +84,19 @@ export default function ProductDetailPage(props: PageProps) {
   }, [db, product?.categoryId]);
 
   const { data: categoryCharts } = useCollection(sizeChartsQuery);
+
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!db || !productId) return null;
+    return query(collection(db, 'reviews'), where('productId', '==', productId), where('published', '==', true));
+  }, [db, productId]);
+
+  const { data: productReviews } = useCollection(reviewsQuery);
+
+  const stats = useMemo(() => {
+    if (!productReviews || productReviews.length === 0) return { avg: 5, count: 0 };
+    const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
+    return { avg: Number(avg.toFixed(1)), count: productReviews.length };
+  }, [productReviews]);
 
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
@@ -275,6 +289,22 @@ export default function ProductDetailPage(props: PageProps) {
             <div className="space-y-4">
               <div className="min-h-[3.5rem] flex flex-col justify-end">
                 <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
+                {stats.count > 0 && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star 
+                          key={s} 
+                          className={cn(
+                            "h-2.5 w-2.5", 
+                            s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                          )} 
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({stats.count})</span>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">

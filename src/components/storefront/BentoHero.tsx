@@ -28,8 +28,7 @@ interface BentoHeroProps {
 
 /**
  * Main Hero section for the home page.
- * Recalibrated with increased height (90vh) and immediate manifestation protocol.
- * Authoritatively stabilized to prevent hydration mismatch errors.
+ * Optimized for peak velocity by rendering architecture instantly with fallback visuals.
  */
 export function BentoHero({ 
   isLoading, 
@@ -46,8 +45,7 @@ export function BentoHero({
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  // Velocity Protocol: Prioritize placeholder if Firestore data is pending
-  // Ensure the same structure is returned regardless of data state to prevent hydration mismatch.
+  // Velocity Protocol: Always render full manifest to ensure zero-flicker perceived speed.
   const images = heroImages && heroImages.length > 0 
     ? heroImages 
     : ["https://placehold.co/1200x800?text=FSLNO+EDITORIAL"];
