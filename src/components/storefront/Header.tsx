@@ -111,7 +111,6 @@ export function Header() {
     
     // Header-relative positions
     if (pos === 'left') return { left: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
-    // Authoritative Center Correction: Removed translateY(100%) to ensure it touches the header bar
     if (pos === 'center') return { left: '50%', transform: 'translateX(-50%)', top: `calc(100% + ${offset})`, position: 'absolute' as const };
     if (pos === 'right') return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
 
@@ -126,7 +125,7 @@ export function Header() {
     return { right: '1rem', top: `calc(100% + ${offset})`, position: 'absolute' as const };
   };
 
-  // Direct-Entry Protocol: Return null to ensure zero-flicker and fix hydration mismatches during the server-client handshake.
+  // Direct-Entry Protocol: Return null to ensure zero-flicker and fix hydration mismatches.
   if (!mounted) return null;
 
   return (
