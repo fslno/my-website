@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
@@ -29,6 +29,7 @@ interface BentoHeroProps {
 /**
  * Main Hero section for the home page.
  * Recalibrated with increased height (90vh) and immediate manifestation protocol.
+ * Authoritatively stabilized to prevent hydration mismatch errors.
  */
 export function BentoHero({ 
   isLoading, 
@@ -41,11 +42,12 @@ export function BentoHero({
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
 
-  const autoplayPlugin = React.useRef(
+  const autoplayPlugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
   // Velocity Protocol: Prioritize placeholder if Firestore data is pending
+  // Ensure the same structure is returned regardless of data state to prevent hydration mismatch.
   const images = heroImages && heroImages.length > 0 
     ? heroImages 
     : ["https://placehold.co/1200x800?text=FSLNO+EDITORIAL"];
@@ -86,10 +88,10 @@ export function BentoHero({
             "absolute inset-0 p-6 sm:p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 hero-vertical-align hero-text-align pointer-events-none"
           )}>
             <div className="pointer-events-auto w-full">
-              <span className="hero-subheadline-color hero-subheadline-size text-[10px] uppercase tracking-[0.5em] font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700 block">
+              <span className="hero-subheadline-color hero-subheadline-size text-[10px] uppercase tracking-[0.5em] font-bold mb-6 block">
                 {subheadline}
               </span>
-              <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none animate-in fade-in slide-in-from-bottom-6 duration-1000 block">
+              <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none block">
                 {headline}
               </span>
               <Link 

@@ -20,6 +20,7 @@ import { getLivePath } from '@/lib/deployment';
 /**
  * Authoritative Direct-Open Root Layout.
  * Optimized for instantaneous storefront manifestation.
+ * Forensicly stabilized to eliminate hydration mismatches.
  */
 export default function RootLayout({
   children,
