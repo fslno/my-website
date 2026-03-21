@@ -113,12 +113,10 @@ export function Header() {
     const offset = `${theme.ratingBadgeVerticalOffset || 0}px`;
     const pos = theme.ratingBadgePosition || 'right';
     
-    // Header-relative positions - Touches the line bar exactly
     if (pos === 'left') return { left: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
     if (pos === 'center') return { left: '50%', transform: 'translateX(-50%)', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
     if (pos === 'right') return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
 
-    // Viewport-fixed bottom positions
     if (pos === 'bottom-left') return { left: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     if (pos === 'bottom-center') return { left: '50%', transform: 'translateX(-50%)', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
     if (pos === 'bottom-right') return { right: '1rem', bottom: `calc(1rem + ${offset})`, position: 'fixed' as const, top: 'auto' };
@@ -128,9 +126,9 @@ export function Header() {
     return { right: '1rem', top: `calc(100% - 1px + ${offset})`, position: 'absolute' as const };
   };
 
-  // Direct-Entry Protocol: Return a perfectly stable white placeholder to eliminate hydration glitches.
+  // Direct-Entry Protocol: Return a perfectamente stable white plane to eliminate hydration flashbacks.
   if (!mounted) {
-    return <div className="h-12 sm:h-16 bg-white w-full" />;
+    return <header className="fixed top-0 left-0 right-0 z-50 h-12 sm:h-16 bg-white" />;
   }
 
   return (
