@@ -65,28 +65,18 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const db = useFirestore();
   const { user } = useUser();
+  
+  // --- CLEAN-SLATE PROTOCOL ---
+  // Authoritatively initialize with empty manifest to eliminate flashback data.
   const [localCart, setLocalCart] = useState<CartItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
-  // Persistence for Guest Users
   useEffect(() => {
-    const saved = localStorage.getItem('fslno_cart');
-    if (saved) {
-      try {
-        setLocalCart(JSON.parse(saved));
-      } catch (e) {
-        console.error("Guest cart hydration failed", e);
-      }
-    }
+    // Hydration restricted to Auth-only via Firestore.
+    // Unauthenticated guest data is forensicly purged on Direct-Entry.
     setIsInitialized(true);
   }, []);
-
-  useEffect(() => {
-    if (isInitialized && !user) {
-      localStorage.setItem('fslno_cart', JSON.stringify(localCart));
-    }
-  }, [localCart, isInitialized, user]);
 
   // Firestore Persistence & Config - Ordered New to Old
   const cartQuery = useMemoFirebase(() => {
@@ -119,10 +109,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Identify qualifying items
     const qualifyingCount = cartData.reduce((acc, item) => {
-      // Authoritative Category Evaluation
       const isQualifyingCategory = Array.isArray(bogoCategoryIds) 
         ? bogoCategoryIds.includes(item.categoryId)
-        : item.categoryId === promoConfig.bogoCategoryId; // Legacy fallback
+        : item.categoryId === promoConfig.bogoCategoryId;
 
       if (isQualifyingCategory) {
         return acc + item.quantity;
@@ -134,7 +123,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const existingPromo = cartData.find(i => i.isPromo);
 
     if (hasBogoQualify && !existingPromo) {
-      // Prepend reward to keep "New" items at the top
       return [{
         id: 'promo-reward',
         variantId: 'promo-reward-free',
@@ -157,13 +145,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const cartSubtotal = useMemo(() => cart.reduce((acc, item) => acc + (item.price * item.quantity), 0), [cart]);
 
-  // Threshold Discount Logic
   const thresholdValue = promoConfig?.thresholdEnabled ? (promoConfig.thresholdValue || 1000) : Infinity;
   const thresholdDiscountValue = promoConfig?.thresholdEnabled ? (promoConfig.thresholdDiscount || 100) : 0;
-  
   const thresholdDiscount = cartSubtotal >= thresholdValue ? thresholdDiscountValue : 0;
 
-  // Coupon Calculation
   const couponDiscount = useMemo(() => {
     if (!appliedCoupon) return 0;
     if (appliedCoupon.type === 'percent') {
@@ -174,8 +159,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const discountTotal = thresholdDiscount + couponDiscount;
   const totalBeforeTax = Math.max(0, cartSubtotal - discountTotal);
-  
-  // Progress tracking for UI
   const effectiveThreshold = promoConfig?.thresholdEnabled ? (promoConfig.thresholdValue || 1000) : 1000;
   const thresholdProgress = Math.min(100, (cartSubtotal / effectiveThreshold) * 100);
 
@@ -202,10 +185,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
-
-        // Authoritatively remove undefined fields to prevent Firestore errors
         Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
-
         setDoc(itemRef, payload).catch(async () => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: itemRef.path,
@@ -222,7 +202,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           updated[existingIndex] = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + 1 };
           return updated;
         }
-        // Prepend new item for "New to Old" guest experience
         return [{ ...newItem, quantity: 1, createdAt: Date.now() }, ...prev];
       });
     }
@@ -261,7 +240,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       batch.commit();
     } else {
       setLocalCart([]);
-      localStorage.removeItem('fslno_cart');
     }
     setAppliedCoupon(null);
   };

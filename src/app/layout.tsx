@@ -17,6 +17,7 @@ import { usePathname } from 'next/navigation';
 /**
  * Authoritative Direct-Open Root Layout.
  * Refactored for zero-latency entry sequence and app-like navigation.
+ * Implements the Clean-Slate Protocol for storage purging.
  */
 export default function RootLayout({
   children,
@@ -29,6 +30,20 @@ export default function RootLayout({
     // Authoritative Navigation Protocol: Ensure scroll to top on every path change
     window.scrollTo(0, 0);
   }, [pathname]);
+
+  useEffect(() => {
+    // --- 01. CLEAN-SLATE PROTOCOL ---
+    // Authoritatively purge legacy and unauthenticated storage manifests
+    const storageKeys = ['cart', 'items', 'checkout', 'fslno_cart'];
+    storageKeys.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      } catch (e) {
+        // Fail silent, non-critical cleanup
+      }
+    });
+  }, []);
 
   return (
     <html lang="en" suppressHydrationWarning>
