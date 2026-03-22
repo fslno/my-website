@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -51,8 +50,6 @@ import { Separator } from '@/components/ui/separator';
 /**
  * Authoritative Header Manifest.
  * Recalibrated for hydration stability and zero-latency mobile fitting.
- * High-density cart scaling (w-14) implemented for mobile real estate.
- * Persistent 1-inch search bar implemented for desktop viewports.
  * Sheets forensicly offset to avoid banner overlap.
  */
 export function Header() {
@@ -166,11 +163,11 @@ export function Header() {
                   theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
                 )}
               >
-                <SheetHeader className="p-6 border-b shrink-0 flex flex-row items-center gap-4">
+                <SheetHeader className="p-6 border-b shrink-0 flex flex-row items-center gap-4 text-left">
                   <div className="relative w-8 h-8 rounded-sm overflow-hidden">
                     <NextImage src="https://i.ibb.co/RpXH0bMD/Diamond-FSLNO-logo-org-512x512.png" alt="FSLNO" fill className="object-cover" />
                   </div>
-                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Navigation</SheetTitle>
+                  <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Navigation</SheetTitle>
                   <SheetDescription className="sr-only">Store navigation menu</SheetDescription>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-6">

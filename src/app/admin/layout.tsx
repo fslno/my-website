@@ -91,7 +91,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
   const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "STUDIO";
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] admin-sidebar-bg">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] admin-sidebar-bg overflow-x-hidden">
       <SidebarHeader className="admin-header-height flex items-center px-6 border-b border-[#e1e3e5] admin-sidebar-bg">
         <Link href="/" className="flex items-center gap-2" onClick={handleNavClick}>
           <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative border border-white/10">
@@ -510,7 +510,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <SidebarProvider>
       <style dangerouslySetInnerHTML={{ __html: adminThemeStyles }} />
-      <div className="flex min-h-screen w-full admin-viewport">
+      <div className="flex min-h-screen w-full admin-viewport overflow-x-hidden">
         <AppSidebar storeConfig={storeConfig} />
 
         <main className="flex-1 flex flex-col min-w-0 relative max-w-full h-screen overflow-hidden bg-white">
