@@ -166,7 +166,10 @@ export function Header() {
                   theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
                 )}
               >
-                <SheetHeader className="p-6 border-b shrink-0">
+                <SheetHeader className="p-6 border-b shrink-0 flex flex-row items-center gap-4">
+                  <div className="relative w-8 h-8 rounded-sm overflow-hidden">
+                    <NextImage src="https://i.ibb.co/RpXH0bMD/Diamond-FSLNO-logo-org-512x512.png" alt="FSLNO" fill className="object-cover" />
+                  </div>
                   <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Navigation</SheetTitle>
                   <SheetDescription className="sr-only">Store navigation menu</SheetDescription>
                 </SheetHeader>
@@ -288,8 +291,8 @@ export function Header() {
                     theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
                   )}
                 >
-                  <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Wishlist ({wishlistCount})</SheetTitle>
+                  <SheetHeader className="p-6 border-b shrink-0 text-left">
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Wishlist ({wishlistCount})</SheetTitle>
                     <SheetDescription className="sr-only">Items saved to your archival wishlist.</SheetDescription>
                   </SheetHeader>
                   <ScrollArea className="flex-1 p-6">
@@ -333,8 +336,8 @@ export function Header() {
                     theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
                   )}
                 >
-                  <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Cart ({cartCount})</SheetTitle>
+                  <SheetHeader className="p-6 border-b shrink-0 text-left">
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Cart ({cartCount})</SheetTitle>
                     <SheetDescription className="sr-only">Review your archival selection.</SheetDescription>
                   </SheetHeader>
                   <ScrollArea className="flex-1 p-6">
