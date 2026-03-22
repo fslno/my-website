@@ -106,7 +106,7 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="py-1 admin-sidebar-bg overflow-y-auto scrollbar-hide">
+      <SidebarContent className="py-1 admin-sidebar-bg overflow-y-auto overflow-x-hidden scrollbar-hide">
         <SidebarGroup className="p-1">
           <SidebarMenu className="gap-0.5">
             <SidebarMenuItem>
@@ -534,7 +534,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 w-full font-admin-body bg-white scrollbar-hide">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-6 lg:p-8 w-full font-admin-body bg-white scrollbar-hide">
             <div className="max-w-7xl mx-auto w-full min-w-0">
               {children}
             </div>
