@@ -38,7 +38,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="FSLNO" />
-        <link rel="apple-touch-icon" href="https://placehold.co/192x192/000000/FFFFFF/png?text=F" />
+        <link rel="apple-touch-icon" href="https://i.ibb.co/RpXH0bMD/Diamond-FSLNO-logo-org-512x512.png" />
         
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
