@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import NextImage from 'next/image';
@@ -38,7 +38,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogDescription
+  DialogDescription as UIDialogDescription
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { AuthDialog } from '@/components/storefront/AuthDialog';
@@ -52,6 +52,7 @@ import { Separator } from '@/components/ui/separator';
  * Recalibrated for hydration stability and zero-latency mobile fitting.
  * High-density cart scaling (w-14) implemented for mobile real estate.
  * Persistent 1-inch search bar implemented for desktop viewports.
+ * Sheets forensicly offset to avoid banner overlap.
  */
 export function Header() {
   const { cart, cartCount, cartSubtotal, removeFromCart, discountTotal } = useCart();
@@ -130,7 +131,6 @@ export function Header() {
 
   if (isAdmin) return null;
 
-  // Hydration Shield: Strictly return null until mounted to ensure server/client tree parity.
   if (!mounted) return null;
 
   return (
@@ -152,16 +152,22 @@ export function Header() {
         <div className="max-w-[1440px] mx-auto w-full px-4 flex items-center justify-between relative h-full">
           
           <div className="flex items-center gap-2 lg:gap-8">
-            {/* MOBILE MENU TRIGGER */}
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-full sm:max-w-sm p-0 bg-white flex flex-col border-none shadow-2xl">
+              <SheetContent 
+                side="left" 
+                className={cn(
+                  "w-full sm:max-w-sm p-0 bg-white flex flex-col border-none shadow-2xl transition-all duration-500",
+                  theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
+                )}
+              >
                 <SheetHeader className="p-6 border-b shrink-0">
                   <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Navigation</SheetTitle>
+                  <SheetDescription className="sr-only">Store navigation menu</SheetDescription>
                 </SheetHeader>
                 <ScrollArea className="flex-1 p-6">
                   <div className="space-y-8">
@@ -219,7 +225,6 @@ export function Header() {
               </h1>
             </Link>
 
-            {/* DESKTOP CATEGORY LINKS - DROPDOWN MANIFEST */}
             <nav className="hidden lg:flex items-center gap-6 ml-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -244,12 +249,10 @@ export function Header() {
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="flex items-center gap-0.5">
-              {/* MOBILE SEARCH TRIGGER */}
               <Button variant="ghost" size="icon" className="h-9 w-9 lg:hidden" onClick={() => setIsSearchOpen(true)}>
                 <SearchIcon className="h-4 w-4" />
               </Button>
 
-              {/* DESKTOP SEARCH BAR - 1 INCH MANIFEST */}
               <div 
                 onClick={() => setIsSearchOpen(true)}
                 className="hidden lg:flex items-center gap-2 h-9 px-3 bg-gray-50 border border-black/5 hover:border-black/20 cursor-pointer transition-all w-[1in] group"
@@ -258,7 +261,6 @@ export function Header() {
                 <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black truncate">Search</span>
               </div>
 
-              {/* DESKTOP AUTH BUTTON */}
               <Button variant="ghost" size="icon" className="h-9 w-9 hidden lg:flex" onClick={() => user ? null : setIsAuthOpen(true)}>
                 {user ? (
                   <DropdownMenu>
@@ -285,10 +287,13 @@ export function Header() {
                 <SheetContent 
                   className={cn(
                     "w-full sm:max-w-md bg-white p-0 flex flex-col border-none shadow-2xl transition-all duration-500",
-                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
+                    theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100dvh-theme(spacing.7))] sm:h-[calc(100dvh-theme(spacing.10))]" : "h-[100dvh]"
                   )}
                 >
-                  <SheetHeader className="p-6 border-b shrink-0"><SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Wishlist ({wishlistCount})</SheetTitle></SheetHeader>
+                  <SheetHeader className="p-6 border-b shrink-0">
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Wishlist ({wishlistCount})</SheetTitle>
+                    <SheetDescription className="sr-only">Items saved to your archival wishlist.</SheetDescription>
+                  </SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {wishlist.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
@@ -332,6 +337,7 @@ export function Header() {
                 >
                   <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight text-left">Cart ({cartCount})</SheetTitle>
+                    <SheetDescription className="sr-only">Review your archival selection.</SheetDescription>
                   </SheetHeader>
                   <ScrollArea className="flex-1 p-6">
                     {cart.length === 0 ? (
@@ -357,7 +363,6 @@ export function Header() {
                                   <p className="text-[8px] font-bold text-primary uppercase">Qty: {item.quantity}</p>
                                 </div>
                                 
-                                {/* Customization and Special Instructions Manifest */}
                                 {(item.customName || item.customNumber || item.specialNote) && (
                                   <div className="mt-2 pl-2 border-l-2 border-blue-50 space-y-1">
                                     {(item.customName || item.customNumber) && (
@@ -413,12 +418,11 @@ export function Header() {
         </div>
       </header>
 
-      {/* SEARCH DIALOG */}
       <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
         <DialogContent className="sm:max-w-2xl bg-white border-none rounded-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
           <DialogHeader className="sr-only">
             <DialogTitle>Search Archive</DialogTitle>
-            <DialogDescription>Search through the collection by name or SKU.</DialogDescription>
+            <UIDialogDescription>Search through the collection by name or SKU.</UIDialogDescription>
           </DialogHeader>
           <div className="p-6 border-b flex items-center gap-4">
             <SearchIcon className="h-5 w-5 text-gray-400" />

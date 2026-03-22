@@ -31,6 +31,7 @@ interface ReviewSystemProps {
 /**
  * Authoritative Review Manifest.
  * Recalibrated for 1:1 square media displays.
+ * Sheet forensicly offset to avoid banner overlap.
  */
 export function ReviewSystem({ productId }: ReviewSystemProps) {
   const db = useFirestore();
