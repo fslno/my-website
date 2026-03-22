@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -208,9 +209,6 @@ export function Header() {
                     </div>
                   </div>
                 </ScrollArea>
-                <div className="p-6 border-t bg-gray-50/50">
-                  <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400 text-center">FSLNO STUDIO v1.0</p>
-                </div>
               </SheetContent>
             </Sheet>
 
