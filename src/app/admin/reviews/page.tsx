@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useRef } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useIsAdmin, useStorage } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, query, orderBy, doc, updateDoc, deleteDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { 
   Table, 
@@ -56,13 +57,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function AdminReviewsPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { user } = useUser();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isAdmin = useMemo(() => {
-    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-  }, [user]);
+  const isAdmin = useIsAdmin();
 
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'reviews') : null, [db]);
   const { data: config, isLoading: configLoading } = useDoc(configRef);
@@ -127,12 +127,34 @@ export default function AdminReviewsPage() {
     });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setNewReview({ ...newReview, imageUrl: reader.result as string });
-      reader.readAsDataURL(file);
+    if (!file || !storage) return;
+
+    setIsSaving(true);
+    toast({
+      title: "Uploading Image...",
+      description: "Synchronizing review visual with cloud storage.",
+    });
+
+    try {
+      const storageRef = ref(storage, `reviews/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      setNewReview({ ...newReview, imageUrl: downloadURL });
+      toast({
+        title: "Image Uploaded",
+        description: "Review asset is now hosted securely.",
+      });
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast({
+        title: "Upload Failed",
+        description: "Encountered a deviation in the storage transmission.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -455,3 +477,4 @@ export default function AdminReviewsPage() {
     </div>
   );
 }
+

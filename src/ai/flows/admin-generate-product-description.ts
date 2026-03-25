@@ -7,8 +7,8 @@
  * - AdminGenerateProductDescriptionOutput - The return type for the adminGenerateProductDescription function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const AdminGenerateProductDescriptionInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
@@ -65,7 +65,7 @@ export async function adminGenerateProductDescription(
 
       if (i === maxRetries - 1) {
         console.error("Critical: Gemini API exhausted after multiple tries.");
-        notifyAdmin("fslno.dev@gmail.com", "Gemini API Limit Reached");
+        notifyAdmin("admin@example.com", "Gemini API Limit Reached");
         throw error;
       }
 
@@ -78,8 +78,8 @@ export async function adminGenerateProductDescription(
 
 const productDescriptionPrompt = ai.definePrompt({
   name: 'productDescriptionPrompt',
-  input: {schema: AdminGenerateProductDescriptionInputSchema},
-  output: {schema: AdminGenerateProductDescriptionOutputSchema},
+  input: { schema: AdminGenerateProductDescriptionInputSchema },
+  output: { schema: AdminGenerateProductDescriptionOutputSchema },
   prompt: `You are an expert marketing copywriter and SEO specialist for a luxury e-commerce store called FSLNO Studio.
 Your task is to create a compelling, high-quality product description and SEO metadata based on the provided details.
 
@@ -120,7 +120,8 @@ const generateProductDescriptionFlow = ai.defineFlow(
     outputSchema: AdminGenerateProductDescriptionOutputSchema,
   },
   async input => {
-    const {output} = await productDescriptionPrompt(input);
+    const { output } = await productDescriptionPrompt(input);
     return output!;
   }
 );
+

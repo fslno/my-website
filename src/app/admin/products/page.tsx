@@ -56,8 +56,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useIsAdmin, useStorage } from '@/firebase';
 import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -81,31 +82,34 @@ interface Variant {
 
 export default function ProductsPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { user } = useUser();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvImportRef = useRef<HTMLInputElement>(null);
 
-  const isAdmin = useMemo(() => {
-    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-  }, [user]);
+  const isAdmin = useIsAdmin();
 
   const productsQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'products') : null, [db, isAdmin]);
   const categoriesQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'categories') : null, [db, isAdmin]);
   const shippingConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
 
-  const { data: products, loading: productsLoading } = useCollection(productsQuery);
-  const { data: categories, loading: categoriesLoading } = useCollection(categoriesQuery);
+  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+  const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
   const { data: shippingConfig } = useDoc(shippingConfigRef);
   
   const [isSaving, setIsSaving] = useState(false);
+  const [aiTone, setAiTone] = useState('luxurious');
+  const [aiAudience, setAiAudience] = useState('premium');
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{current: number, total: number} | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const lastSelectedId = useRef<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -236,11 +240,27 @@ export default function ProductsPage() {
     }
   };
 
-  const handleToggleSelect = (id: string, checked: boolean | "indeterminate") => {
+  const handleToggleSelect = (id: string, checked: boolean | "indeterminate", isShiftKey = false) => {
     if (checked === true) {
+      if (isShiftKey && lastSelectedId.current) {
+        const productIds = filteredProducts.map(p => p.id);
+        const lastIndex = productIds.indexOf(lastSelectedId.current);
+        const currentIndex = productIds.indexOf(id);
+        
+        if (lastIndex !== -1 && currentIndex !== -1) {
+          const start = Math.min(lastIndex, currentIndex);
+          const end = Math.max(lastIndex, currentIndex);
+          const rangeIds = productIds.slice(start, end + 1);
+          setSelectedIds(prev => Array.from(new Set([...prev, ...rangeIds])));
+          lastSelectedId.current = id;
+          return;
+        }
+      }
       setSelectedIds(prev => [...prev, id]);
+      lastSelectedId.current = id;
     } else {
       setSelectedIds(prev => prev.filter(item => item !== id));
+      lastSelectedId.current = null;
     }
   };
 
@@ -439,27 +459,58 @@ export default function ProductsPage() {
 
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
-    const fileArray = Array.from(files);
+    if (!files || files.length === 0 || !storage) return;
+    const fileArray = Array.from(files).sort((a, b) => 
+      a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+    );
     
-    const newMediaPromises = fileArray.map(file => {
-      return new Promise<MediaItem>((resolve) => {
-        let type: 'image' | 'video' | 'file' = 'file';
-        if (file.type.startsWith('video/')) type = 'video';
-        else if (file.type.startsWith('image/')) type = 'image';
-        
-        const reader = new FileReader();
-        reader.onloadend = () => resolve({ url: reader.result as string, type, name: file.name });
-        reader.readAsDataURL(file);
-      });
-    });
-
+    setIsSaving(true);
+    setUploadProgress({ current: 0, total: fileArray.length });
+    
+    const BATCH_SIZE = 10;
+    const allResults: MediaItem[] = [];
+    
     try {
-      const results = await Promise.all(newMediaPromises);
-      setMedia(prev => [...prev, ...results]);
+      for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
+        const batch = fileArray.slice(i, i + BATCH_SIZE);
+        const batchPromises = batch.map(async (file) => {
+          let type: 'image' | 'video' | 'file' = 'file';
+          if (file.type.startsWith('video/')) type = 'video';
+          else if (file.type.startsWith('image/')) type = 'image';
+          
+          const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+          const storageRef = ref(storage, `products/${fileName}`);
+          
+          try {
+            const snapshot = await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(snapshot.ref);
+            return { url, type, name: file.name } as MediaItem;
+          } catch (error) {
+            console.error("Storage Batch Upload Error:", error);
+            throw error;
+          }
+        });
+
+        const batchResults = await Promise.all(batchPromises);
+        allResults.push(...batchResults);
+        setUploadProgress(prev => prev ? { ...prev, current: i + batch.length } : null);
+      }
+      
+      setMedia(prev => [...prev, ...allResults]);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      toast({ 
+        title: "Manifest Synchronization Complete", 
+        description: `Successfully processed and categorized ${allResults.length} assets.` 
+      });
     } catch (error) {
-      toast({ variant: "destructive", title: "Upload Error", description: "Failed to process files." });
+      toast({ 
+        variant: "destructive", 
+        title: "Transfer Interruption", 
+        description: "A critical error occurred during asset synchronization. Some files may not have been uploaded." 
+      });
+    } finally {
+      setIsSaving(false);
+      setUploadProgress(null);
     }
   };
 
@@ -473,7 +524,8 @@ export default function ProductsPage() {
       const result = await adminGenerateProductDescription({
         productName: name,
         features: features.split(',').map(f => f.trim()).filter(Boolean),
-        tone: 'luxurious'
+        tone: aiTone,
+        targetAudience: aiAudience
       });
       
       setDescription(result.description);
@@ -489,69 +541,93 @@ export default function ProductsPage() {
   };
 
   const handleSaveProduct = async () => {
-    if (!db || !name || !price || !categoryId) return;
+    if (!db) return;
+
+    if (!name || name.trim() === '') {
+      toast({ variant: "destructive", title: "Missing Name", description: "Provide a product name to manifest this item." });
+      return;
+    }
+    if (!price || isNaN(parseFloat(price))) {
+      toast({ variant: "destructive", title: "Invalid Price", description: "Set a numeric baseline value for this piece." });
+      return;
+    }
+    if (!categoryId || categoryId === '') {
+      toast({ variant: "destructive", title: "Missing Category", description: "Assign this item to a structural collection." });
+      return;
+    }
+
     setIsSaving(true);
+
+    // Sanitize numeric inputs to avoid Firestore NaN rejekts
+    const sanitizeNum = (val: string, fallback: number | null = 0) => {
+      const parsed = parseFloat(val);
+      return isNaN(parsed) ? fallback : parsed;
+    };
+
     const productData = {
-      name,
+      name: name.trim(),
       description,
-      price: parseFloat(price),
-      comparedPrice: comparedPrice ? parseFloat(comparedPrice) : null,
-      brand,
-      sku,
-      sizeFit,
+      price: sanitizeNum(price),
+      comparedPrice: comparedPrice ? sanitizeNum(comparedPrice, null) : null,
+      brand: brand.trim(),
+      sku: sku.trim(),
+      sizeFit: sizeFit.trim(),
       badge,
       categoryId,
       customizationEnabled,
-      customizationFee: customizationEnabled ? parseFloat(customizationFee) : 0,
+      customizationFee: customizationEnabled ? sanitizeNum(customizationFee) : 0,
       inventory: totalInventory,
       preorderEnabled,
-      variants,
+      variants: variants.map(v => ({
+        ...v,
+        stock: isNaN(v.stock) ? 0 : v.stock,
+        sku: v.sku.trim()
+      })),
       media,
       features: features.split(',').map(f => f.trim()).filter(Boolean),
       seo: {
-        title: seoTitle || name,
-        description: seoDescription || description,
-        handle: seoHandle || name.toLowerCase().replace(/\s+/g, '-')
+        title: seoTitle.trim() || name.trim(),
+        description: seoDescription.trim() || description,
+        handle: seoHandle.trim() || name.trim().toLowerCase().replace(/\s+/g, '-')
       },
       logistics: {
-        weight: parseFloat(weight) || Number(shippingConfig?.defaultWeight) || 0.6,
-        length: parseFloat(length) || Number(shippingConfig?.defaultLength) || 35,
-        width: parseFloat(width) || Number(shippingConfig?.defaultWidth) || 25,
-        height: parseFloat(height) || Number(shippingConfig?.defaultHeight) || 10,
+        weight: sanitizeNum(weight, Number(shippingConfig?.defaultWeight) || 0.6),
+        length: sanitizeNum(length, Number(shippingConfig?.defaultLength) || 35),
+        width: sanitizeNum(width, Number(shippingConfig?.defaultWidth) || 25),
+        height: sanitizeNum(height, Number(shippingConfig?.defaultHeight) || 10),
         shippingClass
       },
       status: 'active',
       updatedAt: serverTimestamp(),
     };
 
-    if (editingId) {
-      updateDoc(doc(db, 'products', editingId), productData)
-        .then(() => {
-          toast({ title: "Product Updated", description: `${name} has been saved.` });
-        })
-        .catch((error) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: `products/${editingId}`,
-            operation: 'update',
-            requestResourceData: productData,
-          }));
-        })
-        .finally(() => setIsSaving(false));
-    } else {
-      const newData = { ...productData, createdAt: serverTimestamp() };
-      addDoc(collection(db, 'products'), newData)
-        .then((docRef) => {
-          setEditingId(docRef.id);
-          toast({ title: "Product Created", description: `${name} has been added to your products.` });
-        })
-        .catch((error) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: 'products',
-            operation: 'create',
-            requestResourceData: newData,
-          }));
-        })
-        .finally(() => setIsSaving(false));
+    try {
+      if (editingId) {
+        await updateDoc(doc(db, 'products', editingId), productData);
+        toast({ title: "Product Updated", description: `${name} has been synchronized.` });
+      } else {
+        const newData = { ...productData, createdAt: serverTimestamp() };
+        const docRef = await addDoc(collection(db, 'products'), newData);
+        setEditingId(docRef.id);
+        toast({ title: "Product Created", description: `${name} has been manifested in the catalog.` });
+      }
+    } catch (error: any) {
+      console.error("Save Product Error:", error);
+      if (error.code === 'permission-denied') {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: editingId ? `products/${editingId}` : 'products',
+          operation: editingId ? 'update' : 'create',
+          requestResourceData: productData,
+        }));
+      } else {
+        toast({ 
+          variant: "destructive", 
+          title: "Save Deviation", 
+          description: "Encountered an architectural rejection. Check console for details." 
+        });
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -601,8 +677,14 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="space-y-6 min-w-0">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+    <>
+      {(productsLoading || categoriesLoading) && (
+        <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+          <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
+        </div>
+      )}
+      <div className="space-y-6 min-w-0">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Products</h1>
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Add, edit, and manage your products.</p>
@@ -658,6 +740,45 @@ export default function ProductsPage() {
               </div>
               <div className="flex-1 overflow-y-auto">
                 <TabsContent value="general" className="p-4 sm:p-8 m-0 space-y-8 sm:space-y-12 max-w-5xl mx-auto">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <ImagesIcon className={cn("h-4 w-4", uploadProgress ? "text-blue-500 animate-pulse" : "text-gray-400")} />
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                        {uploadProgress 
+                          ? `Synchronizing Assets (${uploadProgress.current}/${uploadProgress.total})` 
+                          : 'Media Selection'
+                        }
+                      </h3>
+                    </div>
+                    {uploadProgress && (
+                      <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-blue-500 transition-all duration-300" 
+                            style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-[9px] font-bold text-blue-600 tabular-nums">
+                          {Math.round((uploadProgress.current / uploadProgress.total) * 100)}%
+                        </span>
+                      </div>
+                    )}
+                    {!uploadProgress && media.length > 1 && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => {
+                          const sorted = [...media].sort((a, b) => 
+                            (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
+                          );
+                          setMedia(sorted);
+                        }}
+                        className="h-8 gap-2 font-bold uppercase tracking-widest text-[9px] text-gray-500 hover:text-black hover:bg-gray-100"
+                      >
+                        <ArrowUpDown className="h-3 w-3" /> Sort by Name
+                      </Button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                     {media.map((item, index) => (
                       <div 
@@ -699,17 +820,58 @@ export default function ProductsPage() {
                     </button>
                     <input type="file" ref={fileInputRef} className="hidden" multiple accept="*/*" onChange={handleMediaUpload} />
                   </div>
-                  <section className="space-y-6 sm:space-y-8 bg-gray-50/50 p-4 sm:p-8 rounded-xl border border-gray-100">
+                  <section className="space-y-6 sm:space-y-8 bg-white p-4 sm:p-8 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-end">
+                          <span className="text-[7px] font-bold uppercase tracking-tighter text-gray-400">AI Context</span>
+                          <div className="flex gap-1 mt-0.5">
+                            <Select value={aiTone} onValueChange={setAiTone}>
+                              <SelectTrigger className="h-6 w-20 text-[8px] font-bold uppercase bg-gray-50 border-none shadow-none focus:ring-0">
+                                <SelectValue placeholder="Tone" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="luxurious" className="text-[8px] font-bold uppercase">Luxurious</SelectItem>
+                                <SelectItem value="sporty" className="text-[8px] font-bold uppercase">Sporty</SelectItem>
+                                <SelectItem value="minimalist" className="text-[8px] font-bold uppercase">Minimalist</SelectItem>
+                                <SelectItem value="technical" className="text-[8px] font-bold uppercase">Technical</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Select value={aiAudience} onValueChange={setAiAudience}>
+                              <SelectTrigger className="h-6 w-20 text-[8px] font-bold uppercase bg-gray-50 border-none shadow-none focus:ring-0">
+                                <SelectValue placeholder="Audience" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="premium" className="text-[8px] font-bold uppercase">Premium</SelectItem>
+                                <SelectItem value="athletes" className="text-[8px] font-bold uppercase">Athletes</SelectItem>
+                                <SelectItem value="gen-z" className="text-[8px] font-bold uppercase">Gen-Z</SelectItem>
+                                <SelectItem value="collectors" className="text-[8px] font-bold uppercase">Collectors</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleAiGenerate}
+                          disabled={isGeneratingAi || !name}
+                          className="h-10 px-4 gap-2 font-bold uppercase tracking-widest text-[9px] border-black hover:bg-black hover:text-white transition-all shadow-lg shadow-purple-100"
+                        >
+                          {isGeneratingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-purple-600" />}
+                          Generate Magic
+                        </Button>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-2 mb-2"><Info className="h-4 w-4 text-gray-400" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Product Details</h3></div>
                     <div className="grid gap-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Name</Label><Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand</Label><Input placeholder="e.g. FSLNO Studio" value={brand} onChange={(e) => setBrand(e.target.value)} className="h-12 bg-white" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Name <span className="text-red-500">*</span></Label><Input placeholder="e.g. Sculpted Merino Knit" value={name} onChange={(e) => setName(e.target.value)} className="h-12 bg-white" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand</Label><Input placeholder="e.g. FSLNO" value={brand} onChange={(e) => setBrand(e.target.value)} className="h-12 bg-white" /></div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Price ($)</Label><Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} className="h-12 bg-white font-mono" /></div>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Price ($) <span className="text-red-500">*</span></Label><Input type="number" placeholder="890" value={price} onChange={(e) => setPrice(e.target.value)} className="h-12 bg-white font-mono" /></div>
                         <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Regular Price ($)</Label><Input type="number" placeholder="1200" value={comparedPrice} onChange={(e) => setComparedPrice(e.target.value)} className="h-12 bg-white font-mono opacity-60" /></div>
-                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Category</Label>
+                        <div className="space-y-2"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Category <span className="text-red-500">*</span></Label>
                           <Select value={categoryId} onValueChange={setCategoryId}>
                             <SelectTrigger className="h-12 bg-white"><SelectValue placeholder="Select category..." /></SelectTrigger>
                             <SelectContent>{categories?.map((cat: any) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent>
@@ -729,16 +891,6 @@ export default function ProductsPage() {
                       <div className="space-y-4 pt-4 border-t">
                         <div className="flex items-center justify-between">
                           <Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={handleAiGenerate}
-                            disabled={isGeneratingAi || !name}
-                            className="h-8 gap-2 font-bold uppercase tracking-widest text-[9px] text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                          >
-                            {isGeneratingAi ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                            Generate with AI
-                          </Button>
                         </div>
                         <Textarea className="min-h-[150px] resize-none bg-white p-4 text-sm" placeholder="Describe this product..." value={description} onChange={(e) => setDescription(e.target.value)} />
                       </div>
@@ -843,7 +995,7 @@ export default function ProductsPage() {
 
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
         {selectedIds.length > 0 && (
-          <div className="p-4 border-b bg-blue-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
+          <div className="sticky bottom-0 sm:static z-40 p-4 border-t sm:border-t-0 sm:border-b bg-white sm:bg-blue-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-bottom-2 sm:slide-in-from-top-2 duration-300 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.1)] sm:shadow-none">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex items-center gap-2">
                 <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5 border-none">Selection Manifest</Badge>
@@ -922,7 +1074,7 @@ export default function ProductsPage() {
                   size="sm" 
                   onClick={handleBulkDelete}
                   disabled={isSaving}
-                  className="h-9 border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase tracking-widest text-[9px] gap-2"
+                  className="h-9 border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase tracking-widest text-[9px] gap-2 flex-1 sm:flex-none"
                 >
                   {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Purge
                 </Button>
@@ -938,6 +1090,14 @@ export default function ProductsPage() {
           <div className="relative w-full lg:flex-1 lg:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" /><Input placeholder="Search products..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto">
             <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="lg:hidden flex items-center gap-3 mr-3 border-r pr-4 border-[#e1e3e5]">
+                <Checkbox 
+                  checked={isAllFilteredSelected ? true : isSomeFilteredSelected ? "indeterminate" : false} 
+                  onCheckedChange={handleSelectAll} 
+                  className="h-6 w-6 border-gray-300"
+                />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">All</span>
+              </div>
               <input type="file" ref={csvImportRef} className="hidden" accept=".csv" onChange={handleImportCSV} />
               <Button variant="ghost" size="sm" onClick={() => csvImportRef.current?.click()} className="flex-1 sm:flex-none h-9 text-[9px] font-bold uppercase tracking-widest gap-2 bg-white border border-[#babfc3] rounded-none">
                 <Upload className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Import CSV</span><span className="sm:hidden">Import</span>
@@ -991,7 +1151,15 @@ export default function ProductsPage() {
                   const isSelected = selectedIds.includes(product.id);
                   return (
                     <TableRow key={product.id} onClick={() => openEdit(product)} className={`transition-colors border-[#e1e3e5] group cursor-pointer ${isSelected ? 'bg-blue-50/30' : 'hover:bg-[#f6f6f7]/50'}`}>
-                      <TableCell className="px-4" onClick={(e) => e.stopPropagation()}><Checkbox checked={isSelected} onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} /></TableCell>
+                      <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox 
+                          checked={isSelected} 
+                          onCheckedChange={(checked) => {
+                            const event = window.event as any;
+                            handleToggleSelect(product.id, checked, event?.shiftKey);
+                          }} 
+                        />
+                      </TableCell>
                       <TableCell><div className="w-16 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{product.media?.[0]?.url ? (product.media[0].type === 'video' ? <video src={product.media[0].url} className="object-cover w-full h-full" /> : <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" />) : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
                       <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span></div></TableCell>
                       <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'None'}</div></TableCell>
@@ -1015,9 +1183,15 @@ export default function ProductsPage() {
               const category = categories?.find((c: any) => c.id === product.categoryId);
               const isSelected = selectedIds.includes(product.id);
               return (
-                <div key={product.id} onClick={() => openEdit(product)} className={cn("p-4 flex flex-col gap-4 bg-white transition-colors hover:bg-gray-50", isSelected && "bg-blue-50/30")}>
+                <div key={product.id} onClick={() => openEdit(product)} className={cn("p-4 flex flex-col gap-4 bg-white transition-colors hover:bg-gray-50 border-b last:border-0", isSelected && "bg-blue-50/30")}>
                   <div className="flex items-start gap-4">
-                    <div onClick={(e) => e.stopPropagation()} className="pt-1"><Checkbox checked={isSelected} onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} /></div>
+                    <div onClick={(e) => e.stopPropagation()} className="pt-2 -ml-1 pr-4">
+                      <Checkbox 
+                        checked={isSelected} 
+                        onCheckedChange={(checked) => handleToggleSelect(product.id, checked)} 
+                        className="h-7 w-7 rounded-sm border-gray-300"
+                      />
+                    </div>
                     <div className="w-16 h-20 bg-gray-100 relative overflow-hidden border shrink-0 shadow-sm">{product.media?.[0]?.url ? (product.media[0].type === 'video' ? <video src={product.media[0].url} className="object-cover w-full h-full" /> : <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" />) : <Layers className="h-6 w-6 text-gray-200" />}</div>
                     <div className="flex-1 min-0 space-y-1">
                       <div className="flex justify-between items-start gap-2"><h3 className="font-bold text-xs uppercase line-clamp-2 leading-tight">{product.name}</h3><span className="font-bold text-xs shrink-0">C${formatCurrency(Number(product.price))}</span></div>
@@ -1036,5 +1210,7 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
+

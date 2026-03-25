@@ -37,8 +37,8 @@ import {
   Activity,
   Package
 } from 'lucide-react';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useIsAdmin } from '@/firebase';
+import { collection, query, orderBy, limit, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -71,16 +71,15 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { type DateRange } from "react-day-picker";
+import { useToast } from '@/hooks/use-toast';
 
 export default function CustomersPage() {
   const db = useFirestore();
   const { user: currentUser } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTier, setFilterTier] = useState<'all' | 'registered' | 'guest' | 'abandoned'>('all');
-  
-  const isAdmin = useMemo(() => {
-    return currentUser?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-  }, [currentUser]);
+  const isAdmin = useIsAdmin();
+  const { toast } = useToast();
 
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -442,3 +441,4 @@ function StatsCard({ title, value, label, icon }: { title: string, value: string
     </Card>
   );
 }
+

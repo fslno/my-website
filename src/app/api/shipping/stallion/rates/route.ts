@@ -62,6 +62,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Stallion Express is currently deactivated.' }, { status: 503 });
     }
 
+    // Fetch origin address for carrier identification
+    const origin = shippingConfig?.originAddress || {};
+
     // 03. Stallion Express API Handshake with Timeout
     const response = await fetch(`${STALLION_BASE_URL}/rates`, {
       method: 'POST',
@@ -71,6 +74,10 @@ export async function POST(request: Request) {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
+        from_country_code: origin.countryCode || 'CA',
+        from_postal_code: origin.postalCode,
+        from_city: origin.city,
+        from_province: origin.province,
         to_country: to_address.country_code || 'CA',
         to_postal_code: to_address.postal_code,
         to_city: to_address.city,
@@ -122,9 +129,9 @@ export async function POST(request: Request) {
         id: rate.rate_id,
         service: rate.service_name,
         label: label,
-        price: parseFloat(rate.total_price),
-        currency: rate.currency,
-        days: rate.delivery_days,
+        price: parseFloat(rate.total_price) || 0,
+        currency: rate.currency || 'CAD',
+        days: rate.delivery_days || 'N/A',
         type: type
       };
     });

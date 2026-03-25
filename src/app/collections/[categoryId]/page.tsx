@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useMemo } from 'react';
+import React, { useEffect, use, useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import { ProductCard } from '@/components/storefront/ProductCard';
@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import { getLivePath } from '@/lib/deployment';
+import { ClientOnly } from '@/components/shared/ClientOnly';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PageProps {
   params: Promise<{ categoryId: string }>;
@@ -62,12 +64,46 @@ export default function CollectionPage(props: PageProps) {
     return map;
   }, [allReviews]);
 
-  if (categoryLoading || productsLoading) return <div className="min-h-screen bg-white" />;
+  useEffect(() => {
+    if (!productsLoading && products?.length) {
+      if (typeof window !== 'undefined') {
+        const lastId = sessionStorage.getItem('lastProductId');
+        if (lastId) {
+          setTimeout(() => {
+            const el = document.getElementById(`product-${lastId}`);
+            if (el) {
+              const y = el.getBoundingClientRect().top + window.scrollY - 150;
+              window.scrollTo({ top: y, behavior: 'instant' });
+              sessionStorage.removeItem('lastProductId');
+            }
+          }, 200);
+        }
+      }
+    }
+  }, [productsLoading, products]);
+
+  if (categoryLoading || productsLoading) {
+    return (
+      <div className="bg-white">
+        <div className="pt-28 sm:pt-36 pb-12 border-b">
+          <div className="max-w-[1440px] mx-auto px-4 space-y-4">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-48" />
+          </div>
+        </div>
+        <div className="py-20 max-w-[1440px] mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-square w-full" />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const reviewsEnabled = reviewConfig?.enabled !== false;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       <div className="pt-28 sm:pt-36 pb-12 border-b">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex flex-col gap-6">
@@ -117,7 +153,9 @@ export default function CollectionPage(props: PageProps) {
         </div>
       </section>
 
-      <TestimonialSection />
+      <ClientOnly>
+        <TestimonialSection />
+      </ClientOnly>
     </div>
   );
 }

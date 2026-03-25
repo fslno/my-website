@@ -1,0 +1,13 @@
+{
+  "apphosting": {
+    "backendId": "my-website",
+    "rootDir": ".",
+    "alwaysDeployFromSource": true
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

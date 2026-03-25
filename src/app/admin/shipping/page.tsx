@@ -8,21 +8,21 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from '@/components/ui/dialog';
-import { 
-  Truck, 
-  Package, 
-  MapPin, 
-  ShieldCheck, 
-  Globe, 
+import {
+  Truck,
+  Package,
+  MapPin,
+  ShieldCheck,
+  Globe,
   Zap,
   CheckCircle2,
   Loader2,
@@ -82,6 +82,12 @@ export default function ShippingPage() {
   const [defaultWidth, setDefaultWidth] = useState('');
   const [defaultHeight, setDefaultHeight] = useState('');
 
+  // Origin Address State
+  const [originPostalCode, setOriginPostalCode] = useState('');
+  const [originCity, setOriginCity] = useState('');
+  const [originProvince, setOriginProvince] = useState('');
+  const [originCountryCode, setOriginCountryCode] = useState('CA');
+
   // Free Shipping State
   const [freeShippingEnabled, setFreeShippingEnabled] = useState(false);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState('');
@@ -93,8 +99,13 @@ export default function ShippingPage() {
   const [newProvName, setNewProvName] = useState('');
   const [newProvStandard, setNewProvStandard] = useState('');
   const [newProvExpress, setNewProvExpress] = useState('');
+  const [newProvCarrier, setNewProvCarrier] = useState('');
+  const [newProvEta, setNewProvEta] = useState('');
+  const [newProvNotes, setNewProvNotes] = useState('');
   const [isProvDialogOpen, setIsProvDialogOpen] = useState(false);
   const [editingProvIdx, setEditingProvIdx] = useState<number | null>(null);
+  const [provinceRatesEnabled, setProvinceRatesEnabled] = useState(false);
+
 
   useEffect(() => {
     if (config) {
@@ -106,26 +117,26 @@ export default function ShippingPage() {
       setDefaultLength(String(config.defaultLength || ''));
       setDefaultWidth(String(config.defaultWidth || ''));
       setDefaultHeight(String(config.defaultHeight || ''));
-      
+
+      setOriginPostalCode(config.originAddress?.postalCode || '');
+      setOriginCity(config.originAddress?.city || '');
+      setOriginProvince(config.originAddress?.province || '');
+      setOriginCountryCode(config.originAddress?.countryCode || 'CA');
+
       setFreeShippingEnabled(config.freeShippingEnabled ?? true);
       setFreeShippingThreshold(String(config.freeShippingThreshold ?? '500'));
       setStandardRate(String(config.standardRate ?? '0'));
       setExpressRate(String(config.expressRate ?? '25'));
 
       setProvinceRates(config.provinceRates || []);
+      setProvinceRatesEnabled(config.provinceRatesEnabled ?? false);
     }
   }, [config]);
 
   const handleInitialize = () => {
     if (!configRef) return;
     const initialData = {
-      carriers: [
-        { name: 'STALLION EXPRESS', active: true, apiKey: 'pending' },
-        { name: 'USPS', active: true, apiKey: 'fslno_sample_key' },
-        { name: 'UPS', active: true, apiKey: 'fslno_sample_key' },
-        { name: 'FedEx', active: true, apiKey: 'fslno_sample_key' },
-        { name: 'DHL', active: true, apiKey: 'fslno_sample_key' }
-      ],
+      carriers: [],
       provinceRates: [],
       goGreenPlus: true,
       localPickup: true,
@@ -149,6 +160,7 @@ export default function ShippingPage() {
       freeShippingThreshold: 500,
       standardRate: 0,
       expressRate: 25,
+      provinceRatesEnabled: false,
       updatedAt: serverTimestamp()
     };
     setDoc(configRef, initialData).catch((error) => {
@@ -198,12 +210,16 @@ export default function ShippingPage() {
 
   const handleSaveProvinceRate = () => {
     if (!newProvName || !configRef) return;
-    const rateData = { 
-      province: newProvName.toUpperCase().trim(), 
-      standard: parseFloat(newProvStandard) || 0, 
-      express: parseFloat(newProvExpress) || 0 
+    const rateData = {
+      province: newProvName.toUpperCase().trim(),
+      standard: parseFloat(newProvStandard) || 0,
+      express: parseFloat(newProvExpress) || 0,
+      carrier: newProvCarrier.trim(),
+      eta: newProvEta.trim(),
+      notes: newProvNotes.trim(),
+      active: editingProvIdx !== null ? (provinceRates[editingProvIdx].active ?? true) : true
     };
-    
+
     let updated;
     if (editingProvIdx !== null) {
       updated = [...provinceRates];
@@ -216,11 +232,14 @@ export default function ShippingPage() {
     setNewProvName('');
     setNewProvStandard('');
     setNewProvExpress('');
+    setNewProvCarrier('');
+    setNewProvEta('');
+    setNewProvNotes('');
     setEditingProvIdx(null);
     setIsProvDialogOpen(false);
-    toast({ 
-      title: editingProvIdx !== null ? "Region Updated" : "Region Ingested", 
-      description: `${newProvName.toUpperCase()} rates saved.` 
+    toast({
+      title: editingProvIdx !== null ? "Region Updated" : "Region Ingested",
+      description: `${newProvName.toUpperCase()} rates saved.`
     });
   };
 
@@ -228,6 +247,9 @@ export default function ShippingPage() {
     setNewProvName(rate.province);
     setNewProvStandard(String(rate.standard));
     setNewProvExpress(String(rate.express));
+    setNewProvCarrier(rate.carrier || '');
+    setNewProvEta(rate.eta || '');
+    setNewProvNotes(rate.notes || '');
     setEditingProvIdx(idx);
     setIsProvDialogOpen(true);
   };
@@ -265,6 +287,12 @@ export default function ShippingPage() {
       defaultLength: parseFloat(defaultLength) || 35,
       defaultWidth: parseFloat(defaultWidth) || 25,
       defaultHeight: parseFloat(defaultHeight) || 10,
+      originAddress: {
+        postalCode: originPostalCode.toUpperCase().trim(),
+        city: originCity.toUpperCase().trim(),
+        province: originProvince.toUpperCase().trim(),
+        countryCode: originCountryCode.toUpperCase().trim()
+      },
       updatedAt: serverTimestamp()
     };
     updateDoc(configRef, updates)
@@ -285,11 +313,11 @@ export default function ShippingPage() {
   const handleBatchSyncProducts = async () => {
     if (!db || !config) return;
     setIsSaving(true);
-    
+
     try {
       const productsRef = collection(db, 'products');
       const snapshot = await getDocs(productsRef);
-      
+
       const batch = writeBatch(db);
       let updatedCount = 0;
 
@@ -320,18 +348,18 @@ export default function ShippingPage() {
   const handleSaveCarrier = () => {
     if (!newCarrierName || !config) return;
     const currentCarriers = Array.isArray(config.carriers) ? [...config.carriers] : [];
-    
+
     if (editingCarrierIdx !== null) {
       const existing = currentCarriers[editingCarrierIdx];
-      currentCarriers[editingCarrierIdx] = { 
+      currentCarriers[editingCarrierIdx] = {
         ...existing,
-        name: newCarrierName, 
+        name: newCarrierName,
         apiKey: newCarrierApiKey || existing.apiKey || 'pending'
       };
       handleUpdate({ carriers: currentCarriers });
       toast({ title: "Carrier Updated", description: `${newCarrierName} protocol synchronized.` });
     } else {
-      const exists = currentCarriers.some((c: any) => 
+      const exists = currentCarriers.some((c: any) =>
         (typeof c === 'string' ? c === newCarrierName : c.name === newCarrierName)
       );
 
@@ -367,7 +395,7 @@ export default function ShippingPage() {
 
   const handleRemoveCarrier = (name: string) => {
     if (!config) return;
-    const updatedCarriers = config.carriers.filter((c: any) => 
+    const updatedCarriers = config.carriers.filter((c: any) =>
       (typeof c === 'string' ? c !== name : c.name !== name)
     );
     handleUpdate({ carriers: updatedCarriers });
@@ -386,8 +414,8 @@ export default function ShippingPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
       </div>
     );
   }
@@ -427,7 +455,7 @@ export default function ShippingPage() {
                   <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Default Shipping Sizes</CardTitle>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <Button 
+                  <Button
                     onClick={handleBatchSyncProducts}
                     disabled={isSaving}
                     variant="outline"
@@ -435,8 +463,8 @@ export default function ShippingPage() {
                   >
                     {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} <span className="truncate">Apply to All Products</span>
                   </Button>
-                  <Button 
-                    onClick={handleSaveGlobalLogistics} 
+                  <Button
+                    onClick={handleSaveGlobalLogistics}
                     disabled={isSaving}
                     className="h-9 px-6 bg-blue-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto"
                   >
@@ -452,43 +480,88 @@ export default function ShippingPage() {
                   <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                     <Scale className="h-3 w-3" /> Weight (kg)
                   </Label>
-                  <Input 
+                  <Input
                     type="number"
-                    placeholder="0.6" 
-                    value={defaultWeight} 
+                    placeholder="0.6"
+                    value={defaultWeight}
                     onChange={(e) => setDefaultWeight(e.target.value)}
                     className="h-11 sm:h-12 font-mono bg-white"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Length (cm)</Label>
-                  <Input 
+                  <Input
                     type="number"
-                    placeholder="35" 
-                    value={defaultLength} 
+                    placeholder="35"
+                    value={defaultLength}
                     onChange={(e) => setDefaultLength(e.target.value)}
                     className="h-11 sm:h-12 font-mono bg-white"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Width (cm)</Label>
-                  <Input 
+                  <Input
                     type="number"
-                    placeholder="25" 
-                    value={defaultWidth} 
+                    placeholder="25"
+                    value={defaultWidth}
                     onChange={(e) => setDefaultWidth(e.target.value)}
                     className="h-11 sm:h-12 font-mono bg-white"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Height (cm)</Label>
-                  <Input 
+                  <Input
                     type="number"
-                    placeholder="10" 
-                    value={defaultHeight} 
+                    placeholder="10"
+                    value={defaultHeight}
                     onChange={(e) => setDefaultHeight(e.target.value)}
                     className="h-11 sm:h-12 font-mono bg-white"
                   />
+                </div>
+              </div>
+
+              <div className="pt-8 border-t border-blue-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <Navigation className="h-4 w-4 text-blue-600" />
+                  <h4 className="text-[10px] uppercase font-bold text-blue-800 tracking-widest">Shipping Origin (API Data)</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Postal Code</Label>
+                    <Input
+                      placeholder="M5V 2H1"
+                      value={originPostalCode}
+                      onChange={(e) => setOriginPostalCode(e.target.value.toUpperCase())}
+                      className="h-11 sm:h-12 font-mono bg-white uppercase"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">City</Label>
+                    <Input
+                      placeholder="TORONTO"
+                      value={originCity}
+                      onChange={(e) => setOriginCity(e.target.value.toUpperCase())}
+                      className="h-11 sm:h-12 font-bold uppercase bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Province (e.g. ON)</Label>
+                    <Input
+                      placeholder="ON"
+                      value={originProvince}
+                      onChange={(e) => setOriginProvince(e.target.value.toUpperCase())}
+                      className="h-11 sm:h-12 font-bold uppercase bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500">Country Code (e.g. CA)</Label>
+                    <Input
+                      placeholder="CA"
+                      value={originCountryCode}
+                      onChange={(e) => setOriginCountryCode(e.target.value.toUpperCase())}
+                      className="h-11 sm:h-12 font-bold uppercase bg-white"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -501,8 +574,8 @@ export default function ShippingPage() {
                   <DollarSign className="h-5 w-5 text-emerald-600" />
                   <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Shipping Rate Protocols</CardTitle>
                 </div>
-                <Button 
-                  onClick={handleSaveRates} 
+                <Button
+                  onClick={handleSaveRates}
                   disabled={isSaving}
                   className="h-9 px-6 bg-emerald-600 text-white font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-emerald-700 transition-colors w-full sm:w-auto"
                 >
@@ -519,8 +592,8 @@ export default function ShippingPage() {
                       <Label className="text-[10px] uppercase font-bold text-primary">Free Shipping Trigger</Label>
                       <p className="text-[8px] text-muted-foreground uppercase font-bold">Waive fees based on purchase limit</p>
                     </div>
-                    <Switch 
-                      checked={freeShippingEnabled} 
+                    <Switch
+                      checked={freeShippingEnabled}
                       onCheckedChange={setFreeShippingEnabled}
                       className="data-[state=checked]:bg-emerald-600"
                     />
@@ -530,10 +603,10 @@ export default function ShippingPage() {
                       <Label className="text-[9px] uppercase font-bold text-emerald-700 flex items-center gap-2">
                         <Trophy className="h-3 w-3" /> Min Purchase for Free Shipping ($)
                       </Label>
-                      <Input 
+                      <Input
                         type="number"
-                        placeholder="500" 
-                        value={freeShippingThreshold} 
+                        placeholder="500"
+                        value={freeShippingThreshold}
                         onChange={(e) => setFreeShippingThreshold(e.target.value)}
                         className="h-11 sm:h-12 font-mono bg-white border-emerald-200"
                       />
@@ -543,20 +616,20 @@ export default function ShippingPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-bold text-gray-500">Standard Rate ($)</Label>
-                    <Input 
+                    <Input
                       type="number"
-                      placeholder="0" 
-                      value={standardRate} 
+                      placeholder="0"
+                      value={standardRate}
                       onChange={(e) => setStandardRate(e.target.value)}
                       className="h-11 sm:h-12 font-mono bg-white"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-bold text-gray-500">Express Rate ($)</Label>
-                    <Input 
+                    <Input
                       type="number"
-                      placeholder="25" 
-                      value={expressRate} 
+                      placeholder="25"
+                      value={expressRate}
                       onChange={(e) => setExpressRate(e.target.value)}
                       className="h-11 sm:h-12 font-mono bg-white"
                     />
@@ -572,8 +645,16 @@ export default function ShippingPage() {
                 <div className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-purple-600" />
                   <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Regional Manual Rates</CardTitle>
+                  <Switch
+                    checked={provinceRatesEnabled}
+                    onCheckedChange={(checked) => {
+                      setProvinceRatesEnabled(checked);
+                      handleUpdate({ provinceRatesEnabled: checked });
+                    }}
+                    className="ml-2 data-[state=checked]:bg-purple-600"
+                  />
                 </div>
-                <Dialog open={isProvDialogOpen} onOpenChange={(open) => { setIsProvDialogOpen(open); if(!open) { setEditingProvIdx(null); setNewProvName(''); setNewProvStandard(''); setNewProvExpress(''); } }}>
+                <Dialog open={isProvDialogOpen} onOpenChange={(open) => { setIsProvDialogOpen(open); if (!open) { setEditingProvIdx(null); setNewProvName(''); setNewProvStandard(''); setNewProvExpress(''); } }}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white w-full sm:w-auto">
                       <Plus className="h-3.5 w-3.5" /> Add Region
@@ -613,39 +694,79 @@ export default function ShippingPage() {
             <CardContent className="p-0">
               <div className="divide-y">
                 {provinceRates.map((rate, idx) => (
-                  <div 
-                    key={idx} 
-                    className="flex items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors group gap-4 cursor-pointer"
+                  <div
+                    key={idx}
+                    className="hover:bg-gray-50 transition-colors group cursor-pointer border-b last:border-0"
                     onClick={() => handleOpenEditProv(rate, idx)}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded border bg-black text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">{rate.province}</div>
-                      <div className="space-y-1">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Manual Override</p>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                          <span className="text-[11px] font-bold uppercase">Standard: ${rate.standard}</span>
-                          <span className="text-[11px] font-bold uppercase text-blue-600">Express: ${rate.express}</span>
+                    <div className="flex items-start justify-between p-4 sm:p-5 gap-4">
+                      <div className="flex items-start gap-4 min-w-0 flex-1">
+                        <div className={cn("w-10 h-10 rounded border flex items-center justify-center font-bold text-xs uppercase shrink-0 mt-0.5 transition-all", (rate.active ?? true) ? 'bg-black text-white border-black' : 'bg-white text-gray-300 border-gray-200')}>
+                          {rate.province?.substring(0, 3)}
+                        </div>
+                        <div className="space-y-2.5 min-w-0 flex-1">
+                          {/* Rates */}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <span className={cn("text-[11px] font-bold uppercase", !(rate.active ?? true) && 'text-gray-400')}>Standard: ${rate.standard}</span>
+                            <span className={cn("text-[11px] font-bold uppercase text-blue-600", !(rate.active ?? true) && 'text-gray-400 opacity-50')}>Express: ${rate.express}</span>
+                          </div>
+                          {/* Carrier + ETA – always visible */}
+                          <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <Truck className="h-3 w-3 shrink-0 text-gray-400" />
+                              {rate.carrier ? (
+                                <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{rate.carrier}</span>
+                              ) : (
+                                <span className="text-[9px] font-medium text-gray-300 uppercase tracking-widest italic">Carrier not set</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Clock className="h-3 w-3 shrink-0 text-purple-400" />
+                              {rate.eta ? (
+                                <span className="text-[9px] font-bold text-purple-600 uppercase tracking-widest">{rate.eta}</span>
+                              ) : (
+                                <span className="text-[9px] font-medium text-gray-300 uppercase tracking-widest italic">No estimate set</span>
+                              )}
+                            </div>
+                          </div>
+                          {/* Notes / Description – always visible */}
+                          {rate.notes ? (
+                            <p className="text-[9px] text-gray-500 font-medium leading-relaxed">{rate.notes}</p>
+                          ) : (
+                            <p className="text-[9px] text-gray-300 font-medium italic">No description — click to add details</p>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-300 group-hover:text-black transition-colors"><Edit2 className="h-4 w-4" /></Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const updated = provinceRates.filter((_, i) => i !== idx);
-                          handleUpdate({ provinceRates: updated });
-                          toast({ title: "Removed", description: "Regional override de-indexed." });
-                        }} 
-                        className="h-9 w-9 text-gray-300 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest hidden sm:block">{(rate.active ?? true) ? 'Active' : 'Off'}</span>
+                        <Switch
+                          checked={rate.active ?? true}
+                          onCheckedChange={(checked) => {
+                            const updated = [...provinceRates];
+                            updated[idx] = { ...rate, active: checked };
+                            handleUpdate({ provinceRates: updated });
+                          }}
+                          className="data-[state=checked]:bg-purple-600"
+                        />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-300 hover:text-black transition-colors" onClick={() => handleOpenEditProv(rate, idx)}><Edit2 className="h-4 w-4" /></Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const updated = provinceRates.filter((_, i) => i !== idx);
+                            handleUpdate({ provinceRates: updated });
+                            toast({ title: "Removed", description: "Regional override de-indexed." });
+                          }}
+                          className="h-9 w-9 text-gray-300 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
+
                 {provinceRates.length === 0 && (
                   <div className="py-12 text-center bg-gray-50/30">
                     <p className="text-[10px] uppercase font-bold tracking-widest text-gray-400 italic">No regional overrides manifested.</p>
@@ -654,6 +775,7 @@ export default function ShippingPage() {
               </div>
             </CardContent>
           </Card>
+
 
           <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between border-b bg-gray-50/50 p-4 sm:p-6 gap-4">
@@ -664,7 +786,7 @@ export default function ShippingPage() {
                 </div>
                 <CardDescription className="text-[10px] sm:text-xs uppercase font-bold tracking-tight text-muted-foreground">Integrate with carriers for live rates.</CardDescription>
               </div>
-              <Dialog open={isAddCarrierOpen} onOpenChange={(open) => { setIsAddCarrierOpen(open); if(!open) { setEditingCarrierIdx(null); setNewCarrierName(''); setNewCarrierApiKey(''); setShowApiKey(false); } }}>
+              <Dialog open={isAddCarrierOpen} onOpenChange={(open) => { setIsAddCarrierOpen(open); if (!open) { setEditingCarrierIdx(null); setNewCarrierName(''); setNewCarrierApiKey(''); setShowApiKey(false); } }}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black hover:bg-black hover:text-white transition-all w-full sm:w-auto">
                     <Plus className="h-3.5 w-3.5" /> Add Carrier
@@ -682,9 +804,9 @@ export default function ShippingPage() {
                   <div className="grid gap-6 py-6">
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-gray-500">Carrier Name</Label>
-                      <Input 
-                        placeholder="e.g. STALLION EXPRESS" 
-                        value={newCarrierName} 
+                      <Input
+                        placeholder="e.g. STALLION EXPRESS"
+                        value={newCarrierName}
                         onChange={(e) => setNewCarrierName(e.target.value.toUpperCase())}
                         className="h-12 uppercase font-bold"
                       />
@@ -693,14 +815,14 @@ export default function ShippingPage() {
                       <Label className="text-[10px] uppercase font-bold text-gray-500">API Token</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
+                        <Input
                           type={showApiKey ? "text" : "password"}
-                          placeholder={editingCarrierIdx !== null ? "••••••••••••••••" : "ENTER API TOKEN"} 
-                          value={newCarrierApiKey} 
+                          placeholder={editingCarrierIdx !== null ? "••••••••••••••••" : "ENTER API TOKEN"}
+                          value={newCarrierApiKey}
                           onChange={(e) => setNewCarrierApiKey(e.target.value)}
                           className="pl-10 pr-10 h-12 font-mono text-xs"
                         />
-                        <button 
+                        <button
                           type="button"
                           onClick={() => setShowApiKey(!showApiKey)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
@@ -723,10 +845,10 @@ export default function ShippingPage() {
                 {config?.carriers?.map((carrier: any, idx: number) => {
                   const name = typeof carrier === 'string' ? carrier : carrier.name;
                   const active = typeof carrier === 'string' ? true : carrier.active;
-                  
+
                   return (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors group gap-4 cursor-pointer"
                       onClick={() => handleOpenEdit(carrier, idx)}
                     >
@@ -744,14 +866,14 @@ export default function ShippingPage() {
                           </div>
                         </div>
                       </div>
-                      <div 
+                      <div
                         className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-none pt-3 sm:pt-0"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center gap-3">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleOpenEdit(carrier, idx)}
                             className="h-9 w-9 text-gray-400 hover:text-black hover:bg-gray-100 transition-colors"
                           >
@@ -759,15 +881,15 @@ export default function ShippingPage() {
                           </Button>
                           <div className="flex items-center gap-2">
                             <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest sm:hidden">Active</span>
-                            <Switch 
-                              checked={active} 
+                            <Switch
+                              checked={active}
                               onCheckedChange={(checked) => handleToggleCarrier(name, checked)}
                             />
                           </div>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleRemoveCarrier(name)}
                           className="h-9 w-9 text-gray-300 hover:text-red-500 transition-opacity"
                         >
@@ -794,8 +916,8 @@ export default function ShippingPage() {
                     <Leaf className="h-5 w-5 text-green-600" />
                     <CardTitle className="text-sm font-bold uppercase tracking-widest">Green Shipping</CardTitle>
                   </div>
-                  <Switch 
-                    checked={config.goGreenPlus} 
+                  <Switch
+                    checked={config.goGreenPlus}
                     onCheckedChange={(checked) => handleUpdate({ goGreenPlus: checked })}
                   />
                 </div>
@@ -815,8 +937,8 @@ export default function ShippingPage() {
                     <MapPin className="h-5 w-5 text-orange-500" />
                     <CardTitle className="text-sm font-bold uppercase tracking-widest">Store Pickup</CardTitle>
                   </div>
-                  <Switch 
-                    checked={config.localPickup} 
+                  <Switch
+                    checked={config.localPickup}
                     onCheckedChange={(checked) => handleUpdate({ localPickup: checked })}
                   />
                 </div>
@@ -837,8 +959,8 @@ export default function ShippingPage() {
                   <MapPin className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Pickup Location Details</CardTitle>
                 </div>
-                <Button 
-                  onClick={handleSavePickupDetails} 
+                <Button
+                  onClick={handleSavePickupDetails}
                   disabled={isSaving}
                   className="h-10 px-6 bg-black text-white font-bold uppercase tracking-widest text-[10px] gap-2 w-full sm:w-auto"
                 >
@@ -854,9 +976,9 @@ export default function ShippingPage() {
                     <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                       <Navigation className="h-3 w-3" /> Address
                     </Label>
-                    <Input 
-                      placeholder="Full store address" 
-                      value={pickupAddress} 
+                    <Input
+                      placeholder="Full store address"
+                      value={pickupAddress}
                       onChange={(e) => setPickupAddress(e.target.value)}
                       className="h-11 sm:h-12 uppercase font-medium"
                     />
@@ -865,23 +987,23 @@ export default function ShippingPage() {
                     <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                       <ExternalLink className="h-3 w-3" /> Google Maps Link
                     </Label>
-                    <Input 
-                      placeholder="https://maps.google.com/..." 
-                      value={pickupLocationUrl} 
+                    <Input
+                      placeholder="https://maps.google.com/..."
+                      value={pickupLocationUrl}
                       onChange={(e) => setPickupLocationUrl(e.target.value)}
                       className="h-11 sm:h-12 text-[10px] font-bold uppercase"
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                       <Clock className="h-3 w-3" /> Opening Hours
                     </Label>
-                    <Textarea 
-                      placeholder="e.g. Mon-Fri: 10AM - 6PM" 
-                      value={pickupHours} 
+                    <Textarea
+                      placeholder="e.g. Mon-Fri: 10AM - 6PM"
+                      value={pickupHours}
                       onChange={(e) => setPickupHours(e.target.value)}
                       className="min-h-[100px] uppercase font-medium"
                     />
@@ -890,9 +1012,9 @@ export default function ShippingPage() {
                     <Label className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-500 flex items-center gap-2">
                       <Info className="h-3 w-3" /> Special Instructions
                     </Label>
-                    <Textarea 
-                      placeholder="e.g. Bring your order number..." 
-                      value={pickupInstructions} 
+                    <Textarea
+                      placeholder="e.g. Bring your order number..."
+                      value={pickupInstructions}
                       onChange={(e) => setPickupInstructions(e.target.value)}
                       className="min-h-[100px] uppercase font-medium"
                     />
@@ -909,8 +1031,8 @@ export default function ShippingPage() {
                   <RotateCcw className="h-5 w-5 text-purple-500" />
                   <CardTitle className="text-base sm:text-lg uppercase tracking-tight">Returns Management</CardTitle>
                 </div>
-                <Switch 
-                  checked={config.returnsEnabled} 
+                <Switch
+                  checked={config.returnsEnabled}
                   onCheckedChange={(checked) => handleUpdate({ returnsEnabled: checked })}
                 />
               </div>
@@ -932,8 +1054,8 @@ export default function ShippingPage() {
                     <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                       <CheckCircle2 className="h-3 w-3" /> Auto-Restock
                     </span>
-                    <Switch 
-                      checked={config.restockLogicEnabled ?? true} 
+                    <Switch
+                      checked={config.restockLogicEnabled ?? true}
                       onCheckedChange={(checked) => handleUpdate({ restockLogicEnabled: checked })}
                     />
                   </div>
@@ -960,8 +1082,8 @@ export default function ShippingPage() {
                   <p className="text-[10px] font-bold uppercase">Signature on Delivery</p>
                   <p className="text-[8px] text-gray-500 uppercase font-bold">Extra Security</p>
                 </div>
-                <Switch 
-                  checked={config.signatureRequired} 
+                <Switch
+                  checked={config.signatureRequired}
                   onCheckedChange={(checked) => handleUpdate({ signatureRequired: checked })}
                 />
               </div>
@@ -970,8 +1092,8 @@ export default function ShippingPage() {
                   <p className="text-[10px] font-bold uppercase">Shipping Insurance</p>
                   <p className="text-[8px] text-gray-500 uppercase font-bold">Auto-cover high value</p>
                 </div>
-                <Switch 
-                  checked={config.insuranceAutoEnroll} 
+                <Switch
+                  checked={config.insuranceAutoEnroll}
                   onCheckedChange={(checked) => handleUpdate({ insuranceAutoEnroll: checked })}
                 />
               </div>
@@ -987,8 +1109,8 @@ export default function ShippingPage() {
             </p>
           </div>
 
-          <Button 
-            className="w-full bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300" 
+          <Button
+            className="w-full bg-black text-white h-14 px-12 font-bold uppercase tracking-[0.2em] text-[11px] shadow-xl hover:bg-[#D3D3D3] hover:text-[#333333] transition-all duration-300"
             onClick={() => toast({ title: "Logistics Synchronized", description: "Global shipping and pickup protocols have been Authoritatively updated." })}
             disabled={isSaving}
           >

@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Image from 'next/image';
 import { 
   Mail, 
-  ArrowRight, 
   Loader2, 
   CheckCircle2, 
   MapPin,
@@ -24,9 +23,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { getLivePath } from '@/lib/deployment';
+import { cn } from '@/lib/utils';
 
 /**
- * High-fidelity responsive footer.
+ * High-fidelity responsive footer — all content controlled from Admin → Footer.
  */
 export function Footer() {
   const db = useFirestore();
@@ -44,30 +44,121 @@ export function Footer() {
     setCurrentYear(new Date().getFullYear());
   }, []);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email || !db) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // 1. Persist to subscribers database
+      await addDoc(collection(db, 'subscribers'), {
+        email,
+        timestamp: serverTimestamp(),
+        source: 'footer',
+        status: 'active'
+      });
+
+      // 2. Queue Welcome Email Transmission
+      await addDoc(collection(db, 'mail'), {
+        to: email,
+        from: "FSLNO <goal@feiselinosportjerseys.ca>",
+        replyTo: "goal@feiselinosportjerseys.ca",
+        message: {
+          subject: "Welcome to FSLNO Studio",
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; color: #000;">
+              <h1 style="text-transform: uppercase; font-size: 24px; letter-spacing: -0.02em;">Welcome to the Archive</h1>
+              <p style="font-size: 14px; line-height: 1.6; margin: 30px 0;">
+                You are now synchronized with FSLNO Studio. You'll be the first to receive updates on new drops, exclusive collections, and archival releases.
+              </p>
+              <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 40px;">
+                <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">
+                  FSLNO Operational Command • Guelph, ON
+                </p>
+              </div>
+            </div>
+          `
+        }
+      });
+
       setIsSubmittingDone(true);
       setEmail('');
-    }, 1000);
+    } catch (error) {
+      console.error('Subscription error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const mapsUrl = config?.googleMapsUrl || (config?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.address)}` : '#');
+  // Authoritative URL Resolution logic for absolute paths
+  const ensureAbsoluteUrl = (url: string) => {
+    if (!url || url === '#') return '#';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  };
 
-  if (!mounted) return <footer className="bg-primary h-24 mt-8" />;
+  const mapsUrl = ensureAbsoluteUrl(config?.googleMapsUrl) || (config?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.address)}` : '#');
+  const bgColor = config?.footerBackgroundColor || '#f0f0f0';
+
+  // Contrast helper for text color
+  const getContrastColor = (hex: string) => {
+    if (!hex || hex === 'transparent') return 'text-black';
+    const c = hex.replace('#', '');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? 'text-black' : 'text-white';
+  };
+
+  const textColorClass = getContrastColor(bgColor);
+
+  // Build social links from admin-saved individual fields
+  const socialLinks = [
+    { platform: 'Instagram', url: config?.instagramUrl, Icon: Instagram },
+    { platform: 'TikTok',    url: config?.tiktokUrl,    Icon: Music },
+    { platform: 'Twitter',   url: config?.twitterUrl,   Icon: Twitter },
+    { platform: 'Facebook',  url: config?.facebookUrl,  Icon: Facebook },
+    { platform: 'YouTube',   url: config?.youtubeUrl,   Icon: Youtube },
+    { platform: 'Pinterest', url: config?.pinterestUrl, Icon: Globe },
+    { platform: 'LinkedIn',  url: config?.linkedinUrl,  Icon: Linkedin },
+    // Also support socialChannels array from settings page (legacy)
+    ...(config?.socialChannels?.map((s: any) => {
+      let Icon = Globe;
+      if (s.platform === 'Instagram') Icon = Instagram;
+      else if (s.platform === 'Twitter' || s.platform === 'X') Icon = Twitter;
+      else if (s.platform === 'Facebook') Icon = Facebook;
+      else if (s.platform === 'YouTube') Icon = Youtube;
+      else if (s.platform === 'LinkedIn') Icon = Linkedin;
+      else if (s.platform === 'TikTok') Icon = Music;
+      return { platform: s.platform, url: s.url, Icon };
+    }) || []),
+  ].filter(s => !!s.url);
+
+  const newsletterEnabled = config?.newsletterEnabled ?? true;
+  const newsletterHeadline = config?.newsletterHeadline || 'JOIN THE ARCHIVE';
+  const newsletterSubtext = config?.newsletterSubtext || 'Get our latest updates.';
+  const copyrightText = config?.copyrightText || `© ${currentYear} ${config?.businessName || 'FSLNO'}. ALL RIGHTS RESERVED.`;
+  const poweredByEnabled = config?.poweredByEnabled ?? false;
+  const poweredByLabel = config?.poweredByLabel || 'Powered by';
+  const poweredByName = config?.poweredByStudioName || 'FSLNO';
+  const poweredByLogo = config?.poweredByLogoUrl || '';
+
+  if (!mounted) return null;
 
   return (
-    <footer className="bg-primary text-primary-foreground py-16 mt-12 border-t border-primary-foreground/10" suppressHydrationWarning>
+    <footer 
+      className={cn(textColorClass, "py-16 border-t border-black/5")} 
+      style={{ backgroundColor: bgColor }}
+      suppressHydrationWarning
+    >
       <div className="max-w-[1440px] mx-auto px-4">
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 items-start">
           
+          {/* Brand column */}
           <div className="space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
-              {config?.businessName || "HOME"}
+              {config?.businessName || "FSLNO"}
             </h2>
             <div className="space-y-6">
               <p className="max-w-xs text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">
@@ -77,7 +168,9 @@ export function Footer() {
               <div className="space-y-4">
                 <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group">
                   <MapPin className="h-4 w-4 opacity-40 group-hover:opacity-100 transition-opacity" />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] underline decoration-white/20 underline-offset-4">Get Directions</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] underline decoration-white/20 underline-offset-4">
+                    {config?.getDirectionsLabel || "Get Directions"}
+                  </span>
                 </a>
                 {config?.openingHours && (
                   <div className="flex items-start gap-3">
@@ -91,107 +184,133 @@ export function Footer() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-5 pt-4">
-                  {config?.socialChannels?.map((s: any, idx: number) => {
-                    let Icon = Globe;
-                    if (s.platform === 'Instagram') Icon = Instagram;
-                    else if (s.platform === 'Twitter' || s.platform === 'X') Icon = Twitter;
-                    else if (s.platform === 'Facebook') Icon = Facebook;
-                    else if (s.platform === 'YouTube') Icon = Youtube;
-                    else if (s.platform === 'LinkedIn') Icon = Linkedin;
-                    else if (s.platform === 'TikTok') Icon = Music;
-
-                    return (
-                      <a 
-                        key={idx} 
-                        href={s.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                {/* Social icons */}
+                {socialLinks.length > 0 && (
+                  <div className="flex items-center gap-5 pt-4">
+                    {socialLinks.map((s, idx) => (
+                      <a
+                        key={idx}
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="opacity-40 hover:opacity-100 transition-opacity"
                         aria-label={s.platform}
                       >
-                        <Icon className="h-4 w-4" />
+                        <s.Icon className="h-4 w-4" />
                       </a>
-                    );
-                  }) || (
-                    <p className="text-[8px] font-bold uppercase tracking-widest opacity-20">Connect with us</p>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
           
-          <div className="space-y-6 md:text-right flex flex-col md:items-end">
+          {/* Support links */}
+          <div className="space-y-6 flex flex-col">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Help</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
-              {config?.footerSupportLinks?.map((link: any, idx: number) => (
-                <li key={idx}><Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link></li>
-              )) || (
-                <>
-                  <li><Link href="/shipping" className="hover:opacity-60 transition-opacity">Shipping</Link></li>
-                  <li><Link href="/tracking" className="hover:opacity-60 transition-opacity">Tracking</Link></li>
-                </>
-              )}
+              {(config?.footerSupportLinks?.length > 0)
+                ? config.footerSupportLinks.map((link: any, idx: number) => (
+                    <li key={idx}><Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link></li>
+                  ))
+                : (
+                  <>
+                    <li><Link href="/shipping" className="hover:opacity-60 transition-opacity">Shipping</Link></li>
+                    <li><Link href="/returns" className="hover:opacity-60 transition-opacity">Returns</Link></li>
+                  </>
+                )}
             </ul>
           </div>
 
-          <div className="space-y-6 md:text-right flex flex-col md:items-end">
+          {/* Legal links */}
+          <div className="space-y-6 flex flex-col">
             <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
-              {config?.footerLegalLinks?.map((link: any, idx: number) => (
-                <li key={idx}><Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link></li>
-              )) || (
-                <>
-                  <li><Link href="/terms" className="hover:opacity-60 transition-opacity">Terms</Link></li>
-                  <li><Link href="/privacy" className="hover:opacity-60 transition-opacity">Privacy</Link></li>
-                </>
-              )}
+              {(config?.footerLegalLinks?.length > 0)
+                ? config.footerLegalLinks.map((link: any, idx: number) => (
+                    <li key={idx}><Link href={link.url} className="hover:opacity-60 transition-opacity">{link.label}</Link></li>
+                  ))
+                : (
+                  <>
+                    <li><Link href="/terms" className="hover:opacity-60 transition-opacity">Terms</Link></li>
+                    <li><Link href="/privacy" className="hover:opacity-60 transition-opacity">Privacy</Link></li>
+                  </>
+                )}
             </ul>
           </div>
 
-          <div className="space-y-8 md:text-right flex flex-col md:items-end">
-            <div className="space-y-4">
-              <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Newsletter</h4>
-              <div className="space-y-1">
-                <h3 className="text-3xl font-headline font-bold uppercase tracking-tight leading-none">Join Us</h3>
-                <p className="text-[10px] uppercase tracking-widest font-bold opacity-60">Get our latest updates.</p>
+          {/* Newsletter */}
+          {newsletterEnabled && (
+            <div className="md:ml-auto w-full max-w-sm">
+              <div className="relative overflow-hidden flex flex-col gap-8">
+                {/* Visual Accent */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-current/[0.02] rounded-full -mr-12 -mt-12" />
+                
+                <div className="space-y-4 relative z-10">
+                  <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Newsletter</h4>
+                  <div className="space-y-1">
+                    <h3 className="text-3xl font-headline font-bold uppercase tracking-tight leading-none">
+                      {newsletterHeadline}
+                    </h3>
+                    <p className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      {newsletterSubtext}
+                    </p>
+                  </div>
+                </div>
+                
+                <form onSubmit={handleSubscribe} className="space-y-6 w-full relative z-10">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase tracking-[0.1em] font-bold opacity-40">Email Address</Label>
+                    <Input 
+                      type="email" 
+                      placeholder="ENTER YOUR EMAIL..." 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-current/[0.05] border-0 rounded-none h-12 px-4 focus-visible:ring-1 focus-visible:ring-current/20 placeholder:text-current/20 font-bold uppercase text-xs" 
+                    />
+                  </div>
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting || isSubscribed}
+                    className={cn(
+                      "h-14 w-full rounded-none font-bold uppercase tracking-[0.3em] text-[10px] transition-all active:scale-[0.98] shadow-lg",
+                      textColorClass === 'text-black' ? 'bg-black text-white hover:bg-zinc-800' : 'bg-white text-black hover:bg-zinc-100'
+                    )}
+                  >
+                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : isSubscribed ? <CheckCircle2 className="h-4 w-4" /> : "Subscribe"}
+                  </button>
+                </form>
               </div>
             </div>
-            
-            <form onSubmit={handleSubscribe} className="space-y-6 w-full max-w-sm">
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase tracking-[0.1em] font-bold opacity-60">Email Address</Label>
-                <Input 
-                  type="email" 
-                  placeholder="" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-transparent border-0 border-b border-primary-foreground/20 rounded-none h-12 px-0 focus-visible:ring-0 placeholder:text-primary-foreground/20 font-bold uppercase text-xs md:text-right" 
-                />
-              </div>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting || isSubscribed}
-                className="h-14 bg-white text-black w-full rounded-none font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-gray-200 transition-all shadow-xl"
-              >
-                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : isSubscribed ? <CheckCircle2 className="h-4 w-4" /> : "Subscribe"}
-              </Button>
-            </form>
-          </div>
+          )}
         </div>
         
+        {/* Bottom bar */}
         <div className="border-t border-primary-foreground/10 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-2">
             <p className="text-[9px] uppercase tracking-[0.2em] font-bold opacity-40">
-              © {currentYear} {config?.businessName || "HOME"}. All rights reserved.
+              {copyrightText}
             </p>
+            {poweredByEnabled && (
+              <div className="flex items-center gap-2 opacity-30 hover:opacity-80 transition-opacity">
+                {poweredByLogo && (
+                  <div className="relative w-4 h-4">
+                    <Image src={poweredByLogo} alt={poweredByName} fill className="object-contain" />
+                  </div>
+                )}
+                <span className="text-[8px] font-bold uppercase tracking-widest">{poweredByLabel} {poweredByName}</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-wrap justify-center gap-6 opacity-30 grayscale hover:opacity-100 transition-all duration-700">
-            {config?.paymentIconsVisible?.map((icon: string) => (
-              <span key={icon} className="text-[8px] font-bold uppercase tracking-[0.2em]">{icon}</span>
-            ))}
-          </div>
+          {/* Payment icons */}
+          {config?.paymentIconsVisible?.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-6 opacity-30 grayscale hover:opacity-100 transition-all duration-700">
+              {config.paymentIconsVisible.map((icon: string) => (
+                <span key={icon} className="text-[8px] font-bold uppercase tracking-[0.2em]">{icon}</span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </footer>

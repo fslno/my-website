@@ -25,7 +25,7 @@ import {
   XAxis, 
   YAxis 
 } from 'recharts';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useIsAdmin } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -52,6 +52,7 @@ import { type DateRange } from "react-day-picker";
 export default function AdminDashboard() {
   const db = useFirestore();
   const { user } = useUser();
+  const isAdmin = useIsAdmin();
   const { toast } = useToast();
   
   const [timeRange, setTimeRange] = useState('7d');
@@ -59,10 +60,6 @@ export default function AdminDashboard() {
     from: subDays(new Date(), 7),
     to: new Date(),
   });
-
-  const isAdmin = useMemo(() => {
-    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-  }, [user]);
 
   useEffect(() => {
     const savedRange = localStorage.getItem('fslno_admin_timerange');
@@ -320,8 +317,8 @@ export default function AdminDashboard() {
 
   if (ordersLoading || usersLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-10 w-10 animate-spin text-black" />
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
       </div>
     );
   }
@@ -572,3 +569,4 @@ function StatsCard({ title, value, trend, icon, data, color = "#000" }: {
     </Card>
   );
 }
+

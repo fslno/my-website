@@ -110,7 +110,7 @@ const DEFAULT_THEME = {
   adminSidebarActiveText: '#FFFFFF',
   categorySectionTitle: 'Shop by Drop',
   categorySectionSubtitle: 'The Collections',
-  archiveSectionTitle: 'All Studio Pieces',
+  archiveSectionTitle: 'All FSLNO Pieces',
   archiveSectionSubtitle: 'The Archive'
 };
 
@@ -311,8 +311,8 @@ export default function ThemeEnginePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-10 w-10 animate-spin text-gray-400" />
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
       </div>
     );
   }

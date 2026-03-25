@@ -19,21 +19,21 @@ export function ThemeStyleInjector() {
     if (!theme) return;
 
     const root = document.documentElement;
-    
+
     // Contrast Helper: Returns white or black based on background hex with safety buffer
     const getContrastColor = (hexcolor: string | undefined) => {
       if (!hexcolor || hexcolor === 'transparent' || typeof hexcolor !== 'string' || hexcolor.length < 6) {
         return '#000000';
       }
-      
+
       try {
         const cleanHex = hexcolor.replace('#', '');
         const r = parseInt(cleanHex.substring(0, 2), 16);
         const g = parseInt(cleanHex.substring(2, 4), 16);
         const b = parseInt(cleanHex.substring(4, 6), 16);
-        
+
         if (isNaN(r) || isNaN(g) || isNaN(b)) return '#000000';
-        
+
         const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
         return (yiq >= 128) ? '#000000' : '#FFFFFF';
       } catch (e) {
@@ -61,7 +61,7 @@ export function ThemeStyleInjector() {
 
     const styleId = 'fslno-theme-overrides';
     let styleTag = document.getElementById(styleId) as HTMLStyleElement;
-    
+
     if (!styleTag) {
       styleTag = document.createElement('style');
       styleTag.id = styleId;
@@ -72,7 +72,7 @@ export function ThemeStyleInjector() {
     const bodyFont = theme.bodyFont || 'Inter';
     const bannerFont = theme.bannerFont || 'Inter';
     const bannerFontSize = theme.bannerFontSize || 10;
-    
+
     const heroTextAlign = theme.heroTextAlign || 'center';
     const heroVerticalAlign = theme.heroVerticalAlign || 'center';
     const heroHeadlineSize = theme.heroHeadlineSize || 72;

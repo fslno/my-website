@@ -74,9 +74,14 @@ import {
   CheckCircle2,
   Scale,
   Languages,
-  DollarSign
+  DollarSign,
+  Lock,
+  ShieldCheck as ShieldIcon,
+  KeyRound,
+  AlertTriangle
 } from 'lucide-react';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, useStorage } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc, collection, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -85,6 +90,13 @@ import NextImage from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { 
+  updatePassword, 
+  sendPasswordResetEmail, 
+  reauthenticateWithCredential, 
+  EmailAuthProvider,
+  getAuth
+} from 'firebase/auth';
 
 interface ContactItem {
   label: string;
@@ -103,6 +115,7 @@ interface TaxNexus {
 
 export default function SettingsPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const storefrontLogoRef = useRef<HTMLInputElement>(null);
   const adminLogoRef = useRef<HTMLInputElement>(null);
@@ -158,6 +171,17 @@ export default function SettingsPage() {
   const [chatbotSize, setChatbotSize] = useState('60');
   const [chatbotEffect, setChatbotEffect] = useState('pulsate');
   const [chatbotDuration, setChatbotDuration] = useState('3');
+  const [chatbotGapBottom, setChatbotGapBottom] = useState('32');
+  const [chatbotGapSide, setChatbotGapSide] = useState('32');
+
+  // Security State
+  const { user } = useUser();
+  const auth = typeof window !== 'undefined' ? getAuth() : null;
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isReauthOpen, setIsReauthOpen] = useState(false);
+  const [reauthPassword, setReauthPassword] = useState('');
 
   useEffect(() => {
     if (storeConfig) {
@@ -187,18 +211,42 @@ export default function SettingsPage() {
       setChatbotSize(themeData.chatbotSize?.toString() || '60');
       setChatbotEffect(themeData.chatbotEffect || 'pulsate');
       setChatbotDuration(themeData.chatbotDuration?.toString() || '3');
+      setChatbotGapBottom(themeData.chatbotGapBottom?.toString() || '32');
+      setChatbotGapSide(themeData.chatbotGapSide?.toString() || '32');
     }
   }, [storeConfig, themeData]);
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'storefront' | 'admin') => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'storefront' | 'admin') => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (target === 'storefront') setLogoUrl(reader.result as string);
-        else setAdminLogoUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file || !storage) return;
+
+    setIsSaving(true);
+    const toastId = toast({
+      title: "Uploading Logo...",
+      description: `Synchronizing ${target} identity with cloud storage.`,
+    });
+
+    try {
+      const storageRef = ref(storage, `settings/logos/${target}_${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      if (target === 'storefront') setLogoUrl(downloadURL);
+      else setAdminLogoUrl(downloadURL);
+
+      toast({
+        title: "Logo Synthesized",
+        description: `${target.charAt(0).toUpperCase() + target.slice(1)} branding has been projected to storage.`,
+      });
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast({
+        title: "Upload Failed",
+        description: "Encountered a deviation in the storage uplink.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -261,6 +309,8 @@ export default function SettingsPage() {
       chatbotSize: Number(chatbotSize),
       chatbotEffect,
       chatbotDuration: Number(chatbotDuration),
+      chatbotGapBottom: Number(chatbotGapBottom),
+      chatbotGapSide: Number(chatbotGapSide),
       updatedAt: new Date().toISOString() 
     };
     handleSaveStore();
@@ -268,6 +318,64 @@ export default function SettingsPage() {
       .then(() => toast({ title: "Saved", description: "Chat and support settings updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
       .finally(() => setIsSaving(false));
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!auth?.currentUser || !newPassword) return;
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Mismatch", description: "Passwords do not match.", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "Insecure", description: "Password must be at least 6 characters.", variant: "destructive" });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updatePassword(auth.currentUser, newPassword);
+      toast({ title: "Success", description: "Password updated successfully." });
+      setNewPassword('');
+      setConfirmPassword('');
+      setCurrentPassword('');
+    } catch (error: any) {
+      if (error.code === 'auth/requires-recent-login') {
+        setIsReauthOpen(true);
+      } else {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleReauthenticate = async () => {
+    if (!auth?.currentUser || !reauthPassword) return;
+    setIsSaving(true);
+    try {
+      const credential = EmailAuthProvider.credential(auth.currentUser.email!, reauthPassword);
+      await reauthenticateWithCredential(auth.currentUser, credential);
+      setIsReauthOpen(false);
+      setReauthPassword('');
+      toast({ title: "Verified", description: "You are now re-authenticated. Please try updating your password again." });
+    } catch (error: any) {
+      toast({ title: "Failed", description: "Incorrect password.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRequestResetEmail = async () => {
+    if (!auth || !user?.email) return;
+    setIsSaving(true);
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      toast({ title: "Sent", description: `Password reset email dispatched to ${user.email}.` });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSaveStaff = async () => {
@@ -354,8 +462,8 @@ export default function SettingsPage() {
 
   if (storeLoading || themeLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 object-contain animate-pulse opacity-50" />
       </div>
     );
   }
@@ -374,6 +482,9 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="staff" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
             <User className="h-3.5 w-3.5" /> Staff Members
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
+            <Lock className="h-3.5 w-3.5" /> Security
           </TabsTrigger>
           <TabsTrigger value="support" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
             <MessageSquareMore className="h-3.5 w-3.5" /> Chat & Contact
@@ -401,7 +512,7 @@ export default function SettingsPage() {
                     <div className="relative">
                       <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input 
-                        placeholder="FSLNO Studio" 
+                        placeholder="FSLNO" 
                         value={businessName} 
                         onChange={(e) => setBusinessName(e.target.value)} 
                         className="pl-10 h-11 uppercase font-bold text-xs" 
@@ -419,7 +530,7 @@ export default function SettingsPage() {
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Email (Internal)</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input placeholder="admin@fslno.ca" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} className="pl-10 h-11" />
+                      <Input placeholder="admin@example.com" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
                 </div>
@@ -475,7 +586,7 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Business Name</Label>
                       <Input 
-                        placeholder="FSLNO Studio" 
+                        placeholder="FSLNO" 
                         value={businessName} 
                         onChange={(e) => setBusinessName(e.target.value)} 
                         className="h-12 uppercase font-bold text-xs" 
@@ -722,6 +833,125 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="security" className="space-y-8 animate-in fade-in duration-300">
+          <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+            <CardHeader className="bg-gray-50/30 border-b">
+              <div className="flex items-center gap-2">
+                <ShieldIcon className="h-5 w-5 text-gray-400" />
+                <CardTitle className="text-sm font-bold uppercase tracking-widest">Password Management</CardTitle>
+              </div>
+              <CardDescription className="text-[9px] uppercase font-bold tracking-tight">Secure your administrative access.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-8 p-4 sm:p-8 space-y-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 border-b pb-4">
+                    <KeyRound className="h-4 w-4 text-primary" />
+                    <h3 className="text-xs font-bold uppercase tracking-widest">Direct Update</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">New Password</Label>
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="h-11 border-[#e1e3e5]"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">Confirm New Password</Label>
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="h-11 border-[#e1e3e5]"
+                      />
+                    </div>
+                    <Button 
+                      onClick={handleUpdatePassword} 
+                      disabled={isSaving || !newPassword}
+                      className="w-full bg-black text-white h-11 font-bold uppercase tracking-widest text-[9px]"
+                    >
+                      {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Lock className="h-3.5 w-3.5 mr-2" />}
+                      Update Password
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-6 bg-gray-50/50 p-6 border rounded-sm">
+                  <div className="flex items-center gap-2 border-b pb-4">
+                    <Mail className="h-4 w-4 text-blue-600" />
+                    <h3 className="text-xs font-bold uppercase tracking-widest">Remote Reset</h3>
+                  </div>
+                  
+                  <p className="text-[10px] font-bold text-gray-500 uppercase leading-relaxed">
+                    Prefer a secure recovery link? We can send a password reset protocol directly to your registered email address.
+                  </p>
+
+                  <div className="pt-4">
+                    <Button 
+                      variant="outline"
+                      onClick={handleRequestResetEmail}
+                      disabled={isSaving}
+                      className="w-full h-11 border-black font-bold uppercase tracking-widest text-[9px] gap-2 hover:bg-black hover:text-white transition-all"
+                    >
+                      <Zap className="h-3.5 w-3.5" /> Request Reset Email
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-red-50/50 border border-red-100 p-4 flex gap-3 items-start">
+                <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-[9px] font-bold uppercase text-red-800 tracking-tight">Security Protocol Advisory</p>
+                  <p className="text-[8px] font-bold text-red-600 uppercase leading-relaxed">
+                    For sensitive operations like password changes, Google requires a recent sign-in session. 
+                    If prompted, you must re-verify your identity with your current credentials.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Dialog open={isReauthOpen} onOpenChange={setIsReauthOpen}>
+            <DialogContent className="sm:max-w-md bg-white border-none rounded-none shadow-2xl">
+              <DialogHeader className="pt-6">
+                <DialogTitle className="text-xl font-headline font-bold uppercase tracking-tight">Security Verification</DialogTitle>
+                <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                  Your session has expired for sensitive updates. Please enter your CURRENT password to continue.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-6 space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[9px] uppercase font-bold text-gray-500">Current Password</Label>
+                  <Input 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={reauthPassword}
+                    onChange={(e) => setReauthPassword(e.target.value)}
+                    className="h-12 border-[#e1e3e5]"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  onClick={handleReauthenticate} 
+                  disabled={isSaving || !reauthPassword} 
+                  className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]"
+                >
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Verify Identity
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+
         <TabsContent value="support" className="space-y-12 animate-in fade-in duration-300">
           <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between border-b bg-gray-50/30">
@@ -799,6 +1029,38 @@ export default function SettingsPage() {
                       onChange={(e) => setChatbotSize(e.target.value)} 
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Bottom Gap</Label>
+                      <span className="text-[9px] font-mono font-bold text-primary">{chatbotGapBottom}PX</span>
+                    </div>
+                    <input 
+                      type="range" min="8" max="80" value={chatbotGapBottom} 
+                      onChange={(e) => setChatbotGapBottom(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                    <div className="flex justify-between text-[7px] font-bold text-gray-400 uppercase tracking-tighter">
+                      <span>8px</span>
+                      <span>80px</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Side Gap</Label>
+                      <span className="text-[9px] font-mono font-bold text-primary">{chatbotGapSide}PX</span>
+                    </div>
+                    <input 
+                      type="range" min="8" max="80" value={chatbotGapSide} 
+                      onChange={(e) => setChatbotGapSide(e.target.value)} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                    />
+                    <div className="flex justify-between text-[7px] font-bold text-gray-400 uppercase tracking-tighter">
+                      <span>8px</span>
+                      <span>80px</span>
+                    </div>
                   </div>
 
                   <div className="space-y-2">

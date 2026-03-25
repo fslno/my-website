@@ -32,6 +32,8 @@ export const orderDeliveredReviewRequest = onDocumentUpdated("orders/{orderId}",
 
     const emailManifest = {
       to: email,
+      from: "FSLNO <goal@feiselinosportjerseys.ca>",
+      replyTo: "goal@feiselinosportjerseys.ca",
       message: {
         subject: `Review your FSLNO Studio order`,
         html: `

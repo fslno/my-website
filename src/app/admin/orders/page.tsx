@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useIsAdmin } from '@/firebase';
 import { collection, query, orderBy, limit, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -62,10 +62,7 @@ export default function OrdersPage() {
   const { user } = useUser();
   const { toast } = useToast();
 
-  const isAdmin = useMemo(() => {
-    if (!user) return false;
-    return user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-  }, [user]);
+  const isAdmin = useIsAdmin();
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
@@ -76,7 +73,7 @@ export default function OrdersPage() {
     );
   }, [db, isAdmin]);
 
-  const { data: ordersData, loading } = useCollection(ordersQuery);
+  const { data: ordersData, isLoading } = useCollection(ordersQuery);
   const orders = ordersData || [];
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -86,6 +83,7 @@ export default function OrdersPage() {
   const [isBulkStatusOpen, setIsBulkStatusOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const lastSelectedId = React.useRef<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -98,19 +96,13 @@ export default function OrdersPage() {
     if (!orders || orders.length === 0) return [];
 
     return orders.filter((order: any) => {
-      const id = order.id?.toLowerCase() || '';
-      const email = order.email?.toLowerCase() || '';
-      const name = order.customer?.name?.toLowerCase() || '';
-      const phone = order.customer?.phone?.toLowerCase() || '';
+      const lowerSearch = debouncedSearch;
+      const matchesSearch = !lowerSearch ||
+                           order.id?.toLowerCase().includes(lowerSearch) ||
+                           order.customerEmail?.toLowerCase().includes(lowerSearch) ||
+                           order.items?.some((item: any) => item.name?.toLowerCase().includes(lowerSearch));
 
-      const matchesSearch =
-        id.includes(debouncedSearch) ||
-        email.includes(debouncedSearch) ||
-        name.includes(debouncedSearch) ||
-        phone.includes(debouncedSearch);
-
-      const matchesStatus =
-        statusFilter === 'all' || order.status === statusFilter;
+      const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -121,6 +113,8 @@ export default function OrdersPage() {
     let pending = 0;
     let revenue = 0;
     let returned = 0;
+
+    if (!orders) return { total, pending, revenue, returned };
 
     for (const order of orders) {
       total++;
@@ -142,6 +136,34 @@ export default function OrdersPage() {
     return { total, pending, revenue, returned };
   }, [orders]);
 
+  const isAllFilteredSelected = useMemo(() => {
+    return filteredOrders.length > 0 && filteredOrders.every(o => selectedIds.includes(o.id));
+  }, [filteredOrders, selectedIds]);
+
+  const isSomeFilteredSelected = useMemo(() => {
+    return filteredOrders.some(o => selectedIds.includes(o.id)) && !isAllFilteredSelected;
+  }, [filteredOrders, selectedIds, isAllFilteredSelected]);
+
+  if (isLoading && orders.length === 0) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <X className="h-16 w-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h2>
+        <p className="text-gray-600 mb-6">You do not have permission to view this page.</p>
+        <Button onClick={() => router.push('/')}>Go to Homepage</Button>
+      </div>
+    );
+  }
+
+
   const handleSelectAll = (checked: boolean | "indeterminate") => {
     if (checked === true) {
       const currentFilteredIds = filteredOrders.map(o => o.id);
@@ -152,11 +174,27 @@ export default function OrdersPage() {
     }
   };
 
-  const handleToggleSelect = (id: string, checked: boolean | "indeterminate") => {
+  const handleToggleSelect = (id: string, checked: boolean | "indeterminate", isShiftKey = false) => {
     if (checked === true) {
+      if (isShiftKey && lastSelectedId.current) {
+        const orderIds = filteredOrders.map(o => o.id);
+        const lastIndex = orderIds.indexOf(lastSelectedId.current);
+        const currentIndex = orderIds.indexOf(id);
+        
+        if (lastIndex !== -1 && currentIndex !== -1) {
+          const start = Math.min(lastIndex, currentIndex);
+          const end = Math.max(lastIndex, currentIndex);
+          const rangeIds = orderIds.slice(start, end + 1);
+          setSelectedIds(prev => Array.from(new Set([...prev, ...rangeIds])));
+          lastSelectedId.current = id;
+          return;
+        }
+      }
       setSelectedIds(prev => [...prev, id]);
+      lastSelectedId.current = id;
     } else {
       setSelectedIds(prev => prev.filter(item => item !== id));
+      lastSelectedId.current = null;
     }
   };
 
@@ -206,13 +244,6 @@ export default function OrdersPage() {
     }
   };
 
-  const isAllFilteredSelected = useMemo(() => {
-    return filteredOrders.length > 0 && filteredOrders.every(o => selectedIds.includes(o.id));
-  }, [filteredOrders, selectedIds]);
-
-  const isSomeFilteredSelected = useMemo(() => {
-    return filteredOrders.some(o => selectedIds.includes(o.id)) && !isAllFilteredSelected;
-  }, [filteredOrders, selectedIds, isAllFilteredSelected]);
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return '';
@@ -277,11 +308,24 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-8 min-w-0">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Orders</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">View and manage your store's orders.</p>
+    <>
+      {isLoading && (
+        <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+          <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
+        </div>
+      )}
+      <div className="space-y-8 min-w-0">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Orders</h1>
+            {orders.some(o => !o.viewed) && (
+              <Badge className="bg-red-600 text-white rounded-none uppercase text-[9px] font-bold px-2 py-0.5 animate-pulse border-none">
+                {orders.filter(o => !o.viewed).length} New
+              </Badge>
+            )}
+          </div>
+          <p className="text-[#5c5f62] text-[10px] sm:text-sm uppercase font-medium tracking-tight">View and manage your store's orders.</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button variant="outline" className="h-10 border-[#babfc3] font-bold uppercase tracking-widest text-[10px] w-full sm:w-auto">Export CSV</Button>
@@ -348,7 +392,7 @@ export default function OrdersPage() {
 
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
         {selectedIds.length > 0 && (
-          <div className="p-4 border-b bg-blue-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
+          <div className="sticky bottom-0 sm:static z-40 p-4 border-t sm:border-t-0 sm:border-b bg-white sm:bg-blue-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-bottom-2 sm:slide-in-from-top-2 duration-300 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.1)] sm:shadow-none">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex items-center gap-2">
                 <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5 border-none">Selection Manifest</Badge>
@@ -381,14 +425,24 @@ export default function OrdersPage() {
         )}
 
         <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]"/>
-            <Input
-              placeholder="Quick search orders..."
-              className="pl-10 h-10 border-[#e1e3e5] bg-white text-[10px] font-bold uppercase tracking-widest rounded-none"
-              value={searchQuery}
-              onChange={(e)=>setSearchQuery(e.target.value)}
-            />
+          <div className="relative flex-1 flex items-center gap-3">
+            <div className="lg:hidden flex items-center gap-3 mr-1 border-r pr-4 border-[#e1e3e5]">
+              <Checkbox 
+                checked={isAllFilteredSelected ? true : isSomeFilteredSelected ? "indeterminate" : false} 
+                onCheckedChange={handleSelectAll} 
+                className="h-6 w-6 border-gray-300"
+              />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">All</span>
+            </div>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]"/>
+              <Input
+                placeholder="Quick search orders..."
+                className="pl-10 h-10 border-[#e1e3e5] bg-white text-[10px] font-bold uppercase tracking-widest rounded-none"
+                value={searchQuery}
+                onChange={(e)=>setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -404,7 +458,9 @@ export default function OrdersPage() {
               <SelectItem value="processing" className="uppercase text-[10px] font-bold">Processing</SelectItem>
               <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Pick up</SelectItem>
               <SelectItem value="shipped" className="uppercase text-[10px] font-bold">Shipped</SelectItem>
+              <SelectItem value="out_for_delivery" className="uppercase text-[10px] font-bold">Out for Delivery</SelectItem>
               <SelectItem value="delivered" className="uppercase text-[10px] font-bold">Delivered</SelectItem>
+              <SelectItem value="returned" className="uppercase text-[10px] font-bold">Returned</SelectItem>
               <SelectItem value="canceled" className="uppercase text-[10px] font-bold">Canceled</SelectItem>
             </SelectContent>
           </Select>
@@ -430,7 +486,7 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-20">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300"/>
@@ -458,7 +514,10 @@ export default function OrdersPage() {
                     <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
                       <Checkbox 
                         checked={isSelected} 
-                        onCheckedChange={(checked) => handleToggleSelect(order.id, checked)} 
+                        onCheckedChange={(checked) => {
+                          const event = window.event as any;
+                          handleToggleSelect(order.id, checked, event?.shiftKey);
+                        }} 
                       />
                     </TableCell>
                     <TableCell className="align-top py-6">
@@ -503,7 +562,7 @@ export default function OrdersPage() {
                     <TableCell className="align-top py-6">
                       <div className="space-y-1">
                         <div className="text-[10px] font-mono font-bold text-primary uppercase">
-                          #{order.id.substring(0, 8).toUpperCase()}
+                          #{order.id?.substring(0, 8)?.toUpperCase()}
                         </div>
                         <div className="text-[9px] text-gray-400 uppercase font-bold flex items-center gap-1.5">
                           <Clock className="h-2.5 w-2.5" /> {formatDate(order.createdAt)}
@@ -557,7 +616,7 @@ export default function OrdersPage() {
 
         {/* Mobile Card View */}
         <div className="lg:hidden divide-y">
-          {loading ? (
+          {isLoading ? (
             <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-300"/></div>
           ) : filteredOrders.length === 0 ? (
             <div className="py-20 text-center text-gray-400 uppercase text-[10px] font-bold tracking-widest">No orders manifesting.</div>
@@ -576,6 +635,7 @@ export default function OrdersPage() {
                   <Checkbox 
                     checked={isSelected} 
                     onCheckedChange={(checked) => handleToggleSelect(order.id, checked)} 
+                    className="h-6 w-6 rounded-sm border-gray-300"
                   />
                 </div>
                 <div className="pl-8">
@@ -583,7 +643,7 @@ export default function OrdersPage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         {!order.viewed && <Badge className="bg-red-600 text-white rounded-none uppercase text-[7px] font-bold px-1.5 h-3.5 border-none animate-pulse">NEW</Badge>}
-                        <div className="text-[10px] font-mono font-bold text-primary uppercase">#{order.id.substring(0,8)}</div>
+                        <div className="text-[10px] font-mono font-bold text-primary uppercase">#{order.id?.substring(0,8)?.toUpperCase()}</div>
                       </div>
                       <p className="text-[9px] text-gray-400 font-bold uppercase">{formatDate(order.createdAt)}</p>
                     </div>
@@ -684,6 +744,7 @@ export default function OrdersPage() {
                   <SelectItem value="processing" className="uppercase text-[10px] font-bold">Processing</SelectItem>
                   <SelectItem value="ready_for_pickup" className="uppercase text-[10px] font-bold">Pick up</SelectItem>
                   <SelectItem value="shipped" className="uppercase text-[10px] font-bold">Shipped</SelectItem>
+                  <SelectItem value="out_for_delivery" className="uppercase text-[10px] font-bold">Out for Delivery</SelectItem>
                   <SelectItem value="delivered" className="uppercase text-[10px] font-bold">Delivered</SelectItem>
                   <SelectItem value="returned" className="uppercase text-[10px] font-bold">Returned</SelectItem>
                   <SelectItem value="canceled" className="uppercase text-[10px] font-bold">Canceled</SelectItem>
@@ -704,5 +765,7 @@ export default function OrdersPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }
+

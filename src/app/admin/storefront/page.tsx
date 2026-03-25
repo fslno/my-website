@@ -32,7 +32,8 @@ import {
   PlusCircle,
   X
 } from 'lucide-react';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useStorage } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -46,6 +47,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 export default function StorefrontAdminPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -105,19 +107,41 @@ export default function StorefrontAdminPage() {
     }
   }, [theme]);
 
-  const handleHeroImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || !storage) return;
     
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setHeroImages(prev => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
+    setIsSaving(true);
+    toast({
+      title: "Uploading Media...",
+      description: `Synchronizing ${files.length} high-fidelity assets with cloud storage.`,
     });
-    
-    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const storageRef = ref(storage, `storefront/hero/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        return getDownloadURL(snapshot.ref);
+      });
+
+      const newUrls = await Promise.all(uploadPromises);
+      setHeroImages(prev => [...prev, ...newUrls]);
+      
+      toast({
+        title: "Synchronization Complete",
+        description: "Hero assets have been Authoritatively projected to storage.",
+      });
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast({
+        title: "Upload Failed",
+        description: "Encountered a deviation in the storage transmission.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const removeHeroImage = (index: number) => {
@@ -397,7 +421,7 @@ export default function StorefrontAdminPage() {
                 <CardHeader className="border-b bg-gray-50/30 p-4 sm:p-6">
                   <div className="flex items-center gap-2">
                     <AlignLeft className="h-5 w-5 text-blue-500" />
-                    <CardTitle className="text-lg uppercase tracking-tight">Studio Description</CardTitle>
+                    <CardTitle className="text-lg uppercase tracking-tight">FSLNO Description</CardTitle>
                   </div>
                   <CardDescription className="text-xs font-bold uppercase tracking-tight text-muted-foreground">The narrative description Authoritatively manifested on the home page.</CardDescription>
                 </CardHeader>
@@ -422,7 +446,7 @@ export default function StorefrontAdminPage() {
                     <Globe className="h-5 w-5 text-emerald-500" />
                     <CardTitle className="text-lg uppercase tracking-tight">Home Page SEO Manifest</CardTitle>
                   </div>
-                  <CardDescription className="text-xs font-bold uppercase tracking-tight text-muted-foreground">How your studio manifests in search results.</CardDescription>
+                  <CardDescription className="text-xs font-bold uppercase tracking-tight text-muted-foreground">How your brand manifests in search results.</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6 p-4 sm:p-6 space-y-8">
                   <div className="bg-blue-50/50 p-6 rounded-none border border-blue-100 border-dashed">

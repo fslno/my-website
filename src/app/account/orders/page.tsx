@@ -8,6 +8,8 @@ import { Loader2, ShoppingBag, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useAuthDialog } from '@/context/AuthDialogContext';
 
 /**
  * Order History page.
@@ -15,6 +17,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 export default function OrderHistoryPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const { openAuth } = useAuthDialog();
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -61,19 +64,25 @@ export default function OrderHistoryPage() {
     return (
       <div className="pt-28 sm:pt-40 pb-24 px-4 flex flex-col items-center justify-center text-center">
         <ShoppingBag className="h-12 w-12 text-gray-200 mb-6" />
-        <h1 className="text-3xl font-headline font-bold uppercase mb-4">Account Required</h1>
-        <p className="text-gray-500 max-w-xs mb-8">Please sign in to view your order history.</p>
+        <h1 className="text-3xl font-headline font-bold uppercase mb-4 tracking-tighter">Account Required</h1>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 max-w-xs mb-8">Please sign in to view your order history and track your deliveries.</p>
+        <Button 
+          onClick={openAuth}
+          className="bg-black text-white px-10 h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all"
+        >
+          Sign In to Track Orders
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pt-28 sm:pt-40 pb-24 max-w-[1440px] mx-auto px-4">
-        <div className="mb-12">
-          <span className="text-xs uppercase tracking-[0.3em] font-bold text-gray-400">Your Account</span>
-          <h1 className="text-4xl md:text-6xl font-headline font-bold uppercase tracking-tight mt-2">Order History</h1>
-        </div>
+    <div className="space-y-12">
+      <header className="space-y-2">
+        <h2 className="text-3xl font-headline font-bold uppercase tracking-tight">Order History</h2>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Track and manage your previous purchases.</p>
+      </header>
 
         {ordersLoading ? (
           <div className="py-20 flex justify-center">

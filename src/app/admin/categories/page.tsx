@@ -47,8 +47,9 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useIsAdmin, useStorage } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, query, where, orderBy, writeBatch } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -58,13 +59,12 @@ import NextImage from 'next/image';
 
 export default function CategoriesPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { user } = useUser();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isAdmin = useMemo(() => {
-    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-  }, [user]);
+  const isAdmin = useIsAdmin();
 
   const categoriesQuery = useMemoFirebase(() => 
     db && isAdmin ? query(collection(db, 'categories'), orderBy('order', 'asc')) : null, 
@@ -81,6 +81,7 @@ export default function CategoriesPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [sizeChartId, setSizeChartId] = useState('');
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
@@ -113,9 +114,8 @@ export default function CategoriesPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setImageUrl(reader.result as string);
-      reader.readAsDataURL(file);
+      setImageFile(file);
+      setImageUrl(URL.createObjectURL(file));
     }
   };
 
@@ -123,9 +123,7 @@ export default function CategoriesPage() {
     if (!db || !categories) return;
     setIsSaving(true);
     
-    const defaults = [
-      { name: "Kid's", description: 'Archival pieces for the younger generation.', order: 0 }
-    ];
+    const defaults: any[] = [];
 
     const batch = writeBatch(db);
     let addedCount = 0;
@@ -161,45 +159,61 @@ export default function CategoriesPage() {
   const handleSave = async () => {
     if (!db || !name) return;
     setIsSaving(true);
-    const categoryData: any = {
-      name, 
-      description, 
-      imageUrl: imageUrl || '', 
-      sizeChartId,
-      seoTitle: seoTitle || name, 
-      seoDescription: seoDescription || description,
-      updatedAt: new Date().toISOString()
-    };
-    
-    if (editingId) {
-      updateDoc(doc(db, 'categories', editingId), categoryData)
-        .then(() => { 
-          toast({ title: "Updated", description: "Category updated." }); 
-        })
-        .catch((error) => { 
-          errorEmitter.emit('permission-error', new FirestorePermissionError({ 
-            path: `categories/${editingId}`, 
-            operation: 'update', 
-            requestResourceData: categoryData 
-          })); 
-        })
-        .finally(() => setIsSaving(false));
-    } else {
-      const nextOrder = categories && categories.length > 0 ? Math.max(...categories.map(c => c.order || 0)) + 1 : 0;
-      const newData = { ...categoryData, order: nextOrder, createdAt: new Date().toISOString() };
-      addDoc(collection(db, 'categories'), newData)
-        .then((docRef) => { 
-          setEditingId(docRef.id);
-          toast({ title: "Created", description: "Category created." }); 
-        })
-        .catch((error) => { 
-          errorEmitter.emit('permission-error', new FirestorePermissionError({ 
-            path: 'categories', 
-            operation: 'create', 
-            requestResourceData: newData 
-          })); 
-        })
-        .finally(() => setIsSaving(false));
+
+    try {
+      let finalImageUrl = imageUrl;
+
+      // Upload new image if present
+      if (imageFile && storage) {
+        const storagePath = `categories/${Date.now()}_${imageFile.name}`;
+        const storageRef = ref(storage, storagePath);
+        const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+        finalImageUrl = await new Promise((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            null,
+            (error) => reject(error),
+            () => {
+              getDownloadURL(uploadTask.snapshot.ref).then(resolve).catch(reject);
+            }
+          );
+        });
+      }
+
+      const categoryData: any = {
+        name, 
+        description, 
+        imageUrl: finalImageUrl || '', 
+        sizeChartId,
+        seoTitle: seoTitle || name, 
+        seoDescription: seoDescription || description,
+        updatedAt: new Date().toISOString()
+      };
+      
+      if (editingId) {
+        await updateDoc(doc(db, 'categories', editingId), categoryData);
+        toast({ title: "Updated", description: "Category updated." }); 
+      } else {
+        const nextOrder = categories && categories.length > 0 ? Math.max(...categories.map(c => c.order || 0)) + 1 : 0;
+        const newData = { ...categoryData, order: nextOrder, createdAt: new Date().toISOString() };
+        const docRef = await addDoc(collection(db, 'categories'), newData);
+        setEditingId(docRef.id);
+        toast({ title: "Created", description: "Category created." }); 
+      }
+    } catch (error: any) {
+      console.error("Save error:", error);
+      if (error.code === 'permission-denied') {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({ 
+          path: editingId ? `categories/${editingId}` : 'categories', 
+          operation: editingId ? 'update' : 'create', 
+          requestResourceData: { name } 
+        }));
+      } else {
+        toast({ variant: "destructive", title: "Error", description: "Failed to save category." });
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -268,6 +282,7 @@ export default function CategoriesPage() {
     setName(''); 
     setDescription(''); 
     setImageUrl(''); 
+    setImageFile(null);
     setSizeChartId(''); 
     setSeoTitle(''); 
     setSeoDescription(''); 
@@ -280,6 +295,7 @@ export default function CategoriesPage() {
     setName(category.name || ''); 
     setDescription(category.description || ''); 
     setImageUrl(category.imageUrl || '');
+    setImageFile(null);
     setSizeChartId(category.sizeChartId || ''); 
     setSeoTitle(category.seoTitle || ''); 
     setSeoDescription(category.seoDescription || '');
@@ -288,8 +304,14 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="space-y-8 min-w-0">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+    <>
+      {categoriesLoading && (
+        <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+          <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
+        </div>
+      )}
+      <div className="space-y-8 min-w-0">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Categories</h1>
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Group products and manage SEO.</p>
@@ -612,5 +634,7 @@ export default function CategoriesPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
+

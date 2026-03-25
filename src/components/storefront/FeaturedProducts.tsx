@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit, where } from 'firebase/firestore';
+import React, { useMemo, useEffect } from 'react';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, limit, where, doc } from 'firebase/firestore';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { Loader2, Sparkles } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getLivePath } from '@/lib/deployment';
 
 /**
@@ -30,12 +31,68 @@ export function FeaturedProducts() {
     return collection(db, getLivePath('categories'));
   }, [db]);
   const { data: categories } = useCollection(categoriesQuery);
+  
+  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
+  const { data: reviewConfig } = useDoc(reviewConfigRef);
+
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, 'reviews');
+  }, [db]);
+  const { data: allReviews } = useCollection(reviewsQuery);
+
+  const productRatings = useMemo(() => {
+    const map: Record<string, { sum: number, count: number }> = {};
+    if (!allReviews) return map;
+    
+    allReviews.forEach(r => {
+      if (!r.published) return;
+      if (!map[r.productId]) map[r.productId] = { sum: 0, count: 0 };
+      map[r.productId].sum += (r.rating || 0);
+      map[r.productId].count += 1;
+    });
+    return map;
+  }, [allReviews]);
+
+  const reviewsEnabled = reviewConfig?.enabled !== false;
+
+  useEffect(() => {
+    if (!isLoading && products?.length) {
+      if (typeof window !== 'undefined') {
+        const lastId = sessionStorage.getItem('lastProductId');
+        if (lastId) {
+          setTimeout(() => {
+            const el = document.getElementById(`product-${lastId}`);
+            if (el) {
+              const y = el.getBoundingClientRect().top + window.scrollY - 150;
+              window.scrollTo({ top: y, behavior: 'instant' });
+              sessionStorage.removeItem('lastProductId');
+            }
+          }, 200);
+        }
+      }
+    }
+  }, [isLoading, products]);
 
   if (isLoading) {
     return (
-      <div className="py-20 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-black/10" />
-      </div>
+      <section className="py-24 bg-background">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="text-center mb-20 space-y-4">
+            <Skeleton className="h-4 w-24 mx-auto" />
+            <Skeleton className="h-10 w-64 mx-auto" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex flex-col gap-2">
+                <Skeleton className="w-full aspect-square rounded-sm" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-1/3" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     );
   }
 
@@ -55,7 +112,17 @@ export function FeaturedProducts() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
           {products.map((product: any) => {
             const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
-            const isSoldOut = (Number(product.inventory) || 0) <= 0;
+            const ratingInfo = productRatings[product.id];
+            const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
+            const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
+            
+            // Authoritative Inventory Intelligence: Sum variant stock if available
+            const variants = product.variants || [];
+            const totalStock = variants.length > 0 
+                ? variants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0)
+                : Number(product.inventory) || 0;
+
+            const isSoldOut = totalStock <= 0;
 
             return (
               <ProductCard 
@@ -68,6 +135,8 @@ export function FeaturedProducts() {
                 hoverImage={product.media?.[1]?.url}
                 category={productCategory}
                 sku={product.sku}
+                rating={avgRating}
+                reviewCount={reviewCount}
                 isSoldOut={isSoldOut}
               />
             );

@@ -81,16 +81,18 @@ export function useCollection<T = any>(
         setError(null);
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
+      (err: FirestoreError) => {
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+            : (memoizedTargetRefOrQuery as any)._query?.path?.canonicalString() || 'query';
 
         const contextualError = new FirestorePermissionError({
-          operation: 'list',
+          operation: 'list', // Changed from 'get' to 'list' for collection/query
           path,
         })
+
+        console.error(`[FirestorePermissionError] at ${path}: ${err.message}`); // Use 'path' instead of 'memoizedDocRef.path'
 
         setError(contextualError)
         setData(null)

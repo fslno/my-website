@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 import { 
   Plus, 
   TicketPercent, 
@@ -30,8 +31,10 @@ import {
   RefreshCw,
   Mail,
   Activity,
+  Settings2,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Download
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -57,7 +60,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, setDoc, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, setDoc, doc, deleteDoc, updateDoc, serverTimestamp, getDocs } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -77,11 +80,12 @@ export default function PromotionsPage() {
 
   const { data: coupons, isLoading: couponsLoading } = useCollection(couponsQuery);
   const { data: categories } = useCollection(categoriesQuery);
-  const { data: config, loading: configLoading } = useDoc(configRef);
+  const { data: config, isLoading: configLoading } = useDoc(configRef);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdatingConfig, setIsUpdatingConfig] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // FLASH SALE STATE
   const [flashEnabled, setFlashEnabled] = useState(false);
@@ -248,6 +252,50 @@ export default function PromotionsPage() {
     });
   };
 
+  const handleExportSubscribers = async () => {
+    if (!db) return;
+    setIsExporting(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, 'subscribers'));
+      const subscribers = querySnapshot.docs.map(doc => doc.data());
+      
+      if (subscribers.length === 0) {
+        toast({ title: "No subscribers found", description: "There are no subscribers to export." });
+        return;
+      }
+
+      // Generate CSV
+      const headers = ['Email', 'Subscribed At'];
+      const rows = subscribers.map(s => [
+        s.email,
+        s.createdAt?.toDate ? s.createdAt.toDate().toLocaleString() : (s.createdAt || 'N/A')
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Create download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `fslno_subscribers_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({ title: "Export successful", description: `${subscribers.length} subscribers exported.` });
+    } catch (err) {
+      console.error("Export failed:", err);
+      toast({ variant: "destructive", title: "Export failed", description: "Could not export subscriber list." });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const resetForm = () => {
     setCode('');
     setType('percent');
@@ -286,6 +334,14 @@ export default function PromotionsPage() {
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage coupons, sales, and loyalty rewards.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            onClick={handleExportSubscribers} 
+            disabled={isExporting} 
+            className="flex-1 sm:flex-none h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-blue-200 text-blue-600 hover:bg-blue-50"
+          >
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Export Subscribers
+          </Button>
           <Button variant="outline" onClick={handleSaveConfig} disabled={isUpdatingConfig} className="flex-1 sm:flex-none h-10 gap-2 font-bold uppercase tracking-widest text-[10px] border-black">
             {isUpdatingConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Settings
           </Button>
@@ -461,16 +517,45 @@ export default function PromotionsPage() {
                   <Label className="text-[9px] uppercase font-bold text-gray-500">Categories</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        className="w-full h-11 bg-white justify-between text-[10px] font-bold uppercase tracking-widest px-3 border-[#e1e3e5]"
-                        disabled={!bogoEnabled}
-                      >
-                        <span className="truncate">{getCategoryDisplay()}</span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
+                      <div className="relative group/bogo">
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-11 bg-white justify-between text-[10px] font-bold uppercase tracking-widest px-3 border-[#e1e3e5]"
+                          disabled={!bogoEnabled}
+                        >
+                          <span className="truncate pr-6 text-left">{getCategoryDisplay()}</span>
+                          <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                        </Button>
+                        {bogoEnabled && bogoCategoryIds.length > 0 && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setBogoCategoryIds([]); }}
+                            className="absolute right-9 top-1/2 -translate-y-1/2 p-1 hover:bg-red-50 text-red-400 hover:text-red-600 border border-red-100 rounded-sm transition-all"
+                            title="Clear All"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0 bg-white border rounded-sm shadow-xl" align="start">
+                      <div className="p-3 border-b flex items-center justify-between gap-2 bg-gray-50/50">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setBogoCategoryIds(categories?.map(c => c.id) || [])}
+                          className="h-7 px-2 text-[8px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all border border-black/10"
+                        >
+                          Select All
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setBogoCategoryIds([])}
+                          className="h-7 px-2 text-[8px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all border border-red-100"
+                        >
+                          Clear All
+                        </Button>
+                      </div>
                       <ScrollArea className="h-[250px] p-4">
                         <div className="space-y-4">
                           {categories?.map((cat: any) => (
@@ -588,9 +673,21 @@ export default function PromotionsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        </Button>
+                        <div className="flex justify-end gap-2 px-6">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            asChild
+                            className="h-8 gap-2 font-bold uppercase tracking-widest text-[9px] hover:bg-black hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <Link href="/admin/notifications?tab=marketing">
+                              <Settings2 className="h-3 w-3" /> Edit Email
+                            </Link>
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ChevronRight className="h-4 w-4 text-gray-400" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

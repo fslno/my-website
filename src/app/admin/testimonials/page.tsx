@@ -33,7 +33,8 @@ import {
   DialogDescription 
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useIsAdmin, useStorage } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -42,13 +43,12 @@ import { cn } from '@/lib/utils';
 
 export default function AdminTestimonialsPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { user } = useUser();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isAdmin = useMemo(() => {
-    return user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-  }, [user]);
+  const isAdmin = useIsAdmin();
 
   const testimonialsQuery = useMemoFirebase(() => 
     db && isAdmin ? query(collection(db, 'testimonials'), orderBy('createdAt', 'desc')) : null, 
@@ -67,12 +67,34 @@ export default function AdminTestimonialsPage() {
   const [rating, setRating] = useState('5');
   const [isFeatured, setIsFeatured] = useState(true);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setCustomerImageUrl(reader.result as string);
-      reader.readAsDataURL(file);
+    if (!file || !storage) return;
+
+    setIsSaving(true);
+    toast({
+      title: "Uploading Image...",
+      description: "Synchronizing testimonial visual with cloud storage.",
+    });
+
+    try {
+      const storageRef = ref(storage, `testimonials/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      setCustomerImageUrl(downloadURL);
+      toast({
+        title: "Image Uploaded",
+        description: "Testimonial asset is now hosted securely.",
+      });
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast({
+        title: "Upload Failed",
+        description: "Critical error in storage transmission.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -179,3 +201,4 @@ export default function AdminTestimonialsPage() {
     </div>
   );
 }
+

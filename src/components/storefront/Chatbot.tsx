@@ -124,10 +124,11 @@ export function Chatbot() {
 
   return (
     <div 
-      className="fixed bottom-8 z-[70]"
+      className="fixed z-[70]"
       style={{ 
-        right: theme?.chatbotPosition === 'right' ? '2rem' : 'auto',
-        left: theme?.chatbotPosition === 'left' ? '2rem' : 'auto'
+        bottom: `${theme?.chatbotGapBottom ?? 32}px`,
+        right: theme?.chatbotPosition === 'right' ? `${theme?.chatbotGapSide ?? 32}px` : 'auto',
+        left: theme?.chatbotPosition === 'left' ? `${theme?.chatbotGapSide ?? 32}px` : 'auto'
       }}
     >
       <div className="absolute bottom-full left-0 right-0 flex flex-col-reverse items-center gap-2 mb-3">

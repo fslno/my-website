@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useRef } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useIsAdmin } from '@/firebase';
 import { collection, addDoc, query, orderBy, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useStorage } from '@/firebase/provider';
@@ -26,13 +26,14 @@ import { getLivePath } from '@/lib/deployment';
 
 interface ReviewSystemProps {
   productId: string;
+  variant?: 'classic' | 'minimal';
 }
 
 /**
  * Product Review and Rating system.
  * High-fidelity rectangular geometry protocol with persistent manifestation.
  */
-export function ReviewSystem({ productId }: ReviewSystemProps) {
+export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemProps) {
   const db = useFirestore();
   const storage = useStorage();
   const { user } = useUser();
@@ -45,7 +46,7 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const isAdmin = user?.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
+  const isAdmin = useIsAdmin();
 
   // Global Config Discovery
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
@@ -144,29 +145,46 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <div className="inline-block cursor-pointer group">
-          <div className="bg-black text-white py-1 px-2.5 rounded-none shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/10 h-7">
+        {variant === 'minimal' ? (
+          <div className="flex items-center gap-1 cursor-pointer group">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 
                   key={s} 
                   className={cn(
-                    "h-2.5 w-2.5 transition-all duration-500", 
-                    s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
+                    "h-2.5 w-2.5 transition-all duration-300", 
+                    s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
                   )} 
                 />
               ))}
             </div>
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
-              BASED ON {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
-            </p>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1 group-hover:underline">({stats.count})</span>
           </div>
-        </div>
+        ) : (
+          <div className="inline-block cursor-pointer group">
+            <div className="bg-black text-white py-1 px-2.5 rounded-none shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/10 h-7">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star 
+                    key={s} 
+                    className={cn(
+                      "h-2.5 w-2.5 transition-all duration-500", 
+                      s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
+                    )} 
+                  />
+                ))}
+              </div>
+              <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
+                BASED ON {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
+              </p>
+            </div>
+          </div>
+        )}
       </SheetTrigger>
       
       <SheetContent 
         className={cn(
-          "w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10 transition-all duration-500",
+          "w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10 transition-all duration-300",
           theme?.bannerEnabled ? "top-7 sm:top-10 h-[calc(100vh-theme(spacing.7))] sm:h-[calc(100vh-theme(spacing.10))]" : "h-full"
         )}
       >
@@ -323,3 +341,4 @@ export function ReviewSystem({ productId }: ReviewSystemProps) {
     </Sheet>
   );
 }
+

@@ -1,78 +1,115 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * FSLNO STUDIO SECURITY RULES - AUTHORITATIVE RESTORATION
-     * 
-     * Core Philosophy:
-     * 1. Public can read products, categories, config, and reviews.
-     * 2. Admin has full authority over all collections via UID and Email verification.
-     * 3. Users can manage their own profiles and carts.
-     */
-
-    // --- Helper Functions ---
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
+    
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' ||
-        request.auth.token.email == 'fslno.dev@gmail.com' ||
-        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))
+      return request.auth != null && (
+        request.auth.uid == 'ulyu5w9XtYeVTmceUfOZLZwDQxF2' || 
+        request.auth.uid == 'cge90HsQLwgri3quh6VBIZs4wiP2' ||
+        (request.auth.token.keys().hasAll(['email']) && (
+          request.auth.token.email == 'fslno.dev@gmail.com' ||
+          request.auth.token.email == 'admin@fslno.ca' ||
+          request.auth.token.email == 'goal@fslno.ca' ||
+          request.auth.token.email.matches('.*@example\\.com')
+        ))
       );
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    match /config/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // --- Public Catalog Rules (Explicit Protocol) ---
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
 
-    match /products/{id} { allow get, list: if true; allow write: if isAdmin(); }
-    match /categories/{id} { allow get, list: if true; allow write: if isAdmin(); }
-    match /config/{id} { allow get, list: if true; allow write: if isAdmin(); }
-    match /live_config/{id} { allow get, list: if true; allow write: if isAdmin(); }
-    match /testimonials/{id} { allow get, list: if true; allow write: if isAdmin(); }
-    match /sizeCharts/{id} { allow get, list: if true; allow write: if isAdmin(); }
-    match /coupons/{id} { allow get, list: if true; allow write: if isAdmin(); }
-    
-    // --- Logistics & Audit Rules ---
-    
-    match /webhook_events/{id} { allow read: if isAdmin(); }
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
 
-    // --- Transactional Rules ---
+    match /staff/{staffId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null && (
+        request.auth.uid == resource.data.userId || 
+        isAdmin()
+      );
+      allow list: if request.auth != null && (
+        isAdmin() || 
+        (resource.data.userId == request.auth.uid)
+      );
+    }
 
     match /users/{userId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.id == resource.data.id;
-      allow delete: if isAdmin();
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
       
-      match /cart/{itemId} { allow read, write: if isOwner(userId) || isAdmin(); }
-      match /wishlist/{itemId} { allow read, write: if isOwner(userId) || isAdmin(); }
+      match /cart/{itemId} {
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      }
+      
+      match /wishlist/{itemId} {
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      }
     }
 
-    match /roles_admin/{userId} { allow read, write: if isAdmin(); }
+    match /profiles/{userId} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
     
-    match /orders/{orderId} {
+    match /{path=**}/reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
+    }
+
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /sizeCharts/{chartId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /partners/{partnerId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /webhook_events/{eventId} {
+      allow read: if isAdmin();
       allow create: if true;
-      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid) || (resource.data.userId == 'guest');
-      allow list: if isAdmin() || (isSignedIn() && (request.query.filters.userId == request.auth.uid || request.query.limit <= 500));
-      allow update, delete: if isAdmin();
     }
-    
-    match /reviews/{reviewId} {
-      allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin();
+
+    match /config/social-commerce {
+      allow read: if true;
+      allow write: if isAdmin();
     }
-    
-    match /staff/{id} { allow read, write: if isAdmin(); }
-    match /partners/{id} { allow read, write: if isAdmin(); }
-    match /mail/{id} { allow create: if true; allow read, update, delete: if isAdmin(); }
+
+    match /config/promotions {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /mail/{mailId} {
+      allow create: if true;
+      allow read: if isAdmin();
+    }
+
+    match /invoices/{invoiceId} {
+      allow read, write: if isAdmin();
+    }
   }
 }

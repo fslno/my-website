@@ -29,8 +29,9 @@ import {
   ShieldCheck,
   FileCode
 } from 'lucide-react';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useStorage } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -56,6 +57,7 @@ const PAYMENT_METHODS = [
 
 export default function FooterEditorPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const poweredByLogoRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +67,7 @@ export default function FooterEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   
   // Local Form State
+  const [businessName, setBusinessName] = useState('FSLNO');
   const [description, setDescription] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
   const [tiktokUrl, setTiktokUrl] = useState('');
@@ -86,18 +89,32 @@ export default function FooterEditorPage() {
   // Store Hours & Maps
   const [openingHours, setOpeningHours] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
+  const [getDirectionsLabel, setGetDirectionsLabel] = useState('GET DIRECTIONS');
 
   // Payment Icons
   const [visiblePaymentIcons, setVisiblePaymentIcons] = useState<string[]>([]);
 
+  // Styling
+  const [footerBackgroundColor, setFooterBackgroundColor] = useState('#f0f0f0');
+
   // Powered By State
   const [poweredByEnabled, setPoweredByEnabled] = useState(true);
   const [poweredByLabel, setPoweredByLabel] = useState('Powered by');
-  const [poweredByStudioName, setPoweredByStudioName] = useState('FSLNO STUDIO');
+  const [poweredByStudioName, setPoweredByStudioName] = useState('FSLNO');
   const [poweredByLogoUrl, setPoweredByLogoUrl] = useState('');
+  const [poweredByLogoFile, setPoweredByLogoFile] = useState<File | null>(null);
+
+  // Policy Content State
+  const [termsContent, setTermsContent] = useState('');
+  const [privacyContent, setPrivacyContent] = useState('');
+  const [returnsContent, setReturnsContent] = useState('');
+  const [shippingContent, setShippingContent] = useState('');
+  const [checkoutConsentText, setCheckoutConsentText] = useState('I agree to the Terms & Conditions and Privacy Policy');
+  const [checkoutSecurityMsg, setCheckoutSecurityMsg] = useState('SECURE CHECKOUT ACTIVE');
 
   useEffect(() => {
     if (config) {
+      setBusinessName(config.businessName || 'FSLNO');
       setDescription(config.footerDescription || '');
       setInstagramUrl(config.instagramUrl || '');
       setTiktokUrl(config.tiktokUrl || '');
@@ -112,7 +129,7 @@ export default function FooterEditorPage() {
       setSystemVersion(config.systemVersion || 'ARCHIVE SYSTEM V1.0');
       setPoweredByEnabled(config.poweredByEnabled ?? true);
       setPoweredByLabel(config.poweredByLabel || 'Powered by');
-      setPoweredByStudioName(config.poweredByStudioName || 'FSLNO STUDIO');
+      setPoweredByStudioName(config.poweredByStudioName || 'FSLNO');
       setPoweredByLogoUrl(config.poweredByLogoUrl || '');
       
       setNewsletterEnabled(config.newsletterEnabled ?? true);
@@ -120,59 +137,103 @@ export default function FooterEditorPage() {
       setNewsletterSubtext(config.newsletterSubtext || 'Sign up for early access to high-velocity drops.');
       setOpeningHours(config.openingHours || '');
       setGoogleMapsUrl(config.googleMapsUrl || '');
+      setGetDirectionsLabel(config.getDirectionsLabel || 'GET DIRECTIONS');
       setVisiblePaymentIcons(config.paymentIconsVisible || []);
+      setFooterBackgroundColor(config.footerBackgroundColor || '#f0f0f0');
+
+      // Policy Content
+      setTermsContent(config.termsContent || '');
+      setPrivacyContent(config.privacyContent || '');
+      setReturnsContent(config.returnsContent || '');
+      setShippingContent(config.shippingContent || '');
+      setCheckoutConsentText(config.checkoutConsentText || 'I agree to the Terms & Conditions and Privacy Policy');
+      setCheckoutSecurityMsg(config.checkoutSecurityMsg || 'SECURE CHECKOUT ACTIVE');
     }
   }, [config]);
 
   const handleSave = async () => {
     if (!configRef) return;
     setIsSaving(true);
-    const updates = { 
-      footerDescription: description,
-      instagramUrl,
-      tiktokUrl,
-      twitterUrl,
-      facebookUrl,
-      pinterestUrl,
-      youtubeUrl,
-      linkedinUrl,
-      footerSupportLinks: supportLinks,
-      footerLegalLinks: legalLinks,
-      copyrightText,
-      systemVersion,
-      poweredByEnabled,
-      poweredByLabel,
-      poweredByStudioName,
-      poweredByLogoUrl,
-      newsletterEnabled,
-      newsletterHeadline,
-      newsletterSubtext,
-      openingHours,
-      googleMapsUrl,
-      paymentIconsVisible: visiblePaymentIcons,
-      updatedAt: new Date().toISOString() 
-    };
 
-    setDoc(configRef, updates, { merge: true })
-      .then(() => {
-        toast({ title: "Footer Updated", description: "Storefront branding has been synchronized." });
-      })
-      .catch((error) => {
+    try {
+      let finalLogoUrl = poweredByLogoUrl;
+
+      // Upload new logo if present
+      if (poweredByLogoFile && storage) {
+        const storagePath = `branding/${Date.now()}_${poweredByLogoFile.name}`;
+        const storageRef = ref(storage, storagePath);
+        const uploadTask = uploadBytesResumable(storageRef, poweredByLogoFile);
+
+        finalLogoUrl = await new Promise((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            null,
+            (error) => reject(error),
+            () => {
+              getDownloadURL(uploadTask.snapshot.ref).then(resolve).catch(reject);
+            }
+          );
+        });
+      }
+
+      const updates = { 
+        businessName,
+        footerDescription: description,
+        instagramUrl,
+        tiktokUrl,
+        twitterUrl,
+        facebookUrl,
+        pinterestUrl,
+        youtubeUrl,
+        linkedinUrl,
+        footerSupportLinks: supportLinks,
+        footerLegalLinks: legalLinks,
+        copyrightText,
+        systemVersion,
+        poweredByEnabled,
+        poweredByLabel,
+        poweredByStudioName,
+        poweredByLogoUrl: finalLogoUrl,
+        newsletterEnabled,
+        newsletterHeadline,
+        newsletterSubtext,
+        openingHours,
+        googleMapsUrl,
+        getDirectionsLabel,
+        paymentIconsVisible: visiblePaymentIcons,
+        footerBackgroundColor,
+        termsContent,
+        privacyContent,
+        returnsContent,
+        shippingContent,
+        checkoutConsentText,
+        checkoutSecurityMsg,
+        updatedAt: new Date().toISOString() 
+      };
+
+      await setDoc(configRef, updates, { merge: true });
+      toast({ title: "Footer Updated", description: "Storefront branding has been synchronized." });
+    } catch (error: any) {
+      console.error("Save error:", error);
+      if (error.code === 'permission-denied') {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: configRef.path,
           operation: 'write',
-          requestResourceData: updates
+          requestResourceData: { businessName }
         }));
-      })
-      .finally(() => setIsSaving(false));
+      } else {
+        toast({ variant: "destructive", title: "Error", description: "Failed to save branding." });
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPoweredByLogoUrl(reader.result as string);
-      reader.readAsDataURL(file);
+      setPoweredByLogoFile(file);
+      setPoweredByLogoUrl(URL.createObjectURL(file));
     }
   };
 
@@ -261,13 +322,41 @@ export default function FooterEditorPage() {
               <CardTitle className="text-sm font-bold uppercase tracking-widest">Brand Narrative</CardTitle>
               <CardDescription className="text-xs uppercase font-bold mt-1">A concise statement defining your archive's identity.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Textarea 
-                value={description} 
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Redefining luxury through minimalist design..."
-                className="min-h-[120px] resize-none text-sm uppercase tracking-tight rounded-none"
-              />
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Business Name</Label>
+                <Input 
+                  value={businessName} 
+                  onChange={(e) => setBusinessName(e.target.value.toUpperCase())}
+                  placeholder="FSLNO"
+                  className="h-11 font-headline font-bold tracking-tighter rounded-none text-lg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Narrative Description</Label>
+                <Textarea 
+                  value={description} 
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="min-h-[80px] resize-none text-sm uppercase tracking-tight rounded-none"
+                />
+              </div>
+              <div className="space-y-2 mt-4">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Footer Background Color</Label>
+                <div className="flex gap-3">
+                  <Input 
+                    type="color"
+                    value={footerBackgroundColor} 
+                    onChange={(e) => setFooterBackgroundColor(e.target.value)}
+                    className="h-10 w-20 p-1 rounded-none border-black"
+                  />
+                  <Input 
+                    value={footerBackgroundColor} 
+                    onChange={(e) => setFooterBackgroundColor(e.target.value)}
+                    placeholder="#f0f0f0"
+                    className="h-10 text-xs font-mono rounded-none"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -365,6 +454,53 @@ export default function FooterEditorPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="border-[#e1e3e5] shadow-none rounded-none">
+            <CardHeader className="border-b bg-gray-50/30">
+              <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                <FileCode className="h-4 w-4 text-purple-500" /> Policy Content
+              </CardTitle>
+              <CardDescription className="text-[10px] uppercase font-bold mt-1">Edit the actual text content for your legal and shipping pages.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Terms & Conditions</Label>
+                <Textarea 
+                  value={termsContent} 
+                  onChange={(e) => setTermsContent(e.target.value)}
+                  placeholder="Paste your Terms & Conditions content here..."
+                  className="min-h-[200px] text-xs leading-relaxed rounded-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Privacy Policy</Label>
+                <Textarea 
+                  value={privacyContent} 
+                  onChange={(e) => setPrivacyContent(e.target.value)}
+                  placeholder="Paste your Privacy Policy content here..."
+                  className="min-h-[200px] text-xs leading-relaxed rounded-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Return Policy</Label>
+                <Textarea 
+                  value={returnsContent} 
+                  onChange={(e) => setReturnsContent(e.target.value)}
+                  placeholder="Paste your Return Policy content here..."
+                  className="min-h-[200px] text-xs leading-relaxed rounded-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Shipping Policy</Label>
+                <Textarea 
+                  value={shippingContent} 
+                  onChange={(e) => setShippingContent(e.target.value)}
+                  placeholder="Paste your Shipping Policy content here..."
+                  className="min-h-[200px] text-xs leading-relaxed rounded-none"
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-8">
@@ -391,9 +527,24 @@ export default function FooterEditorPage() {
                 </Label>
                 <Input 
                   value={googleMapsUrl}
-                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    if (val && !val.startsWith('http') && val.includes('.')) {
+                      val = `https://${val}`;
+                    }
+                    setGoogleMapsUrl(val);
+                  }}
                   placeholder="https://maps.google.com/..."
                   className="h-10 text-[10px] font-bold uppercase rounded-none"
+                />
+              </div>
+              <div className="space-y-2 pt-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Maps Button Label</Label>
+                <Input 
+                  value={getDirectionsLabel}
+                  onChange={(e) => setGetDirectionsLabel(e.target.value.toUpperCase())}
+                  placeholder="GET DIRECTIONS"
+                  className="h-10 text-[10px] font-bold uppercase rounded-none italic"
                 />
               </div>
             </CardContent>
@@ -403,7 +554,7 @@ export default function FooterEditorPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-sm font-bold uppercase tracking-widest">Powered By</CardTitle>
-                <CardDescription className="text-xs uppercase font-bold mt-1">Studio attribution module.</CardDescription>
+                <CardDescription className="text-xs uppercase font-bold mt-1">Brand attribution module.</CardDescription>
               </div>
               <Switch checked={poweredByEnabled} onCheckedChange={setPoweredByEnabled} />
             </CardHeader>
@@ -421,7 +572,7 @@ export default function FooterEditorPage() {
                         <NextImage src={poweredByLogoUrl} alt="Powered By Logo" fill className="object-contain" />
                       </div>
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <Button variant="destructive" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setPoweredByLogoUrl(''); }}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="destructive" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setPoweredByLogoUrl(''); setPoweredByLogoFile(null); }}><Trash2 className="h-4 w-4" /></Button>
                         <Button variant="secondary" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); poweredByLogoRef.current?.click(); }}><Upload className="h-4 w-4" /></Button>
                       </div>
                     </>
@@ -443,11 +594,11 @@ export default function FooterEditorPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-gray-500">Studio Name</Label>
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Brand Name</Label>
                 <Input 
                   value={poweredByStudioName} 
                   onChange={(e) => setPoweredByStudioName(e.target.value)} 
-                  placeholder="FSLNO STUDIO"
+                  placeholder="FSLNO"
                   className="h-10 text-xs font-headline font-bold rounded-none"
                 />
               </div>
@@ -506,7 +657,7 @@ export default function FooterEditorPage() {
                 <Label className="text-[10px] uppercase font-bold text-gray-500">LinkedIn</Label>
                 <div className="relative">
                   <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input value={linkedinUrl} onChange={(e) => setlinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." className="pl-10 h-11 text-xs rounded-none" />
+                  <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." className="pl-10 h-11 text-xs rounded-none" />
                 </div>
               </div>
             </CardContent>
@@ -561,6 +712,35 @@ export default function FooterEditorPage() {
               </span>
             </div>
           </div>
+
+          <Card className="border-[#e1e3e5] shadow-none bg-blue-50/30 rounded-none">
+            <CardHeader>
+              <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-blue-500" /> Checkout Experience
+              </CardTitle>
+              <CardDescription className="text-xs uppercase font-bold mt-1">Configure legal consent and trust messaging on the checkout page.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Consent Checkbox Text</Label>
+                <Input 
+                  value={checkoutConsentText} 
+                  onChange={(e) => setCheckoutConsentText(e.target.value)} 
+                  placeholder="I agree to the..."
+                  className="h-10 text-xs rounded-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Security Message</Label>
+                <Input 
+                  value={checkoutSecurityMsg} 
+                  onChange={(e) => setCheckoutSecurityMsg(e.target.value)} 
+                  placeholder="SECURE CHECKOUT ACTIVE"
+                  className="h-10 text-xs font-bold uppercase tracking-widest rounded-none"
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

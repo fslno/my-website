@@ -23,6 +23,11 @@ export function MetaTagInjector() {
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme } = useDoc(themeRef);
 
+  // 3. Product Manifest (Product Detail SEO)
+  const productId = pathname?.startsWith('/products/') ? pathname.split('/')[2] : null;
+  const productRef = useMemoFirebase(() => db && productId ? doc(db, getLivePath(`products/${productId}`)) : null, [db, productId]);
+  const { data: product } = useDoc(productRef);
+
   useEffect(() => {
     // Only proceed if domain config is manifested
     if (!domain) return;
@@ -80,7 +85,26 @@ export function MetaTagInjector() {
       }
     }
 
-    // --- 04. Canonical URL Handshake ---
+    // --- 04. Product Page SEO Orchestration ---
+    if (productId && product) {
+      const productTitle = `${product.name} | ${product.brand || 'FSLNO'}`;
+      const productDescription = product.description?.substring(0, 160) || `Buy ${product.name} at FSLNO. High-quality jerseys and apparel.`;
+      
+      document.title = productTitle;
+
+      let descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) {
+        descMeta.setAttribute('content', productDescription);
+      } else {
+        const meta = document.createElement('meta');
+        meta.name = 'description';
+        meta.content = productDescription;
+        meta.classList.add(injectedClass);
+        document.head.appendChild(meta);
+      }
+    }
+
+    // --- 05. Canonical URL Handshake ---
     if (domain.primaryDomain) {
       const canonical = document.createElement('link');
       canonical.rel = 'canonical';
@@ -89,7 +113,7 @@ export function MetaTagInjector() {
       document.head.appendChild(canonical);
     }
 
-  }, [domain, theme, pathname]);
+  }, [domain, theme, pathname, product, productId]);
 
   return null;
 }

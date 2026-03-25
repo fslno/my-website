@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ProductCard } from '@/components/storefront/ProductCard';
@@ -55,26 +55,41 @@ export function ProductGrid() {
   // Forensic Constant for grid classes to ensure zero hydration mismatch
   const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16";
 
+  const reviewsEnabled = reviewConfig?.enabled !== false;
+
+  useEffect(() => {
+    if (!productsLoading && products?.length) {
+      if (typeof window !== 'undefined') {
+        const lastId = sessionStorage.getItem('lastProductId');
+        if (lastId) {
+          setTimeout(() => {
+            const el = document.getElementById(`product-${lastId}`);
+            if (el) {
+              const y = el.getBoundingClientRect().top + window.scrollY - 150;
+              window.scrollTo({ top: y, behavior: 'instant' });
+              sessionStorage.removeItem('lastProductId');
+            }
+          }, 200);
+        }
+      }
+    }
+  }, [productsLoading, products]);
+
   if (productsLoading) {
     return (
       <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
         <div className={gridClasses}>
-          {Array.from({ length: 8 }).map((_, idx) => (
-            <div key={idx} className="space-y-4">
-              <Skeleton className="aspect-square w-full rounded-sm" />
-              <div className="space-y-2">
-                <Skeleton className="h-3 w-1/3" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-1/4" />
-              </div>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-2">
+              <Skeleton className="w-full aspect-square rounded-sm" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
             </div>
           ))}
         </div>
       </div>
     );
   }
-
-  const reviewsEnabled = reviewConfig?.enabled !== false;
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
@@ -84,7 +99,14 @@ export function ProductGrid() {
           const ratingInfo = productRatings[product.id];
           const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
           const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
-          const isSoldOut = (Number(product.inventory) || 0) <= 0;
+          
+          // Authoritative Inventory Intelligence: Sum variant stock if available
+          const variants = product.variants || [];
+          const totalStock = variants.length > 0 
+            ? variants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0)
+            : Number(product.inventory) || 0;
+            
+          const isSoldOut = totalStock <= 0;
 
           return (
             <ProductCard 

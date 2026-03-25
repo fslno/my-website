@@ -70,8 +70,11 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
       let fetchedRates: any[] = [];
 
       // A. Ingest Regional Manual Rates (Province Overrides) - PROVINCE ONLY REQUIRED
-      if (manualRates && address.province) {
-        const matched = manualRates.find((r: any) => r.province.toUpperCase() === address.province.toUpperCase());
+      if (shippingConfig?.provinceRatesEnabled && Array.isArray(manualRates) && address.province) {
+        const matched = manualRates.find((r: any) => 
+          r.province?.toUpperCase() === (address.province || '').toUpperCase() && 
+          (r.active !== false)
+        );
         if (matched) {
           fetchedRates.push({
             id: `manual-std-${matched.province}`,
@@ -225,7 +228,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
                 </Label>
               </div>
               <div className="text-right flex items-center gap-3">
-                <span className="text-[11px] font-bold text-primary">C${rate.totalCost.toFixed(2)}</span>
+                <span className="text-[11px] font-bold text-primary">C${(Number(rate.totalCost) || 0).toFixed(2)}</span>
                 <ChevronRight className="h-3 w-3 text-muted-foreground opacity-20" />
               </div>
             </div>

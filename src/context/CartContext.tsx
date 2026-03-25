@@ -34,6 +34,12 @@ export interface CartItem {
   isPromo?: boolean;
   createdAt?: any;
   customizationEnabled?: boolean;
+  logistics?: {
+    weight?: number;
+    length?: number;
+    width?: number;
+    height?: number;
+  };
 }
 
 export interface Coupon {

@@ -49,6 +49,7 @@ export async function getMessagingInstance(firebaseApp: FirebaseApp) {
   return null;
 }
 
+export * from './hooks';
 export * from './provider';
 export * from './client-provider';
 export * from './firestore/use-collection';

@@ -24,21 +24,23 @@ interface BentoHeroProps {
   fallbackImageUrl?: string;
   textAlign?: string;
   verticalAlign?: string;
+  bannerEnabled?: boolean;
 }
 
 /**
  * Main Hero section for the home page.
  * Recalibrated with increased height (90vh) for a commanding presence.
  */
-export function BentoHero({ 
-  isLoading, 
-  heroImages = [], 
-  headline = 'Our Collection', 
+export function BentoHero({
+  isLoading,
+  heroImages = [],
+  headline = 'Our Collection',
   subheadline = 'Modern Styles',
   buttonText = 'Shop Now',
   fallbackImageUrl,
   textAlign = 'center',
-  verticalAlign = 'center'
+  verticalAlign = 'center',
+  bannerEnabled = false
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [mounted, setMounted] = useState(false);
@@ -53,18 +55,20 @@ export function BentoHero({
 
   if (isLoading || !mounted) {
     return (
-      <section className="pt-32 sm:pt-40">
-        <div className="w-full h-[90vh] bg-white" />
-      </section>
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
+      </div>
     );
   }
 
   const images = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
 
   return (
-    <section className="pt-32 sm:pt-40">
-      <div className="w-full bg-primary overflow-hidden group shadow-2xl relative h-[90vh]">
-        <Carousel 
+    <section className={cn(
+      bannerEnabled ? "pt-[76px] sm:pt-[104px]" : "pt-12 sm:pt-16"
+    )}>
+      <div className="w-full bg-white overflow-hidden group shadow-2xl relative h-[90vh]">
+        <Carousel
           setApi={setApi}
           plugins={[autoplayPlugin.current]}
           className="w-full h-full"
@@ -108,8 +112,8 @@ export function BentoHero({
               <span className="hero-headline-size font-headline mb-10 tracking-tighter uppercase font-bold leading-none animate-in fade-in slide-in-from-bottom-6 duration-1000 block">
                 {headline}
               </span>
-              <Link 
-                href="/collections/all" 
+              <Link
+                href="/collections/all"
                 className={cn(
                   "hero-button px-12 h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95 w-fit",
                   textAlign === 'left' ? 'ml-0 mr-auto' : textAlign === 'right' ? 'ml-auto mr-0' : 'mx-auto'

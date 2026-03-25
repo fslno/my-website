@@ -36,9 +36,7 @@ export function TestimonialSection() {
 
   if (isLoading) {
     return (
-      <div className="py-20 flex justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-black/10" />
-      </div>
+      <div className="py-20 flex justify-center bg-white min-h-[300px]" />
     );
   }
 
@@ -78,7 +76,7 @@ export function TestimonialSection() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-primary text-white font-bold text-xl uppercase">
-                            {t.customerName[0]}
+                            {t.customerName?.[0] || '?'}
                           </div>
                         )}
                       </div>

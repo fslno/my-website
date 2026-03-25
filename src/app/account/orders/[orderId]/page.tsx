@@ -6,6 +6,7 @@ import { doc } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { Loader2, Package, Truck, MapPin, Calendar, CreditCard, ExternalLink, ArrowLeft, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -19,7 +20,7 @@ interface PageProps {
 export default function OrderDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
   const { orderId } = resolvedParams;
-  
+
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
 
@@ -33,9 +34,9 @@ export default function OrderDetailPage(props: PageProps) {
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -60,9 +61,9 @@ export default function OrderDetailPage(props: PageProps) {
   };
 
   const formatCurrency = (val: number) => {
-    return (val || 0).toLocaleString(undefined, { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    return (val || 0).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
   };
 
@@ -120,7 +121,7 @@ export default function OrderDetailPage(props: PageProps) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           <div className="lg:col-span-8 space-y-8">
             <Card className="rounded-none border shadow-none bg-white">
               <CardHeader className="border-b py-4">

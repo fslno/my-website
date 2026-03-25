@@ -55,6 +55,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/deployment';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
+import { ClientOnly } from '@/components/shared/ClientOnly';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
@@ -65,6 +66,7 @@ export default function ProductDetailPage(props: PageProps) {
   const resolvedParams = React.use(props.params);
   const { productId } = resolvedParams;
   
+  const router = useRouter();
   const db = useFirestore();
   const { cart, addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
@@ -170,24 +172,50 @@ export default function ProductDetailPage(props: PageProps) {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white pt-20 sm:pt-32 pb-32">
-        <div className="max-w-[1280px] mx-auto px-4 lg:px-8 space-y-12">
-          <div className="flex flex-col md:grid md:grid-cols-12 md:gap-12">
-            <Skeleton className="md:col-span-7 lg:col-span-8 aspect-square w-full rounded-sm" />
-            <div className="md:col-span-5 lg:col-span-4 space-y-8 py-6 md:py-0">
-              <div className="space-y-4">
-                <Skeleton className="h-10 w-3/4" />
-                <Skeleton className="h-6 w-1/4" />
+      <div className="min-h-[100vh] flex flex-col bg-white">
+        <div className="flex-grow mobile-wrapper pt-20 sm:pt-32 pb-32">
+          <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
+            <Skeleton className="h-6 w-24 mb-6" />
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
+              <div className="md:col-span-7 lg:col-span-8 space-y-8">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="aspect-square w-full rounded-sm" />
+                    ))}
+                  </div>
+                  <div className="flex-1 relative">
+                    <Skeleton className="w-full aspect-square rounded-sm" />
+                  </div>
+                </div>
               </div>
-              <Skeleton className="h-24 w-full" />
-              <div className="grid grid-cols-4 gap-2">
-                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+              <div className="md:col-span-5 lg:col-span-4 space-y-8">
+                <div className="space-y-4">
+                  <Skeleton className="h-12 w-3/4" />
+                  <Skeleton className="h-6 w-1/3" />
+                </div>
+                <div className="space-y-4 pt-4">
+                  <Skeleton className="h-4 w-1/4" />
+                  <div className="grid grid-cols-4 gap-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="h-12 w-full rounded-none" />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-4 pt-6">
+                  <Skeleton className="h-14 w-full rounded-none" />
+                  <Skeleton className="h-12 w-full rounded-none" />
+                </div>
+                <div className="pt-6 space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-4/6" />
+                </div>
               </div>
-              <Skeleton className="h-14 w-full" />
             </div>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -202,11 +230,13 @@ export default function ProductDetailPage(props: PageProps) {
   }
 
   return (
-    <main className="mobile-wrapper min-h-screen bg-white pt-20 sm:pt-32 pb-32">
+    <div className="mobile-wrapper bg-white pt-20 sm:pt-32 pb-32">
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-        <Link href="/" className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
-          <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Home
-        </Link>
+        <ClientOnly fallback={<Skeleton className="h-6 w-24 mb-6" />}>
+          <button onClick={() => router.back()} className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
+            <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
+          </button>
+        </ClientOnly>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
           <div className="md:col-span-7 lg:col-span-8 space-y-8">
@@ -293,6 +323,9 @@ export default function ProductDetailPage(props: PageProps) {
                   {product.sku && (
                     <p className="text-[8px] font-mono font-bold text-muted-foreground uppercase tracking-widest">SKU: {product.sku}</p>
                   )}
+                  <div className="pt-2">
+                    <ReviewSystem productId={product.id} variant="minimal" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -302,7 +335,7 @@ export default function ProductDetailPage(props: PageProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Size</span>
-                {categoryCharts?.length > 0 && (
+                {categoryCharts && categoryCharts.length > 0 && (
                   <Sheet>
                     <SheetTrigger asChild>
                       <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Size Chart</button>
@@ -390,7 +423,7 @@ export default function ProductDetailPage(props: PageProps) {
               <Button 
                 onClick={handleAddToCart} 
                 disabled={isButtonDisabled}
-                className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
+                className="w-full h-14 bg-black text-white border border-black font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-gray-900 transition-all shadow-xl"
               >
                 {buttonText}
               </Button>
@@ -398,14 +431,9 @@ export default function ProductDetailPage(props: PageProps) {
                 <Button variant="outline" onClick={() => toggleWishlist({ id: product.id, name: product.name, price: Number(product.price), image: product.media?.[0]?.url || '' })} className={cn("h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2", isInWishlist(product.id) && "bg-red-50 border-red-100 text-red-600")}>
                   <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} /> {isInWishlist(product.id) ? 'Saved' : 'Add to Wishlist'}
                 </Button>
-                <Button variant="outline" onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: "Link Copied" }); }} className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2">
+                <Button variant="outline" onClick={() => { navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : ''); toast({ title: "Link Copied" }); }} className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2">
                   <Share2 className="h-4 w-4" /> Share
                 </Button>
-              </div>
-              
-              {/* Relocated Review System for Product specific reviews */}
-              <div className="pt-2 flex justify-start">
-                <ReviewSystem productId={product.id} />
               </div>
             </div>
 
@@ -421,7 +449,9 @@ export default function ProductDetailPage(props: PageProps) {
         </div>
       </div>
 
-      <TestimonialSection />
-    </main>
+      <ClientOnly>
+        <TestimonialSection />
+      </ClientOnly>
+    </div>
   );
 }

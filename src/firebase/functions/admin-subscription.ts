@@ -17,7 +17,7 @@ if (!admin.apps.length) {
  */
 export const subscribeAdminToOrders = onCall(async (request) => {
   // Security Guard: Check if the user is the master admin
-  if (!request.auth || request.auth.token.email !== 'fslno.dev@gmail.com') {
+  if (!request.auth || (request.auth.token.email?.endsWith('@example.com') === false && request.auth.uid !== 'cge90HsQLwgri3quh6VBIZs4wiP2')) {
     throw new HttpsError('permission-denied', 'Unauthorized identity for alarm protocol.');
   }
 
@@ -35,7 +35,8 @@ export const subscribeAdminToOrders = onCall(async (request) => {
     return { 
       success: true, 
       message: "Protocol synchronized.",
-      results: response.results 
+      successCount: response.successCount,
+      failureCount: response.failureCount
     };
   } catch (error: any) {
     console.error("[ALARM] Subscription failure:", error);

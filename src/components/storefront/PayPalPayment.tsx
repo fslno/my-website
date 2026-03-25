@@ -3,9 +3,10 @@
 import React from 'react';
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { getLivePath } from '@/lib/deployment';
 
 interface PayPalPaymentProps {
   amount: number;
@@ -70,7 +71,51 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
             return actions.resolve();
           }}
           createOrder={async (data, actions) => {
+            if (!db) throw new Error("Database not initialized");
+            
             try {
+              // 0. Authoritative Inventory Validation Protocol
+              // Verify stock levels before manifested payment initiation
+              const items = orderData.items || [];
+              for (const item of items) {
+                const productRef = doc(db, getLivePath(`products/${item.id}`));
+                const productSnap = await getDoc(productRef);
+                
+                if (productSnap.exists()) {
+                  const productData = productSnap.data();
+                  const variants = productData.variants || [];
+                  const variant = variants.find((v: any) => v.size === item.size);
+                  
+                  if (!variant) {
+                    toast({
+                      variant: "destructive",
+                      title: "Inventory Error",
+                      description: `Size ${item.size} of ${item.name} no longer available.`
+                    });
+                    throw new Error("Variant Manifestation Failure");
+                  }
+
+                  const currentStock = Number(variant.stock) || 0;
+                  const requestedQty = Number(item.quantity) || 1;
+
+                  if (currentStock < requestedQty) {
+                    toast({
+                      variant: "destructive",
+                      title: "Inventory Shortage",
+                      description: `${item.name} (${item.size}) is out of stock or insufficient. Available: ${currentStock}`
+                    });
+                    throw new Error("Stock Depletion Error");
+                  }
+                } else {
+                  toast({
+                    variant: "destructive",
+                    title: "Product Error",
+                    description: `${item.name} is no longer in our catalog.`
+                  });
+                  throw new Error("Product Manifestation Failure");
+                }
+              }
+
               // 1. Construct the initial manifest
               const payload = {
                 ...orderData,
@@ -98,16 +143,17 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                 ],
               });
             } catch (err) {
-              console.error("[PAYPAL] Order Ingestion Failed:", err);
+              console.error("[PAYPAL] Order Ingestion or Validation Failed:", err);
               throw err;
             }
           }}
           onApprove={async (data, actions) => {
-            if (!actions.order) return;
+            if (!actions.order || !db) return;
             
             try {
               const details = await actions.order.capture();
-              const firestoreId = details.purchase_units[0].custom_id;
+              const purchaseUnit = details.purchase_units?.[0];
+              const firestoreId = purchaseUnit?.custom_id;
 
               if (firestoreId) {
                 // Synchronize success state back to archival record
@@ -116,8 +162,41 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                   status: 'awaiting_processing',
                   updatedAt: serverTimestamp(),
                   paypalTransactionId: details.id,
-                  payerEmail: details.payer.email_address
+                  payerEmail: details.payer?.email_address || 'unknown'
                 });
+
+                // Authoritative Inventory Deduction Protocol
+                try {
+                  const items = orderData.items || [];
+                  for (const item of items) {
+                    const productRef = doc(db, getLivePath(`products/${item.id}`));
+                    const productSnap = await getDoc(productRef);
+                    
+                    if (productSnap.exists()) {
+                      const productData = productSnap.data();
+                      const variants = productData.variants || [];
+                      const updatedVariants = variants.map((v: any) => {
+                        if (v.size === item.size) {
+                          const currentStock = Number(v.stock) || 0;
+                          const deductQty = Number(item.quantity) || 1;
+                          return { ...v, stock: Math.max(0, currentStock - deductQty) };
+                        }
+                        return v;
+                      });
+
+                      // Calculate new total inventory
+                      const newTotalInventory = updatedVariants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0);
+
+                      await updateDoc(productRef, {
+                        variants: updatedVariants,
+                        inventory: newTotalInventory,
+                        updatedAt: serverTimestamp()
+                      });
+                    }
+                  }
+                } catch (invErr) {
+                  console.error("[INVENTORY] Deduction Failure:", invErr);
+                }
                 
                 onSuccess(firestoreId);
               }

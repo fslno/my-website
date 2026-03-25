@@ -27,8 +27,8 @@ export function CategorySection() {
 
   if (isLoading) {
     return (
-      <div className="py-20 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-black/10" />
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
       </div>
     );
   }

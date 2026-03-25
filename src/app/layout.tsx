@@ -17,6 +17,8 @@ import { usePathname } from 'next/navigation';
 import { doc } from 'firebase/firestore';
 import { getLivePath } from '@/lib/deployment';
 
+import { AuthDialogProvider } from '@/context/AuthDialogContext';
+
 /**
  * Authoritative Direct-Open Root Layout.
  * Forensicly purged of loading sequences to ensure instantaneous storefront manifestation.
@@ -37,20 +39,22 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-white text-foreground overflow-x-hidden" suppressHydrationWarning>
         <FirebaseClientProvider>
-          <ThemeStyleInjector />
-          <MetaTagInjector />
-          <WishlistProvider>
-            <CartProvider>
-              <LayoutContent pathname={pathname}>
-                <div className="mobile-wrapper min-h-screen bg-white">
-                  {children}
-                </div>
-              </LayoutContent>
-              <Toaster />
-              <Chatbot />
-              <PromotionPopup />
-            </CartProvider>
-          </WishlistProvider>
+          <AuthDialogProvider>
+            <ThemeStyleInjector />
+            <MetaTagInjector />
+            <WishlistProvider>
+              <CartProvider>
+                <LayoutContent pathname={pathname}>
+                  <div className="mobile-wrapper">
+                    {children}
+                  </div>
+                </LayoutContent>
+                <Toaster />
+                <Chatbot />
+                <PromotionPopup />
+              </CartProvider>
+            </WishlistProvider>
+          </AuthDialogProvider>
         </FirebaseClientProvider>
       </body>
     </html>
@@ -59,19 +63,41 @@ export default function RootLayout({
 
 function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
   const isAdmin = pathname?.startsWith('/admin');
+  const isCheckout = pathname === '/checkout';
+  const isProductDetails = pathname?.startsWith('/products/');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    // Small delay ensures fonts + styles are painted before revealing content
+    const t = setTimeout(() => setIsMounted(true), 80);
+    return () => clearTimeout(t);
   }, []);
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-white">
+      {/* White opaque flash-prevention overlay — fades out once hydrated */}
+      {!isAdmin && (
+        <div
+          aria-hidden="true"
+          className="flex items-center justify-center"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: '#ffffff',
+            pointerEvents: 'none',
+            opacity: isMounted ? 0 : 1,
+            transition: 'opacity 300ms ease-out',
+          }}
+        >
+          <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
+        </div>
+      )}
       {isMounted && !isAdmin && <Header />}
-      <main className={cn("min-h-screen bg-white", !isAdmin && "pt-0")}>
+      <main className={cn("flex-grow", !isAdmin && "pt-0")}>
         {children}
       </main>
       {isMounted && !isAdmin && <Footer />}
-    </>
+    </div>
   );
 }

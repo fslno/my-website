@@ -87,7 +87,7 @@ export const onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) =
  * Dispatches a test alarm.
  */
 export const sendTestNotification = onCall(async (request) => {
-  if (!request.auth || (request.auth.token.email !== 'fslno.dev@gmail.com' && request.auth.uid !== 'ulyu5w9XtYeVTmceUfOZLZwDQxF2')) {
+  if (!request.auth || (request.auth.token.email?.endsWith('@example.com') === false && request.auth.uid !== 'cge90HsQLwgri3quh6VBIZs4wiP2')) {
     throw new HttpsError('permission-denied', 'Unauthorized access.');
   }
 

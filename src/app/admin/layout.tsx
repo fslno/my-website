@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { useRouter } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Users, 
-  Settings, 
-  Palette, 
-  Truck, 
+import { useRouter, usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Users,
+  Settings,
+  Palette,
+  Truck,
   CreditCard,
   BarChart3,
   Bell,
@@ -30,24 +30,26 @@ import {
   VolumeX,
   Monitor,
   Star,
-  Zap
+  Zap,
+  PanelBottom,
+  Receipt
 } from 'lucide-react';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarFooter, 
-  SidebarGroup, 
-  SidebarGroupContent, 
-  SidebarGroupLabel, 
-  SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuButton, 
-  SidebarMenuItem, 
-  SidebarProvider, 
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
   SidebarTrigger,
-  useSidebar 
+  useSidebar
 } from '@/components/ui/sidebar';
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useIsAdmin } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,7 +60,7 @@ import { useToast } from '@/hooks/use-toast';
 import { doc, collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
-function AppSidebar({ storeConfig }: { storeConfig: any }) {
+function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { storeConfig: any, storeLoading?: boolean, unviewedOrdersCount?: number }) {
   const { isMobile, setOpenMobile } = useSidebar();
   const auth = useAuth();
   const { toast } = useToast();
@@ -93,9 +95,9 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
     <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] admin-sidebar-bg">
       <SidebarHeader className="admin-header-height flex items-center px-6 border-b border-[#e1e3e5] admin-sidebar-bg">
         <Link href="/" className="flex items-center gap-2" onClick={handleNavClick}>
-          <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-bold text-sm overflow-hidden relative border border-white/10">
-            {adminLogo ? (
-              <NextImage src={adminLogo} alt="Logo" fill className="object-cover" />
+          <div className={cn("w-8 h-8 rounded shrink-0 flex items-center justify-center font-bold text-sm overflow-hidden relative", (!adminLogo && !storeLoading) ? "bg-black text-white border border-white/10" : "")}>
+            {storeLoading ? null : adminLogo ? (
+              <NextImage src={adminLogo} alt="Logo" fill className="object-contain" />
             ) : (
               "F"
             )}
@@ -116,12 +118,19 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            
+
             <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Orders" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/orders">
-                  <ShoppingBag />
-                  <span>Orders</span>
+                <Link href="/admin/orders" className="flex items-center justify-between w-full pr-1">
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag />
+                    <span>Orders</span>
+                  </div>
+                  {unviewedOrdersCount > 0 && (
+                    <Badge variant="destructive" className="h-5 px-1.5 min-w-[20px] rounded-full text-[10px] font-bold animate-pulse">
+                      {unviewedOrdersCount > 99 ? '99+' : unviewedOrdersCount}
+                    </Badge>
+                  )}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -211,6 +220,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Invoices" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/invoices">
+                  <Receipt />
+                  <span>Invoices</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
@@ -222,6 +239,14 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
                 <Link href="/admin/storefront">
                   <Monitor />
                   <span>Storefront</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Footer Editor" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/footer">
+                  <PanelBottom />
+                  <span>Footer</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -277,22 +302,22 @@ function AppSidebar({ storeConfig }: { storeConfig: any }) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-[#e1e3e5] p-2 admin-sidebar-bg">
-           <SidebarMenu className="gap-0.5">
-              <SidebarMenuItem>
-                <SidebarMenuButton size="sm" asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
-                  <Link href="/admin/settings">
-                    <Settings />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton size="sm" onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body text-destructive">
-                  <LogOut />
-                  <span>Sign Out</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-           </SidebarMenu>
+        <SidebarMenu className="gap-0.5">
+          <SidebarMenuItem>
+            <SidebarMenuButton size="sm" asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
+              <Link href="/admin/settings">
+                <Settings />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="sm" onClick={() => { handleLogout(); handleNavClick(); }} tooltip="Sign Out" className="font-admin-body text-destructive">
+              <LogOut />
+              <span>Sign Out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
@@ -304,12 +329,49 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
+  const isAdmin = useIsAdmin();
+  const pathname = usePathname();
+  const [unviewedOrdersCount, setUnviewedOrdersCount] = useState(0);
 
   const [hasMounted, setHasMounted] = useState(false);
   const [newOrderDetected, setNewOrderDetected] = useState(false);
+  const [newReviewDetected, setNewReviewDetected] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const reviewAudioRef = useRef<HTMLAudioElement>(null);
   const sessionStartTime = useRef(new Date());
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  const enableNotifications = async () => {
+    if (!("Notification" in window)) {
+      toast({ variant: "destructive", title: "Unsupported", description: "Browser notifications not supported." });
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+
+    // satisfy mobile audio autoplay policy
+    if (audioRef.current) {
+      audioRef.current.muted = true;
+      audioRef.current.play().then(() => {
+        audioRef.current!.pause();
+        audioRef.current!.muted = false;
+      }).catch(e => console.warn("Audio init failed", e));
+    }
+
+    if (permission === 'granted') {
+      toast({ title: "Alerts Enabled", description: "Notifications and sound are active." });
+    } else {
+      toast({ variant: "destructive", title: "Permission Denied", description: "Please enable notifications in settings." });
+    }
+  };
 
   useEffect(() => {
     setHasMounted(true);
@@ -318,8 +380,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'notifications') : null, [db]);
   const { data: notificationConfig } = useDoc(configRef);
 
+
+  const triggerAlert = useCallback((type: 'order' | 'review' = 'order') => {
+    if (type === 'order') {
+      setNewOrderDetected(true);
+      if (notificationConfig?.orderAlarmEnabled && !isAudioMuted) {
+        audioRef.current?.play().catch(e => console.warn("Order audio prevented", e));
+      }
+      toast({ 
+        variant: "destructive",
+        title: "🚨 NEW ORDER RECEIVED", 
+        description: "An order has just been archived in FSLNO. Check orders portal immediately.", 
+        duration: 20000 
+      });
+      setTimeout(() => setNewOrderDetected(false), 5000);
+    } else {
+      setNewReviewDetected(true);
+      if (notificationConfig?.reviewAlarmEnabled && !isAudioMuted) {
+        reviewAudioRef.current?.play().catch(e => console.warn("Review audio prevented", e));
+      }
+      toast({ 
+        title: "⭐ NEW REVIEW", 
+        description: "Customer review received.", 
+        duration: 10000 
+      });
+      setTimeout(() => setNewReviewDetected(false), 5000);
+    }
+  }, [notificationConfig, isAudioMuted, toast]);
+
   useEffect(() => {
-    if (!db || !user || !hasMounted) return;
+    if (!db || !user || !hasMounted || !isAdmin) return;
 
     const q = query(
       collection(db, 'orders'),
@@ -328,35 +418,76 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       limit(1)
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribeOrders = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added') {
-          setNewOrderDetected(true);
-          
-          if (notificationConfig?.orderAlarmEnabled && !isAudioMuted) {
-            audioRef.current?.play().catch(e => {
-              console.warn("Autoplay prevented.", e);
-            });
+          const orderData = change.doc.data();
+          const createdAt = orderData.createdAt?.toDate?.() || orderData.createdAt;
+          if (createdAt > sessionStartTime.current) {
+            triggerAlert('order');
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification("New Order Received", {
+                body: `Order #${change.doc.id.slice(-6)} just arrived!`,
+                icon: "/logo.png"
+              });
+            }
           }
-
-          toast({
-            title: "New order",
-            description: "Order received.",
-            duration: 10000,
-          });
-
-          setTimeout(() => setNewOrderDetected(false), 5000);
         }
       });
     });
 
-    return () => unsubscribe();
-  }, [db, user, hasMounted, notificationConfig, isAudioMuted, toast]);
+    const reviewsQuery = query(
+      collection(db, 'reviews'),
+      where('createdAt', '>', sessionStartTime.current),
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    );
+
+    const unsubscribeReviews = onSnapshot(reviewsQuery, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const reviewData = change.doc.data();
+          const createdAt = reviewData.createdAt?.toDate?.() || reviewData.createdAt;
+          if (createdAt > sessionStartTime.current) {
+            triggerAlert('review');
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification("New Customer Review", {
+                body: `A new review was submitted for ${reviewData.productName || 'a product'}.`,
+                icon: "/logo.png"
+              });
+            }
+          }
+        }
+      });
+    });
+
+    const unviewedOrdersQuery = query(
+      collection(db, 'orders'),
+      where('viewed', '==', false)
+    );
+
+    const unsubscribeUnviewed = onSnapshot(unviewedOrdersQuery, (snapshot) => {
+      const count = snapshot.size;
+      setUnviewedOrdersCount(count);
+      // Dynamic tab title update
+      if (count > 0) {
+        document.title = `(${count}) ${adminName} Admin`;
+      } else {
+        document.title = `${adminName} Admin`;
+      }
+    });
+
+    return () => {
+      unsubscribeOrders();
+      unsubscribeReviews();
+      unsubscribeUnviewed();
+    };
+  }, [db, user, hasMounted, isAdmin, triggerAlert]);
 
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
-  
-  const { data: storeConfig } = useDoc(storeConfigRef);
+
+  const { data: storeConfig, isLoading: storeLoading } = useDoc(storeConfigRef);
   const { data: theme } = useDoc(themeRef);
 
   const [email, setEmail] = useState('');
@@ -377,11 +508,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  const isAdmin = user && user.uid === 'ulyu5w9XtYeVTmceUfOZLZwDQxF2';
-
   if (!hasMounted || loading) {
     return (
-      <div className="min-h-screen bg-white" />
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 object-contain animate-pulse opacity-50" />
+      </div>
     );
   }
 
@@ -411,7 +542,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input id="email" type="email" placeholder="admin@fslno.ca" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Input id="email" type="email" placeholder="admin@example.com" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
               </div>
               <div className="space-y-2 text-left">
@@ -502,7 +633,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <SidebarProvider>
       <style dangerouslySetInnerHTML={{ __html: adminThemeStyles }} />
       <div className="flex min-h-screen w-full admin-viewport">
-        <AppSidebar storeConfig={storeConfig} />
+        <AppSidebar storeConfig={storeConfig} storeLoading={storeLoading} unviewedOrdersCount={unviewedOrdersCount} />
 
         <main className="flex-1 flex flex-col min-w-0 relative max-w-full h-screen overflow-hidden bg-white">
           <header className="admin-header-height bg-white/80 backdrop-blur-md border-b border-[#e1e3e5] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30 w-full shrink-0">
@@ -510,7 +641,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarTrigger className="h-9 w-9 shrink-0" />
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <button 
+              <button
                 onClick={() => setIsAudioMuted(!isAudioMuted)}
                 className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors"
               >
@@ -518,8 +649,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </button>
               <button className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors relative">
                 <Bell className={cn("h-5 w-5 text-[#5c5f62]")} />
-                {newOrderDetected && <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border border-white" />}
+                {(newOrderDetected || newReviewDetected) && <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border border-white" />}
               </button>
+              {notificationPermission !== 'granted' && (
+                <Button 
+                  onClick={enableNotifications} 
+                  variant="outline" 
+                  size="sm" 
+                  className="hidden md:flex h-9 px-3 gap-2 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-bold uppercase text-[9px] tracking-widest animate-pulse"
+                >
+                  <ShieldAlert className="h-4 w-4" />
+                  Enable Alerts
+                </Button>
+              )}
+              {notificationPermission !== 'granted' && (
+                <button 
+                  onClick={enableNotifications} 
+                  className="md:hidden p-2 bg-red-50 rounded-md text-red-600 animate-pulse border border-red-200"
+                >
+                  <ShieldAlert className="h-5 w-5" />
+                </button>
+              )}
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
                 {user.photoURL && <NextImage src={user.photoURL} alt="Admin" fill className="object-cover" />}
               </div>
@@ -533,11 +683,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </main>
       </div>
 
-      <audio 
-        ref={audioRef} 
-        src={notificationConfig?.orderAlarmUrl || 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'} 
+      <audio
+        ref={audioRef}
+        src={notificationConfig?.orderAlarmUrl || 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'}
+        preload="auto"
+      />
+      <audio
+        ref={reviewAudioRef}
+        src={notificationConfig?.reviewAlarmUrl || 'https://assets.mixkit.co/active_storage/sfx/2210/2210-preview.mp3'}
         preload="auto"
       />
     </SidebarProvider>
   );
 }
+

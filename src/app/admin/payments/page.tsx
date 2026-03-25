@@ -81,6 +81,8 @@ export default function PaymentsPage() {
       stripeSecretKey: '',
       stripeDescription: 'Secure Credit Card Checkout',
       stripeFee: '2.9% + 30¢',
+      stripeProcessingFeePercent: 2.9,
+      stripeProcessingFeeFlat: 0.30,
       paypalEnabled: true,
       paypalDeleted: false,
       paypalMode: 'sandbox',
@@ -88,6 +90,8 @@ export default function PaymentsPage() {
       paypalSecretKey: '',
       paypalDescription: 'Global Digital Wallet',
       paypalFee: '3.49% + 49¢',
+      paypalProcessingFeePercent: 3.49,
+      paypalProcessingFeeFlat: 0.49,
       paypalPayLaterEnabled: true,
       klarnaEnabled: false,
       klarnaDeleted: false,
@@ -96,6 +100,8 @@ export default function PaymentsPage() {
       klarnaClientSecret: '',
       klarnaDescription: 'Interest-free installments',
       klarnaFee: '5.99% + 30¢',
+      klarnaProcessingFeePercent: 5.99,
+      klarnaProcessingFeeFlat: 0.30,
       afterpayEnabled: false,
       afterpayDeleted: false,
       afterpayMode: 'sandbox',
@@ -103,6 +109,8 @@ export default function PaymentsPage() {
       afterpaySecretKey: '',
       afterpayDescription: 'Buy now, pay later',
       afterpayFee: '6% + 30¢',
+      afterpayProcessingFeePercent: 6.00,
+      afterpayProcessingFeeFlat: 0.30,
       adyenEnabled: false,
       adyenDeleted: false,
       adyenMode: 'test',
@@ -110,6 +118,8 @@ export default function PaymentsPage() {
       adyenApiKey: '',
       adyenDescription: 'Global merchant payments',
       adyenFee: '2.1% + 12¢',
+      adyenProcessingFeePercent: 2.10,
+      adyenProcessingFeeFlat: 0.12,
       applePayEnabled: true,
       googlePayEnabled: true,
       fraudGuardLevel: 'high',
@@ -374,13 +384,31 @@ export default function PaymentsPage() {
                             className="h-11 text-xs font-bold uppercase" 
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                          <Input 
-                            value={config.stripeFee || ''} 
-                            onChange={(e) => handleUpdate({ stripeFee: e.target.value })}
-                            className="h-11 text-xs font-mono" 
-                          />
+                        <div className="space-y-4 pt-4 border-t border-dashed">
+                          <Label className="text-[10px] uppercase tracking-widest font-black text-black">Customer Processing Fee (Dynamic)</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Percent (%)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.stripeProcessingFeePercent || 0} 
+                                onChange={(e) => handleUpdate({ stripeProcessingFeePercent: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Flat Amount ($)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.stripeProcessingFeeFlat || 0} 
+                                onChange={(e) => handleUpdate({ stripeProcessingFeeFlat: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                          </div>
+                          <p className="text-[8px] text-gray-400 uppercase font-bold tracking-tight">Applied to both Storefront Checkout and Invoice Maker when Stripe is selected.</p>
                         </div>
                       </div>
                       <div className="flex flex-col justify-end p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
@@ -477,13 +505,30 @@ export default function PaymentsPage() {
                             className="h-11 text-xs font-bold uppercase" 
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                          <Input 
-                            value={config.paypalFee || ''} 
-                            onChange={(e) => handleUpdate({ paypalFee: e.target.value })}
-                            className="h-11 text-xs font-mono" 
-                          />
+                        <div className="space-y-4 pt-4 border-t border-dashed">
+                          <Label className="text-[10px] uppercase tracking-widest font-black text-black">Customer Processing Fee (Dynamic)</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Percent (%)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.paypalProcessingFeePercent || 0} 
+                                onChange={(e) => handleUpdate({ paypalProcessingFeePercent: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Flat Amount ($)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.paypalProcessingFeeFlat || 0} 
+                                onChange={(e) => handleUpdate({ paypalProcessingFeeFlat: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
@@ -580,13 +625,30 @@ export default function PaymentsPage() {
                             className="h-11 text-xs font-bold uppercase" 
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                          <Input 
-                            value={config.klarnaFee || ''} 
-                            onChange={(e) => handleUpdate({ klarnaFee: e.target.value })}
-                            className="h-11 text-xs font-mono" 
-                          />
+                        <div className="space-y-4 pt-4 border-t border-dashed">
+                          <Label className="text-[10px] uppercase tracking-widest font-black text-black">Customer Processing Fee (Dynamic)</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Percent (%)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.klarnaProcessingFeePercent || 0} 
+                                onChange={(e) => handleUpdate({ klarnaProcessingFeePercent: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Flat Amount ($)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.klarnaProcessingFeeFlat || 0} 
+                                onChange={(e) => handleUpdate({ klarnaProcessingFeeFlat: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="p-4 bg-pink-50/50 border border-pink-100 rounded-sm">
@@ -683,13 +745,30 @@ export default function PaymentsPage() {
                             className="h-11 text-xs font-bold uppercase" 
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                          <Input 
-                            value={config.afterpayFee || ''} 
-                            onChange={(e) => handleUpdate({ afterpayFee: e.target.value })}
-                            className="h-11 text-xs font-mono" 
-                          />
+                        <div className="space-y-4 pt-4 border-t border-dashed">
+                          <Label className="text-[10px] uppercase tracking-widest font-black text-black">Customer Processing Fee (Dynamic)</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Percent (%)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.afterpayProcessingFeePercent || 0} 
+                                onChange={(e) => handleUpdate({ afterpayProcessingFeePercent: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Flat Amount ($)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.afterpayProcessingFeeFlat || 0} 
+                                onChange={(e) => handleUpdate({ afterpayProcessingFeeFlat: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
@@ -786,13 +865,30 @@ export default function PaymentsPage() {
                             className="h-11 text-xs font-bold uppercase" 
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Estimated Processing Fee</Label>
-                          <Input 
-                            value={config.adyenFee || ''} 
-                            onChange={(e) => handleUpdate({ adyenFee: e.target.value })}
-                            className="h-11 text-xs font-mono" 
-                          />
+                        <div className="space-y-4 pt-4 border-t border-dashed">
+                          <Label className="text-[10px] uppercase tracking-widest font-black text-black">Customer Processing Fee (Dynamic)</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Percent (%)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.adyenProcessingFeePercent || 0} 
+                                onChange={(e) => handleUpdate({ adyenProcessingFeePercent: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Flat Amount ($)</Label>
+                              <Input 
+                                type="number"
+                                step="0.01"
+                                value={config.adyenProcessingFeeFlat || 0} 
+                                onChange={(e) => handleUpdate({ adyenProcessingFeeFlat: parseFloat(e.target.value) })}
+                                className="h-11 text-xs font-mono font-bold" 
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">

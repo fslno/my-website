@@ -9,6 +9,7 @@ import { BentoHero } from '@/components/storefront/BentoHero';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import { getLivePath } from '@/lib/deployment';
 import { cn } from '@/lib/utils';
+import { ClientOnly } from '@/components/shared/ClientOnly';
 
 /**
  * Main Home Page.
@@ -17,50 +18,54 @@ import { cn } from '@/lib/utils';
  */
 export default function Home() {
   const db = useFirestore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme, isLoading: themeLoading } = useDoc(themeRef);
 
   return (
     <div className="flex flex-col">
-      <BentoHero 
-        isLoading={themeLoading}
-        heroImages={theme?.heroImages}
-        headline={theme?.heroHeadline}
-        subheadline={theme?.heroSubheadline}
-        buttonText={theme?.heroButtonText}
-        textAlign={theme?.heroTextAlign}
-        verticalAlign={theme?.heroVerticalAlign}
-      />
-      
-      <CategorySection />
-      
+      <ClientOnly fallback={<div className="h-[90vh] bg-black" />}>
+        <BentoHero
+          isLoading={themeLoading}
+          heroImages={theme?.heroImages}
+          headline={theme?.heroHeadline}
+          subheadline={theme?.heroSubheadline}
+          buttonText={theme?.heroButtonText}
+          textAlign={theme?.heroTextAlign}
+          verticalAlign={theme?.heroVerticalAlign}
+          bannerEnabled={theme?.bannerEnabled}
+        />
+      </ClientOnly>
+
+      <ClientOnly>
+        <CategorySection />
+      </ClientOnly>
+
       <div className="bg-white">
         <div className="max-w-[1440px] mx-auto px-4 pt-12">
           <div className={cn(
             "mb-6 md:mb-12 archive-text-align",
-            theme?.archiveTextAlign === 'center' ? 'mx-auto items-center' : 
-            theme?.archiveTextAlign === 'right' ? 'ml-auto items-end' : 'items-start'
+            theme?.archiveTextAlign === 'center' ? 'mx-auto items-center text-center' :
+              theme?.archiveTextAlign === 'right' ? 'ml-auto items-end text-right' : 'items-start text-left'
           )}>
             <div className="space-y-2">
               <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground block">
-                {mounted ? (theme?.archiveSectionSubtitle || 'Our Collection') : 'Our Collection'}
+                {theme?.archiveSectionSubtitle || 'Our Collection'}
               </span>
               <h2 className="font-headline font-bold uppercase tracking-tight archive-title-size archive-title-color leading-tight">
-                {mounted ? (theme?.archiveSectionTitle || 'Shop All Products') : 'Shop All Products'}
+                {theme?.archiveSectionTitle || 'Shop All Products'}
               </h2>
             </div>
           </div>
         </div>
-        <ProductGrid />
+        <ClientOnly>
+          <ProductGrid />
+        </ClientOnly>
       </div>
 
-      <TestimonialSection />
+      <ClientOnly>
+        <TestimonialSection />
+      </ClientOnly>
     </div>
   );
 }

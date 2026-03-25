@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Dialog, 
   DialogContent, 
@@ -30,6 +31,7 @@ interface AuthDialogProps {
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const auth = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [isLoading, setIsLoading] = useState(false);
   
@@ -46,6 +48,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       initiateEmailSignIn(auth, email, password);
       onOpenChange(false);
       resetForm();
+      router.push('/account');
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -66,6 +69,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       initiateEmailSignUp(auth, email, password);
       onOpenChange(false);
       resetForm();
+      router.push('/account');
       toast({
         title: "Account created",
         description: "Welcome.",
@@ -85,6 +89,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     if (!auth) return;
     initiateGoogleSignIn(auth);
     onOpenChange(false);
+    router.push('/account');
   };
 
   const resetForm = () => {

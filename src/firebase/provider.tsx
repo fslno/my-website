@@ -33,10 +33,10 @@ export interface FirebaseContextState {
 }
 
 export interface FirebaseServicesAndUser {
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
-  storage: FirebaseStorage;
+  firebaseApp: FirebaseApp | null;
+  firestore: Firestore | null;
+  auth: Auth | null;
+  storage: FirebaseStorage | null;
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -113,9 +113,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 export const useFirebase = (): FirebaseServicesAndUser => {
   const context = useContext(FirebaseContext);
   if (context === undefined) throw new Error('useFirebase must be used within a FirebaseProvider.');
-  if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth || !context.storage) {
-    throw new Error('Firebase core services not available.');
-  }
+  
   return {
     firebaseApp: context.firebaseApp,
     firestore: context.firestore,
@@ -127,10 +125,10 @@ export const useFirebase = (): FirebaseServicesAndUser => {
   };
 };
 
-export const useAuth = (): Auth => useFirebase().auth;
-export const useFirestore = (): Firestore => useFirebase().firestore;
-export const useFirebaseApp = (): FirebaseApp => useFirebase().firebaseApp;
-export const useStorage = (): FirebaseStorage => useFirebase().storage;
+export const useAuth = (): Auth | null => useFirebase().auth;
+export const useFirestore = (): Firestore | null => useFirebase().firestore;
+export const useFirebaseApp = (): FirebaseApp | null => useFirebase().firebaseApp;
+export const useStorage = (): FirebaseStorage | null => useFirebase().storage;
 
 export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T {
   return useMemo(factory, deps);
