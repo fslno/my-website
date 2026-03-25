@@ -319,7 +319,7 @@ export default function ProductDetailPage(props: PageProps) {
                 </div>
                 
                 <div className="flex flex-col gap-0.5">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{product.brand || 'FSLNO Studio'}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{product.brand || 'Feiselino (FSLNO) Studio'}</p>
                   {product.sku && (
                     <p className="text-[8px] font-mono font-bold text-muted-foreground uppercase tracking-widest">SKU: {product.sku}</p>
                   )}

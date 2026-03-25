@@ -173,7 +173,7 @@ export function Header() {
                 </div>
               )}
               <h1 className="text-lg sm:text-2xl font-headline font-bold tracking-tighter text-black hidden sm:block">
-                {!storeLoading && (storeConfig?.businessName || "FSLNO")}
+                {!storeLoading && (storeConfig?.businessName || "Feiselino (FSLNO)")}
               </h1>
             </Link>
           </div>

@@ -60,19 +60,19 @@ export function Footer() {
       // 2. Queue Welcome Email Transmission
       await addDoc(collection(db, 'mail'), {
         to: email,
-        from: "FSLNO <goal@feiselinosportjerseys.ca>",
+        from: "Feiselino (FSLNO) <goal@feiselinosportjerseys.ca>",
         replyTo: "goal@feiselinosportjerseys.ca",
         message: {
-          subject: "Welcome to FSLNO Studio",
+          subject: "Welcome to Feiselino (FSLNO) Studio",
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; color: #000;">
               <h1 style="text-transform: uppercase; font-size: 24px; letter-spacing: -0.02em;">Welcome to the Archive</h1>
               <p style="font-size: 14px; line-height: 1.6; margin: 30px 0;">
-                You are now synchronized with FSLNO Studio. You'll be the first to receive updates on new drops, exclusive collections, and archival releases.
+                You are now synchronized with Feiselino (FSLNO) Studio. You'll be the first to receive updates on new drops, exclusive collections, and archival releases.
               </p>
               <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 40px;">
                 <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">
-                  FSLNO Operational Command • Guelph, ON
+                  Feiselino (FSLNO) Operational Command • Guelph, ON
                 </p>
               </div>
             </div>
@@ -137,10 +137,10 @@ export function Footer() {
   const newsletterEnabled = config?.newsletterEnabled ?? true;
   const newsletterHeadline = config?.newsletterHeadline || 'JOIN THE ARCHIVE';
   const newsletterSubtext = config?.newsletterSubtext || 'Get our latest updates.';
-  const copyrightText = config?.copyrightText || `© ${currentYear} ${config?.businessName || 'FSLNO'}. ALL RIGHTS RESERVED.`;
+  const copyrightText = config?.copyrightText || `© ${currentYear} ${config?.businessName || 'Feiselino (FSLNO)'}. ALL RIGHTS RESERVED.`;
   const poweredByEnabled = config?.poweredByEnabled ?? false;
   const poweredByLabel = config?.poweredByLabel || 'Powered by';
-  const poweredByName = config?.poweredByStudioName || 'FSLNO';
+  const poweredByName = config?.poweredByStudioName || 'Feiselino (FSLNO)';
   const poweredByLogo = config?.poweredByLogoUrl || '';
 
   if (!mounted) return null;
@@ -158,7 +158,7 @@ export function Footer() {
           {/* Brand column */}
           <div className="space-y-8">
             <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
-              {config?.businessName || "FSLNO"}
+              {config?.businessName || "Feiselino (FSLNO)"}
             </h2>
             <div className="space-y-6">
               <p className="max-w-xs text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">

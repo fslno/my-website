@@ -50,14 +50,14 @@ export default function TermsPage() {
               <section className="space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary border-b pb-2">1. Agreement to Terms</h2>
                 <p className="text-xs leading-relaxed uppercase font-medium">
-                  By accessing or using FSLNO, you agree to be bound by these Terms and Conditions. If you do not agree, do not use the service.
+                  By accessing or using Feiselino (FSLNO), you agree to be bound by these Terms and Conditions. If you do not agree, do not use the service.
                 </p>
               </section>
 
               <section className="space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary border-b pb-2">2. Intellectual Property</h2>
                 <p className="text-xs leading-relaxed uppercase font-medium">
-                  All content, logos, designs, and data presented on this website are the exclusive property of FSLNO and are protected by international copyright laws.
+                  All content, logos, designs, and data presented on this website are the exclusive property of Feiselino (FSLNO) and are protected by international copyright laws.
                 </p>
               </section>
 
@@ -71,7 +71,7 @@ export default function TermsPage() {
               <section className="space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary border-b pb-2">4. Limitation of Liability</h2>
                 <p className="text-xs leading-relaxed uppercase font-medium">
-                  FSLNO shall not be liable for any direct, indirect, incidental, or consequential damages resulting from the use or inability to use our services.
+                  Feiselino (FSLNO) shall not be liable for any direct, indirect, incidental, or consequential damages resulting from the use or inability to use our services.
                 </p>
               </section>
 

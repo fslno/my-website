@@ -80,7 +80,7 @@ const productDescriptionPrompt = ai.definePrompt({
   name: 'productDescriptionPrompt',
   input: { schema: AdminGenerateProductDescriptionInputSchema },
   output: { schema: AdminGenerateProductDescriptionOutputSchema },
-  prompt: `You are an expert marketing copywriter and SEO specialist for a luxury e-commerce store called FSLNO Studio.
+  prompt: `You are an expert marketing copywriter and SEO specialist for a luxury e-commerce store called Feiselino (FSLNO) Studio.
 Your task is to create a compelling, high-quality product description and SEO metadata based on the provided details.
 
 Product Name: "{{{productName}}}"

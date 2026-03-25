@@ -7,6 +7,8 @@ import { ProductCard } from '@/components/storefront/ProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getLivePath } from '@/lib/deployment';
 
+import { cn } from '@/lib/utils';
+
 /**
  * Unified Product Grid Manifest.
  * Authoritatively manifests all studio drops in a high-fidelity responsive grid.
@@ -52,6 +54,17 @@ export function ProductGrid() {
     return map;
   }, [allReviews]);
 
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 60;
+
+  const paginatedProducts = useMemo(() => {
+    if (!products) return [];
+    const start = (currentPage - 1) * itemsPerPage;
+    return products.slice(start, start + itemsPerPage);
+  }, [products, currentPage]);
+
+  const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
+
   // Forensic Constant for grid classes to ensure zero hydration mismatch
   const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16";
 
@@ -70,10 +83,13 @@ export function ProductGrid() {
               sessionStorage.removeItem('lastProductId');
             }
           }, 200);
+        } else if (currentPage > 1) {
+          // Auto-scroll to top of grid on page change
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
     }
-  }, [productsLoading, products]);
+  }, [productsLoading, products, currentPage]);
 
   if (productsLoading) {
     return (
@@ -94,7 +110,7 @@ export function ProductGrid() {
   return (
     <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
       <div className={gridClasses}>
-        {products?.map((product: any, idx: number) => {
+        {paginatedProducts.map((product: any, idx: number) => {
           const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
           const ratingInfo = productRatings[product.id];
           const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
@@ -127,6 +143,45 @@ export function ProductGrid() {
           );
         })}
       </div>
+
+      {/* Forensic Minimalist Pagination UI */}
+      {totalPages > 1 && (
+        <div className="mt-24 border-t border-gray-100 pt-12 flex flex-col items-center gap-8">
+          <div className="flex items-center gap-12">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="text-[10px] font-bold uppercase tracking-[0.3em] disabled:opacity-20 transition-all hover:tracking-[0.4em] active:scale-95"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-6">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={cn(
+                    "text-[10px] font-bold transition-all transition-colors",
+                    currentPage === page ? "text-black" : "text-gray-300 hover:text-black"
+                  )}
+                >
+                  {page.toString().padStart(2, '0')}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="text-[10px] font-bold uppercase tracking-[0.3em] disabled:opacity-20 transition-all hover:tracking-[0.4em] active:scale-95"
+            >
+              Next
+            </button>
+          </div>
+          <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">
+            Manifest Section {currentPage} of {totalPages}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

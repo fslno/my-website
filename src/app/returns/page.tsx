@@ -49,7 +49,7 @@ export default function ReturnsPage() {
               <section className="space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary border-b pb-2">1. All Sales Final</h2>
                 <p className="text-xs leading-relaxed uppercase font-medium">
-                  Given the custom nature of our products, all sales at FSLNO are final. We do not offer returns or exchanges for sizing or preference.
+                  Given the custom nature of our products, all sales at Feiselino (FSLNO) are final. We do not offer returns or exchanges for sizing or preference.
                 </p>
               </section>
 

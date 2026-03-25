@@ -390,7 +390,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       toast({ 
         variant: "destructive",
         title: "🚨 NEW ORDER RECEIVED", 
-        description: "An order has just been archived in FSLNO. Check orders portal immediately.", 
+        description: "An order has just been archived in Feiselino (FSLNO). Check orders portal immediately.", 
         duration: 20000 
       });
       setTimeout(() => setNewOrderDetected(false), 5000);
@@ -517,7 +517,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const adminLogo = storeConfig?.adminLogoUrl || storeConfig?.logoUrl;
-  const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "FSLNO";
+  const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "Feiselino (FSLNO)";
 
   if (!user || !isAdmin) {
     return (

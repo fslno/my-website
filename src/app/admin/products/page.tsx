@@ -114,6 +114,9 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<string>('newest');
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+
   const [bulkCategoryId, setBulkCategoryId] = useState<string>('');
   const [bulkStatus, setBulkStatus] = useState<string>('');
 
@@ -209,6 +212,17 @@ export default function ProductsPage() {
 
     return result;
   }, [products, searchQuery, categoryFilter, sortBy]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, categoryFilter, sortBy]);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(start, start + itemsPerPage);
+  }, [filteredProducts, currentPage]);
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   const currentIndex = useMemo(() => {
     if (!editingId || !filteredProducts) return -1;
@@ -1146,7 +1160,7 @@ export default function ProductsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredProducts.map((product: any) => {
+                paginatedProducts.map((product: any) => {
                   const category = categories?.find((c: any) => c.id === product.categoryId);
                   const isSelected = selectedIds.includes(product.id);
                   return (
@@ -1171,6 +1185,51 @@ export default function ProductsPage() {
               )}
             </TableBody>
           </Table>
+          
+          {/* Desktop Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50/30">
+              <div className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">
+                Displaying {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} Products
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 gap-2 font-bold uppercase tracking-widest text-[9px] border-[#babfc3]"
+                >
+                  <ChevronLeft className="h-3 w-3" /> Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={cn(
+                        "h-8 w-8 p-0 font-bold text-[9px]",
+                        currentPage === page ? "bg-black text-white" : "border-[#babfc3]"
+                      )}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-8 gap-2 font-bold uppercase tracking-widest text-[9px] border-[#babfc3]"
+                >
+                  Next <ChevronRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="lg:hidden divide-y">
@@ -1179,7 +1238,7 @@ export default function ProductsPage() {
           ) : filteredProducts.length === 0 ? (
             <div className="p-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">No products found.</div>
           ) : (
-            filteredProducts.map((product: any) => {
+            paginatedProducts.map((product: any) => {
               const category = categories?.find((c: any) => c.id === product.categoryId);
               const isSelected = selectedIds.includes(product.id);
               return (
@@ -1206,6 +1265,41 @@ export default function ProductsPage() {
                 </div>
               );
             })
+          )}
+          
+          {/* Mobile Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex flex-col items-center gap-4 p-6 bg-gray-50/50">
+              <div className="text-[9px] font-bold uppercase text-gray-400 tracking-widest">
+                Page {currentPage} of {totalPages}
+              </div>
+              <div className="flex items-center gap-2 w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(1, prev - 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                  className="flex-1 h-10 gap-2 font-bold uppercase tracking-widest text-[9px] border-[#babfc3]"
+                >
+                  <ChevronLeft className="h-3 w-3" /> Previous
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="flex-1 h-10 gap-2 font-bold uppercase tracking-widest text-[9px] border-[#babfc3]"
+                >
+                  Next <ChevronRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </div>
