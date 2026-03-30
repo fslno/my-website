@@ -62,7 +62,11 @@ import { Separator } from '@/components/ui/separator';
 export default function ShippingPage() {
   const db = useFirestore();
   const configRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
+  const storeRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
+  
   const { data: config, isLoading: loading } = useDoc(configRef);
+  const { data: storeConfig, isLoading: storeLoading } = useDoc(storeRef);
+  
   const { toast } = useToast();
 
   const [isAddCarrierOpen, setIsAddCarrierOpen] = useState(false);
@@ -88,20 +92,20 @@ export default function ShippingPage() {
   const [originProvince, setOriginProvince] = useState('');
   const [originCountryCode, setOriginCountryCode] = useState('CA');
 
-  // Free Shipping State
   const [freeShippingEnabled, setFreeShippingEnabled] = useState(false);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState('');
-  const [standardRate, setStandardRate] = useState('');
-  const [expressRate, setExpressRate] = useState('');
+  const [baseShippingRate, setBaseShippingRate] = useState('');
 
-  // Manual Province Rates State
   const [provinceRates, setProvinceRates] = useState<any[]>([]);
   const [newProvName, setNewProvName] = useState('');
-  const [newProvStandard, setNewProvStandard] = useState('');
-  const [newProvExpress, setNewProvExpress] = useState('');
+  const [newProvRate, setNewProvRate] = useState('');
+  const [newProvExpressRate, setNewProvExpressRate] = useState('');
+  const [newProvExpressActive, setNewProvExpressActive] = useState(false);
   const [newProvCarrier, setNewProvCarrier] = useState('');
-  const [newProvEta, setNewProvEta] = useState('');
+  const [newProvEstimate, setNewProvEstimate] = useState('');
+  const [newProvExpressEstimate, setNewProvExpressEstimate] = useState('');
   const [newProvNotes, setNewProvNotes] = useState('');
+  const [newProvHandlingFee, setNewProvHandlingFee] = useState('');
   const [isProvDialogOpen, setIsProvDialogOpen] = useState(false);
   const [editingProvIdx, setEditingProvIdx] = useState<number | null>(null);
   const [provinceRatesEnabled, setProvinceRatesEnabled] = useState(false);
@@ -118,20 +122,23 @@ export default function ShippingPage() {
       setDefaultWidth(String(config.defaultWidth || ''));
       setDefaultHeight(String(config.defaultHeight || ''));
 
-      setOriginPostalCode(config.originAddress?.postalCode || '');
-      setOriginCity(config.originAddress?.city || '');
-      setOriginProvince(config.originAddress?.province || '');
-      setOriginCountryCode(config.originAddress?.countryCode || 'CA');
+      setProvinceRates(config.provinceRates || []);
+      setProvinceRatesEnabled(config.provinceRatesEnabled ?? false);
 
       setFreeShippingEnabled(config.freeShippingEnabled ?? true);
       setFreeShippingThreshold(String(config.freeShippingThreshold ?? '500'));
-      setStandardRate(String(config.standardRate ?? '0'));
-      setExpressRate(String(config.expressRate ?? '25'));
-
-      setProvinceRates(config.provinceRates || []);
-      setProvinceRatesEnabled(config.provinceRatesEnabled ?? false);
+      setBaseShippingRate(String(config.baseShippingRate ?? config.standardRate ?? '12.99'));
     }
   }, [config]);
+
+  useEffect(() => {
+    if (storeConfig) {
+      setOriginPostalCode(storeConfig.originPostalCode || '');
+      setOriginCity(storeConfig.originCity || '');
+      setOriginProvince(storeConfig.originProvince || '');
+      setOriginCountryCode(storeConfig.originCountryCode || 'CA');
+    }
+  }, [storeConfig]);
 
   const handleInitialize = () => {
     if (!configRef) return;
@@ -158,8 +165,7 @@ export default function ShippingPage() {
       defaultHeight: 10,
       freeShippingEnabled: true,
       freeShippingThreshold: 500,
-      standardRate: 0,
-      expressRate: 25,
+      baseShippingRate: 15,
       provinceRatesEnabled: false,
       updatedAt: serverTimestamp()
     };
@@ -189,14 +195,13 @@ export default function ShippingPage() {
     const updates = {
       freeShippingEnabled,
       freeShippingThreshold: parseFloat(freeShippingThreshold) || 0,
-      standardRate: parseFloat(standardRate) || 0,
-      expressRate: parseFloat(expressRate) || 0,
+      baseShippingRate: parseFloat(baseShippingRate) || 0,
       updatedAt: serverTimestamp()
     };
     updateDoc(configRef, updates)
       .then(() => {
         setIsSaving(false);
-        toast({ title: "Rates Saved", description: "Global shipping costs and thresholds updated." });
+        toast({ title: "Rates Saved", description: "Global shipping cost and threshold updated." });
       })
       .catch((error) => {
         setIsSaving(false);
@@ -212,11 +217,14 @@ export default function ShippingPage() {
     if (!newProvName || !configRef) return;
     const rateData = {
       province: newProvName.toUpperCase().trim(),
-      standard: parseFloat(newProvStandard) || 0,
-      express: parseFloat(newProvExpress) || 0,
+      rate: parseFloat(newProvRate) || 0,
+      express: parseFloat(newProvExpressRate) || 0,
+      expressActive: newProvExpressActive,
       carrier: newProvCarrier.trim(),
-      eta: newProvEta.trim(),
+      estimate: newProvEstimate.trim(),
+      expressEstimate: newProvExpressEstimate.trim(),
       notes: newProvNotes.trim(),
+      handlingFee: parseFloat(newProvHandlingFee) || 0,
       active: editingProvIdx !== null ? (provinceRates[editingProvIdx].active ?? true) : true
     };
 
@@ -230,11 +238,14 @@ export default function ShippingPage() {
 
     handleUpdate({ provinceRates: updated });
     setNewProvName('');
-    setNewProvStandard('');
-    setNewProvExpress('');
+    setNewProvRate('');
+    setNewProvExpressRate('');
+    setNewProvExpressActive(false);
     setNewProvCarrier('');
-    setNewProvEta('');
+    setNewProvEstimate('');
+    setNewProvExpressEstimate('');
     setNewProvNotes('');
+    setNewProvHandlingFee('');
     setEditingProvIdx(null);
     setIsProvDialogOpen(false);
     toast({
@@ -245,11 +256,14 @@ export default function ShippingPage() {
 
   const handleOpenEditProv = (rate: any, idx: number) => {
     setNewProvName(rate.province);
-    setNewProvStandard(String(rate.standard));
-    setNewProvExpress(String(rate.express));
+    setNewProvRate(String(rate.rate ?? rate.standard));
+    setNewProvExpressRate(String(rate.express || ''));
+    setNewProvExpressActive(rate.expressActive ?? false);
     setNewProvCarrier(rate.carrier || '');
-    setNewProvEta(rate.eta || '');
+    setNewProvEstimate(rate.estimate || '');
+    setNewProvExpressEstimate(rate.expressEstimate || '');
     setNewProvNotes(rate.notes || '');
+    setNewProvHandlingFee(String(rate.handlingFee || ''));
     setEditingProvIdx(idx);
     setIsProvDialogOpen(true);
   };
@@ -280,32 +294,39 @@ export default function ShippingPage() {
   };
 
   const handleSaveGlobalLogistics = () => {
-    if (!configRef) return;
+    if (!configRef || !storeRef) return;
     setIsSaving(true);
-    const updates = {
+    
+    const shippingUpdates = {
       defaultWeight: parseFloat(defaultWeight) || 0.6,
       defaultLength: parseFloat(defaultLength) || 35,
       defaultWidth: parseFloat(defaultWidth) || 25,
       defaultHeight: parseFloat(defaultHeight) || 10,
-      originAddress: {
-        postalCode: originPostalCode.toUpperCase().trim(),
-        city: originCity.toUpperCase().trim(),
-        province: originProvince.toUpperCase().trim(),
-        countryCode: originCountryCode.toUpperCase().trim()
-      },
       updatedAt: serverTimestamp()
     };
-    updateDoc(configRef, updates)
+
+    const storeUpdates = {
+      originPostalCode: originPostalCode.toUpperCase().trim(),
+      originCity: originCity.toUpperCase().trim(),
+      originProvince: originProvince.toUpperCase().trim(),
+      originCountryCode: originCountryCode.toUpperCase().trim(),
+      updatedAt: serverTimestamp()
+    };
+
+    Promise.all([
+      updateDoc(configRef, shippingUpdates),
+      updateDoc(storeRef, storeUpdates)
+    ])
       .then(() => {
         setIsSaving(false);
-        toast({ title: "Saved", description: "Default package sizes updated." });
+        toast({ title: "Logistics Synchronized", description: "Default package sizes and origin address updated across manifests." });
       })
       .catch((error) => {
         setIsSaving(false);
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: configRef.path,
           operation: 'update',
-          requestResourceData: updates
+          requestResourceData: { shippingUpdates, storeUpdates }
         }));
       });
   };
@@ -412,7 +433,7 @@ export default function ShippingPage() {
     handleUpdate({ carriers: updatedCarriers });
   };
 
-  if (loading) {
+  if (loading || storeLoading) {
     return (
       <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
         <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
@@ -613,27 +634,22 @@ export default function ShippingPage() {
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase font-bold text-gray-500">Standard Rate ($)</Label>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      value={standardRate}
-                      onChange={(e) => setStandardRate(e.target.value)}
-                      className="h-11 sm:h-12 font-mono bg-white"
-                    />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase font-bold text-gray-500">Base Shipping Rate ($)</Label>
+                      <Input
+                        type="number"
+                        placeholder="15"
+                        value={baseShippingRate}
+                        onChange={(e) => setBaseShippingRate(e.target.value)}
+                        className="h-11 sm:h-12 font-mono bg-white border-2 border-black/5"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[9px] uppercase font-bold text-gray-500">Express Rate ($)</Label>
-                    <Input
-                      type="number"
-                      placeholder="25"
-                      value={expressRate}
-                      onChange={(e) => setExpressRate(e.target.value)}
-                      className="h-11 sm:h-12 font-mono bg-white"
-                    />
-                  </div>
+                  <p className="text-[9px] text-gray-400 font-medium uppercase tracking-tight italic">
+                    This rate applies to all regions unless a manual override or free shipping threshold is met.
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -654,7 +670,7 @@ export default function ShippingPage() {
                     className="ml-2 data-[state=checked]:bg-purple-600"
                   />
                 </div>
-                <Dialog open={isProvDialogOpen} onOpenChange={(open) => { setIsProvDialogOpen(open); if (!open) { setEditingProvIdx(null); setNewProvName(''); setNewProvStandard(''); setNewProvExpress(''); } }}>
+                <Dialog open={isProvDialogOpen} onOpenChange={(open) => { setIsProvDialogOpen(open); if (!open) { setEditingProvIdx(null); setNewProvName(''); setNewProvRate(''); setNewProvExpressRate(''); setNewProvExpressActive(false); setNewProvCarrier(''); setNewProvEstimate(''); setNewProvExpressEstimate(''); setNewProvNotes(''); setNewProvHandlingFee(''); } }}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white w-full sm:w-auto">
                       <Plus className="h-3.5 w-3.5" /> Add Region
@@ -672,13 +688,40 @@ export default function ShippingPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase font-bold text-gray-500">Standard ($)</Label>
-                          <Input type="number" placeholder="0" value={newProvStandard} onChange={(e) => setNewProvStandard(e.target.value)} className="h-12 font-mono" />
+                          <Label className="text-[10px] uppercase font-bold text-blue-600">Standard Rate ($)</Label>
+                          <Input type="number" placeholder="15" value={newProvRate} onChange={(e) => setNewProvRate(e.target.value)} className="h-12 font-mono border-blue-100" />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase font-bold text-gray-500">Express ($)</Label>
-                          <Input type="number" placeholder="25" value={newProvExpress} onChange={(e) => setNewProvExpress(e.target.value)} className="h-12 font-mono" />
+                          <div className="flex items-center justify-between">
+                            <Label className="text-[10px] uppercase font-bold text-purple-600">Express Rate ($)</Label>
+                            <Switch checked={newProvExpressActive} onCheckedChange={setNewProvExpressActive} />
+                          </div>
+                  <Input type="number" placeholder="25" value={newProvExpressRate} onChange={(e) => setNewProvExpressRate(e.target.value)} disabled={!newProvExpressActive} className="h-12 font-mono border-purple-100" />
                         </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-400">Standard Estimate</Label>
+                          <Input placeholder="e.g. 5-7 Business Days" value={newProvEstimate} onChange={(e) => setNewProvEstimate(e.target.value)} className="h-12 font-bold text-[10px] uppercase" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className={cn("text-[10px] uppercase font-bold", newProvExpressActive ? "text-gray-400" : "text-gray-200")}>Express Estimate</Label>
+                          <Input placeholder="e.g. 1-2 Business Days" value={newProvExpressEstimate} onChange={(e) => setNewProvExpressEstimate(e.target.value)} disabled={!newProvExpressActive} className="h-12 font-bold text-[10px] uppercase" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Carrier</Label>
+                          <Input placeholder="e.g. Canada Post" value={newProvCarrier} onChange={(e) => setNewProvCarrier(e.target.value)} className="h-12 uppercase font-bold text-[10px]" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-gray-500">Handling Fee ($)</Label>
+                          <Input type="number" placeholder="0" value={newProvHandlingFee} onChange={(e) => setNewProvHandlingFee(e.target.value)} className="h-12 font-mono" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Description / Notes</Label>
+                        <Textarea placeholder="Details about this regional override..." value={newProvNotes} onChange={(e) => setNewProvNotes(e.target.value)} className="min-h-[80px] text-[10px] uppercase font-medium" />
                       </div>
                     </div>
                     <DialogFooter>
@@ -707,10 +750,21 @@ export default function ShippingPage() {
                         <div className="space-y-2.5 min-w-0 flex-1">
                           {/* Rates */}
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                            <span className={cn("text-[11px] font-bold uppercase", !(rate.active ?? true) && 'text-gray-400')}>Standard: ${rate.standard}</span>
-                            <span className={cn("text-[11px] font-bold uppercase text-blue-600", !(rate.active ?? true) && 'text-gray-400 opacity-50')}>Express: ${rate.express}</span>
+                            <div className="flex flex-col">
+                              <span className={cn("text-[11px] font-bold uppercase text-blue-700", !(rate.active ?? true) && 'text-gray-400')}>STD: ${rate.rate ?? rate.standard}</span>
+                              {rate.estimate && <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">{rate.estimate}</span>}
+                            </div>
+                            {rate.expressActive && (
+                              <div className="flex flex-col border-l pl-4 border-gray-100">
+                                <span className={cn("text-[11px] font-bold uppercase text-purple-700", !(rate.active ?? true) && 'text-gray-400')}>EXP: ${rate.express}</span>
+                                {rate.expressEstimate && <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">{rate.expressEstimate}</span>}
+                              </div>
+                            )}
+                            {rate.handlingFee > 0 && (
+                              <Badge variant="outline" className="text-[8px] font-bold bg-amber-50 text-amber-600 border-amber-100 px-1 py-0 self-start mt-1">+{rate.handlingFee} FEE</Badge>
+                            )}
                           </div>
-                          {/* Carrier + ETA – always visible */}
+                          {/* Carrier – always visible */}
                           <div className="flex flex-wrap gap-x-5 gap-y-1.5">
                             <div className="flex items-center gap-1.5">
                               <Truck className="h-3 w-3 shrink-0 text-gray-400" />
@@ -718,14 +772,6 @@ export default function ShippingPage() {
                                 <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{rate.carrier}</span>
                               ) : (
                                 <span className="text-[9px] font-medium text-gray-300 uppercase tracking-widest italic">Carrier not set</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <Clock className="h-3 w-3 shrink-0 text-purple-400" />
-                              {rate.eta ? (
-                                <span className="text-[9px] font-bold text-purple-600 uppercase tracking-widest">{rate.eta}</span>
-                              ) : (
-                                <span className="text-[9px] font-medium text-gray-300 uppercase tracking-widest italic">No estimate set</span>
                               )}
                             </div>
                           </div>

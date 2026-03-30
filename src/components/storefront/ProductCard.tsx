@@ -4,7 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { Star } from 'lucide-react';
+import { Star, Zap } from 'lucide-react';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { getLivePath } from '@/lib/deployment';
+import { useCart } from '@/context/CartContext';
 
 interface ProductCardProps {
   id: string;
@@ -19,6 +23,7 @@ interface ProductCardProps {
   reviewCount?: number;
   isSoldOut?: boolean;
   priority?: boolean;
+  brand?: string;
 }
 
 /**
@@ -27,11 +32,27 @@ interface ProductCardProps {
  */
 export function ProductCard({
   id, name, price, comparedPrice, image, hoverImage, category,
-  sku, rating, reviewCount, isSoldOut, priority = false
+  sku, rating, reviewCount, isSoldOut, priority = false, brand
 }: ProductCardProps) {
+  const { promoConfig } = useCart();
+  const db = useFirestore();
+  const themeRef = useMemoFirebase(() => 
+    db ? doc(db, getLivePath('config/theme')) : null, 
+    [db]
+  );
+  const { data: theme } = useDoc(themeRef);
+  const showBrand = theme?.showBrand !== false; // Default to true if not set
+
   const currentPriceNum = parseFloat(price.replace(/[^0-9.]/g, ''));
-  const hasDiscount = comparedPrice && comparedPrice > currentPriceNum;
-  const discountPercent = hasDiscount ? Math.round(((comparedPrice! - currentPriceNum) / comparedPrice!) * 100) : 0;
+  
+  // Flash Sale logic
+  const isFlashActive = promoConfig?.flashEnabled && (!promoConfig.flashCountdownEnabled || (promoConfig.flashEndTime && new Date(promoConfig.flashEndTime) > new Date()));
+  const flashDecrease = isFlashActive ? (currentPriceNum * (promoConfig.flashValue || 0)) / 100 : 0;
+  const finalPrice = isFlashActive ? currentPriceNum - flashDecrease : currentPriceNum;
+
+  const hasDiscount = (comparedPrice && comparedPrice > currentPriceNum) || isFlashActive;
+  const displayComparedPrice = comparedPrice || (isFlashActive ? currentPriceNum : 0);
+  const discountPercent = isFlashActive ? promoConfig.flashValue : (hasDiscount ? Math.round(((comparedPrice! - currentPriceNum) / comparedPrice!) * 100) : 0);
 
   return (
     <div id={`product-${id}`} className="group flex flex-col gap-1 product-text-align">
@@ -42,44 +63,49 @@ export function ProductCard({
         }}
         className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}
       >
-        {image ? (
-          <>
-            <Image
-              src={image}
-              alt={name}
-              fill
-              className={cn(
-                "object-cover transition-opacity duration-500",
-                hoverImage ? "group-hover:opacity-0" : ""
-              )}
-              priority={priority}
-              data-ai-hint="fashion product"
-            />
-            {hoverImage && (
-              <Image
-                src={hoverImage}
-                alt={`${name} alternative view`}
-                fill
-                className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                data-ai-hint="fashion variant"
-              />
+        <div className="relative h-full w-full overflow-hidden">
+          <Image
+            src={image}
+            alt={name}
+            fill
+            className={cn(
+              "object-cover transition-all duration-700 ease-out group-hover:scale-110",
+              hoverImage ? "group-hover:opacity-0" : ""
             )}
-          </>
-        ) : (
-          <div className="absolute inset-0 bg-gray-200" />
-        )}
+            priority={priority}
+            data-ai-hint="fashion product"
+          />
+          {hoverImage && (
+            <Image
+              src={hoverImage}
+              alt={`${name} alternative view`}
+              fill
+              className="object-cover absolute inset-0 opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-110"
+              data-ai-hint="fashion variant"
+            />
+          )}
+        </div>
 
         {isSoldOut && (
-          <div className="absolute top-0 right-0 z-10 p-1.5 sm:p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
-            <span className="bg-red-600 text-white text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-2 py-1 sm:px-3 sm:py-1.5 shadow-xl">
+          <div className="absolute top-2 left-2 z-10 pointer-events-none">
+            <span className="bg-black/80 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm">
               Sold Out
             </span>
           </div>
         )}
 
-        {!isSoldOut && hasDiscount && (
-          <div className="absolute top-0 left-0 z-10 p-1.5 sm:p-2 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-500">
-            <span className="bg-white text-black text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-2 py-1 sm:px-3 sm:py-1.5 shadow-xl border border-black/5">
+        {!isSoldOut && isFlashActive && (
+          <div className="absolute top-2 left-2 z-10 pointer-events-none">
+            <span className="bg-orange-600 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm flex items-center gap-1">
+              <Zap className="h-2 w-2 fill-white" />
+              {promoConfig.flashLabel || 'SALE'}
+            </span>
+          </div>
+        )}
+
+        {!isSoldOut && hasDiscount && !isFlashActive && (
+          <div className="absolute top-2 left-2 z-10 pointer-events-none">
+            <span className="bg-white/90 backdrop-blur-sm text-black text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm">
               {discountPercent}% OFF
             </span>
           </div>
@@ -88,12 +114,12 @@ export function ProductCard({
 
       <div className="flex flex-col gap-0 py-1 product-flex-align">
         <div className="flex items-center gap-2">
-          <p className="product-price-size product-price-color font-bold leading-none">
-            {price}
+          <p className={cn("product-price-size font-bold leading-none", isFlashActive ? "text-orange-600" : "product-price-color")}>
+            C${finalPrice.toFixed(2)}
           </p>
           {hasDiscount && (
             <p className="text-[8px] sm:text-[10px] text-muted-foreground line-through decoration-muted-foreground/50 font-medium">
-              C${comparedPrice?.toFixed(2)}
+              C${displayComparedPrice.toFixed(2)}
             </p>
           )}
         </div>
@@ -107,14 +133,8 @@ export function ProductCard({
           {name}
         </Link>
 
-        {sku && (
-          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-muted-foreground font-bold leading-none truncate mt-1">
-            {sku}
-          </p>
-        )}
-
         {reviewCount && reviewCount > 0 ? (
-          <div className="flex items-center gap-1 mt-1">
+          <div className="flex items-center gap-1 mt-0.5">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star
@@ -129,6 +149,12 @@ export function ProductCard({
             <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
           </div>
         ) : null}
+
+        {sku && (
+          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-muted-foreground font-bold leading-none truncate mt-1">
+            {showBrand && brand ? `${brand} • ` : ''}{sku}
+          </p>
+        )}
       </div>
     </div>
   );

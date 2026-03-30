@@ -35,32 +35,40 @@ export const orderDeliveredReviewRequest = onDocumentUpdated("orders/{orderId}",
       from: "FSLNO <goal@feiselinosportjerseys.ca>",
       replyTo: "goal@feiselinosportjerseys.ca",
       message: {
-        subject: `Review your FSLNO Studio order`,
+        subject: `Review your archive purchase: Order #${orderId.substring(0, 8)}`,
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; color: #000;">
-            <h1 style="text-transform: uppercase; font-size: 24px; letter-spacing: -0.02em;">Order Review</h1>
-            <p style="text-transform: uppercase; font-size: 10px; font-weight: bold; color: #666; letter-spacing: 0.2em;">Order #${orderId.substring(0, 8)}</p>
+          <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 4px;">
+            <div style="text-align: center; margin-bottom: 40px;">
+              <h1 style="text-transform: uppercase; font-size: 24px; letter-spacing: -0.02em; margin: 0; font-weight: 900;">Order Review</h1>
+              <p style="text-transform: uppercase; font-size: 10px; font-weight: bold; color: #999; letter-spacing: 0.3em; margin-top: 10px;">Operational Status: Delivered</p>
+            </div>
             
-            <p style="font-size: 14px; line-height: 1.6; margin: 30px 0;">
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 30px; color: #333;">
               Hi ${customer?.name || 'there'},<br/><br/>
-              Review your recent archive purchase below. Your feedback helps us improve.
+              Your selection from the archive has been delivered. We invite you to share your feedback on the pieces below.
             </p>
 
             <div style="margin: 40px 0;">
               ${items.map((item: any) => `
-                <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
-                  <img src="${item.image}" style="width: 80px; height: 100px; object-fit: cover; border: 1px solid #eee;" />
+                <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #f5f5f5; padding-bottom: 24px;">
+                  <img src="${item.image}" style="width: 100px; height: 125px; object-fit: cover; border: 1px solid #f0f0f0;" />
                   <div>
-                    <p style="font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 0;">${item.name}</p>
-                    <a href="https://fslno.ca/products/${item.id}?review=true" style="display: inline-block; margin-top: 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #000; text-decoration: underline; letter-spacing: 0.1em;">Leave Review</a>
+                    <p style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin: 0; letter-spacing: 0.05em;">${item.name}</p>
+                    <p style="font-size: 10px; color: #666; margin: 4px 0 12px 0; text-transform: uppercase;">Size: ${item.size || 'OS'}</p>
+                    <a href="https://fslno.ca/products/${item.id}?review=true" style="display: inline-block; padding: 10px 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; background: #000; color: #fff; text-decoration: none; letter-spacing: 0.2em;">Leave Review</a>
                   </div>
                 </div>
               `).join('')}
             </div>
 
-            <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-top: 60px;">
-              © ${new Date().getFullYear()} FSLNO STUDIO. ALL RIGHTS RESERVED.
-            </p>
+            <div style="border-top: 2px solid #000; padding-top: 30px; margin-top: 60px; text-align: center;">
+              <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.2em; margin: 0;">
+                FEISELINO (FSLNO) STUDIO OPERATIONS
+              </p>
+              <p style="font-size: 9px; color: #ccc; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px;">
+                © ${new Date().getFullYear()} ALL RIGHTS RESERVED.
+              </p>
+            </div>
           </div>
         `,
       },

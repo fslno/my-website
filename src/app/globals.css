@@ -60,6 +60,12 @@
   background-color: #FFFFFF !important;
 }
 
+.aspect-mobile {
+  aspect-ratio: var(--aspect-mobile, 1.777) !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
 /* Maintain high-end 3:4 aspect ratio for product cards */
 .product-hero-image {
   width: 100%;

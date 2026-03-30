@@ -28,15 +28,15 @@ import {
   Loader2,
   Sparkles,
   Info,
-  Truck
+  Truck,
+  RefreshCw
 } from 'lucide-react';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, limit, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useDoc, useMemoFirebase } from '@/firebase';
 import { 
   Select, 
   SelectContent, 
@@ -44,12 +44,16 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { getLivePath } from '@/lib/deployment';
+import { queueNotification, formatProductList, formatProductListHtml } from '@/lib/notifications';
 
 interface InvoiceItem {
   id: string;
   name: string;
   price: number;
   quantity: number;
+  productId?: string;
+  image?: string;
   sku?: string;
   size?: string;
 }
@@ -57,9 +61,18 @@ interface InvoiceItem {
 export default function InvoiceMakerPage() {
   const db = useFirestore();
   const { toast } = useToast();
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
   
   // HUD State
   const [invoiceNumber, setInvoiceNumber] = useState('');
+
+  // Generate initial invoice ID on mount
+  useEffect(() => {
+    if (!invoiceNumber) {
+      setInvoiceNumber(`INV-${Math.round(Date.now() / 1000)}-${Math.floor(1000 + Math.random() * 9000)}`);
+    }
+  }, [invoiceNumber]);
+
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([]);
@@ -76,6 +89,16 @@ export default function InvoiceMakerPage() {
 
   const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
   const { data: paymentConfig } = useDoc(paymentConfigRef);
+
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
+  const { data: storeConfig } = useDoc(storeConfigRef);
+
+  // Automatically populate sender address from store config
+  useEffect(() => {
+    if (storeConfig?.address && !senderAddress) {
+      setSenderAddress(storeConfig.address);
+    }
+  }, [storeConfig, senderAddress]);
 
   // Totals Calculation
   const subtotal = useMemo(() => items.reduce((acc, item) => acc + (item.price * item.quantity), 0), [items]);
@@ -104,25 +127,28 @@ export default function InvoiceMakerPage() {
   // Search Products – properly queries Firestore
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (!db || searchQuery.length < 2) {
-        setSearchResults([]);
-        return;
-      }
+      if (!db) return;
+      
+      // If searchQuery is empty, we show all products (latest 50)
       setIsSearching(true);
       try {
         const prodRef = collection(db, 'products');
-        // Fetch up to 50, filter client-side for flexible name/sku matching
-        const q = query(prodRef, limit(50));
+        // Fetch up to 1000, filter client-side for flexible name/sku matching
+        const q = query(prodRef, limit(1000));
         const snapshot = await getDocs(q);
         const term = searchQuery.toLowerCase();
         const results = snapshot.docs
           .map(d => ({ id: d.id, ...d.data() }))
-          .filter((p: any) =>
-            p.name?.toLowerCase().includes(term) ||
-            p.sku?.toLowerCase().includes(term) ||
-            p.category?.toLowerCase().includes(term)
-          )
-          .slice(0, 8);
+          .filter((p: any) => {
+            if (!term) return true; // Show all if no term
+            return (
+              p.name?.toLowerCase().includes(term) ||
+              p.sku?.toLowerCase().includes(term) ||
+              p.brand?.toLowerCase().includes(term) ||
+              p.category?.toLowerCase().includes(term)
+            );
+          })
+          .slice(0, 200); // Increased limit significantly to show "all" relevant ones
         setSearchResults(results);
       } catch (error) {
         console.error('Product search error:', error);
@@ -159,27 +185,39 @@ export default function InvoiceMakerPage() {
     if (!pendingProduct) return;
     const sizeKey = pendingSize || 'ONE SIZE';
     const uniqueId = `${pendingProduct.id}-${sizeKey}`;
-    const existing = items.find(i => i.id === uniqueId);
-    if (existing) {
-      setItems(items.map(i => i.id === uniqueId ? { ...i, quantity: i.quantity + 1 } : i));
-    } else {
-      setItems([...items, {
+    
+    setItems(prev => {
+      const existing = prev.find(i => i.id === uniqueId);
+      if (existing) {
+        return prev.map(i => i.id === uniqueId ? { 
+          ...i, 
+          quantity: i.quantity + 1,
+          productId: i.productId || pendingProduct.id,
+          image: i.image || (pendingProduct.images?.[0] || '')
+        } : i);
+      }
+      return [...prev, {
         id: uniqueId,
+        productId: pendingProduct.id,
         name: pendingProduct.name,
         price: pendingProduct.price || 0,
         quantity: 1,
         sku: pendingProduct.sku,
         size: sizeKey,
-      }]);
-    }
-    toast({ title: 'Module Anchored', description: `${pendingProduct.name} (${sizeKey}) added.` });
+        image: pendingProduct.images?.[0] || '',
+      }];
+    });
+
+    toast({ title: 'Item Added', description: `${pendingProduct.name} (${sizeKey}) added.` });
     setPendingProduct(null);
     setPendingSize('');
+    // Auto-focus back on search for "bring new product"
+    setTimeout(() => searchInputRef.current?.focus(), 10);
   };
 
   const addManualItem = () => {
     const id = `manual-${Date.now()}`;
-    setItems([...items, { id, name: 'Custom Service/Item', price: 0, quantity: 1 }]);
+    setItems(prev => [...prev, { id, name: 'Custom Service/Item', price: 0, quantity: 1 }]);
   };
 
   const updateItem = (id: string, field: keyof InvoiceItem, val: any) => {
@@ -187,11 +225,11 @@ export default function InvoiceMakerPage() {
     if (field === 'price' || field === 'quantity') {
       sanitizedVal = isNaN(val) ? 0 : val;
     }
-    setItems(items.map(i => i.id === id ? { ...i, [field]: sanitizedVal } : i));
+    setItems(prev => prev.map(i => i.id === id ? { ...i, [field]: sanitizedVal } : i));
   };
 
   const removeItem = (id: string) => {
-    setItems(items.filter(i => i.id !== id));
+    setItems(prev => prev.filter(i => i.id !== id));
   };
 
   const handleSendInvoice = async () => {
@@ -220,71 +258,21 @@ export default function InvoiceMakerPage() {
       };
 
       // 1. Log to invoices collection
-      await addDoc(collection(db, 'invoices'), invoiceData);
-
-      // 2. Dispatch to mail collection for immediate delivery
-      await addDoc(collection(db, 'mail'), {
-        to: customerEmail,
-        from: "FSLNO <goal@feiselinosportjerseys.ca>",
-        replyTo: "goal@feiselinosportjerseys.ca",
-        message: {
-          subject: `${invoiceNumber} - Official Transmission from FSLNO`,
-          html: `
-            <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-              <h1 style="color: #000; font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">FSLNO INVOICE</h1>
-              <p style="color: #64748b; font-size: 12px; text-transform: uppercase;">ID: ${invoiceNumber}</p>
-              <hr style="border: 0; border-top: 2px solid #000; margin: 20px 0;">
-              
-              <div style="margin-bottom: 30px; display: flex; justify-content: space-between; gap: 20px;">
-                <div style="flex: 1;">
-                  <p style="font-weight: 700; margin-bottom: 5px; font-size: 10px; color: #64748b; text-transform: uppercase;">FROM:</p>
-                  <p style="margin: 0; white-space: pre-line;">${senderAddress}</p>
-                </div>
-                <div style="flex: 1;">
-                  <p style="font-weight: 700; margin-bottom: 5px; font-size: 10px; color: #64748b; text-transform: uppercase;">BILL TO:</p>
-                  <p style="margin: 0;">${customerName || 'Valued Client'}</p>
-                  <p style="margin: 0; color: #64748b;">${customerEmail}</p>
-                  <p style="margin: 5px 0 0 0; white-space: pre-line; font-size: 12px;">${receiverAddress}</p>
-                </div>
-              </div>
-
-              <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-                <thead>
-                  <tr style="text-align: left; background-color: #f8fafc;">
-                    <th style="padding: 10px; border-bottom: 2px solid #000; font-size: 10px; text-transform: uppercase;">ITEM</th>
-                    <th style="padding: 10px; border-bottom: 2px solid #000; font-size: 10px; text-transform: uppercase;">SIZE</th>
-                    <th style="padding: 10px; border-bottom: 2px solid #000; font-size: 10px; text-transform: uppercase;">QTY</th>
-                    <th style="padding: 10px; border-bottom: 2px solid #000; font-size: 10px; text-transform: uppercase;">PRICE</th>
-                    <th style="padding: 10px; border-bottom: 2px solid #000; font-size: 10px; text-transform: uppercase;">TOTAL</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${items.map(item => `
-                    <tr>
-                      <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px; font-weight: 600;">${item.name}</td>
-                      <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px;">${item.size || '—'}</td>
-                      <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px;">${item.quantity}</td>
-                      <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px;">$${item.price.toFixed(2)}</td>
-                      <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px; font-weight: 600;">$${(item.price * item.quantity).toFixed(2)}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-
-              <div style="text-align: right; border-top: 2px solid #000; padding-top: 15px;">
-                <p style="margin: 0; font-size: 14px;">SUBTOTAL: <strong>$${subtotal.toFixed(2)}</strong></p>
-                <p style="margin: 5px 0; font-size: 14px;">TAX (13%): <strong>$${tax.toFixed(2)}</strong></p>
-                ${Number(shippingFee) > 0 ? `<p style="margin: 5px 0; font-size: 14px;">SHIPPING FEE: <strong>$${Number(shippingFee).toFixed(2)}</strong></p>` : ''}
-                ${processingFee > 0 ? `<p style="margin: 5px 0; font-size: 14px;">PROCESSING FEE (${paymentMethod.toUpperCase()}): <strong>$${processingFee.toFixed(2)}</strong></p>` : ''}
-                <p style="margin: 0; font-size: 20px; font-weight: 800;">TOTAL: $${total.toFixed(2)}</p>
-              </div>
-
-              <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
-                FSLNO Operational Command • Guelph, ON
-              </div>
-            </div>
-          `
-        }
+      await addDoc(collection(db, 'invoices'), invoiceData);      // 2. Dispatch to mail collection for immediate delivery using template system
+      await queueNotification(db, 'invoice', customerEmail, {
+        customer_name: customerName || 'Valued Client',
+        order_id: invoiceNumber,
+        invoice_number: invoiceNumber,
+        subtotal: `$${subtotal.toFixed(2)}`,
+        shipping_fee: `$${Number(shippingFee).toFixed(2)}`,
+        tax: `$${tax.toFixed(2)}`,
+        processing_fee: `$${processingFee.toFixed(2)}`,
+        order_total: `$${total.toFixed(2)}`,
+        payment_method: paymentMethod?.toUpperCase() || 'MANUAL',
+        product_list: formatProductList(items),
+        product_manifest: formatProductListHtml(items),
+        business_address: senderAddress || 'Feiselino (FSLNO) Sport Jerseys',
+        business_name: 'Feiselino (FSLNO) Sport Jerseys'
       });
 
       toast({ 
@@ -312,34 +300,55 @@ export default function InvoiceMakerPage() {
       <div className="max-w-7xl mx-auto mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 pt-4">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-black/5 border border-black/10 flex items-center justify-center rounded-sm">
-              <Zap className="h-5 w-5 text-black" />
+            <div className="w-10 h-10 bg-black/5 border border-black/10 flex items-center justify-center rounded-sm overflow-hidden">
+              {storeConfig?.logoUrl ? (
+                <img src={storeConfig.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+              ) : (
+                <Zap className="h-5 w-5 text-black" />
+              )}
             </div>
-            <h1 className="text-3xl font-black uppercase tracking-tighter italic text-black font-admin-headline">
-              Invoice Maker <span className="text-gray-400">v2.0</span>
-            </h1>
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-black uppercase tracking-tighter italic text-black font-admin-headline leading-none">
+                {storeConfig?.businessName || 'Invoice Maker'} <span className="text-gray-400">v2.1</span>
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{storeConfig?.email}</p>
+                <div className="w-1 h-1 rounded-full bg-gray-300" />
+                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{storeConfig?.phone}</p>
+              </div>
+            </div>
           </div>
-          <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-gray-400 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-black animate-pulse" />
-            Operational Command • Real-time Uplink Ready
+          <p className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.2em] sm:tracking-[0.3em] text-gray-400 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-black animate-pulse" />
+            Order System Ready • FSLNO Team
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="px-4 py-2 bg-gray-50 border border-[#e1e3e5] rounded-sm">
-            <p className="text-[8px] uppercase font-bold text-gray-400 mb-0.5 tracking-widest">Manifest ID</p>
-            <Input 
-              placeholder="GEN-ID-XXXX"
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value.toUpperCase())}
-              className="h-6 bg-transparent border-none p-0 text-sm font-mono font-bold tracking-widest text-black focus-visible:ring-0"
-            />
+        <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto">
+          <div className="flex-1 md:flex-none px-3 sm:px-4 py-2 bg-gray-50 border border-[#e1e3e5] rounded-sm">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Input 
+                placeholder="INV-XXXX"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value.toUpperCase())}
+                className="h-6 bg-transparent border-none p-0 text-xs sm:text-sm font-mono font-bold tracking-widest text-black focus-visible:ring-0 w-24 sm:w-32"
+              />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-5 w-5 sm:h-6 sm:w-6 hover:bg-black/5 transition-colors"
+                onClick={() => setInvoiceNumber(`INV-${Math.floor(100000 + Math.random() * 900000)}`)}
+                title="Regenerate"
+              >
+                <RefreshCw className="h-3 w-3 text-gray-400" />
+              </Button>
+            </div>
           </div>
           <Button 
             onClick={handleSendInvoice}
             disabled={isSending || items.length === 0}
             className={cn(
-               "h-14 transition-all font-black uppercase tracking-widest text-[10px] px-8 rounded-none group relative overflow-hidden",
+               "h-12 sm:h-14 transition-all font-black uppercase tracking-widest text-[9px] sm:text-[10px] px-4 sm:px-8 rounded-none group relative overflow-hidden flex-1 md:flex-none",
                items.length === 0 ? "bg-gray-100 text-gray-400 border border-[#e1e3e5]" : "bg-black text-white hover:bg-black/90"
             )}
           >
@@ -347,8 +356,8 @@ export default function InvoiceMakerPage() {
               <Loader2 className="h-4 w-4 animate-spin text-white" />
             ) : (
               <div className="flex items-center gap-2">
-                <span>Engage Delivery</span>
-                <Send className="h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                <span>Engage</span>
+                <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
             )}
           </Button>
@@ -366,7 +375,7 @@ export default function InvoiceMakerPage() {
               <CardHeader className="border-b border-[#e1e3e5] bg-gray-50/30">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-gray-400" />
-                  <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Client Protocol</CardTitle>
+                  <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Client Details</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
@@ -428,7 +437,7 @@ export default function InvoiceMakerPage() {
               <CardHeader className="border-b border-[#e1e3e5] bg-gray-50/30">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-gray-400" />
-                  <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Geospatial Matrix (Addresses)</CardTitle>
+                  <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Shipping Addresses</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
@@ -456,12 +465,12 @@ export default function InvoiceMakerPage() {
             </Card>
 
             {/* Product Search Module */}
-            <Card className="bg-white border-[#e1e3e5] rounded-none shadow-none relative overflow-hidden">
+            <Card className="bg-white border-[#e1e3e5] rounded-none shadow-none relative">
                <div className="absolute top-0 left-0 w-1 h-full bg-gray-300" />
               <CardHeader className="border-b border-[#e1e3e5] bg-gray-50/30">
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4 text-gray-400" />
-                  <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Inventory Uplink</CardTitle>
+                  <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Product Search</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
@@ -470,41 +479,189 @@ export default function InvoiceMakerPage() {
                   <Input 
                     placeholder="SCAN BY NAME OR SKU..." 
                     value={searchQuery}
+                    ref={searchInputRef}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="bg-white border-[#e1e3e5] h-11 pl-10 uppercase font-black text-[9px] tracking-widest focus-visible:ring-black/5"
                   />
                   {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />}
+                  {(searchQuery || pendingProduct) && !isSearching && (
+                    <button 
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSearchResults([]);
+                        setPendingProduct(null);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                    >
+                      <Plus className="h-4 w-4 rotate-45" />
+                    </button>
+                  )}
                 </div>
 
-                {/* Search Results HUD */}
-                {searchResults.length > 0 && (
-                  <div className="absolute z-50 left-0 right-0 top-[100%] bg-white border-x border-b border-[#e1e3e5] max-h-[300px] overflow-y-auto overflow-x-hidden shadow-2xl">
-                    {searchResults.map((product) => (
-                      <div 
-                        key={product.id}
-                        onClick={() => selectProductForSizing(product)}
-                        className="p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer border-b border-[#e1e3e5] last:border-0 group/item transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-gray-50 border border-[#e1e3e5] flex items-center justify-center shrink-0 overflow-hidden">
-                            {product.images?.[0] ? (
-                              <img src={product.images[0]} alt="" className="w-full h-full object-cover p-1" />
-                            ) : (
-                              <Package className="h-4 w-4 text-gray-300" />
+                {/* Backdrop and HUD Local Selection Dropdown */}
+                {(searchResults.length > 0 || pendingProduct) && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-[150]"
+                      onClick={() => {
+                        setSearchResults([]);
+                        if (!pendingProduct) setSearchQuery('');
+                        setPendingProduct(null);
+                      }}
+                    />
+                    <div className="absolute top-full left-0 right-0 z-[160] mt-1 bg-white border-2 border-black shadow-2xl animate-in fade-in slide-in-from-top-1 duration-200 flex flex-col max-h-[450px] overflow-hidden">
+                      {pendingProduct ? (
+                        <div className="flex flex-col h-full bg-white divide-y divide-black">
+                          <div className="p-4 bg-black text-white flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-white border border-white/20 flex items-center justify-center shrink-0 overflow-hidden rounded-sm">
+                                {pendingProduct.images?.[0] ? (
+                                  <img src={pendingProduct.images[0]} alt="" className="w-full h-full object-cover p-0.5" />
+                                ) : (
+                                  <Package className="h-4 w-4 text-black" />
+                                )}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-widest leading-none">{pendingProduct.name}</span>
+                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{pendingProduct.sku} • ${pendingProduct.price}</span>
+                              </div>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => setPendingProduct(null)}
+                              className="h-7 text-white/50 hover:text-white hover:bg-white/10 text-[8px] font-black uppercase tracking-widest"
+                            >
+                              Back to search
+                            </Button>
+                          </div>
+                          <div className="p-5 space-y-4 overflow-y-auto custom-scrollbar">
+                            <p className="text-[9px] uppercase font-black tracking-widest text-gray-400">Specify Variant / Size</p>
+                            {(() => {
+                              const sizes = getSizesForProduct(pendingProduct);
+                              if (sizes.length === 0) {
+                                return (
+                                  <Input
+                                    placeholder="e.g. M, L, XL or ONE SIZE"
+                                    value={pendingSize}
+                                    onChange={(e) => setPendingSize(e.target.value.toUpperCase())}
+                                    className="h-10 uppercase font-bold text-xs tracking-tight border-black rounded-none focus-visible:ring-black/5"
+                                    autoFocus
+                                    onKeyDown={(e) => e.key === 'Enter' && pendingSize && confirmAddItem()}
+                                  />
+                                );
+                              }
+                              return (
+                                <div className="grid grid-cols-4 gap-2">
+                                  {sizes.map(s => (
+                                    <button
+                                      key={s}
+                                      onClick={() => {
+                                        setPendingSize(s);
+                                        // Auto confirm if picking from grid for speed
+                                        setTimeout(() => {
+                                          const sizeKey = s || 'ONE SIZE';
+                                          const uniqueId = `${pendingProduct.id}-${sizeKey}`;
+                                          setItems(prev => {
+                                            const existing = prev.find(i => i.id === uniqueId);
+                                            if (existing) {
+                                              return prev.map(i => i.id === uniqueId ? { 
+                                                ...i, 
+                                                quantity: i.quantity + 1,
+                                                productId: i.productId || pendingProduct.id,
+                                                image: i.image || (pendingProduct.images?.[0] || '')
+                                              } : i);
+                                            }
+                                            return [...prev, {
+                                              id: uniqueId,
+                                              productId: pendingProduct.id,
+                                              name: pendingProduct.name,
+                                              price: pendingProduct.price || 0,
+                                              quantity: 1,
+                                              sku: pendingProduct.sku,
+                                              size: sizeKey,
+                                              image: pendingProduct.images?.[0] || '',
+                                            }];
+                                          });
+                                          toast({ title: 'Item Added', description: `${pendingProduct.name} (${sizeKey}) added.` });
+                                          setPendingProduct(null);
+                                          setPendingSize('');
+                                          setSearchQuery('');
+                                          setSearchResults([]);
+                                          setTimeout(() => searchInputRef.current?.focus(), 10);
+                                        }, 10);
+                                      }}
+                                      className={cn(
+                                        "px-2 py-2 border text-[10px] font-black uppercase tracking-widest transition-all h-10 flex items-center justify-center",
+                                        "bg-white text-black border-black hover:bg-black hover:text-white"
+                                      )}
+                                    >
+                                      {s}
+                                    </button>
+                                  ))}
+                                </div>
+                              );
+                            })()}
+                            {!getSizesForProduct(pendingProduct).length && (
+                              <Button
+                                onClick={confirmAddItem}
+                                disabled={!pendingSize}
+                                className="w-full h-10 bg-black text-white font-black uppercase tracking-widest text-[9px] rounded-none hover:bg-black/90 disabled:opacity-30"
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-2" />
+                                Confirm Selection
+                              </Button>
                             )}
                           </div>
-                          <div className="space-y-0.5">
-                            <p className="text-[10px] font-black uppercase tracking-tight line-clamp-1">{product.name}</p>
-                            <p className="text-[8px] font-mono text-gray-400 uppercase tracking-widest">{product.sku}</p>
+                        </div>
+                      ) : (
+                        <div className="overflow-y-auto flex-1 custom-scrollbar">
+                          <div className="grid grid-cols-1 divide-y divide-gray-100">
+                            {searchResults.map((product) => (
+                              <div 
+                                key={product.id}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => selectProductForSizing(product)}
+                                onKeyDown={(e) => e.key === 'Enter' && selectProductForSizing(product)}
+                                className="p-3 flex items-center justify-between hover:bg-black hover:text-white cursor-pointer group/item transition-all duration-150 outline-none"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 bg-white border border-black/5 flex items-center justify-center shrink-0 overflow-hidden rounded-sm">
+                                    {product.images?.[0] ? (
+                                      <img src={product.images[0]} alt="" className="w-full h-full object-cover p-0.5" />
+                                    ) : (
+                                      <Package className="h-4 w-4 text-gray-200" />
+                                    )}
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-[11px] font-black uppercase tracking-tight text-inherit leading-none">{product.name}</p>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="rounded-none border-gray-200 text-[7px] font-mono h-4 px-1 uppercase font-black text-gray-400 group-hover/item:text-white group-hover/item:border-white/40">
+                                        {product.sku || 'N/A'}
+                                      </Badge>
+                                      {product.category && (
+                                        <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest group-hover/item:text-white/60">{product.category}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="text-right">
+                                    <p className="text-sm font-black italic tracking-tighter">${product.price}</p>
+                                  </div>
+                                  <ChevronRight className="h-4 w-4 text-gray-300 group-hover/item:text-white transition-colors" />
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <p className="text-xs font-black text-[#1a1c1e]">${product.price}</p>
-                          <ChevronRight className="h-4 w-4 text-gray-300 group-hover/item:text-black transition-colors" />
-                        </div>
+                      )}
+                      <div className="border-t border-black/5 p-2 bg-gray-50 flex justify-center sticky bottom-0">
+                        <p className="text-[7px] font-black uppercase tracking-[0.4em] text-gray-400">Stream Intelligence • Encrypted Uplink</p>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </>
                 )}
                 
                 <p className="text-[8px] uppercase font-bold text-gray-400 italic tracking-widest">
@@ -513,76 +670,14 @@ export default function InvoiceMakerPage() {
               </CardContent>
             </Card>
 
-            {/* Size Picker Panel — appears after product is selected from search */}
-            {pendingProduct && (
-              <div className="bg-white border-2 border-black rounded-none shadow-2xl animate-in slide-in-from-top-2 duration-300">
-                <div className="px-6 py-4 border-b border-[#e1e3e5] flex items-center justify-between bg-gray-50">
-                  <div className="flex items-center gap-3">
-                    {pendingProduct.images?.[0] && (
-                      <img src={pendingProduct.images[0]} alt="" className="w-10 h-10 object-cover border border-[#e1e3e5]" />
-                    )}
-                    <div>
-                      <p className="text-[11px] font-black uppercase tracking-tight">{pendingProduct.name}</p>
-                      <p className="text-[9px] font-mono text-gray-400 uppercase">{pendingProduct.sku} • ${pendingProduct.price}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => { setPendingProduct(null); setPendingSize(''); }} className="text-gray-400 hover:text-black transition-colors text-[10px] font-bold uppercase tracking-widest">
-                    ✕ Cancel
-                  </button>
-                </div>
-                <div className="px-6 py-5 space-y-4">
-                  <p className="text-[9px] uppercase font-black tracking-widest text-gray-400">Select Size</p>
-                  {(() => {
-                    const sizes = getSizesForProduct(pendingProduct);
-                    if (sizes.length === 0) {
-                      // No size variants — show a free-text input
-                      return (
-                        <Input
-                          placeholder="e.g. M, L, XL or ONE SIZE"
-                          value={pendingSize}
-                          onChange={(e) => setPendingSize(e.target.value.toUpperCase())}
-                          className="h-11 uppercase font-bold text-xs tracking-tight border-[#e1e3e5] rounded-none"
-                        />
-                      );
-                    }
-                    return (
-                      <div className="flex flex-wrap gap-2">
-                        {sizes.map(s => (
-                          <button
-                            key={s}
-                            onClick={() => setPendingSize(s)}
-                            className={cn(
-                              "px-4 py-2 border text-[10px] font-black uppercase tracking-widest transition-all",
-                              pendingSize === s
-                                ? "bg-black text-white border-black"
-                                : "bg-white text-black border-[#e1e3e5] hover:border-black"
-                            )}
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                  <Button
-                    onClick={confirmAddItem}
-                    disabled={!pendingSize}
-                    className="w-full h-11 bg-black text-white font-black uppercase tracking-widest text-[10px] rounded-none hover:bg-black/90 disabled:opacity-30"
-                  >
-                    <Plus className="h-3.5 w-3.5 mr-2" />
-                    Add to Invoice — {pendingProduct.name} ({pendingSize || '?'})
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Line Items HUD */}
+          {/* Receipt Items */}
           <Card className="bg-white border-[#e1e3e5] rounded-none shadow-none">
             <CardHeader className="border-b border-[#e1e3e5] flex flex-row items-center justify-between bg-gray-50/30">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-gray-400" />
-                <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Transaction Manifest</CardTitle>
+                <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Purchased Items</CardTitle>
               </div>
               <Button 
                 variant="outline" 
@@ -590,19 +685,20 @@ export default function InvoiceMakerPage() {
                 onClick={addManualItem}
                 className="h-8 border-[#e1e3e5] hover:bg-black hover:text-white transition-all text-[9px] font-black uppercase tracking-widest gap-2"
               >
-                <Plus className="h-3 w-3" /> Manual Override
+                <Plus className="h-3 w-3" /> Add Custom Item
               </Button>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full text-left">
+                {/* Desktop View Table */}
+                <table className="w-full text-left hidden md:table">
                   <thead>
                     <tr className="border-b border-[#e1e3e5] bg-gray-50/10">
-                      <th className="p-6 text-[9px] font-black uppercase tracking-widest text-gray-400">Operation / Item</th>
+                      <th className="p-6 text-[9px] font-black uppercase tracking-widest text-gray-400">Product Name</th>
                       <th className="p-4 text-[9px] font-black uppercase tracking-widest text-gray-400">Size</th>
-                      <th className="p-6 text-[9px] font-black uppercase tracking-widest text-gray-400">Unit Val</th>
-                      <th className="p-6 text-[9px] font-black uppercase tracking-widest text-gray-400 text-center">Batch Vol</th>
-                      <th className="p-6 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Net Tot</th>
+                      <th className="p-6 text-[9px] font-black uppercase tracking-widest text-gray-400">Price Each</th>
+                      <th className="p-6 text-[9px] font-black uppercase tracking-widest text-gray-400 text-center">Quantity</th>
+                      <th className="p-6 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Total</th>
                       <th className="p-6 w-16"></th>
                     </tr>
                   </thead>
@@ -613,17 +709,19 @@ export default function InvoiceMakerPage() {
                           <div className="space-y-1">
                             <Input 
                               value={item.name}
-                              onChange={(e) => updateItem(item.id, 'name', e.target.value)}
+                              onChange={(e) => updateItem(item.id, 'name', e.target.value.toUpperCase())}
                               className="bg-transparent border-none p-0 h-auto font-black uppercase text-xs tracking-tight focus-visible:ring-0 focus-visible:text-black transition-colors"
                             />
                             {item.sku && <p className="text-[8px] font-mono text-gray-300 tracking-widest uppercase">{item.sku}</p>}
                           </div>
                         </td>
                         <td className="p-4">
-                          {item.size
-                            ? <span className="inline-block px-2 py-0.5 bg-black text-white text-[9px] font-black uppercase tracking-widest">{item.size}</span>
-                            : <span className="text-[9px] text-gray-300 font-bold uppercase">—</span>
-                          }
+                          <Input 
+                            value={item.size || ''}
+                            placeholder="SIZE"
+                            onChange={(e) => updateItem(item.id, 'size', e.target.value.toUpperCase())}
+                            className="h-8 w-16 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-none text-center border-none focus-visible:ring-1 focus-visible:ring-gray-400"
+                          />
                         </td>
                         <td className="p-6">
                           <div className="flex items-center gap-1">
@@ -667,18 +765,85 @@ export default function InvoiceMakerPage() {
                         </td>
                       </tr>
                     ))}
-                    {items.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="p-20 text-center">
-                          <div className="flex flex-col items-center gap-4 opacity-10">
-                            <Package className="h-12 w-12" />
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em]">Transaction Void • Initiate Input</p>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
+
+                {/* Mobile View Card Layout */}
+                <div className="md:hidden divide-y divide-[#e1e3e5]">
+                  {items.map((item) => (
+                    <div key={item.id} className="p-4 space-y-4 bg-white hover:bg-gray-50/50 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1 pr-10 relative flex-1">
+                          <Input 
+                            value={item.name}
+                            onChange={(e) => updateItem(item.id, 'name', e.target.value.toUpperCase())}
+                            className="bg-transparent border-none p-0 h-auto font-black uppercase text-sm tracking-tight focus-visible:ring-0"
+                          />
+                          {item.sku && <p className="text-[9px] font-mono text-gray-400 tracking-widest uppercase">{item.sku}</p>}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => removeItem(item.id)}
+                          className="h-8 w-8 text-gray-300 hover:text-red-500 shrink-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 pt-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-[8px] uppercase font-bold text-gray-400 tracking-widest lowercase">Spec/Size</Label>
+                          <Input 
+                            value={item.size || ''}
+                            placeholder="SIZE"
+                            onChange={(e) => updateItem(item.id, 'size', e.target.value.toUpperCase())}
+                            className="h-9 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-none border-none px-3"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[8px] uppercase font-bold text-gray-400 tracking-widest lowercase">Unit Price</Label>
+                          <div className="flex items-center h-9 px-3 border border-[#e1e3e5]">
+                            <span className="text-gray-400 text-xs mr-1">$</span>
+                            <Input 
+                              type="number"
+                              value={item.price || ''}
+                              onChange={(e) => updateItem(item.id, 'price', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                              className="bg-transparent border-none p-0 h-full w-full font-mono text-xs font-bold focus-visible:ring-0"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-4">
+                          <button 
+                            onClick={() => updateItem(item.id, 'quantity', Math.max(1, item.quantity - 1))}
+                            className="w-8 h-8 border border-[#e1e3e5] rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-colors"
+                          >-</button>
+                          <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
+                          <button 
+                            onClick={() => updateItem(item.id, 'quantity', item.quantity + 1)}
+                            className="w-8 h-8 border border-[#e1e3e5] rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-colors"
+                          >+</button>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[8px] uppercase font-bold text-gray-400 tracking-widest italic">Item Total</p>
+                          <p className="text-sm font-black italic tracking-tighter">${(item.price * item.quantity).toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {items.length === 0 && (
+                  <div className="p-20 text-center">
+                    <div className="flex flex-col items-center gap-4 opacity-10">
+                      <Package className="h-12 w-12" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em]">Invoice is empty</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -692,12 +857,12 @@ export default function InvoiceMakerPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-black" />
-                    <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Live HUD Matrix</CardTitle>
+                    <CardTitle className="text-[10px] uppercase font-black tracking-widest text-[#1a1c1e]">Receipt Preview</CardTitle>
                   </div>
-                  <Badge className="bg-black text-white border-none text-[8px] font-black tracking-widest px-2 uppercase rounded-none">Rendering</Badge>
+                  <Badge className="bg-black text-white border-none text-[8px] font-black tracking-widest px-2 uppercase rounded-none">Ready</Badge>
                 </div>
               </CardHeader>
-              <CardContent className="p-8 space-y-8 relative">
+              <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8 relative">
                 
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
@@ -779,7 +944,7 @@ export default function InvoiceMakerPage() {
               <div className="space-y-1">
                 <p className="text-[9px] font-black uppercase text-[#1a1c1e] tracking-tight italic">Protocol Insight</p>
                 <p className="text-[8px] font-bold text-gray-400 uppercase leading-relaxed tracking-tight">
-                  Dispatched invoices are archived in the forensic ledger. Clients receive immediate encrypted transmission via FSLNO mail nodes.
+                  Dispatched invoices                  Clients receive immediate email notifications from the FSLNO automated dispatch system.
                 </p>
               </div>
             </div>

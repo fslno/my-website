@@ -9,12 +9,34 @@ import { getLivePath } from '@/lib/deployment';
 
 import { cn } from '@/lib/utils';
 
+interface ProductGridProps {
+  initialProducts?: any[];
+  categoryId?: string;
+  itemsPerPage?: number;
+  limit?: number;
+  excludeId?: string;
+  className?: string;
+  gridClassName?: string;
+  showTitle?: boolean;
+  title?: string;
+}
+
 /**
  * Unified Product Grid Manifest.
  * Authoritatively manifests all studio drops in a high-fidelity responsive grid.
  * Forensicly stabilized to eliminate hydration mismatches by ensuring class consistency.
  */
-export function ProductGrid() {
+export function ProductGrid({
+  initialProducts,
+  categoryId,
+  itemsPerPage = 60,
+  limit,
+  excludeId,
+  className,
+  gridClassName,
+  showTitle,
+  title
+}: ProductGridProps) {
   const db = useFirestore();
 
   // 01. Catalog Ingestion
@@ -23,7 +45,7 @@ export function ProductGrid() {
     return query(collection(db, getLivePath('products')), orderBy('createdAt', 'desc'));
   }, [db]);
 
-  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+  const { data: rawProducts, isLoading: productsLoading } = useCollection(productsQuery);
 
   // 02. Metadata Synchronization
   const categoriesQuery = useMemoFirebase(() => {
@@ -55,13 +77,19 @@ export function ProductGrid() {
   }, [allReviews]);
 
   const [currentPage, setCurrentPage] = React.useState(1);
-  const itemsPerPage = 60;
+
+  const products = useMemo(() => {
+    let p = rawProducts || [];
+    if (excludeId) p = p.filter(item => item.id !== excludeId);
+    if (limit) p = p.slice(0, limit);
+    return p;
+  }, [rawProducts, excludeId, limit]);
 
   const paginatedProducts = useMemo(() => {
     if (!products) return [];
     const start = (currentPage - 1) * itemsPerPage;
     return products.slice(start, start + itemsPerPage);
-  }, [products, currentPage]);
+  }, [products, currentPage, itemsPerPage]);
 
   const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
 

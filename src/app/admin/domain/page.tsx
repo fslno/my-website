@@ -177,7 +177,7 @@ export default function DomainPage() {
       id: Math.random().toString(36).substr(2, 9),
       name: newTokenName,
       token,
-      createdAt: new Date().toISOString()
+      createdAt: serverTimestamp() as any
     };
     
     const updatedTokens = [...apiTokens, newToken];

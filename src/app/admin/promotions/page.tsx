@@ -91,6 +91,8 @@ export default function PromotionsPage() {
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [flashValue, setFlashValue] = useState(15);
   const [flashLabel, setFlashLabel] = useState('SALE');
+  const [flashEndTime, setFlashEndTime] = useState('');
+  const [flashCountdownEnabled, setFlashCountdownEnabled] = useState(false);
 
   // THRESHOLD STATE
   const [thresholdEnabled, setThresholdEnabled] = useState(false);
@@ -130,6 +132,8 @@ export default function PromotionsPage() {
       setFlashEnabled(config.flashEnabled ?? false);
       setFlashValue(config.flashValue ?? 15);
       setFlashLabel(config.flashLabel ?? 'SALE');
+      setFlashEndTime(config.flashEndTime ?? '');
+      setFlashCountdownEnabled(config.flashCountdownEnabled ?? false);
 
       setThresholdEnabled(config.thresholdEnabled ?? false);
       setThresholdValue(config.thresholdValue ?? 1000);
@@ -166,6 +170,8 @@ export default function PromotionsPage() {
       flashEnabled,
       flashValue: Number(flashValue),
       flashLabel,
+      flashEndTime,
+      flashCountdownEnabled,
       thresholdEnabled,
       thresholdValue: Number(thresholdValue),
       thresholdDiscount: Number(thresholdDiscount),
@@ -450,6 +456,34 @@ export default function PromotionsPage() {
                       disabled={!flashEnabled}
                     />
                   </div>
+                </div>
+
+                <div className="pt-4 border-t border-zinc-800/10 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label className={cn("text-[9px] uppercase font-bold", flashEnabled ? 'text-zinc-400' : 'text-gray-500')}>Enable Countdown</Label>
+                      <p className="text-[8px] text-zinc-500 uppercase font-medium">Show a timer on the storefront.</p>
+                    </div>
+                    <Switch 
+                      checked={flashCountdownEnabled} 
+                      onCheckedChange={setFlashCountdownEnabled}
+                      disabled={!flashEnabled}
+                      className="data-[state=checked]:bg-orange-500"
+                    />
+                  </div>
+                  
+                  {flashCountdownEnabled && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <Label className="text-[9px] uppercase font-bold text-zinc-400">Sale End Date & Time</Label>
+                      <Input 
+                        type="datetime-local" 
+                        value={flashEndTime}
+                        onChange={(e) => setFlashEndTime(e.target.value)}
+                        className="h-10 bg-white text-black"
+                        disabled={!flashEnabled}
+                      />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

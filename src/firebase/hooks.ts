@@ -24,8 +24,7 @@ export function useIsAdmin() {
 
     const adminEmails = [
       'fslno.dev@gmail.com',
-      'admin@fslno.ca',
-      'goal@fslno.ca'
+      'admin@fslno.ca'
     ];
 
     return (

@@ -10,10 +10,10 @@ import { getLivePath } from '@/lib/deployment';
  * and injects dynamic CSS variables and style rules into the document.
  * Implements a high-fidelity fluid typography protocol for automatic mobile scaling.
  */
-export function ThemeStyleInjector() {
+export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
-  const { data: theme } = useDoc(themeRef);
+  const { data: theme } = useDoc(themeRef, { initialData: initialTheme });
 
   useEffect(() => {
     if (!theme) return;

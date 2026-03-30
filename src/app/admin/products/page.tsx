@@ -40,8 +40,10 @@ import {
   Maximize2,
   Sparkles,
   Images as ImagesIcon,
-  FileText
+  FileText,
+  Crop
 } from 'lucide-react';
+import { ImageCropper } from '@/components/admin/ImageCropper';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -78,6 +80,7 @@ interface Variant {
   stock: number;
   sku: string;
   isPreorder?: boolean;
+  lowStockThreshold?: number;
 }
 
 export default function ProductsPage() {
@@ -90,13 +93,18 @@ export default function ProductsPage() {
 
   const isAdmin = useIsAdmin();
 
-  const productsQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'products') : null, [db, isAdmin]);
-  const categoriesQuery = useMemoFirebase(() => db && isAdmin ? collection(db, 'categories') : null, [db, isAdmin]);
+  const productsRef = useMemoFirebase(() => db && isAdmin ? collection(db, 'products') : null, [db, isAdmin]);
+  const categoriesRef = useMemoFirebase(() => db && isAdmin ? collection(db, 'categories') : null, [db, isAdmin]);
+  const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const shippingConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
 
-  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
-  const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesQuery);
+  const { data: products, isLoading: productsLoading } = useCollection(productsRef);
+  const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesRef);
+  const { data: storeConfig } = useDoc(storeConfigRef);
   const { data: shippingConfig } = useDoc(shippingConfigRef);
+
+  const globalThreshold = Number(storeConfig?.globalLowStockThreshold) || 10;
+  const globalVariantThreshold = Number(storeConfig?.globalVariantLowStockThreshold) || 5;
   
   const [isSaving, setIsSaving] = useState(false);
   const [aiTone, setAiTone] = useState('luxurious');
@@ -113,6 +121,7 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'out'>('all');
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
@@ -135,6 +144,8 @@ export default function ProductsPage() {
   const [customizationFee, setCustomizationFee] = useState('10');
 
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [isSoldOut, setIsSoldOut] = useState(false);
+  const [lowStockThreshold, setLowStockThreshold] = useState('10');
   
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
@@ -149,6 +160,16 @@ export default function ProductsPage() {
 
   // Drag and Drop State
   const [draggedMediaIndex, setDraggedMediaIndex] = useState<number | null>(null);
+
+  // Cropping Queue State
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const [processedFiles, setProcessedFiles] = useState<File[]>([]);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const handleDragStartMedia = (index: number) => {
     setDraggedMediaIndex(index);
@@ -180,11 +201,33 @@ export default function ProductsPage() {
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     
+    const calculateTotalStock = (variants?: Variant[], inventory?: number) => {
+      if (variants && variants.length > 0) {
+        return variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+      }
+      return Number(inventory) || 0;
+    };
+
     let result = products.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesCategory = categoryFilter === 'all' || p.categoryId === categoryFilter;
-      return matchesSearch && matchesCategory;
+      
+      const totalStock = calculateTotalStock(p.variants, p.inventory);
+      const isActuallyOut = p.isSoldOut || totalStock <= 0;
+      
+      const hasLowVariant = p.variants?.some((v: any) => {
+        const threshold = Number(v.lowStockThreshold) || globalVariantThreshold;
+        return (Number(v.stock) || 0) > 0 && (Number(v.stock) || 0) <= threshold;
+      });
+      const hasOutVariant = p.variants?.some((v: any) => (Number(v.stock) || 0) <= 0);
+
+      const productLowThreshold = Number(p.lowStockThreshold) || globalThreshold;
+      const matchesStock = stockFilter === 'all' || 
+                          (stockFilter === 'low' && (hasLowVariant || (!isActuallyOut && totalStock <= productLowThreshold))) || 
+                          (stockFilter === 'out' && (hasOutVariant || isActuallyOut));
+      
+      return matchesSearch && matchesCategory && matchesStock;
     });
 
     result.sort((a, b) => {
@@ -449,7 +492,7 @@ export default function ProductsPage() {
   }, [variants]);
 
   const handleAddVariant = () => {
-    setVariants([...variants, { size: '', stock: 0, sku: sku ? `${sku}-NEW` : '', isPreorder: preorderEnabled }]);
+    setVariants([...variants, { size: '', stock: 0, sku: sku ? `${sku}-NEW` : '', isPreorder: preorderEnabled, lowStockThreshold: 5 }]);
   };
 
   const handleRemoveVariant = (index: number) => {
@@ -471,22 +514,54 @@ export default function ProductsPage() {
     setVariants(prev => prev.map(v => ({ ...v, isPreorder: checked })));
   };
 
-  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0 || !storage) return;
+    if (!files || files.length === 0) return;
+    
     const fileArray = Array.from(files).sort((a, b) => 
       a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
     );
+
+    setCropQueue(fileArray);
+    setProcessedFiles([]);
+    setIsCropperOpen(true);
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob | null) => {
+    const currentFile = cropQueue[0];
+    if (!currentFile) return;
+
+    let finalFile = currentFile;
+    if (croppedBlob) {
+      finalFile = new File([croppedBlob], currentFile.name, { type: 'image/jpeg' });
+    }
+
+    const newProcessed = [...processedFiles, finalFile];
+    const newQueue = cropQueue.slice(1);
+
+    if (newQueue.length > 0) {
+      setProcessedFiles(newProcessed);
+      setCropQueue(newQueue);
+    } else {
+      // End of queue - start the actual manifest upload
+      setCropQueue([]);
+      setIsCropperOpen(false);
+      await executeUploadProtocol(newProcessed);
+    }
+  };
+
+  const executeUploadProtocol = async (files: File[]) => {
+    if (!storage || files.length === 0) return;
     
     setIsSaving(true);
-    setUploadProgress({ current: 0, total: fileArray.length });
+    setUploadProgress({ current: 0, total: files.length });
     
     const BATCH_SIZE = 10;
     const allResults: MediaItem[] = [];
     
     try {
-      for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
-        const batch = fileArray.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < files.length; i += BATCH_SIZE) {
+        const batch = files.slice(i, i + BATCH_SIZE);
         const batchPromises = batch.map(async (file) => {
           let type: 'image' | 'video' | 'file' = 'file';
           if (file.type.startsWith('video/')) type = 'video';
@@ -584,6 +659,7 @@ export default function ProductsPage() {
       price: sanitizeNum(price),
       comparedPrice: comparedPrice ? sanitizeNum(comparedPrice, null) : null,
       brand: brand.trim(),
+      isSoldOut: isSoldOut,
       sku: sku.trim(),
       sizeFit: sizeFit.trim(),
       badge,
@@ -591,10 +667,12 @@ export default function ProductsPage() {
       customizationEnabled,
       customizationFee: customizationEnabled ? sanitizeNum(customizationFee) : 0,
       inventory: totalInventory,
+      lowStockThreshold: sanitizeNum(lowStockThreshold, 10),
       preorderEnabled,
       variants: variants.map(v => ({
         ...v,
         stock: isNaN(v.stock) ? 0 : v.stock,
+        lowStockThreshold: Number(v.lowStockThreshold) || 5,
         sku: v.sku.trim()
       })),
       media,
@@ -647,7 +725,8 @@ export default function ProductsPage() {
 
   const resetForm = () => {
     setName(''); setPrice(''); setComparedPrice(''); setBrand(''); setSku(''); setSizeFit(''); setBadge('none'); setDescription(''); setCategoryId('');
-    setCustomizationEnabled(true); setCustomizationFee('10'); setPreorderEnabled(false);
+    setCustomizationEnabled(true); setCustomizationFee('10'); setPreorderEnabled(false); setIsSoldOut(false);
+    setLowStockThreshold('10');
     setVariants([]);
     setMedia([]); setFeatures(''); setSeoTitle(''); setSeoDescription(''); setSeoHandle(''); setWeight(''); setLength(''); setWidth(''); setHeight(''); setActiveTab('general');
     setEditingId(null);
@@ -657,6 +736,7 @@ export default function ProductsPage() {
     setName(product.name || '');
     setPrice(String(product.price || ''));
     setComparedPrice(String(product.comparedPrice || ''));
+    setIsSoldOut(product.isSoldOut || false);
     setBrand(product.brand || '');
     setSku(product.sku || '');
     setSizeFit(product.sizeFit || '');
@@ -666,6 +746,7 @@ export default function ProductsPage() {
     setCustomizationEnabled(product.customizationEnabled ?? true);
     setCustomizationFee(String(product.customizationFee ?? '10'));
     setPreorderEnabled(product.preorderEnabled ?? false);
+    setLowStockThreshold(String(product.lowStockThreshold ?? '10'));
     setVariants(product.variants || []);
     setMedia(product.media || []);
     setFeatures(product.features?.join(', ') || '');
@@ -689,6 +770,14 @@ export default function ProductsPage() {
   const handleNextProduct = () => {
     if (currentIndex < filteredProducts.length - 1) openEdit(filteredProducts[currentIndex + 1]);
   };
+
+  if (!hasMounted) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-black" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -926,7 +1015,17 @@ export default function ProductsPage() {
                 <TabsContent value="inventory" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="bg-black text-white p-6 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-6 shadow-xl">
                     <div className="text-center sm:text-left"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Total In Stock</p><p className="text-3xl font-bold font-headline">{totalInventory} PCS</p></div>
-                    <div className="w-full sm:w-[300px] text-center sm:text-right"><Label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Master SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1 text-center sm:text-right h-11" /></div>
+                    <div className="flex items-center gap-6 flex-wrap justify-center sm:justify-end">
+                      <div className="flex flex-col items-center gap-1.5 pt-2 px-2 border-r border-white/10 pr-6">
+                        <Label className="text-[8px] uppercase font-bold text-gray-400">Sold Out Override</Label>
+                        <Switch checked={isSoldOut} onCheckedChange={setIsSoldOut} className="data-[state=checked]:bg-red-500 scale-75"/>
+                      </div>
+                      <div className="flex flex-col items-center gap-1.5 pt-2 px-2 border-r border-white/10 pr-6">
+                        <Label className="text-[8px] uppercase font-bold text-orange-400">Low Stock Alert</Label>
+                        <Input type="number" value={lowStockThreshold} onChange={(e) => setLowStockThreshold(e.target.value)} className="h-8 w-16 bg-white/10 border-white/20 text-white font-mono text-center text-[10px]" />
+                      </div>
+                      <div className="w-full sm:w-[200px] text-center sm:text-right"><Label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Master SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1 text-center sm:text-right h-11" /></div>
+                    </div>
                   </div>
                   <div className="p-6 bg-orange-50 border border-orange-100 rounded-xl flex items-center justify-between"><div className="space-y-1"><div className="flex items-center gap-2"><Clock className="h-4 w-4 text-orange-600" /><h3 className="text-xs font-bold uppercase tracking-widest text-orange-900">Pre-order</h3></div><p className="text-[9px] uppercase font-bold text-orange-700 tracking-tight">Enable pre-orders for this product.</p></div><Switch checked={preorderEnabled} onCheckedChange={handleToggleGlobalPreorder} className="data-[state=checked]:bg-orange-600"/></div>
                   
@@ -943,6 +1042,7 @@ export default function ProductsPage() {
                         <div className="w-full sm:w-20"><Label className="text-[8px] uppercase font-bold text-gray-400">Size</Label><Input value={v.size} onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)} className="h-10 font-bold uppercase" /></div>
                         <div className="flex-1 min-w-[150px]"><Label className="text-[8px] uppercase font-bold text-gray-400">SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-10 font-mono text-[10px]" /></div>
                         <div className="w-full sm:w-32"><Label className="text-[8px] uppercase font-bold text-gray-400">In Stock</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-10 font-mono" /></div>
+                        <div className="w-full sm:w-24"><Label className="text-[8px] uppercase font-bold text-orange-400">Threshold</Label><Input type="number" value={v.lowStockThreshold} onChange={(e) => handleUpdateVariant(i, 'lowStockThreshold', parseInt(e.target.value) || 0)} className="h-10 font-mono" /></div>
                         <div className="flex flex-col items-center gap-1.5 pt-2 px-2"><Label className="text-[7px] uppercase font-bold text-gray-400">Pre-order</Label><Switch checked={v.isPreorder ?? false} onCheckedChange={(checked) => handleUpdateVariant(i, 'isPreorder', checked)} className="scale-75"/></div>
                         <div className="flex items-end pb-1 ml-auto">
                           <Button variant="ghost" size="icon" onClick={() => handleRemoveVariant(i)} className="h-10 w-10 text-red-500 hover:bg-red-50">
@@ -1099,6 +1199,38 @@ export default function ProductsPage() {
             </Button>
           </div>
         )}
+        
+        <div className="flex border-b bg-white">
+          <button 
+            onClick={() => setStockFilter('all')} 
+            className={cn(
+              "px-8 h-14 text-[10px] font-bold uppercase tracking-[0.2em] border-b-2 transition-all relative overflow-hidden",
+              stockFilter === 'all' ? "border-black text-black bg-gray-50/50" : "border-transparent text-gray-400 hover:text-black hover:bg-gray-50/30"
+            )}
+          >
+            Management Center
+          </button>
+          <button 
+            onClick={() => setStockFilter('low')} 
+            className={cn(
+              "px-8 h-14 text-[10px] font-bold uppercase tracking-[0.2em] border-b-2 transition-all flex items-center gap-2",
+              stockFilter === 'low' ? "border-black text-orange-600 bg-orange-50/10" : "border-transparent text-gray-400 hover:text-orange-600 hover:bg-orange-50/5"
+            )}
+          >
+            <div className={cn("w-1.5 h-1.5 rounded-full", stockFilter === 'low' ? "bg-orange-500 animate-pulse" : "bg-gray-300")} />
+            Low Stock
+          </button>
+          <button 
+            onClick={() => setStockFilter('out')} 
+            className={cn(
+              "px-8 h-14 text-[10px] font-bold uppercase tracking-[0.2em] border-b-2 transition-all flex items-center gap-2",
+              stockFilter === 'out' ? "border-black text-red-600 bg-red-50/10" : "border-transparent text-gray-400 hover:text-red-600 hover:bg-red-50/5"
+            )}
+          >
+            <div className={cn("w-1.5 h-1.5 rounded-full", stockFilter === 'out' ? "bg-red-500 animate-pulse" : "bg-gray-300")} />
+            Out of Stock
+          </button>
+        </div>
 
         <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:flex-1 lg:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" /><Input placeholder="Search products..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
@@ -1177,7 +1309,56 @@ export default function ProductsPage() {
                       <TableCell><div className="w-16 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{product.media?.[0]?.url ? (product.media[0].type === 'video' ? <video src={product.media[0].url} className="object-cover w-full h-full" /> : <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" />) : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
                       <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span></div></TableCell>
                       <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'None'}</div></TableCell>
-                      <TableCell className="text-sm font-bold">{product.inventory || 0} PCS</TableCell>
+                      <TableCell className="py-4">
+                        {(() => {
+                          const totalStock = product.variants && product.variants.length > 0 
+                            ? product.variants.reduce((sum: number, v: any) => sum + (Number(v.stock) || 0), 0)
+                            : (Number(product.inventory) || 0);
+                          const isActuallyOut = product.isSoldOut || totalStock <= 0;
+                          
+                          const lowVariants = product.variants?.filter((v: any) => (Number(v.stock) || 0) > 0 && (Number(v.stock) || 0) <= 5);
+                          const outVariants = product.variants?.filter((v: any) => (Number(v.stock) || 0) <= 0);
+
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant="outline" 
+                                  className={cn(
+                                    "text-[10px] h-6 font-bold uppercase tracking-widest border-none px-2 w-fit",
+                                    isActuallyOut 
+                                      ? "bg-red-500 text-white animate-pulse" 
+                                      : totalStock <= (Number(product.lowStockThreshold) || globalThreshold)
+                                        ? "bg-orange-500 text-white" 
+                                        : "bg-black text-white"
+                                  )}
+                                >
+                                  {totalStock} PCS
+                                </Badge>
+                                {outVariants?.length > 0 && (
+                                  <Badge variant="outline" className="text-[8px] h-5 font-bold uppercase bg-red-50 text-red-600 border-red-100">
+                                    {outVariants.length} Sizes Empty
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                  {product.variants?.map((v: any, idx: number) => {
+                                    const variantStock = Number(v.stock) || 0;
+                                    const variantThreshold = Number(v.lowStockThreshold) || globalVariantThreshold;
+                                    if (variantStock > 0 && variantStock <= variantThreshold) {
+                                      return (
+                                        <span key={idx} className="text-[7px] font-bold text-orange-600 uppercase bg-orange-50 px-1 rounded-sm border border-orange-100">
+                                          {v.size}: {v.stock} LEFT
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
                       <TableCell className="text-sm font-semibold">C${formatCurrency(Number(product.price))}</TableCell>
                     </TableRow>
                   );
@@ -1257,7 +1438,19 @@ export default function ProductsPage() {
                       <p className="text-[9px] font-mono text-gray-400 uppercase truncate">SKU: {product.sku || 'N/A'}</p>
                       <div className="flex flex-wrap gap-2 pt-1">
                         <Badge variant="outline" className="text-[8px] h-4 font-bold uppercase tracking-tighter border-none bg-gray-100 text-gray-600 px-1.5"><Tag className="h-2 w-2 mr-1" /> {category?.name || 'None'}</Badge>
-                        <Badge variant="outline" className="text-[8px] h-4 font-bold uppercase tracking-tighter border-none bg-black text-white px-1.5">{product.inventory || 0} IN STOCK</Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-[8px] h-4 font-bold uppercase tracking-tighter border-none px-1.5",
+                            (product.isSoldOut || (product.inventory || 0) <= 0) 
+                              ? "bg-red-500 text-white animate-pulse" 
+                              : (product.inventory || 0) <= (Number(product.lowStockThreshold) || globalThreshold) 
+                                ? "bg-orange-500 text-white" 
+                                : "bg-black text-white"
+                          )}
+                        >
+                          {product.inventory || 0} {(product.isSoldOut || (product.inventory || 0) <= 0) ? 'OUT OF STOCK' : (product.inventory || 0) <= (Number(product.lowStockThreshold) || globalThreshold) ? 'LOW STOCK' : 'IN STOCK'}
+                        </Badge>
                       </div>
                     </div>
                     <div className="flex items-center text-gray-300"><ChevronRight className="h-4 w-4" /></div>
@@ -1303,6 +1496,14 @@ export default function ProductsPage() {
           )}
         </div>
       </div>
+      
+      <ImageCropper
+        image={cropQueue.length > 0 ? URL.createObjectURL(cropQueue[0]) : null}
+        open={isCropperOpen}
+        aspectRatio={1} // Product images are usually 1:1
+        onCropComplete={handleCropComplete}
+        onClose={() => setIsCropperOpen(false)}
+      />
     </div>
     </>
   );

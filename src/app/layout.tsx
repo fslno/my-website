@@ -1,103 +1,217 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './globals.css';
-import { FirebaseClientProvider, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { Toaster } from '@/components/ui/toaster';
-import { CartProvider } from '@/context/CartContext';
-import { WishlistProvider } from '@/context/WishlistContext';
-import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
-import { MetaTagInjector } from '@/components/storefront/MetaTagInjector';
-import { Chatbot } from '@/components/storefront/Chatbot';
-import { PromotionPopup } from '@/components/storefront/PromotionPopup';
-import { Header } from '@/components/storefront/Header';
-import { Footer } from '@/components/storefront/Footer';
-import { cn } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
-import { doc } from 'firebase/firestore';
-import { getLivePath } from '@/lib/deployment';
+import { adminDb } from '@/lib/firebase-admin';
+import { ClientLayout } from '@/components/layout/ClientLayout';
+import { Metadata } from 'next';
 
-import { AuthDialogProvider } from '@/context/AuthDialogContext';
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const [themeDoc, domainDoc] = await Promise.all([
+      adminDb.doc('config/theme').get(),
+      adminDb.doc('config/domain').get()
+    ]);
 
-/**
- * Authoritative Direct-Open Root Layout.
- * Forensicly purged of loading sequences to ensure instantaneous storefront manifestation.
- */
-export default function RootLayout({
+    const theme = themeDoc?.data() || {};
+    const domain = domainDoc?.data() || {};
+
+    const title = theme?.homepageSeo?.title || "Feiselino (FSLNO) | Sport Jerseys";
+    const description = theme?.homepageSeo?.description || "Official Feiselino (FSLNO) Sport Website. High-quality jerseys and apparel.";
+    const primaryDomain = domain?.primaryDomain || "fslno.ca";
+    const logoUrl = "https://i.ibb.co/PGbDVWTg/fslno-icon-192-x-192.png";
+
+    const metadata: Metadata = {
+      title: {
+        default: title,
+        template: `%s | ${theme?.businessName || 'FSLNO'}`
+      },
+      description,
+      metadataBase: new URL(`https://${primaryDomain}`),
+      alternates: {
+        canonical: '/',
+      },
+      openGraph: {
+        title,
+        description,
+        url: `https://${primaryDomain}`,
+        siteName: theme?.businessName || 'FSLNO',
+        images: [
+          {
+            url: logoUrl,
+            width: 800,
+            height: 600,
+          },
+        ],
+        locale: 'en_US',
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [logoUrl],
+      },
+      robots: {
+        index: domain?.searchIndexingEnabled !== false,
+        follow: domain?.searchIndexingEnabled !== false,
+      },
+      manifest: '/manifest.webmanifest',
+      icons: {
+        icon: '/icon.png',
+        apple: '/icon.png',
+      },
+      appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'FSLNO',
+      },
+    };
+
+    if (domain?.metaTags) {
+      const other: Record<string, string> = {};
+      domain.metaTags.forEach((tag: { name: string; content: string }) => {
+        if (tag.name && tag.content) {
+          other[tag.name] = tag.content;
+        }
+      });
+      metadata.other = other;
+    }
+
+    return metadata;
+  } catch (err: any) {
+    console.warn("[LAYOUT_METADATA_CAUGHT]", typeof err === 'object' ? err.message : String(err));
+    return {
+      title: "Feiselino (FSLNO)",
+      description: "Official Feiselino (FSLNO) Sport Website.",
+      icons: { icon: '/favicon.ico', apple: '/apple-icon.png' },
+    };
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
+  // SSR Theme Injection (Anti-Flicker)
+  let theme: any = {};
+  let store: any = {};
+  
+  try {
+    const [themeDoc, storeDoc] = await Promise.all([
+      adminDb.doc('config/theme').get().catch((e: Error) => { 
+        console.warn("[ADMIN_THEME_FETCH_FAIL]", e.message); 
+        return null; 
+      }),
+      adminDb.doc('config/store').get().catch((e: Error) => { 
+        console.warn("[ADMIN_STORE_FETCH_FAIL]", e.message); 
+        return null; 
+      })
+    ]);
+    theme = themeDoc?.data() || {};
+    store = storeDoc?.data() || {};
+  } catch (err) {
+    console.error("[SSR_DATA_FETCH_CRITICAL_FAILURE]", err);
+  }
+
+  // Contrast Calculation logic on server
+  const getContrastColor = (hexcolor: string | undefined) => {
+    if (!hexcolor || hexcolor === 'transparent' || typeof hexcolor !== 'string' || hexcolor.length < 6) return '#000000';
+    try {
+      const cleanHex = hexcolor.replace('#', '');
+      const r = parseInt(cleanHex.substring(0, 2), 16);
+      const g = parseInt(cleanHex.substring(2, 4), 16);
+      const b = parseInt(cleanHex.substring(4, 6), 16);
+      const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+      return (yiq >= 128) ? '#000000' : '#FFFFFF';
+    } catch { return '#000000'; }
+  };
+
+  const primaryColor = theme.primaryColor || '#000000';
+  const accentColor = theme.accentColor || '#FFFFFF';
+  const headlineFont = theme.headlineFont || 'Playfair Display';
+  const bodyFont = theme.bodyFont || 'Inter';
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Anton&family=Bebas+Neue&family=Oswald:wght@200..700&family=Teko:wght@300..700&family=Kanit:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Chakra+Petch:ital,wght@0,300..700;1,300..700&family=Rajdhani:wght@300..700&family=Titillium+Web:ital,wght@0,200..900;1,200..900&family=Exo+2:ital,wght@0,100..900;1,100..900&family=Michroma&family=Orbitron:wght@400..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Squada+One&family=Racing+Sans+One&family=Archivo+Black&family=Russo+One&family=Black+Ops+One&family=Stardos+Stencil:wght@400;700&family=Syncopate:wght@400;700&family=Cinzel:wght@400..900&family=Syne:wght@400..800&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Unbounded:wght@200..900&family=Italiana&family=Tenor+Sans&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Outfit:wght@100..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Host+Grotesk:ital,wght@0,300..800;1,300..800&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet" />
+        {/* Pruned font set for performance (Inter, Playfair, Montserrat, Bebas Neue, Oswald) */}
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=Oswald:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+        
+        {/* Critical CSS Injection for instant theme application */}
+        <style id="ssr-theme-style" dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --primary: ${primaryColor};
+            --primary-foreground: ${getContrastColor(primaryColor)};
+            --background: ${accentColor};
+            --accent: ${accentColor};
+            --accent-foreground: ${getContrastColor(accentColor)};
+            --radius: ${theme.borderRadius || 0}px;
+            --font-headline: "${headlineFont}", "Playfair Display", serif;
+            --font-body: "${bodyFont}", "Inter", sans-serif;
+            --hero-headline-size: ${theme.heroHeadlineSize || 72}px;
+            --hero-subheadline-size: ${theme.heroSubheadlineSize || 10}px;
+            --archive-title-size: ${theme.archiveTitleSize || 40}px;
+            --archive-title-color: ${theme.archiveTitleColor || primaryColor};
+            --product-title-size: ${theme.productTitleSize || 14}px;
+            --product-price-size: ${theme.productPriceSize || 14}px;
+          }
+          body { font-family: var(--font-body) !important; background-color: var(--background) !important; }
+          h1, h2, h3, h4, h5, h6, .font-headline { font-family: var(--font-headline) !important; }
+        `}} />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": store.businessName || "Feiselino (FSLNO)",
+                "url": "https://fslno.ca",
+                "logo": "https://i.ibb.co/PGbDVWTg/fslno-icon-192-x-192.png",
+                "sameAs": [
+                  store.instagramUrl,
+                  store.facebookUrl,
+                  store.twitterUrl
+                ].filter(Boolean)
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": store.businessName || "Feiselino (FSLNO)",
+                "url": "https://fslno.ca",
+                "potentialAction": {
+                  "@type": "SearchAction",
+                  "target": "https://fslno.ca/products?q={search_term_string}",
+                  "query-input": "required name=search_term_string"
+                }
+              }
+            ])
+          }}
+        />
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-white text-foreground overflow-x-hidden" suppressHydrationWarning>
-        <FirebaseClientProvider>
-          <AuthDialogProvider>
-            <ThemeStyleInjector />
-            <MetaTagInjector />
-            <WishlistProvider>
-              <CartProvider>
-                <LayoutContent pathname={pathname}>
-                  <div className="mobile-wrapper">
-                    {children}
-                  </div>
-                </LayoutContent>
-                <Toaster />
-                <Chatbot />
-                <PromotionPopup />
-              </CartProvider>
-            </WishlistProvider>
-          </AuthDialogProvider>
-        </FirebaseClientProvider>
-      </body>
-    </html>
-  );
-}
-
-function LayoutContent({ children, pathname }: { children: React.ReactNode, pathname: string | null }) {
-  const isAdmin = pathname?.startsWith('/admin');
-  const isCheckout = pathname === '/checkout';
-  const isProductDetails = pathname?.startsWith('/products/');
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    // Small delay ensures fonts + styles are painted before revealing content
-    const t = setTimeout(() => setIsMounted(true), 80);
-    return () => clearTimeout(t);
-  }, []);
-
-  return (
-    <div className="flex flex-col min-h-screen bg-white">
-      {/* White opaque flash-prevention overlay — fades out once hydrated */}
-      {!isAdmin && (
-        <div
-          aria-hidden="true"
-          className="flex items-center justify-center"
+        {/* Opening/Refresh Cover - Prevent Flashback */}
+        <div 
+          id="fslno-opening-cover" 
           style={{
             position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            background: '#ffffff',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'white',
+            zIndex: 999999,
             pointerEvents: 'none',
-            opacity: isMounted ? 0 : 1,
-            transition: 'opacity 300ms ease-out',
+            display: 'block'
           }}
-        >
-          <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
-        </div>
-      )}
-      {isMounted && !isAdmin && <Header />}
-      <main className={cn("flex-grow", !isAdmin && "pt-0")}>
-        {children}
-      </main>
-      {isMounted && !isAdmin && <Footer />}
-    </div>
+        />
+        <ClientLayout initialTheme={theme} initialStore={store}>
+          {children}
+        </ClientLayout>
+      </body>
+    </html>
   );
 }

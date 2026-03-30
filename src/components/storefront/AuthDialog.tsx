@@ -45,7 +45,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     setIsLoading(true);
     
     try {
-      initiateEmailSignIn(auth, email, password);
+      await initiateEmailSignIn(auth, email, password);
       onOpenChange(false);
       resetForm();
       router.push('/account');
@@ -66,7 +66,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     setIsLoading(true);
 
     try {
-      initiateEmailSignUp(auth, email, password);
+      await initiateEmailSignUp(auth, email, password);
       onOpenChange(false);
       resetForm();
       router.push('/account');
@@ -85,11 +85,22 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     if (!auth) return;
-    initiateGoogleSignIn(auth);
-    onOpenChange(false);
-    router.push('/account');
+    setIsLoading(true);
+    try {
+      await initiateGoogleSignIn(auth);
+      onOpenChange(false);
+      router.push('/account');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Google sign-in failed."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resetForm = () => {

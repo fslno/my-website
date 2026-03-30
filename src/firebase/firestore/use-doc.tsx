@@ -25,39 +25,50 @@ export interface UseDocResult<T> {
 }
 
 /**
+ * Interface for options passed to the useDoc hook.
+ * @template T Type of the document data.
+ */
+export interface UseDocOptions<T> {
+  initialData?: T;
+}
+
+/**
  * React hook to subscribe to a single Firestore document in real-time.
  * Handles nullable references.
  * 
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
- *
+ * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedDocRef or BAD THINGS WILL HAPPEN
  *
  * @template T Optional type for document data. Defaults to any.
- * @param {DocumentReference<DocumentData> | null | undefined} docRef -
+ * @param {DocumentReference<DocumentData> | null | undefined} memoizedDocRef -
  * The Firestore DocumentReference. Waits if null/undefined.
+ * @param {UseDocOptions<T>} options - Optional configuration for initial data.
  * @returns {UseDocResult<T>} Object with data, isLoading, error.
  */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
+  options?: UseDocOptions<T>
 ): UseDocResult<T> {
-  type StateDataType = WithId<T> | null;
-
-  const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [data, setData] = useState<WithId<T> | null>(() => {
+    if (options?.initialData) {
+      return { ...options.initialData, id: memoizedDocRef?.id || '' } as WithId<T>;
+    }
+    return null;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(!options?.initialData && !!memoizedDocRef);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
     if (!memoizedDocRef) {
-      setData(null);
+      if (!options?.initialData) setData(null);
       setIsLoading(false);
       setError(null);
       return;
     }
 
-    setIsLoading(true);
+    if (!options?.initialData) {
+      setIsLoading(true);
+    }
     setError(null);
-    // Optional: setData(null); // Clear previous data instantly
 
     const unsubscribe = onSnapshot(
       memoizedDocRef,
@@ -89,7 +100,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef]); // Re-run if the memoizedDocRef changes.
+  }, [memoizedDocRef, options?.initialData]); // Re-run if the memoizedDocRef or initialData changes.
 
   return { data, isLoading, error };
 }

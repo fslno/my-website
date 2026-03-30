@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@/firebase';
 import { Loader2, LayoutDashboard, ShoppingBag, User, LogOut, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -10,6 +10,7 @@ import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useAuthDialog } from '@/context/AuthDialogContext';
+import { AccountLoadingCover } from '@/components/storefront/AccountLoadingCover';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -18,6 +19,11 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const auth = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -30,12 +36,8 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     }
   };
 
-  if (isUserLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-black" />
-      </div>
-    );
+  if (!hasMounted || isUserLoading) {
+    return <AccountLoadingCover />;
   }
 
   if (!user) {

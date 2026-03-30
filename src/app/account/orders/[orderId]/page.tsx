@@ -4,13 +4,14 @@ import React from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { Loader2, Package, Truck, MapPin, Calendar, CreditCard, ExternalLink, ArrowLeft, ChevronLeft } from 'lucide-react';
+import { Package, Truck, MapPin, Calendar, CreditCard, ExternalLink, ArrowLeft, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { AccountLoadingCover } from '@/components/storefront/AccountLoadingCover';
 
 interface PageProps {
   params: Promise<{ orderId: string }>;
@@ -67,7 +68,7 @@ export default function OrderDetailPage(props: PageProps) {
     });
   };
 
-  if (isUserLoading || orderLoading) return <div className="min-h-screen bg-white" />;
+  if (isUserLoading || orderLoading) return <AccountLoadingCover />;
 
   if (!user || (order && order.userId !== user.uid)) {
     return (

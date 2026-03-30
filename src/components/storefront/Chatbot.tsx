@@ -44,7 +44,7 @@ export function Chatbot() {
   const contactMethods: any[] = [];
   
   // 01. Phone Paths
-  phoneNumbers.forEach(p => contactMethods.push({ 
+  phoneNumbers.forEach((p: any) => contactMethods.push({ 
     type: 'phone', 
     label: p.label, 
     value: p.value, 
@@ -66,7 +66,7 @@ export function Chatbot() {
   }
 
   // 03. Email Paths
-  emailAddresses.forEach(e => contactMethods.push({ 
+  emailAddresses.forEach((e: any) => contactMethods.push({ 
     type: 'email', 
     label: e.label, 
     value: e.value, 
@@ -76,7 +76,7 @@ export function Chatbot() {
   }));
   
   // 04. Social Channels
-  socialChannels.forEach(s => {
+  socialChannels.forEach((s: any) => {
     if (s.platform === 'WhatsApp') return;
 
     let icon = <Globe className="h-4 w-4" />;

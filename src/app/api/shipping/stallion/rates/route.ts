@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
-import * as admin from 'firebase-admin';
+import { adminDb } from '@/lib/firebase-admin';
+import { getLivePath } from '@/lib/deployment';
 
 /**
  * @fileOverview Stallion Express Rate Discovery API (Backend Layer)
@@ -9,9 +9,7 @@ import * as admin from 'firebase-admin';
  * Features a Forensic Fallback Protocol to ensure checkout restoration during API latency.
  */
 
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+
 
 const STALLION_BASE_URL = 'https://api.stallionexpress.ca/v1';
 // Authoritative API Token Sync: Verified manifest key for restoration
@@ -22,8 +20,8 @@ export async function POST(request: Request) {
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout protocol
 
   try {
-    const db = getFirestore();
-    
+    const db = adminDb;
+
     // 01. PAYLOAD_VALIDATION Protocol
     let body;
     try {
@@ -44,8 +42,8 @@ export async function POST(request: Request) {
     const shippingConfigDoc = await db.collection('config').doc('shipping').get();
     const shippingConfig = shippingConfigDoc.data();
     const carriers = shippingConfig?.carriers || [];
-    
-    const stallionCarrier = carriers.find((c: any) => 
+
+    const stallionCarrier = carriers.find((c: any) =>
       (typeof c === 'string' ? c === 'STALLION EXPRESS' : c.name === 'STALLION EXPRESS')
     );
 
@@ -62,8 +60,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Stallion Express is currently deactivated.' }, { status: 503 });
     }
 
-    // Fetch origin address for carrier identification
-    const origin = shippingConfig?.originAddress || {};
+    const storeConfig = (await adminDb.doc(getLivePath('config/store')).get()).data();
+    const origin = {
+      countryCode: storeConfig?.originCountryCode || 'CA',
+      postalCode: storeConfig?.originPostalCode,
+      city: storeConfig?.originCity,
+      province: storeConfig?.originProvince
+    };
 
     // 03. Stallion Express API Handshake with Timeout
     const response = await fetch(`${STALLION_BASE_URL}/rates`, {
@@ -93,7 +96,7 @@ export async function POST(request: Request) {
     });
 
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       // LOG_REFINEMENT: Surfacing granular failure data to Google Cloud Logs
@@ -102,9 +105,9 @@ export async function POST(request: Request) {
         message: errorData.message || 'Unknown carrier error',
         requestPostal: to_address.postal_code
       });
-      
+
       // FALLBACK_PROTOCOL: Return standard rate to prevent checkout crash
-      return NextResponse.json({ rates: getFallbackRates() });
+      return NextResponse.json({ rates: await getFallbackRates(db, shippingConfig) });
     }
 
     const data = await response.json();
@@ -136,10 +139,15 @@ export async function POST(request: Request) {
       };
     });
 
+    // If API returned no rates, use fallback
+    if (mappedRates.length === 0) {
+      return NextResponse.json({ rates: await getFallbackRates(db, shippingConfig) });
+    }
+
     return NextResponse.json({ rates: mappedRates });
   } catch (error: any) {
     clearTimeout(timeoutId);
-    
+
     // LOG_REFINEMENT: Surface actual error message instead of generic 500
     if (error.name === 'AbortError') {
       console.error('[STALLION] API Timeout: Handshake aborted after 15s.');
@@ -148,19 +156,25 @@ export async function POST(request: Request) {
     }
 
     // FALLBACK_PROTOCOL: Ensure checkout flow persists despite internal failure
-    return NextResponse.json({ rates: getFallbackRates() });
+    const db = adminDb;
+    const shippingConfigDoc = await db.collection('config').doc('shipping').get();
+    return NextResponse.json({ rates: await getFallbackRates(db, shippingConfigDoc.data()) });
   }
 }
 
 /**
- * Returns hard-coded archival rates to ensure flow continuity.
+ * Returns Firestore-backed standard rates to ensure flow continuity.
+ * @param db Firestore instance
+ * @param config Shipping configuration data
  */
-function getFallbackRates() {
+async function getFallbackRates(db: any, config: any) {
+  const standardRate = Number(config?.standardRate) || 12.99;
+
   return [{
     id: 'restoration-fallback',
     service: 'Standard Logistics',
     label: 'Standard Shipping',
-    price: 0, // Handling fee and threshold applied by frontend component
+    price: standardRate,
     currency: 'CAD',
     days: '4-7',
     type: 'standard'

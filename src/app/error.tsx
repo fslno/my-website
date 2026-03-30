@@ -13,7 +13,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Forensic error logging
-    console.error('Production Error Catch:', error);
+    console.error('Production Error Catch:', error?.message || error);
   }, [error]);
 
   return (

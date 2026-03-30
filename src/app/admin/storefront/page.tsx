@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Monitor, 
-  Sparkles, 
-  Save, 
-  Loader2, 
+import {
+  Monitor,
+  Sparkles,
+  Save,
+  Loader2,
   Image as ImageIcon,
   Trash2,
   Plus,
@@ -44,6 +44,17 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '@/lib/cropImage';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 export default function StorefrontAdminPage() {
   const db = useFirestore();
@@ -62,7 +73,7 @@ export default function StorefrontAdminPage() {
   const [heroButtonText, setHeroButtonText] = useState('');
   const [homepageLayout, setHomepageLayout] = useState('bento');
   const [homepageDescription, setHomepageDescription] = useState('');
-  
+
   // Hero Styling State
   const [heroHeadlineColor, setHeroHeadlineColor] = useState('#000000');
   const [heroSubheadlineColor, setHeroSubheadlineColor] = useState('#8c9196');
@@ -78,6 +89,14 @@ export default function StorefrontAdminPage() {
   const [seoDescription, setSeoDescription] = useState('');
   const [seoHandle, setSeoHandle] = useState('');
 
+  // Cropping State
+  const [isCropping, setIsCropping] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [heroAspectRatio, setHeroAspectRatio] = useState(1.777); // Default 16:9
+
   useEffect(() => {
     if (theme) {
       if (theme.heroImages) {
@@ -85,7 +104,7 @@ export default function StorefrontAdminPage() {
       } else if (theme.heroImageUrl) {
         setHeroImages([theme.heroImageUrl]);
       }
-      
+
       setHeroHeadline(theme.heroHeadline || '');
       setHeroSubheadline(theme.heroSubheadline || '');
       setHeroButtonText(theme.heroButtonText || 'Shop the Drops');
@@ -94,7 +113,7 @@ export default function StorefrontAdminPage() {
       setSeoTitle(theme.homepageSeo?.title || '');
       setSeoDescription(theme.homepageSeo?.description || '');
       setSeoHandle(theme.homepageSeo?.handle || '');
-      
+
       // Load styling from theme
       setHeroHeadlineColor(theme.heroHeadlineColor || '#000000');
       setHeroSubheadlineColor(theme.heroSubheadlineColor || '#8c9196');
@@ -104,38 +123,54 @@ export default function StorefrontAdminPage() {
       setHeroVerticalAlign(theme.heroVerticalAlign || 'center');
       setHeroButtonBgColor(theme.heroButtonBgColor || '#FFFFFF');
       setHeroButtonTextColor(theme.heroButtonTextColor || '#000000');
+      if (theme.heroAspectRatio) {
+        setHeroAspectRatio(Number(theme.heroAspectRatio));
+      }
     }
   }, [theme]);
 
+  const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
   const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || !storage) return;
-    
-    setIsSaving(true);
-    toast({
-      title: "Uploading Media...",
-      description: `Synchronizing ${files.length} high-fidelity assets with cloud storage.`,
+    if (!files || !files[0]) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setImageToCrop(reader.result?.toString() || null);
+      setIsCropping(true);
     });
+    reader.readAsDataURL(file);
+  };
 
+  const saveCroppedImage = async () => {
+    if (!imageToCrop || !croppedAreaPixels || !storage) return;
+
+    setIsSaving(true);
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const storageRef = ref(storage, `storefront/hero/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        return getDownloadURL(snapshot.ref);
-      });
+      const croppedImageBlob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      if (!croppedImageBlob) throw new Error("Could not crop image");
 
-      const newUrls = await Promise.all(uploadPromises);
-      setHeroImages(prev => [...prev, ...newUrls]);
-      
+      const storageRef = ref(storage, `storefront/hero/${Date.now()}_cropped.jpg`);
+      const snapshot = await uploadBytes(storageRef, croppedImageBlob);
+      const downloadUrl = await getDownloadURL(snapshot.ref);
+
+      setHeroImages(prev => [...prev, downloadUrl]);
+      setIsCropping(false);
+      setImageToCrop(null);
+
       toast({
-        title: "Synchronization Complete",
-        description: "Hero assets have been Authoritatively projected to storage.",
+        title: "Hero Asset Synchronized",
+        description: "High-fidelity cropped media has been Authoritatively projected.",
       });
     } catch (error) {
-      console.error("Upload failed:", error);
+      console.error("Crop/Upload failed:", error);
       toast({
-        title: "Upload Failed",
-        description: "Encountered a deviation in the storage transmission.",
+        title: "Synchronization Error",
+        description: "Encountered a deviation in the cropping/upload protocol.",
         variant: "destructive"
       });
     } finally {
@@ -146,6 +181,19 @@ export default function StorefrontAdminPage() {
 
   const removeHeroImage = (index: number) => {
     setHeroImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const moveImage = (index: number, direction: 'up' | 'down') => {
+    const newImages = [...heroImages];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+    if (targetIndex < 0 || targetIndex >= newImages.length) return;
+
+    const temp = newImages[index];
+    newImages[index] = newImages[targetIndex];
+    newImages[targetIndex] = temp;
+
+    setHeroImages(newImages);
   };
 
   const handleSave = async () => {
@@ -173,6 +221,7 @@ export default function StorefrontAdminPage() {
       heroVerticalAlign,
       heroButtonBgColor,
       heroButtonTextColor,
+      heroAspectRatio: Number(heroAspectRatio),
       updatedAt: serverTimestamp()
     };
 
@@ -205,8 +254,8 @@ export default function StorefrontAdminPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Storefront Command</h1>
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Orchestrate your archival home page content, SEO, and visual narrative.</p>
         </div>
-        <Button 
-          onClick={handleSave} 
+        <Button
+          onClick={handleSave}
           disabled={isSaving}
           className="w-full sm:w-auto h-10 px-10 bg-black text-white font-bold uppercase tracking-widest text-[10px] shadow-xl hover:bg-[#D3D3D3] transition-all"
         >
@@ -245,8 +294,8 @@ export default function StorefrontAdminPage() {
                       <div className="space-y-6">
                         <div className="space-y-2">
                           <Label className="text-[10px] uppercase font-bold text-gray-500">Main Headline</Label>
-                          <Input 
-                            value={heroHeadline} 
+                          <Input
+                            value={heroHeadline}
                             onChange={(e) => setHeroHeadline(e.target.value)}
                             placeholder="THE ARCHIVE SELECTION"
                             className="h-12 font-bold uppercase text-xs"
@@ -254,8 +303,8 @@ export default function StorefrontAdminPage() {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] uppercase font-bold text-gray-500">Subheadline</Label>
-                          <Input 
-                            value={heroSubheadline} 
+                          <Input
+                            value={heroSubheadline}
                             onChange={(e) => setHeroSubheadline(e.target.value)}
                             placeholder="MODERN SILHOUETTES"
                             className="h-12 uppercase text-[10px] tracking-widest"
@@ -263,8 +312,8 @@ export default function StorefrontAdminPage() {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] uppercase font-bold text-gray-500">Call to Action</Label>
-                          <Input 
-                            value={heroButtonText} 
+                          <Input
+                            value={heroButtonText}
                             onChange={(e) => setHeroButtonText(e.target.value)}
                             placeholder="SHOP ALL"
                             className="h-12 uppercase text-[10px] font-bold"
@@ -273,43 +322,135 @@ export default function StorefrontAdminPage() {
                       </div>
 
                       <div className="space-y-4">
-                        <Label className="text-[10px] uppercase font-bold text-gray-500">Hero Media (High Fidelity)</Label>
+                        <p className="text-[10px] uppercase font-bold text-gray-500">Hero Media (High Fidelity)</p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                           {heroImages.map((url, idx) => (
-                            <div key={idx} className="relative aspect-video rounded border overflow-hidden group shadow-sm">
-                              <Image src={url} alt={`Hero ${idx}`} fill className="object-cover" />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <Button 
-                                  variant="destructive" 
-                                  size="icon" 
-                                  onClick={() => removeHeroImage(idx)} 
-                                  className="h-8 w-8"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                            <div key={idx} className="relative rounded border overflow-hidden group shadow-sm bg-gray-50 flex items-center justify-center p-2"
+                              style={{ aspectRatio: heroAspectRatio > 1 ? '16/9' : (heroAspectRatio === 1 ? '1/1' : '3/4') }}
+                            >
+                              <Image src={url} alt={`Hero ${idx}`} fill className="object-contain" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    disabled={idx === 0}
+                                    onClick={() => moveImage(idx, 'up')}
+                                    className="h-8 w-8 bg-white/90 hover:bg-white"
+                                  >
+                                    <ArrowUp className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    disabled={idx === heroImages.length - 1}
+                                    onClick={() => moveImage(idx, 'down')}
+                                    className="h-8 w-8 bg-white/90 hover:bg-white"
+                                  >
+                                    <ArrowDown className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={() => removeHeroImage(idx)}
+                                    className="h-8 w-8"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                               <div className="absolute top-2 left-2 bg-black/60 text-white text-[8px] px-1.5 py-0.5 rounded font-bold uppercase">
                                 {idx === 0 ? 'Primary' : (idx + 1).toString().padStart(2, '0')}
                               </div>
                             </div>
                           ))}
-                          <button 
-                            onClick={() => fileInputRef.current?.click()} 
-                            className="aspect-video border-2 border-dashed rounded flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group"
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isSaving}
+                            className="aspect-video border-2 border-dashed rounded flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors group disabled:opacity-50"
                           >
                             <PlusCircle className="h-5 w-5 text-gray-400 group-hover:text-black transition-colors" />
                             <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">Add Image</span>
                           </button>
                         </div>
-                        <input 
-                          type="file" 
-                          ref={fileInputRef} 
-                          className="hidden" 
-                          multiple 
-                          accept="image/*" 
-                          onChange={handleHeroImageUpload} 
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleHeroImageUpload}
                         />
-                        <p className="text-[8px] text-gray-400 uppercase font-bold">Recommended: 16:9 aspect ratio. Multiple images will Authoritatively manifest a slider.</p>
+                        <Dialog open={isCropping} onOpenChange={setIsCropping}>
+                          <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 overflow-hidden bg-black border-none gap-0">
+                            <DialogHeader className="p-4 bg-zinc-900 border-b border-white/10 shrink-0">
+                              <DialogTitle className="text-white text-[10px] font-bold uppercase tracking-widest">Adjust Hero Perspective</DialogTitle>
+                            </DialogHeader>
+                            <div className="relative flex-1 bg-[#121212]">
+                              {imageToCrop && (
+                                <Cropper
+                                  image={imageToCrop}
+                                  crop={crop}
+                                  zoom={zoom}
+                                  aspect={heroAspectRatio}
+                                  onCropChange={setCrop}
+                                  onCropComplete={onCropComplete}
+                                  onZoomChange={setZoom}
+                                />
+                              )}
+                            </div>
+                            <DialogFooter className="p-6 bg-zinc-900 border-t border-white/10 shrink-0 flex flex-col gap-6">
+                              <div className="w-full space-y-4">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Magnification</span>
+                                  <span className="text-[10px] font-mono text-white">{Math.round(zoom * 100)}%</span>
+                                </div>
+                                <Slider
+                                  value={[zoom]}
+                                  min={1}
+                                  max={3}
+                                  step={0.1}
+                                  onValueChange={(val) => setZoom(val[0])}
+                                  className="accent-white"
+                                />
+                              </div>
+
+                              <div className="w-full space-y-3">
+                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Target Aspect Ratio</span>
+                                <div className="grid grid-cols-4 gap-2">
+                                  {[
+                                    { label: '16:9', val: 1.777 },
+                                    { label: '4:3', val: 1.333 },
+                                    { label: '1:1', val: 1.000 },
+                                    { label: '3:4', val: 0.750 }
+                                  ].map((ratio) => (
+                                    <Button
+                                      key={ratio.label}
+                                      variant={heroAspectRatio === ratio.val ? 'default' : 'secondary'}
+                                      onClick={() => setHeroAspectRatio(ratio.val)}
+                                      className={cn(
+                                        "h-9 text-[9px] font-bold uppercase rounded-none border transition-all",
+                                        heroAspectRatio === ratio.val 
+                                          ? "bg-white text-black border-white" 
+                                          : "bg-transparent text-white border-white/20 hover:bg-white/10"
+                                      )}
+                                    >
+                                      {ratio.label}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="flex justify-end gap-3 w-full">
+                                <Button variant="ghost" onClick={() => setIsCropping(false)} className="text-white hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest">Discard</Button>
+                                <Button onClick={saveCroppedImage} disabled={isSaving} className="bg-white text-black hover:bg-zinc-200 text-[10px] font-bold uppercase tracking-widest px-8 h-12 rounded-none">
+                                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                                  Synchronize Crop
+                                </Button>
+                              </div>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                        <p className="text-[8px] text-gray-400 uppercase font-bold">Recommended: Match the target ratio for maximum fidelity. Multiple images will Authoritatively manifest a slider.</p>
                       </div>
                     </div>
                   </div>
@@ -359,7 +500,7 @@ export default function StorefrontAdminPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-6">
                       <div className="flex items-center gap-2">
                         <Type className="h-4 w-4 text-gray-400" />
@@ -370,10 +511,10 @@ export default function StorefrontAdminPage() {
                           <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Headline Scale</Label>
                           <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</Badge>
                         </div>
-                        <input 
-                          type="range" min="32" max="160" value={heroHeadlineSize} 
-                          onChange={(e) => setHeroHeadlineSize(e.target.value)} 
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                        <input
+                          type="range" min="32" max="160" value={heroHeadlineSize}
+                          onChange={(e) => setHeroHeadlineSize(e.target.value)}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
                         />
                       </div>
                       <div className="space-y-4 pt-4 border-t border-dashed">
@@ -381,10 +522,10 @@ export default function StorefrontAdminPage() {
                           <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Subheadline Scale</Label>
                           <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroSubheadlineSize}PX</Badge>
                         </div>
-                        <input 
-                          type="range" min="8" max="40" value={heroSubheadlineSize} 
-                          onChange={(e) => setHeroSubheadlineSize(e.target.value)} 
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                        <input
+                          type="range" min="8" max="40" value={heroSubheadlineSize}
+                          onChange={(e) => setHeroSubheadlineSize(e.target.value)}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
                         />
                       </div>
                     </div>
@@ -428,8 +569,8 @@ export default function StorefrontAdminPage() {
                 <CardContent className="pt-6 p-4 sm:p-6">
                   <div className="space-y-4">
                     <Label className="text-[10px] uppercase font-bold text-gray-500">General Description</Label>
-                    <Textarea 
-                      value={homepageDescription} 
+                    <Textarea
+                      value={homepageDescription}
                       onChange={(e) => setHomepageDescription(e.target.value)}
                       placeholder="Tell the story of your archive drops..."
                       className="min-h-[150px] resize-none uppercase text-xs font-medium leading-relaxed"
@@ -463,8 +604,8 @@ export default function StorefrontAdminPage() {
                   <div className="grid gap-6">
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-gray-500">Meta Title</Label>
-                      <Input 
-                        value={seoTitle} 
+                      <Input
+                        value={seoTitle}
                         onChange={(e) => setSeoTitle(e.target.value)}
                         placeholder="FSLNO | The Archive Selection"
                         className="h-12 font-bold uppercase"
@@ -472,8 +613,8 @@ export default function StorefrontAdminPage() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-gray-500">Meta Description</Label>
-                      <Textarea 
-                        value={seoDescription} 
+                      <Textarea
+                        value={seoDescription}
                         onChange={(e) => setSeoDescription(e.target.value)}
                         placeholder="High-fidelity silhouettes meticulously cataloged for the studio selection..."
                         className="min-h-[100px] resize-none uppercase text-[10px] font-medium leading-relaxed"
@@ -494,7 +635,7 @@ export default function StorefrontAdminPage() {
                 </CardHeader>
                 <CardContent className="pt-6 p-4 sm:p-6 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <button 
+                    <button
                       onClick={() => setHomepageLayout('bento')}
                       className={cn(
                         "p-6 border-2 text-left space-y-4 transition-all duration-300",
@@ -507,7 +648,7 @@ export default function StorefrontAdminPage() {
                       </div>
                       <p className={cn("text-[10px] uppercase leading-relaxed font-medium opacity-70", homepageLayout === 'bento' ? 'text-zinc-400' : 'text-zinc-500')}>Dynamic staggered grid featuring multiple archival categories simultaneously.</p>
                     </button>
-                    <button 
+                    <button
                       onClick={() => setHomepageLayout('classic')}
                       className={cn(
                         "p-6 border-2 text-left space-y-4 transition-all duration-300",
@@ -538,7 +679,7 @@ export default function StorefrontAdminPage() {
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              <div 
+              <div
                 className="aspect-[16/10] bg-zinc-800 rounded-sm overflow-hidden border border-white/5 relative flex p-4 text-center"
                 style={{
                   alignItems: heroVerticalAlign === 'bottom' ? 'flex-end' : heroVerticalAlign === 'top' ? 'flex-start' : 'center',
@@ -561,7 +702,7 @@ export default function StorefrontAdminPage() {
                   >
                     {heroHeadline || 'THE ARCHIVE SELECTION'}
                   </h3>
-                  <div 
+                  <div
                     className="w-24 h-7 flex items-center justify-center text-[7px] font-bold uppercase tracking-widest mt-4"
                     style={{
                       backgroundColor: heroButtonBgColor,
@@ -574,7 +715,7 @@ export default function StorefrontAdminPage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-white/5 border border-white/10 rounded-sm space-y-2">
                   <Smartphone className="h-3.5 w-3.5 text-zinc-500" />

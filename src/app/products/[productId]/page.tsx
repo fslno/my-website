@@ -1,457 +1,170 @@
-'use client';
-
-import React, { useState, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  useFirestore, 
-  useDoc, 
-  useMemoFirebase,
-  useCollection
-} from '@/firebase';
-import { doc, collection, query, where } from 'firebase/firestore';
-import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Heart, 
-  Share2, 
-  Ruler, 
-  ChevronLeft,
-  AlertCircle,
-  Sparkles,
-  Info
-} from 'lucide-react';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  type CarouselApi
-} from "@/components/ui/carousel";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import Image from 'next/image';
-import { cn } from '@/lib/utils';
-import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
-import { useToast } from '@/hooks/use-toast';
+import React from 'react';
+import { adminDb } from '@/lib/firebase-admin';
+import { ProductDetail } from '@/components/storefront/ProductDetail';
+import { Metadata } from 'next';
 import { getLivePath } from '@/lib/deployment';
-import { ReviewSystem } from '@/components/storefront/ReviewSystem';
-import { ClientOnly } from '@/components/shared/ClientOnly';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default function ProductDetailPage(props: PageProps) {
-  const resolvedParams = React.use(props.params);
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const resolvedParams = await props.params;
   const { productId } = resolvedParams;
-  
-  const router = useRouter();
-  const db = useFirestore();
-  const { cart, addToCart } = useCart();
-  const { isInWishlist, toggleWishlist } = useWishlist();
-  const { toast } = useToast();
 
-  const productRef = useMemoFirebase(() => 
-    db ? doc(db, getLivePath(`products/${productId}`)) : null, 
-    [db, productId]
-  );
-  
-  const { data: product, isLoading: loading } = useDoc(productRef);
+  try {
+    const [productDoc, themeDoc] = await Promise.all([
+      adminDb.doc(`products/${productId}`).get(),
+      adminDb.doc('config/theme').get()
+    ]);
 
-  const sizeChartsQuery = useMemoFirebase(() => {
-    if (!db || !product?.categoryId) return null;
-    return query(collection(db, getLivePath('sizeCharts')), where('category', '==', product.categoryId));
-  }, [db, product?.categoryId]);
+    const product = productDoc.data();
+    const theme = themeDoc.data();
 
-  const { data: categoryCharts } = useCollection(sizeChartsQuery);
-
-  const [selectedSize, setSelectedSize] = useState<string>('');
-  const [wantsCustomization, setWantsCustomization] = useState(false);
-  const [customName, setCustomName] = useState('');
-  const [customNumber, setCustomNumber] = useState('');
-  const [specialRequest, setSpecialRequest] = useState('');
-  
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!api) return;
-
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1);
-    });
-  }, [api]);
-
-  const selectedVariant = useMemo(() => {
-    return product?.variants?.find((v: any) => v.size === selectedSize);
-  }, [product, selectedSize]);
-
-  const cartItemCount = useMemo(() => {
-    if (!product || !selectedSize) return 0;
-    return cart.filter(item => item.id === product.id && item.size === selectedSize)
-               .reduce((acc, item) => acc + item.quantity, 0);
-  }, [cart, product, selectedSize]);
-
-  const isOutOfStock = selectedVariant && Number(selectedVariant.stock) <= 0;
-  const hasReachedLimit = selectedVariant && cartItemCount >= Number(selectedVariant.stock);
-
-  const buttonText = useMemo(() => {
-    if (!selectedSize) return 'Select Size';
-    if (isOutOfStock) return 'Out of Stock';
-    if (hasReachedLimit) return 'Reached Limit';
-    return 'Add to Cart';
-  }, [selectedSize, isOutOfStock, hasReachedLimit]);
-
-  const isButtonDisabled = !selectedSize || isOutOfStock || hasReachedLimit;
-
-  const media = product?.media || [];
-  const hasDiscount = product && (Number(product.comparedPrice) || 0) > (Number(product.price) || 0);
-  const discountPercent = hasDiscount ? Math.round(((Number(product.comparedPrice) - Number(product.price)) / Number(product.comparedPrice)) * 100) : 0;
-
-  const totalPrice = (() => {
-    if (!product) return 0;
-    const base = Number(product.price) || 0;
-    const fee = wantsCustomization ? (Number(product.customizationFee) || 10) : 0;
-    return base + fee;
-  })();
-
-  const handleAddToCart = () => {
-    if (!product || !selectedSize || hasReachedLimit) return;
-
-    const uniqueVariantId = wantsCustomization 
-      ? `${product.id}-${selectedSize}-${customName}-${customNumber}-${specialRequest.substring(0, 10)}`
-      : `${product.id}-${selectedSize}`;
-
-    const itemToAdd: any = {
-      id: product.id,
-      variantId: uniqueVariantId,
-      name: product.name,
-      price: totalPrice,
-      quantity: 1,
-      image: product.media?.[0]?.url || '',
-      size: selectedSize,
-      categoryId: product.categoryId,
-      customizationEnabled: product.customizationEnabled,
-      logistics: product.logistics || {}, 
-    };
-
-    if (wantsCustomization) {
-      itemToAdd.customName = customName;
-      itemToAdd.customNumber = customNumber;
-      itemToAdd.specialNote = specialRequest;
+    if (!product) {
+      return {
+        title: "Product Not Found",
+      };
     }
 
-    addToCart(itemToAdd);
-    toast({ title: "Added to Cart", description: `${product.name} is in your cart.` });
+    const title = `${product.name} | ${product.brand || theme?.businessName || 'FSLNO'}`;
+    const description = product.description?.substring(0, 160) || `Buy ${product.name} at our store. High-quality jerseys and apparel.`;
+    const image = product.media?.[0]?.url || "";
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        images: image ? [{ url: image }] : [],
+        type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: image ? [image] : [],
+      },
+    };
+  } catch (error: any) {
+    console.warn("Product metadata error silenced:", error?.message || "Internal error");
+    return {
+      title: "Product Details",
+    };
+  }
+}
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  media?: { url: string }[];
+  sku?: string;
+  brand?: string;
+  variants?: { size: string; stock: number }[];
+  categoryId?: string;
+  customizationEnabled?: boolean;
+  customizationFee?: number;
+}
+
+export default async function ProductDetailPage(props: PageProps) {
+  const resolvedParams = await props.params;
+  const { productId } = resolvedParams;
+
+  let product: Product | null = null;
+  let reviewsData = { sum: 0, count: 0 };
+  let categoryName = "Jerseys";
+
+  try {
+    const productDoc = await adminDb.doc(`products/${productId}`).get();
+    product = productDoc.exists ? { id: productDoc.id, ...(productDoc.data() as any) } as Product : null;
+
+    if (product) {
+      // Fetch aggregate ratings
+      const reviewsSnapshot = await adminDb.collection('reviews')
+        .where('productId', '==', productId)
+        .where('published', '==', true)
+        .get();
+      
+      reviewsSnapshot.docs.forEach((doc: any) => {
+        reviewsData.sum += (doc.data().rating || 0);
+        reviewsData.count += 1;
+      });
+
+      // Try to get category name
+      if (product.categoryId) {
+        const catDoc = await adminDb.doc(getLivePath(`categories/${product.categoryId}`)).get();
+        categoryName = catDoc.data()?.name || categoryName;
+      }
+    }
+  } catch (error: any) {
+    console.warn("Error fetching product details in page:", error?.message || error);
+  }
+
+  const breadcrumbs = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://fslno.ca" },
+      { 
+        "@type": "ListItem", 
+        "position": 2, 
+        "name": categoryName, 
+        "item": product?.categoryId ? `https://fslno.ca/collections/${product.categoryId}` : "https://fslno.ca/collections/all" 
+      },
+      { "@type": "ListItem", "position": 3, "name": product?.name, "item": `https://fslno.ca/products/${productId}` }
+    ]
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-[100vh] flex flex-col bg-white">
-        <div className="flex-grow mobile-wrapper pt-20 sm:pt-32 pb-32">
-          <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-            <Skeleton className="h-6 w-24 mb-6" />
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
-              <div className="md:col-span-7 lg:col-span-8 space-y-8">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <Skeleton key={i} className="aspect-square w-full rounded-sm" />
-                    ))}
-                  </div>
-                  <div className="flex-1 relative">
-                    <Skeleton className="w-full aspect-square rounded-sm" />
-                  </div>
-                </div>
-              </div>
-              <div className="md:col-span-5 lg:col-span-4 space-y-8">
-                <div className="space-y-4">
-                  <Skeleton className="h-12 w-3/4" />
-                  <Skeleton className="h-6 w-1/3" />
-                </div>
-                <div className="space-y-4 pt-4">
-                  <Skeleton className="h-4 w-1/4" />
-                  <div className="grid grid-cols-4 gap-2">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <Skeleton key={i} className="h-12 w-full rounded-none" />
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-4 pt-6">
-                  <Skeleton className="h-14 w-full rounded-none" />
-                  <Skeleton className="h-12 w-full rounded-none" />
-                </div>
-                <div className="pt-6 space-y-3">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                  <Skeleton className="h-4 w-4/6" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <main className="min-h-screen pt-32 px-4 text-center bg-white flex flex-col items-center justify-center">
-        <AlertCircle className="h-12 w-12 text-gray-200 mb-4" />
-        <h1 className="text-xl font-bold uppercase">Product Not Found</h1>
-        <Button asChild variant="link" className="mt-4"><Link href="/">Back to Shop</Link></Button>
-      </main>
-    );
-  }
+  const productSchema = product ? {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.media?.map((m: any) => m.url) || [],
+    "description": product.description,
+    "sku": product.sku,
+    "brand": {
+      "@type": "Brand",
+      "name": product.brand || "FSLNO"
+    },
+    ...(reviewsData.count > 0 ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": (reviewsData.sum / reviewsData.count).toFixed(1),
+        "reviewCount": reviewsData.count
+      }
+    } : {
+      // Default social proof if no reviews yet (optional, but keep it authentic if possible)
+      // "aggregateRating": { "@type": "AggregateRating", "ratingValue": "5.0", "reviewCount": "12" }
+    }),
+    "offers": {
+      "@type": "Offer",
+      "url": `https://fslno.ca/products/${product.id}`,
+      "priceCurrency": "CAD",
+      "price": product.price,
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": (product.variants?.some((v: any) => v.stock > 0)) 
+        ? "https://schema.org/InStock" 
+        : "https://schema.org/OutOfStock"
+    }
+  } : null;
 
   return (
-    <div className="mobile-wrapper bg-white pt-20 sm:pt-32 pb-32">
-      <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-        <ClientOnly fallback={<Skeleton className="h-6 w-24 mb-6" />}>
-          <button onClick={() => router.back()} className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
-            <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
-          </button>
-        </ClientOnly>
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
-          <div className="md:col-span-7 lg:col-span-8 space-y-8">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
-                {media.map((item: any, idx: number) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => api?.scrollTo(idx)}
-                    className={cn(
-                      "relative aspect-square bg-white border rounded-sm overflow-hidden transition-all",
-                      current === idx + 1 ? "border-black ring-1 ring-black scale-105" : "border-gray-100 opacity-60 hover:opacity-100"
-                    )}
-                  >
-                    <Image src={item.url} alt="" fill className="object-cover" />
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex-1 relative">
-                <Carousel setApi={setApi} className="w-full">
-                  <CarouselContent>
-                    {media.length > 0 ? (
-                      media.map((item: any, idx: number) => (
-                        <CarouselItem key={idx}>
-                          <div className="relative aspect-square bg-white overflow-hidden border rounded-sm">
-                            <Image src={item.url} alt={product.name} fill className="object-cover" priority={idx === 0} />
-                          </div>
-                        </CarouselItem>
-                      ))
-                    ) : (
-                      <CarouselItem><div className="aspect-square bg-gray-100" /></CarouselItem>
-                    )}
-                  </CarouselContent>
-                </Carousel>
-              </div>
-            </div>
-
-            <div className="hidden md:block pt-8 border-t space-y-8">
-              <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">About the Item</h3>
-                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                  {product.description || "Modern styles designed for everyday comfort."}
-                </div>
-              </div>
-
-              {product.features && product.features.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground flex items-center gap-2">
-                    <Info className="h-3 w-3" /> Details
-                  </h3>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {product.features.map((feature: string, idx: number) => (
-                      <li key={idx} className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wide text-gray-500">
-                        <div className="w-1 h-1 rounded-full bg-black shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="md:col-span-5 lg:col-span-4 space-y-6">
-            <div className="space-y-4">
-              <div className="min-h-[3.5rem] flex flex-col justify-end">
-                <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{product.name}</h1>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center gap-4 h-8">
-                  <p className="text-lg font-bold">{`C$${totalPrice.toFixed(2)}`}</p>
-                  {hasDiscount && (
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground line-through">{`C$${product.comparedPrice?.toFixed(2)}`}</p>
-                      <Badge className="bg-emerald-50 text-emerald-700 border-none text-[8px] font-bold">{discountPercent}% OFF</Badge>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{product.brand || 'Feiselino (FSLNO) Studio'}</p>
-                  {product.sku && (
-                    <p className="text-[8px] font-mono font-bold text-muted-foreground uppercase tracking-widest">SKU: {product.sku}</p>
-                  )}
-                  <div className="pt-2">
-                    <ReviewSystem productId={product.id} variant="minimal" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Size</span>
-                {categoryCharts && categoryCharts.length > 0 && (
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Size Chart</button>
-                    </SheetTrigger>
-                    <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
-                      <SheetHeader className="p-8 border-b">
-                        <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Size Guide</SheetTitle>
-                      </SheetHeader>
-                      <ScrollArea className="flex-1 p-8">
-                        {categoryCharts.map((chart: any) => (
-                          <div key={chart.id} className="space-y-6">
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest border-b pb-2">{chart.name}</h3>
-                            <div className="border overflow-x-auto">
-                              <Table>
-                                <TableHeader className="bg-gray-50">
-                                  <TableRow>
-                                    <TableHead className="text-[9px] font-bold uppercase text-primary">Size</TableHead>
-                                    {chart.columns.map((c: any, i: any) => (
-                                      <TableHead key={i} className="text-[9px] font-bold uppercase text-center text-primary">{c}</TableHead>
-                                    ))}
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {chart.rows.map((r: any, i: any) => (
-                                    <TableRow key={i}>
-                                      <TableCell className="text-[10px] font-bold uppercase">{r.label}</TableCell>
-                                      {r.values.map((v: any, j: any) => (
-                                        <TableCell key={j} className="text-center font-mono text-[10px]">{v || '-'}</TableCell>
-                                      ))}
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </div>
-                        ))}
-                      </ScrollArea>
-                    </SheetContent>
-                  </Sheet>
-                )}
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                {(product.variants || []).map((v: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedSize(v.size)}
-                    disabled={Number(v.stock) === 0}
-                    className={cn(
-                      "h-12 border text-[10px] font-bold uppercase tracking-widest transition-all",
-                      selectedSize === v.size ? "bg-black text-white border-black" : "bg-white text-primary border-gray-100 hover:border-black",
-                      Number(v.stock) === 0 && "opacity-20 cursor-not-allowed"
-                    )}
-                  >
-                    {v.size}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {product.customizationEnabled && (
-              <div className="space-y-4 pt-4 border-t">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Personalize your item?</Label>
-                    <p className="text-[9px] text-muted-foreground uppercase font-bold">+C${(Number(product.customizationFee) || 10).toFixed(2)}</p>
-                  </div>
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <button onClick={() => setWantsCustomization(false)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", !wantsCustomization ? "bg-black text-white" : "bg-white")}>No</button>
-                    <button onClick={() => setWantsCustomization(true)} className={cn("flex-1 sm:flex-none h-10 px-6 border text-[9px] font-bold uppercase tracking-widest", wantsCustomization ? "bg-black text-white" : "bg-white")}>Yes</button>
-                  </div>
-                </div>
-                {wantsCustomization && (
-                  <div className="grid gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Name</Label><Input value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-bold uppercase text-xs" /></div>
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Number</Label><Input value={customNumber} maxLength={2} onChange={(e) => setCustomNumber(e.target.value)} className="h-11 rounded-none bg-gray-50 border-none font-bold text-center" /></div>
-                    </div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Special Notes</Label><Input value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-medium text-[10px]" /></div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="space-y-3 pt-6 border-t">
-              <Button 
-                onClick={handleAddToCart} 
-                disabled={isButtonDisabled}
-                className="w-full h-14 bg-black text-white border border-black font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-gray-900 transition-all shadow-xl"
-              >
-                {buttonText}
-              </Button>
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" onClick={() => toggleWishlist({ id: product.id, name: product.name, price: Number(product.price), image: product.media?.[0]?.url || '' })} className={cn("h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2", isInWishlist(product.id) && "bg-red-50 border-red-100 text-red-600")}>
-                  <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} /> {isInWishlist(product.id) ? 'Saved' : 'Add to Wishlist'}
-                </Button>
-                <Button variant="outline" onClick={() => { navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : ''); toast({ title: "Link Copied" }); }} className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[9px] gap-2">
-                  <Share2 className="h-4 w-4" /> Share
-                </Button>
-              </div>
-            </div>
-
-            <div className="md:hidden pt-8 border-t space-y-8">
-              <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">About the Item</h3>
-                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                  {product.description || "Modern styles designed for everyday comfort."}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <ClientOnly>
-        <TestimonialSection />
-      </ClientOnly>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
+      />
+      {productSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        />
+      )}
+      <ProductDetail productId={productId} initialProduct={product} />
+    </>
   );
 }

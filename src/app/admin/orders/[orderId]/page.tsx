@@ -134,6 +134,7 @@ export default function OrderDetailPage(props: PageProps) {
   const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isFulfilling, setIsFulfilling] = useState(false);
 
   const handlePrintInvoice = () => {
     if (!order) return;
@@ -364,7 +365,16 @@ export default function OrderDetailPage(props: PageProps) {
   const handleSaveTracking = async () => {
     if (!db || !order) return;
     setIsSavingTracking(true);
-    const updateData = { trackingNumber };
+    
+    // Automatically transition to 'shipped' if tracking is added and order is in a non-final state
+    const terminalStates = ['shipped', 'delivered', 'canceled', 'returned'];
+    const shouldUpdateStatus = trackingNumber && !terminalStates.includes(order.status || '');
+    const newStatus = shouldUpdateStatus ? 'shipped' : order.status;
+    
+    const updateData: any = { trackingNumber };
+    if (shouldUpdateStatus) {
+      updateData.status = newStatus;
+    }
     
     try {
       await updateDoc(doc(db, 'orders', orderId), updateData);
@@ -376,6 +386,12 @@ export default function OrderDetailPage(props: PageProps) {
           .filter(s => s.status === 'Active' && s.email)
           .map(s => s.email);
 
+        const shipping = order.customer?.shipping;
+        const shippingAddress = shipping 
+          ? `${shipping.address}, ${shipping.city}, ${shipping.province} ${shipping.postalCode}, ${shipping.country}`
+          : 'Local Pickup';
+
+        // Notify of shipping
         await queueNotification(
           db,
           'shipped',
@@ -384,13 +400,33 @@ export default function OrderDetailPage(props: PageProps) {
             order_id: orderId.substring(0, 8).toUpperCase(),
             customer_name: order.customer?.name || 'Customer',
             courier: order.courier || 'Standard Shipping',
-            tracking_number: trackingNumber
+            tracking_number: trackingNumber,
+            shipping_address: shippingAddress
           },
           activeStaffEmails
         );
+
+        // If status specifically changed to shipped, also send status update notification 
+        // (Note: shipped template usually covers the announcement, but we keep system consistent)
+        if (shouldUpdateStatus) {
+          await queueNotification(
+            db,
+            'statusChanged',
+            order.email,
+            {
+              order_id: orderId.substring(0, 8).toUpperCase(),
+              customer_name: order.customer?.name || 'Customer',
+              status: 'SHIPPED'
+            },
+            activeStaffEmails
+          );
+        }
       }
 
-      toast({ title: "Tracking Saved", description: "Logistics ID has been updated." });
+      toast({ 
+        title: shouldUpdateStatus ? "Order Shipped" : "Tracking Saved", 
+        description: shouldUpdateStatus ? `Status updated to SHIPPED and tracking saved.` : "Logistics ID has been updated." 
+      });
     } catch (error) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: `orders/${orderId}`,
@@ -399,6 +435,97 @@ export default function OrderDetailPage(props: PageProps) {
       }));
     } finally {
       setIsSavingTracking(false);
+    }
+  };
+
+  const handleAutomatedFulfillment = async () => {
+    if (!db || !order || isFulfilling) return;
+    setIsFulfilling(true);
+
+    try {
+      const response = await fetch('/api/shipping/stallion/shipments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          orderId,
+          rateId: order.shippingCarrierId || 'standard'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const tNumber = data.trackingNumber;
+        if (tNumber) {
+          setTrackingNumber(tNumber);
+          
+          // Automatically transition to 'shipped' if tracking was generated and not already shipped/final
+          const terminalStates = ['shipped', 'delivered', 'canceled', 'returned'];
+          const shouldUpdateStatus = !terminalStates.includes(order.status || '');
+          
+          const updateData: any = { trackingNumber: tNumber };
+          if (shouldUpdateStatus) {
+            updateData.status = 'shipped';
+          }
+
+          await updateDoc(doc(db, 'orders', orderId), updateData);
+
+          const staffSnap = await getDocs(collection(db, 'staff'));
+          const activeStaffEmails = staffSnap.docs
+            .map(d => d.data())
+            .filter(s => s.status === 'Active' && s.email)
+            .map(s => s.email);
+
+          const shipping = order.customer?.shipping;
+          const shippingAddress = shipping 
+            ? `${shipping.address}, ${shipping.city}, ${shipping.province} ${shipping.postalCode}, ${shipping.country}`
+            : 'Local Pickup';
+
+          // Notifications
+          await queueNotification(
+            db,
+            'shipped',
+            order.email,
+            {
+              order_id: orderId.substring(0, 8).toUpperCase(),
+              customer_name: order.customer?.name || 'Customer',
+              courier: 'Stallion Express',
+              tracking_number: tNumber,
+              shipping_address: shippingAddress
+            },
+            activeStaffEmails
+          );
+
+          if (shouldUpdateStatus) {
+            await queueNotification(
+              db,
+              'statusChanged',
+              order.email,
+              {
+                order_id: orderId.substring(0, 8).toUpperCase(),
+                customer_name: order.customer?.name || 'Customer',
+                status: 'SHIPPED'
+              },
+              activeStaffEmails
+            );
+          }
+        }
+
+        toast({ 
+          title: "Shipment Created", 
+          description: `Stallion Express tracking #${data.trackingNumber} generated and order SHIPPED.` 
+        });
+      } else {
+        throw new Error(data.error || 'Logistics failure');
+      }
+    } catch (err: any) {
+      toast({ 
+        title: "Fulfillment Failed", 
+        description: err.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsFulfilling(false);
     }
   };
 
@@ -703,6 +830,25 @@ export default function OrderDetailPage(props: PageProps) {
                     {isSavingTracking ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
                   </Button>
                 </div>
+
+                {/* Stallion Automated Fulfillment Action */}
+                {!order?.trackingNumber && (
+                  <Button
+                    onClick={handleAutomatedFulfillment}
+                    disabled={isFulfilling || order.status === 'delivered' || order.status === 'shipped'}
+                    variant="outline"
+                    className="w-full h-11 rounded-none border-dashed border-2 bg-blue-50/30 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 group transition-all"
+                  >
+                    {isFulfilling ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Truck className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        Automated Stallion Fulfillment
+                      </>
+                    )}
+                  </Button>
+                )}
 
                 {/* AfterShip Live Tracking Card — appears as soon as a tracking number exists */}
                 {trackingNumber && (

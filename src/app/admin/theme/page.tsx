@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,7 +42,8 @@ import {
   CreditCard,
   Terminal,
   Globe,
-  Fingerprint
+  Fingerprint,
+  Construction
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -108,10 +110,13 @@ const DEFAULT_THEME = {
   adminSidebarItemColor: '#1a1c1e',
   adminSidebarActiveBg: '#000000',
   adminSidebarActiveText: '#FFFFFF',
-  categorySectionTitle: 'Shop by Drop',
-  categorySectionSubtitle: 'The Collections',
-  archiveSectionTitle: 'All FSLNO Pieces',
-  archiveSectionSubtitle: 'The Archive'
+  categorySectionTitle: 'Shop Jerseys',
+  categorySectionSubtitle: 'Collections',
+  archiveSectionTitle: 'All Sport Jerseys',
+  archiveSectionSubtitle: 'The Collection',
+  showBrand: true,
+  maintenanceMode: false,
+  maintenanceMessage: 'Store Maintenance. We are currently updating the store. We will be back online shortly.'
 };
 
 export default function ThemeEnginePage() {
@@ -165,6 +170,9 @@ export default function ThemeEnginePage() {
   const [categorySectionSubtitle, setCategorySectionSubtitle] = useState(DEFAULT_THEME.categorySectionSubtitle);
   const [archiveSectionTitle, setArchiveSectionTitle] = useState(DEFAULT_THEME.archiveSectionTitle);
   const [archiveSectionSubtitle, setArchiveSectionSubtitle] = useState(DEFAULT_THEME.archiveSectionSubtitle);
+  const [showBrand, setShowBrand] = useState(DEFAULT_THEME.showBrand);
+  const [maintenanceMode, setMaintenanceMode] = useState(DEFAULT_THEME.maintenanceMode);
+  const [maintenanceMessage, setMaintenanceMessage] = useState(DEFAULT_THEME.maintenanceMessage);
 
   // Form State - Admin
   const [adminPrimaryColor, setAdminPrimaryColor] = useState(DEFAULT_THEME.adminPrimaryColor);
@@ -219,6 +227,9 @@ export default function ThemeEnginePage() {
       setCategorySectionSubtitle(themeData.categorySectionSubtitle || DEFAULT_THEME.categorySectionSubtitle);
       setArchiveSectionTitle(themeData.archiveSectionTitle || DEFAULT_THEME.archiveSectionTitle);
       setArchiveSectionSubtitle(themeData.archiveSectionSubtitle || DEFAULT_THEME.archiveSectionSubtitle);
+      setShowBrand(themeData.showBrand ?? DEFAULT_THEME.showBrand);
+      setMaintenanceMode(themeData.maintenanceMode ?? DEFAULT_THEME.maintenanceMode);
+      setMaintenanceMessage(themeData.maintenanceMessage || DEFAULT_THEME.maintenanceMessage);
 
       // Admin Sync
       setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
@@ -278,6 +289,9 @@ export default function ThemeEnginePage() {
       categorySectionSubtitle,
       archiveSectionTitle,
       archiveSectionSubtitle,
+      showBrand,
+      maintenanceMode,
+      maintenanceMessage,
       adminPrimaryColor,
       adminAccentColor,
       adminTextColor,
@@ -406,12 +420,12 @@ export default function ThemeEnginePage() {
                       <div className="grid gap-2"><Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Accent Color</Label><div className="flex gap-2"><div className="w-12 h-12 rounded border p-1 bg-white shadow-sm overflow-hidden"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} /></div><Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="h-12 font-mono text-xs uppercase" /></div></div>
                     </CardContent>
                   </Card>
-                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                    <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Type className="h-3.5 w-3.5" /> Performance Typography</CardTitle></CardHeader>
+                   <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Type className="h-3.5 w-3.5" /> Typography Design</CardTitle></CardHeader>
                     <CardContent className="space-y-8">
-                      <div className="space-y-4"><Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Headline Identity</Label><Select value={headlineFont} onValueChange={setHeadlineFont}><SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
-                      <div className="space-y-4"><Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Descriptor Identity</Label><Select value={bodyFont} onValueChange={setBodyFont}><SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-medium py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
-                      <div className="pt-4 border-t space-y-4"><div className="flex items-center justify-between"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Border Radius</Label><span className="text-[10px] font-mono font-bold">{borderRadius}PX</span></div><input type="range" min="0" max="40" value={borderRadius} onChange={(e) => setBorderRadius(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
+                      <div className="space-y-4"><Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Main Font</Label><Select value={headlineFont} onValueChange={setHeadlineFont}><SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-bold uppercase py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
+                      <div className="space-y-4"><Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Text Font</Label><Select value={bodyFont} onValueChange={setBodyFont}><SelectTrigger className="h-14 bg-white border-2 border-primary/10 rounded-none"><SelectValue /></SelectTrigger><SelectContent className="max-h-[300px]">{sportsFonts.map(font => (<SelectItem key={font} value={font} className="text-sm font-medium py-3 cursor-pointer hover:bg-neutral-100 transition-colors duration-75"><span style={{ fontFamily: font }}>{font}</span></SelectItem>))}</SelectContent></Select></div>
+                      <div className="pt-4 border-t space-y-4"><div className="flex items-center justify-between"><Label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Border Sharpness</Label><span className="text-[10px] font-mono font-bold">{borderRadius}PX</span></div><input type="range" min="0" max="40" value={borderRadius} onChange={(e) => setBorderRadius(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -446,6 +460,13 @@ export default function ThemeEnginePage() {
                       <div className="space-y-6">
                         <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge></div><input type="range" min="10" max="24" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
                         <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Color</Label><div className="flex gap-2"><Input type="color" value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
+                        <div className="flex items-center justify-between p-4 bg-gray-50/50 border border-dashed rounded-none mt-4">
+                          <div className="space-y-0.5">
+                            <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Visibility</Label>
+                            <p className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">Display product brand on cards and details.</p>
+                          </div>
+                          <Switch checked={showBrand} onCheckedChange={setShowBrand} />
+                        </div>
                       </div>
                       <Separator />
                       <div className="space-y-6">
@@ -566,9 +587,9 @@ export default function ThemeEnginePage() {
           <div className="flex-1 overflow-y-auto p-4 sm:p-8 xl:p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:24px_24px]">
             <div className={cn("bg-white transition-all duration-500 shadow-2xl overflow-hidden relative flex flex-col border border-black/5", device === 'desktop' ? "w-full max-w-4xl aspect-[16/10]" : "w-[320px] h-[568px] sm:w-[375px] sm:h-[667px]")}>
               {bannerEnabled && (<div className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white shrink-0 px-4 text-center" style={{ backgroundColor: bannerBgColor }}>{bannerText}</div>)}
-              <div className="h-16 bg-white border-b flex items-center justify-between px-6 sm:px-8 shrink-0"><span className="font-bold text-lg sm:text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>FSLNO</span><div className="flex items-center gap-3"><Search className="h-4 w-4 text-gray-200" /><ShoppingBag className="h-4 w-4 text-gray-200" /><div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-200" /></div></div></div>
+               <div className="h-16 bg-white border-b flex items-center justify-between px-6 sm:px-8 shrink-0"><span className="font-bold text-lg sm:text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>Feiselino</span><div className="flex items-center gap-3"><Search className="h-4 w-4 text-gray-200" /><ShoppingBag className="h-4 w-4 text-gray-200" /><div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-200" /></div></div></div>
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-12 font-body">
-                <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: 'center', textAlign: 'center' }}><div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">MODERN SILHOUETTES</span><h2 className="font-bold uppercase tracking-tight leading-none font-headline text-3xl">THE ARCHIVE SELECTION</h2><div className="mt-6 sm:mt-8 flex justify-center"><div className="bg-black text-white px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">SHOP NOW</div></div></div></div>
+                <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: 'center', textAlign: 'center' }}><div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">PREMIUM QUALITY</span><h2 className="font-bold uppercase tracking-tight leading-none font-headline text-3xl">NEW ARRIVALS</h2><div className="mt-6 sm:mt-8 flex justify-center"><div className="bg-black text-white px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">SHOP NOW</div></div></div></div>
                 <div className="space-y-8">
                   <div className="space-y-1">
                     <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-gray-400">{categorySectionSubtitle}</p>

@@ -57,6 +57,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
 export default function OrdersPage() {
+  const [hasMounted, setHasMounted] = useState(false);
   const db = useFirestore();
   const router = useRouter();
   const { user } = useUser();
@@ -76,6 +77,14 @@ export default function OrdersPage() {
   const { data: ordersData, isLoading } = useCollection(ordersQuery);
   const orders = ordersData || [];
 
+  if (!hasMounted) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
+        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
+      </div>
+    );
+  }
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -84,6 +93,10 @@ export default function OrdersPage() {
   const [bulkStatus, setBulkStatus] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const lastSelectedId = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -523,7 +536,7 @@ export default function OrdersPage() {
                     <TableCell className="align-top py-6">
                       <div className="space-y-4">
                         <div className="flex items-center gap-2">
-                          {!order.viewed && <Badge className="bg-red-600 text-white rounded-none uppercase text-[8px] font-bold px-1.5 h-4 border-none animate-pulse">NEW</Badge>}
+                          {!order.viewed && <Badge className="bg-red-600 text-white rounded-none uppercase text-[8px] font-black px-1.5 h-4 border-none animate-pulse">NEW</Badge>}
                           <Badge variant="outline" className="bg-black text-white text-[8px] font-bold px-1.5 h-4 border-none">{totalUnits} PIECES</Badge>
                           {order.note && <Badge className="bg-amber-50 text-amber-700 border-none text-[8px] font-bold uppercase"><MessageSquare className="h-2 w-2 mr-1" /> NOTE</Badge>}
                         </div>

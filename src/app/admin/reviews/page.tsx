@@ -108,7 +108,7 @@ export default function AdminReviewsPage() {
     
     updateDoc(doc(db, 'reviews', review.id), {
       published: newStatus,
-      updatedAt: new Date().toISOString()
+      updatedAt: serverTimestamp()
     }).then(() => {
       toast({
         title: newStatus ? "Published" : "Hidden",

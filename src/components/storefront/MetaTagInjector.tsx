@@ -87,8 +87,8 @@ export function MetaTagInjector() {
 
     // --- 04. Product Page SEO Orchestration ---
     if (productId && product) {
-      const productTitle = `${product.name} | ${product.brand || 'Feiselino (FSLNO)'}`;
-      const productDescription = product.description?.substring(0, 160) || `Buy ${product.name} at Feiselino (FSLNO). High-quality jerseys and apparel.`;
+      const productTitle = `${product.name} | ${product.brand || 'FSLNO'}`;
+      const productDescription = product.description?.substring(0, 160) || `Buy ${product.name} at our store. High-quality jerseys and apparel.`;
       
       document.title = productTitle;
 

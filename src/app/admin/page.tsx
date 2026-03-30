@@ -55,11 +55,16 @@ export default function AdminDashboard() {
   const isAdmin = useIsAdmin();
   const { toast } = useToast();
   
+  const [hasMounted, setHasMounted] = useState(false);
   const [timeRange, setTimeRange] = useState('7d');
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 7),
     to: new Date(),
   });
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     const savedRange = localStorage.getItem('fslno_admin_timerange');
@@ -70,12 +75,15 @@ export default function AdminDashboard() {
     if (savedDate) {
       try {
         const parsed = JSON.parse(savedDate);
-        setDate({
-          from: parsed.from ? new Date(parsed.from) : undefined,
-          to: parsed.to ? new Date(parsed.to) : undefined
-        });
+        if (parsed) {
+          setDate({
+            from: parsed.from ? new Date(parsed.from) : undefined,
+            to: parsed.to ? new Date(parsed.to) : undefined
+          });
+        }
       } catch (e) {
         console.error("Failed to load saved date range", e);
+        // Fallback to default date range already set in state
       }
     }
   }, []);
@@ -314,6 +322,8 @@ export default function AdminDashboard() {
         return <Badge className="bg-gray-100 text-gray-800 border-none px-2 py-0.5 rounded-full font-bold uppercase text-[8px]">{status || 'Pending'}</Badge>;
     }
   };
+
+  if (!hasMounted) return null;
 
   if (ordersLoading || usersLoading) {
     return (

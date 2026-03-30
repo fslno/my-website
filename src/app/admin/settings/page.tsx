@@ -78,7 +78,8 @@ import {
   Lock,
   ShieldCheck as ShieldIcon,
   KeyRound,
-  AlertTriangle
+  AlertTriangle,
+  Construction
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, useStorage } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -114,7 +115,12 @@ interface TaxNexus {
 }
 
 export default function SettingsPage() {
+  const [hasMounted, setHasMounted] = useState(false);
   const db = useFirestore();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   const storage = useStorage();
   const { toast } = useToast();
   const storefrontLogoRef = useRef<HTMLInputElement>(null);
@@ -139,6 +145,11 @@ export default function SettingsPage() {
   const [adminBusinessName, setAdminBusinessName] = useState('');
   const [adminLogoUrl, setAdminLogoUrl] = useState('');
 
+  // Social Sales Channels
+  const [metaPixelId, setMetaPixelId] = useState('');
+  const [tiktokPixelId, setTiktokPixelId] = useState('');
+  const [instagramBusinessId, setInstagramBusinessId] = useState('');
+
   // Contact & Logistics
   const [address, setAddress] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
@@ -150,12 +161,21 @@ export default function SettingsPage() {
   const [socialChannels, setSocialChannels] = useState<SocialItem[]>([]);
   const [whatsAppNumber, setWhatsAppNumber] = useState('');
 
+  // Structured Logistics
+  const [originCity, setOriginCity] = useState('');
+  const [originProvince, setOriginProvince] = useState('');
+  const [originPostalCode, setOriginPostalCode] = useState('');
+  const [originCountryCode, setOriginCountryCode] = useState('CA');
+  const [handlingFee, setHandlingFee] = useState('0.00');
+
   // Compliance & Language
   const [taxNexus, setTaxNexus] = useState<TaxNexus[]>([]);
   const [primaryLanguage, setPrimaryLanguage] = useState('English');
   const [multiLanguageEnabled, setMultiLanguageEnabled] = useState(false);
   const [newRegion, setNewRegion] = useState('');
   const [newRate, setNewRate] = useState('');
+  const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState('10');
+  const [globalVariantLowStockThreshold, setGlobalVariantLowStockThreshold] = useState('5');
 
   const [isStaffDialogOpen, setIsStaffDialogOpen] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
@@ -183,6 +203,11 @@ export default function SettingsPage() {
   const [isReauthOpen, setIsReauthOpen] = useState(false);
   const [reauthPassword, setReauthPassword] = useState('');
 
+  // Branding Features
+  const [showBrand, setShowBrand] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState('');
+
   useEffect(() => {
     if (storeConfig) {
       setBusinessName(storeConfig.businessName || '');
@@ -199,10 +224,24 @@ export default function SettingsPage() {
       setSocialChannels(storeConfig.socialChannels || []);
       setWhatsAppNumber(storeConfig.whatsAppNumber || '');
 
+      // Logistics Sync
+      setOriginCity(storeConfig.originCity || '');
+      setOriginProvince(storeConfig.originProvince || '');
+      setOriginPostalCode(storeConfig.originPostalCode || '');
+      setOriginCountryCode(storeConfig.originCountryCode || 'CA');
+      setHandlingFee((storeConfig.handlingFee ?? 0).toString());
+
       // Compliance Sync
       setTaxNexus(storeConfig.taxNexus || []);
       setPrimaryLanguage(storeConfig.primaryLanguage || 'English');
       setMultiLanguageEnabled(storeConfig.multiLanguageEnabled ?? false);
+      setGlobalLowStockThreshold((storeConfig.globalLowStockThreshold ?? 10).toString());
+      setGlobalVariantLowStockThreshold((storeConfig.globalVariantLowStockThreshold ?? 5).toString());
+      
+      // Social Sales Channels Sync
+      setMetaPixelId(storeConfig.metaPixelId || '');
+      setTiktokPixelId(storeConfig.tiktokPixelId || '');
+      setInstagramBusinessId(storeConfig.instagramBusinessId || '');
     }
     if (themeData) {
       setChatbotEnabled(themeData.chatbotEnabled ?? true);
@@ -213,6 +252,9 @@ export default function SettingsPage() {
       setChatbotDuration(themeData.chatbotDuration?.toString() || '3');
       setChatbotGapBottom(themeData.chatbotGapBottom?.toString() || '32');
       setChatbotGapSide(themeData.chatbotGapSide?.toString() || '32');
+      setShowBrand(themeData.showBrand !== false);
+      setMaintenanceMode(themeData.maintenanceMode ?? false);
+      setMaintenanceMessage(themeData.maintenanceMessage || 'Store Maintenance. We are currently updating the store. We will be back online shortly.');
     }
   }, [storeConfig, themeData]);
 
@@ -275,10 +317,20 @@ export default function SettingsPage() {
       emailAddresses,
       socialChannels,
       whatsAppNumber,
+      originCity,
+      originProvince,
+      originPostalCode,
+      originCountryCode,
+      handlingFee: parseFloat(handlingFee) || 0,
       taxNexus,
       primaryLanguage,
       multiLanguageEnabled,
-      updatedAt: new Date().toISOString() 
+      globalLowStockThreshold: parseInt(globalLowStockThreshold),
+      globalVariantLowStockThreshold: parseInt(globalVariantLowStockThreshold),
+      metaPixelId,
+      tiktokPixelId,
+      instagramBusinessId,
+      updatedAt: serverTimestamp()
     };
     setDoc(storeConfigRef, updates, { merge: true })
       .then(() => toast({ title: "Identity Synchronized", description: "Global settings have been Authoritatively updated." }))
@@ -311,11 +363,26 @@ export default function SettingsPage() {
       chatbotDuration: Number(chatbotDuration),
       chatbotGapBottom: Number(chatbotGapBottom),
       chatbotGapSide: Number(chatbotGapSide),
-      updatedAt: new Date().toISOString() 
+      showBrand,
+      updatedAt: serverTimestamp() 
     };
     handleSaveStore();
     setDoc(themeRef, updates, { merge: true })
       .then(() => toast({ title: "Saved", description: "Chat and support settings updated." }))
+      .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
+      .finally(() => setIsSaving(false));
+  };
+
+  const handleSaveMaintenance = async () => {
+    if (!themeRef) return;
+    setIsSaving(true);
+    const updates = { 
+      maintenanceMode,
+      maintenanceMessage,
+      updatedAt: serverTimestamp() 
+    };
+    setDoc(themeRef, updates, { merge: true })
+      .then(() => toast({ title: "Status Synchronized", description: "Store visibility state has been projected." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
       .finally(() => setIsSaving(false));
   };
@@ -460,7 +527,7 @@ export default function SettingsPage() {
   };
   const removeSocialChannel = (idx: number) => setSocialChannels(socialChannels.filter((_, i) => i !== idx));
 
-  if (storeLoading || themeLoading) {
+  if (!hasMounted || storeLoading || themeLoading) {
     return (
       <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
         <img src="/icon.png" alt="Loading" className="w-24 h-24 object-contain animate-pulse opacity-50" />
@@ -533,15 +600,71 @@ export default function SettingsPage() {
                       <Input placeholder="admin@example.com" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-600">Global Handling Fee (C$)</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        placeholder="0.00" 
+                        value={handlingFee} 
+                        onChange={(e) => setHandlingFee(e.target.value)} 
+                        className="pl-10 h-11 border-blue-100 font-bold" 
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Physical Address</Label>
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Public/Store Address</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-4 h-4 w-4 text-gray-400" />
-                      <Textarea placeholder="12 Brant Ave #13, Guelph, ON N1E 1E7" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 min-h-[100px] resize-none" />
+                      <Textarea placeholder="12 Brant Ave #13, Guelph, ON N1E 1E7" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 min-h-[80px] resize-none" />
                     </div>
                   </div>
+
+                  <div className="p-4 bg-gray-50/50 border border-dashed border-gray-200 space-y-4">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Logistics Origin (For Shipping API)</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase text-gray-400">City</Label>
+                        <Input placeholder="Guelph" value={originCity} onChange={(e) => setOriginCity(e.target.value)} className="h-9 text-xs uppercase font-bold" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase text-gray-400">Prov/State</Label>
+                        <Input placeholder="ON" value={originProvince} onChange={(e) => setOriginProvince(e.target.value)} className="h-9 text-xs uppercase font-bold" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase text-gray-400">Postal/Zip</Label>
+                        <Input placeholder="N1E 1E7" value={originPostalCode} onChange={(e) => setOriginPostalCode(e.target.value)} className="h-9 text-xs uppercase font-bold" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase text-gray-400">Country Code</Label>
+                        <Input placeholder="CA" value={originCountryCode} onChange={(e) => setOriginCountryCode(e.target.value)} className="h-9 text-xs uppercase font-bold" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-orange-50/10 border border-dashed border-orange-100/30 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-orange-400" />
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-orange-400">Default Inventory Alert Levels</Label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase text-gray-400">Total Threshold</Label>
+                        <Input type="number" value={globalLowStockThreshold} onChange={(e) => setGlobalLowStockThreshold(e.target.value)} className="h-9 text-xs font-bold" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase text-gray-400">Size Threshold</Label>
+                        <Input type="number" value={globalVariantLowStockThreshold} onChange={(e) => setGlobalVariantLowStockThreshold(e.target.value)} className="h-9 text-xs font-bold" />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Google Maps Coordination</Label>
                     <div className="relative">
@@ -549,6 +672,109 @@ export default function SettingsPage() {
                       <Input placeholder="https://maps.google.com/..." value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} className="pl-10 h-11" />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t mt-6">
+                <div className="flex items-center justify-between p-4 bg-gray-50 border border-dashed rounded-none">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest">Global Brand Visibility</Label>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">Toggle brand names on the public storefront and search results.</p>
+                  </div>
+                  <Switch 
+                    checked={showBrand} 
+                    onCheckedChange={setShowBrand}
+                  />
+                </div>
+
+                <div className="p-4 bg-blue-50/10 border border-dashed border-blue-100/30 space-y-6 mt-6">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-blue-400" />
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-400">Social Sales Channels & Tracking</Label>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase text-gray-400">Meta (Facebook/Instagram) Pixel ID</Label>
+                      <div className="relative">
+                        <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                        <Input placeholder="1234567890..." value={metaPixelId} onChange={(e) => setMetaPixelId(e.target.value)} className="pl-9 h-9 text-xs font-bold" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase text-gray-400">Instagram Business ID</Label>
+                      <div className="relative">
+                        <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                        <Input placeholder="INSTA_BIZ_123..." value={instagramBusinessId} onChange={(e) => setInstagramBusinessId(e.target.value)} className="pl-9 h-9 text-xs font-bold" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase text-gray-400">TikTok Pixel ID</Label>
+                      <div className="relative">
+                        <Zap className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                        <Input placeholder="TIKTOK_PIXEL_123..." value={tiktokPixelId} onChange={(e) => setTiktokPixelId(e.target.value)} className="pl-9 h-9 text-xs font-bold" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-[8px] uppercase text-gray-400">Product Feed URL (Facebook/Instagram)</Label>
+                        <Badge variant="outline" className="text-[7px] uppercase tracking-tighter h-3.5 border-blue-200 text-blue-500">Auto Generated</Badge>
+                      </div>
+                      <div className="relative">
+                        <ShoppingBag className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                        <Input 
+                          readOnly 
+                          value={typeof window !== 'undefined' ? `${window.location.origin}/api/feeds/facebook` : ''} 
+                          className="pl-9 h-9 text-[10px] font-mono bg-gray-50 text-gray-500 cursor-help" 
+                          onClick={(e) => {
+                            (e.target as HTMLInputElement).select();
+                            navigator.clipboard.writeText((e.target as HTMLInputElement).value);
+                            toast({ title: "Copied to Clipboard", description: "Product feed URL updated for catalog synchronization." });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-6 p-4 sm:p-6 bg-black text-white border border-white/10 rounded-none shadow-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Construction className="h-4 w-4 text-green-500" />
+                        <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">Store Maintenance Mode</Label>
+                      </div>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">Lock the storefront for scheduled maintenance or updates.</p>
+                    </div>
+                    <Switch 
+                      checked={maintenanceMode} 
+                      onCheckedChange={(val) => {
+                        setMaintenanceMode(val);
+                        // Auto-save logic if user prefers, but for now we'll rely on the main sync
+                      }}
+                    />
+                  </div>
+                  
+                  {maintenanceMode && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                       <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Maintenance Broadcast Message</Label>
+                       <Textarea 
+                        value={maintenanceMessage} 
+                        onChange={(e) => setMaintenanceMessage(e.target.value)}
+                        className="bg-white/5 border-white/10 text-white min-h-[100px] text-xs placeholder:text-gray-600 focus-visible:ring-white/20"
+                        placeholder="Describe the maintenance status..."
+                      />
+                    </div>
+                  )}
+                  
+                  <Button 
+                    onClick={handleSaveMaintenance} 
+                    disabled={isSaving}
+                    size="sm"
+                    className="w-full bg-white text-black h-10 font-bold uppercase tracking-widest text-[9px] hover:bg-green-500 hover:text-white transition-all shadow-lg"
+                  >
+                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Save className="h-3 w-3 mr-2" />}
+                    Save Maintenance Status
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -1319,7 +1545,6 @@ export default function SettingsPage() {
                     <Switch 
                       checked={multiLanguageEnabled} 
                       onCheckedChange={setMultiLanguageEnabled}
-                      className="data-[state=checked]:bg-black"
                     />
                   </div>
 

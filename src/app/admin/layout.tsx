@@ -127,9 +127,12 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
                     <span>Orders</span>
                   </div>
                   {unviewedOrdersCount > 0 && (
-                    <Badge variant="destructive" className="h-5 px-1.5 min-w-[20px] rounded-full text-[10px] font-bold animate-pulse">
-                      {unviewedOrdersCount > 99 ? '99+' : unviewedOrdersCount}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge className="bg-red-600 text-white text-[8px] font-black uppercase tracking-tighter px-1 h-4 rounded-none border-none">NEW</Badge>
+                      <Badge variant="destructive" className="h-4 px-1 min-w-[16px] rounded-full text-[9px] font-bold border-none">
+                        {unviewedOrdersCount > 99 ? '99+' : unviewedOrdersCount}
+                      </Badge>
+                    </div>
                   )}
                 </Link>
               </SidebarMenuButton>
@@ -341,8 +344,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const reviewAudioRef = useRef<HTMLAudioElement>(null);
   const sessionStartTime = useRef(new Date());
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const alertedOrderIds = useRef<Set<string>>(new Set());
+  const alertedReviewIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    setHasMounted(true);
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
     }
@@ -381,17 +387,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: notificationConfig } = useDoc(configRef);
 
 
-  const triggerAlert = useCallback((type: 'order' | 'review' = 'order') => {
+  const triggerAlert = useCallback((type: 'order' | 'review' = 'order', id?: string) => {
+    if (id) {
+      if (type === 'order' && alertedOrderIds.current.has(id)) return;
+      if (type === 'review' && alertedReviewIds.current.has(id)) return;
+      
+      if (type === 'order') alertedOrderIds.current.add(id);
+      else alertedReviewIds.current.add(id);
+    }
+
     if (type === 'order') {
       setNewOrderDetected(true);
       if (notificationConfig?.orderAlarmEnabled && !isAudioMuted) {
         audioRef.current?.play().catch(e => console.warn("Order audio prevented", e));
       }
       toast({ 
-        variant: "destructive",
+        className: "bg-black border-black text-white rounded-none",
         title: "🚨 NEW ORDER RECEIVED", 
         description: "An order has just been archived in Feiselino (FSLNO). Check orders portal immediately.", 
-        duration: 20000 
+        duration: 2000 
       });
       setTimeout(() => setNewOrderDetected(false), 5000);
     } else {
@@ -400,9 +414,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         reviewAudioRef.current?.play().catch(e => console.warn("Review audio prevented", e));
       }
       toast({ 
+        className: "bg-black border-black text-white rounded-none",
         title: "⭐ NEW REVIEW", 
         description: "Customer review received.", 
-        duration: 10000 
+        duration: 2000 
       });
       setTimeout(() => setNewReviewDetected(false), 5000);
     }
@@ -423,8 +438,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (change.type === 'added') {
           const orderData = change.doc.data();
           const createdAt = orderData.createdAt?.toDate?.() || orderData.createdAt;
-          if (createdAt > sessionStartTime.current) {
-            triggerAlert('order');
+          if (createdAt > sessionStartTime.current && !alertedOrderIds.current.has(change.doc.id)) {
+            triggerAlert('order', change.doc.id);
             if ("Notification" in window && Notification.permission === "granted") {
               new Notification("New Order Received", {
                 body: `Order #${change.doc.id.slice(-6)} just arrived!`,
@@ -448,8 +463,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (change.type === 'added') {
           const reviewData = change.doc.data();
           const createdAt = reviewData.createdAt?.toDate?.() || reviewData.createdAt;
-          if (createdAt > sessionStartTime.current) {
-            triggerAlert('review');
+          if (createdAt > sessionStartTime.current && !alertedReviewIds.current.has(change.doc.id)) {
+            triggerAlert('review', change.doc.id);
             if ("Notification" in window && Notification.permission === "granted") {
               new Notification("New Customer Review", {
                 body: `A new review was submitted for ${reviewData.productName || 'a product'}.`,

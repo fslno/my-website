@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCart, parseFirestoreDate } from '@/context/CartContext';
 import {
   Carousel,
   CarouselContent,
@@ -25,6 +26,7 @@ interface BentoHeroProps {
   textAlign?: string;
   verticalAlign?: string;
   bannerEnabled?: boolean;
+  heroAspectRatio?: number;
 }
 
 /**
@@ -34,13 +36,14 @@ interface BentoHeroProps {
 export function BentoHero({
   isLoading,
   heroImages = [],
-  headline = 'Our Collection',
-  subheadline = 'Modern Styles',
-  buttonText = 'Shop Now',
+  headline,
+  subheadline,
+  buttonText,
   fallbackImageUrl,
   textAlign = 'center',
   verticalAlign = 'center',
-  bannerEnabled = false
+  bannerEnabled = false,
+  heroAspectRatio = 1.777
 }: BentoHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [mounted, setMounted] = useState(false);
@@ -53,11 +56,24 @@ export function BentoHero({
     Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
-  if (isLoading || !mounted) {
+  const { promoConfig } = useCart();
+  const isFlashActive = useMemo(() => {
+    if (!promoConfig?.flashEnabled) return false;
+    if (!promoConfig.flashCountdownEnabled) return true;
+    const end = parseFirestoreDate(promoConfig.flashEndTime);
+    return end ? new Date() < end : false;
+  }, [promoConfig]);
+
+  if (isLoading) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
-        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
-      </div>
+      <section className={cn(
+        "pt-12 sm:pt-16",
+        "opacity-0 transition-opacity duration-500"
+      )}>
+        <div 
+          className="w-full bg-neutral-100 overflow-hidden relative animate-pulse h-[80vh]" 
+        />
+      </section>
     );
   }
 
@@ -65,9 +81,11 @@ export function BentoHero({
 
   return (
     <section className={cn(
-      bannerEnabled ? "pt-[76px] sm:pt-[104px]" : "pt-12 sm:pt-16"
+      bannerEnabled ? "pt-7 sm:pt-10" : "pt-0"
     )}>
-      <div className="w-full bg-white overflow-hidden group shadow-2xl relative h-[90vh]">
+      <div 
+        className="w-full bg-white overflow-hidden group shadow-2xl relative h-[80vh]"
+      >
         <Carousel
           setApi={setApi}
           plugins={[autoplayPlugin.current]}
@@ -78,18 +96,19 @@ export function BentoHero({
         >
           <CarouselContent className="h-full ml-0">
             {images.map((url, idx) => (
-              <CarouselItem key={idx} className="relative h-[90vh] w-full pl-0">
+              <CarouselItem key={url} className="relative w-full pl-0 h-[80vh]">
                 <Image
                   src={url}
                   alt={`${headline} ${idx + 1}`}
                   fill
+                  sizes="100vw"
                   className="object-cover opacity-80"
                   priority={idx === 0}
                 />
               </CarouselItem>
             ))}
             {images.length === 0 && (
-              <CarouselItem className="relative h-[90vh] w-full pl-0">
+              <CarouselItem className="relative w-full pl-0 h-[80vh]">
                 <div className="absolute inset-0 bg-primary opacity-20" />
               </CarouselItem>
             )}
@@ -119,7 +138,7 @@ export function BentoHero({
                   textAlign === 'left' ? 'ml-0 mr-auto' : textAlign === 'right' ? 'ml-auto mr-0' : 'mx-auto'
                 )}
               >
-                {buttonText} <ArrowRight className="ml-3 h-4 w-4" />
+                {buttonText || "Shop Now"} <ArrowRight className="ml-3 h-4 w-4" />
               </Link>
             </div>
           </div>

@@ -18,6 +18,22 @@ import {
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
+/**
+ * Authoritative protocol for temporal manifest transformation.
+ * Safely converts Firestore Timestamps, ISO Strings, or Date objects.
+ */
+export function parseFirestoreDate(dateValue: any): Date | null {
+  if (!dateValue) return null;
+  if (dateValue instanceof Date) return dateValue;
+  if (typeof dateValue?.toDate === 'function') return dateValue.toDate();
+  if (dateValue?.seconds) return new Date(dateValue.seconds * 1000);
+  if (typeof dateValue === 'string') {
+    const d = new Date(dateValue);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return null;
+}
+
 export interface CartItem {
   id: string; // Product ID
   variantId: string; // Unique ID (Product + Size + Customization)
@@ -64,6 +80,7 @@ interface CartContextType {
   applyCoupon: (coupon: Coupon | null) => void;
   thresholdProgress: number;
   THRESHOLD_VALUE: number;
+  promoConfig: any;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -169,6 +186,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const thresholdDiscount = cartSubtotal >= thresholdValue ? thresholdDiscountValue : 0;
 
+  // Flash Sale Discount Logic
+  const isFlashActive = useMemo(() => {
+    if (!promoConfig?.flashEnabled) return false;
+    if (!promoConfig.flashCountdownEnabled || !promoConfig.flashEndTime) return true;
+    
+    const end = parseFirestoreDate(promoConfig.flashEndTime);
+    if (!end) return false;
+    return new Date() < end;
+  }, [promoConfig]);
+
+  const flashDiscount = useMemo(() => {
+    if (!isFlashActive) return 0;
+    const percentage = promoConfig.flashValue || 0;
+    return (cartSubtotal * percentage) / 100;
+  }, [isFlashActive, promoConfig?.flashValue, cartSubtotal]);
+
   // Coupon Calculation
   const couponDiscount = useMemo(() => {
     if (!appliedCoupon) return 0;
@@ -178,7 +211,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return Math.min(appliedCoupon.value, cartSubtotal);
   }, [appliedCoupon, cartSubtotal]);
 
-  const discountTotal = thresholdDiscount + couponDiscount;
+  const discountTotal = thresholdDiscount + couponDiscount + flashDiscount;
   const totalBeforeTax = Math.max(0, cartSubtotal - discountTotal);
   
   // Progress tracking for UI
@@ -279,7 +312,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       cart, addToCart, removeFromCart, updateCartItem, clearCart, 
       cartCount, cartSubtotal, discountTotal, totalBeforeTax, 
       isSyncing, appliedCoupon, applyCoupon: setAppliedCoupon,
-      thresholdProgress, THRESHOLD_VALUE: effectiveThreshold
+      thresholdProgress, THRESHOLD_VALUE: effectiveThreshold,
+      promoConfig
     }}>
       {children}
     </CartContext.Provider>

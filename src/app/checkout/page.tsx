@@ -51,7 +51,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { PayPalPayment } from '@/components/storefront/PayPalPayment';
 import { StallionRates } from '@/components/storefront/StallionRates';
-import { queueNotification, formatProductList } from '@/lib/notifications';
+import { queueNotification, formatProductList, formatProductListHtml } from '@/lib/notifications';
 import { getDocs } from 'firebase/firestore';
 
 type DeliveryMethod = 'shipping' | 'pickup';
@@ -100,7 +100,7 @@ export default function CheckoutPage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<any>(null);
   const [customerIp, setCustomerIp] = useState<string>('');
-
+  const [selectedRate, setSelectedRate] = useState<any>(null);
   useEffect(() => {
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
@@ -147,11 +147,24 @@ export default function CheckoutPage() {
   }, [shippingConfig, cartSubtotal]);
 
   const handleRateSelect = (rate: any) => {
-    setShippingRate(isFreeShippingEligible ? 0 : rate.totalCost);
+    setSelectedRate(rate);
     setStallionRateId(rate.id);
     setFormData(prev => ({ ...prev, courier: rate.service }));
   };
 
+  useEffect(() => {
+    if (deliveryMethod === 'pickup') {
+      setShippingRate(0);
+      return;
+    }
+    
+    if (selectedRate) {
+      const cost = (isFreeShippingEligible && selectedRate.type === 'standard') ? 0 : selectedRate.totalCost;
+      setShippingRate(cost);
+    } else if (isFreeShippingEligible) {
+      setShippingRate(0);
+    }
+  }, [isFreeShippingEligible, selectedRate, deliveryMethod]);
   const isTaxReady = useMemo(() => {
     if (deliveryMethod === 'shipping') return billingSameAsShipping ? !!formData.province : !!formData.billingProvince;
     return !!formData.billingProvince;
@@ -325,7 +338,13 @@ export default function CheckoutPage() {
             order_id: firestoreId.substring(0, 8).toUpperCase(),
             customer_name: currentOrderData.customer.name,
             order_total: `C$${finalTotal.toFixed(2)}`,
-            product_list: formatProductList(currentOrderData.items)
+            product_list: formatProductList(currentOrderData.items),
+            product_manifest: formatProductListHtml(currentOrderData.items),
+            payment_method: selectedPayment,
+            shipping_address: deliveryMethod === 'shipping' 
+              ? `${formData.address}\n${formData.city}, ${formData.province} ${formData.postalCode}\n${formData.country}`
+              : `PICKUP ON ${formData.pickupDate} @ ${formData.pickupTime}`,
+            order_breakdown: `Subtotal: C$${cartSubtotal.toFixed(2)}\nDiscount: -C$${discountTotal.toFixed(2)}\nShipping: ${shippingRate > 0 ? `C$${shippingRate.toFixed(2)}` : 'FREE'}\nTax: C$${calculatedTax.toFixed(2)}\nTotal: C$${finalTotal.toFixed(2)}`
           },
           activeStaffEmails
         );
@@ -466,7 +485,7 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                <div className="space-y-4 pt-6 border-t"><StallionRates address={{ city: formData.city, postalCode: formData.postalCode, province: formData.province, country: formData.country }} cartItems={cart} onRateSelect={handleRateSelect} selectedRateId={stallionRateId} manualRates={shippingConfig?.provinceRates} /></div>
+                <div className="space-y-4 pt-6 border-t"><StallionRates address={{ city: formData.city, postalCode: formData.postalCode, province: formData.province, country: formData.country }} cartItems={cart} onRateSelect={handleRateSelect} selectedRateId={stallionRateId} manualRates={shippingConfig?.provinceRates} isFreeEligible={isFreeShippingEligible} /></div>
               </div>
             ) : (
               <div className="space-y-10 pt-4 border-t">

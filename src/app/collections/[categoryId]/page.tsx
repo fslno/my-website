@@ -1,161 +1,115 @@
-'use client';
-
-import React, { useEffect, use, useMemo } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
-import { ProductCard } from '@/components/storefront/ProductCard';
-import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, Loader2 } from 'lucide-react';
+import React from 'react';
+import { Metadata } from 'next';
+import { adminDb } from '@/lib/firebase-admin';
 import { getLivePath } from '@/lib/deployment';
-import { ClientOnly } from '@/components/shared/ClientOnly';
-import { Skeleton } from '@/components/ui/skeleton';
+import { CollectionPageContent } from './CollectionPageContent';
 
 interface PageProps {
   params: Promise<{ categoryId: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default function CollectionPage(props: PageProps) {
-  const resolvedParams = React.use(props.params);
-  const { categoryId } = resolvedParams;
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const { categoryId } = await props.params;
   
-  const db = useFirestore();
+  try {
+    const [categoryDoc, domainDoc] = await Promise.all([
+      categoryId !== 'all' ? adminDb.doc(getLivePath(`categories/${categoryId}`)).get() : null,
+      adminDb.doc('config/domain').get()
+    ]);
 
-  // Global Review Config
-  const reviewConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/reviews')) : null, [db]);
-  const { data: reviewConfig } = useDoc(reviewConfigRef);
+    const category = categoryDoc?.data() || {};
+    const domain = domainDoc?.data() || {};
+    const primaryDomain = domain?.primaryDomain || "fslno.ca";
 
-  // Fetch Category Details
-  const categoryRef = useMemoFirebase(() => 
-    db && categoryId !== 'all' ? doc(db, getLivePath(`categories/${categoryId}`)) : null, 
-    [db, categoryId]
-  );
-  const { data: category, isLoading: categoryLoading } = useDoc(categoryRef);
+    const title = categoryId === 'all' ? "Shop All Products" : (category.name || "Collection");
+    const description = category.description || `Explore our high-quality ${title} at Feiselino (FSLNO). Official sport jerseys and apparel.`;
+    const canonical = `https://${primaryDomain}/collections/${categoryId}`;
 
-  const categoriesQuery = useMemoFirebase(() => db ? collection(db, getLivePath('categories')) : null, [db]);
-  const { data: allCategories } = useCollection(categoriesQuery);
+    return {
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: {
+        title,
+        description,
+        url: canonical,
+        type: 'website',
+        images: category.image ? [{ url: category.image }] : [],
+      },
+    };
+  } catch (err) {
+    return { title: 'Collection' };
+  }
+}
 
-  const productsQuery = useMemoFirebase(() => {
-    if (!db || !categoryId) return null;
-    const path = getLivePath('products');
-    if (categoryId === 'all') return collection(db, path);
-    return query(collection(db, path), where('categoryId', '==', categoryId));
-  }, [db, categoryId]);
+export default async function Page(props: PageProps) {
+  const { categoryId } = await props.params;
 
-  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+  // Fetch data for structured data (JSON-LD)
+  let products: any[] = [];
+  let categoryName = "All Products";
 
-  const reviewsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, 'reviews');
-  }, [db]);
-  const { data: allReviews } = useCollection(reviewsQuery);
-
-  const productRatings = useMemo(() => {
-    const map: Record<string, { sum: number, count: number }> = {};
-    if (!allReviews) return map;
-    allReviews.forEach(r => {
-      if (!r.published) return;
-      if (!map[r.productId]) map[r.productId] = { sum: 0, count: 0 };
-      map[r.productId].sum += (r.rating || 0);
-      map[r.productId].count += 1;
-    });
-    return map;
-  }, [allReviews]);
-
-  useEffect(() => {
-    if (!productsLoading && products?.length) {
-      if (typeof window !== 'undefined') {
-        const lastId = sessionStorage.getItem('lastProductId');
-        if (lastId) {
-          setTimeout(() => {
-            const el = document.getElementById(`product-${lastId}`);
-            if (el) {
-              const y = el.getBoundingClientRect().top + window.scrollY - 150;
-              window.scrollTo({ top: y, behavior: 'instant' });
-              sessionStorage.removeItem('lastProductId');
-            }
-          }, 200);
-        }
+  try {
+    const productsPath = getLivePath('products');
+    let productsQuery;
+    
+    if (categoryId === 'all') {
+      productsQuery = adminDb.collection(productsPath).limit(20);
+    } else {
+      productsQuery = adminDb.collection(productsPath).where('categoryId', '==', categoryId).limit(20);
+      const catDoc = await adminDb.doc(getLivePath(`categories/${categoryId}`)).get();
+      if (catDoc.exists) {
+        categoryName = catDoc.data()?.name || categoryName;
       }
     }
-  }, [productsLoading, products]);
 
-  if (categoryLoading || productsLoading) {
-    return (
-      <div className="bg-white">
-        <div className="pt-28 sm:pt-36 pb-12 border-b">
-          <div className="max-w-[1440px] mx-auto px-4 space-y-4">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-10 w-48" />
-          </div>
-        </div>
-        <div className="py-20 max-w-[1440px] mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-square w-full" />)}
-          </div>
-        </div>
-      </div>
-    );
+    const snapshot = await productsQuery.get();
+    products = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+  } catch (err) {
+    console.warn("[COLLECTION_SSR_FETCH_ERROR]", err);
   }
 
-  const reviewsEnabled = reviewConfig?.enabled !== false;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://fslno.ca"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": categoryName,
+          "item": `https://fslno.ca/collections/${categoryId}`
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": categoryName,
+      "itemListElement": products.map((p, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "url": `https://fslno.ca/products/${p.id}`,
+        "name": p.name,
+        "image": p.media?.[0]?.url || ""
+      }))
+    }
+  ];
 
   return (
-    <div className="bg-white">
-      <div className="pt-28 sm:pt-36 pb-12 border-b">
-        <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex flex-col gap-6">
-            <Link href="/" className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors w-fit">
-              <ChevronLeft className="h-3 w-3" /> Home
-            </Link>
-            <div className="space-y-3">
-              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Collection</span>
-              <h1 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">
-                {categoryId === 'all' ? 'All Products' : (category?.name || 'Collection')}
-              </h1>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <section className="py-20">
-        <div className="max-w-[1440px] mx-auto px-4">
-          {!products || products.length === 0 ? (
-            <div className="text-center py-32 border-2 border-dashed rounded-none bg-gray-50/50">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No products found in this category.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
-              {products.map((product: any) => {
-                const productCategory = category?.name || allCategories?.find(c => c.id === product.categoryId)?.name || 'Product';
-                const ratingInfo = productRatings[product.id];
-                return (
-                  <ProductCard 
-                    key={product.id} 
-                    id={product.id}
-                    name={product.name}
-                    price={`C$${(Number(product.price) || 0).toFixed(2)}`}
-                    comparedPrice={product.comparedPrice}
-                    image={product.media?.[0]?.url || ''}
-                    hoverImage={product.media?.[1]?.url}
-                    category={productCategory}
-                    sku={product.sku}
-                    rating={reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0}
-                    reviewCount={reviewsEnabled && ratingInfo ? ratingInfo.count : 0}
-                    isSoldOut={(Number(product.inventory) || 0) <= 0}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <ClientOnly>
-        <TestimonialSection />
-      </ClientOnly>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <CollectionPageContent categoryId={categoryId} />
+    </>
   );
 }

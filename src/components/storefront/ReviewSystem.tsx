@@ -70,11 +70,14 @@ export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemPro
   }, [allReviews, productId]);
 
   const stats = useMemo(() => {
-    // Authoritative Baseline Manifest: Start from 1 review and 5 stars if empty
-    if (productReviews.length === 0) return { avg: 5, count: 1 };
+    // Authoritative Baseline Manifest: Start from 132 reviews and 5 stars if empty for global view
+    if (productReviews.length === 0) {
+      const baselineCount = productId === 'global' ? 132 : 1;
+      return { avg: 5, count: baselineCount };
+    }
     const avg = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / productReviews.length;
     return { avg: Number(avg.toFixed(1)), count: productReviews.length };
-  }, [productReviews]);
+  }, [productReviews, productId]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -162,20 +165,13 @@ export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemPro
           </div>
         ) : (
           <div className="inline-block cursor-pointer group">
-            <div className="bg-black text-white py-1 px-2.5 rounded-none shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/10 h-7">
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star 
-                    key={s} 
-                    className={cn(
-                      "h-2.5 w-2.5 transition-all duration-500", 
-                      s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
-                    )} 
-                  />
-                ))}
+            <div className="bg-black/80 backdrop-blur-xl text-white py-1.5 px-3 rounded-none shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-500 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/20 h-8 group-hover:bg-black group-hover:border-white/40">
+              <div className="flex items-center gap-1 pr-2 border-r border-white/10">
+                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                <span className="text-[10px] font-black tracking-tight text-white">{stats.avg}</span>
               </div>
-              <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white whitespace-nowrap">
-                BASED ON {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
+              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/90 whitespace-nowrap pl-1">
+                {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
               </p>
             </div>
           </div>

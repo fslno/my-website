@@ -20,6 +20,7 @@ interface StallionRatesProps {
   onRateSelect: (rate: any) => void;
   selectedRateId?: string;
   manualRates?: any[];
+  isFreeEligible?: boolean;
 }
 
 /**
@@ -27,11 +28,11 @@ interface StallionRatesProps {
  * Authoritatively manifests live API rates and Regional Manual Overrides.
  * Prioritizes manual regional overrides if they match the participant's province.
  */
-export function StallionRates({ address, cartItems, onRateSelect, selectedRateId, manualRates }: StallionRatesProps) {
+export function StallionRates({ address, cartItems, onRateSelect, selectedRateId, manualRates, isFreeEligible }: StallionRatesProps) {
   const db = useFirestore();
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
   const shippingConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/shipping')) : null, [db]);
-  
+
   const { data: storeConfig } = useDoc(storeConfigRef);
   const { data: shippingConfig } = useDoc(shippingConfigRef);
 
@@ -42,13 +43,13 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
   const isStallionEnabled = useMemo(() => {
     if (!shippingConfig?.carriers) return false;
-    const stallion = shippingConfig.carriers.find((c: any) => 
+    const stallion = shippingConfig.carriers.find((c: any) =>
       (typeof c === 'string' ? c === 'STALLION EXPRESS' : c.name === 'STALLION EXPRESS')
     );
     return stallion && stallion.active !== false && stallion.apiKey && stallion.apiKey !== 'pending';
   }, [shippingConfig]);
 
-  const handlingFee = Number(storeConfig?.handlingFee) || 2.00;
+  const handlingFee = Number(storeConfig?.handlingFee ?? 0);
 
   useEffect(() => {
     // 01. Logic Gate: Regional rates only require province
@@ -66,93 +67,55 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
       setLoading(true);
       setError(null);
       setUseFallback(false);
-      
+
       let fetchedRates: any[] = [];
 
-      // A. Ingest Regional Manual Rates (Province Overrides) - PROVINCE ONLY REQUIRED
+      // A. Ingest Regional Manual Rates (Province Overrides)
       if (shippingConfig?.provinceRatesEnabled && Array.isArray(manualRates) && address.province) {
-        const matched = manualRates.find((r: any) => 
-          r.province?.toUpperCase() === (address.province || '').toUpperCase() && 
+        const matched = manualRates.find((r: any) =>
+          r.province?.toUpperCase() === (address.province || '').toUpperCase() &&
           (r.active !== false)
         );
         if (matched) {
+          const regionalHandlingFee = matched.handlingFee !== undefined ? Number(matched.handlingFee) : handlingFee;
           fetchedRates.push({
-            id: `manual-std-${matched.province}`,
-            service: 'Regional Logistics',
+            id: `manual-${matched.province}-std`,
+            service: matched.carrier || 'Shipping',
             label: 'Standard Shipping',
-            totalCost: (Number(matched.standard) || 0) + handlingFee,
-            days: '3-5',
+            totalCost: (Number(matched.rate ?? matched.standard) || 0) + regionalHandlingFee,
+            estimate: matched.estimate || '',
             type: 'standard'
           });
-          
-          // Authoritatively include Express if defined (even if 0)
-          if (matched.express !== undefined && matched.express !== '') {
+
+          if (matched.expressActive && matched.express) {
             fetchedRates.push({
-              id: `manual-exp-${matched.province}`,
-              service: 'Regional Logistics',
-              label: 'Express Delivery',
-              totalCost: (Number(matched.express) || 0) + handlingFee,
-              days: '1-2',
+              id: `manual-${matched.province}-exp`,
+              service: matched.carrier || 'Shipping',
+              label: 'Express Shipping',
+              totalCost: (Number(matched.express) || 0) + regionalHandlingFee,
+              estimate: matched.expressEstimate || '',
               type: 'express'
             });
           }
         }
       }
 
-      // B. Authoritative API Discovery (Stallion) - REQUIRES FULL ADDRESS
-      if (isStallionEnabled && isFullAddress) {
-        const parcel = cartItems.reduce((acc, item) => ({
-          weight: acc.weight + (Number(item.logistics?.weight || shippingConfig?.defaultWeight || 0.6) * item.quantity),
-          length: Math.max(acc.length, Number(item.logistics?.length || shippingConfig?.defaultLength || 35)),
-          width: Math.max(acc.width, Number(item.logistics?.width || shippingConfig?.defaultWidth || 25)),
-          height: acc.height + (Number(item.logistics?.height || shippingConfig?.defaultHeight || 10) * item.quantity)
-        }), { weight: 0, length: 0, width: 0, height: 0 });
+      // B. Authoritative API Discovery (Stallion) - DISABLED as per simplification
+      // Note: Kept for reference but bypassed in favor of base rate
 
-        try {
-          const response = await fetch('/api/shipping/stallion/rates', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to_address: {
-                city: address.city,
-                postal_code: address.postalCode,
-                province: address.province,
-                country_code: address.country === 'Canada' ? 'CA' : 'US'
-              },
-              parcel
-            })
-          });
-
-          const data = await response.json();
-          if (response.ok) {
-            const apiRates = (data.rates || []).map((r: any) => ({
-              ...r,
-              totalCost: r.price + handlingFee
-            }));
-            fetchedRates = [...fetchedRates, ...apiRates];
-          } else {
-            throw new Error(data.error);
-          }
-        } catch (err: any) {
-          console.warn('[LOGISTICS] API Failure, using fallback/manual:', err.message);
-          setUseFallback(true);
-        }
-      }
-
-      // C. Fallback Protocol: If no rates found after API/Manual attempts
-      if (fetchedRates.length === 0 && (isStallionEnabled || useFallback)) {
+      // C. Fallback Protocol: If no regional rates, use base rate
+      if (fetchedRates.length === 0) {
         fetchedRates.push({
-          id: 'fallback-std',
-          service: 'Standard Courier',
-          label: 'Standard Shipping',
-          totalCost: Number(shippingConfig?.standardRate || 0) + handlingFee,
-          days: '4-7',
+          id: 'base-rate',
+          service: 'Standard Logistics',
+          label: 'Shipping',
+          totalCost: Number(shippingConfig?.baseShippingRate ?? shippingConfig?.standardRate ?? 15) + handlingFee,
           type: 'standard'
         });
       }
 
       setRates(fetchedRates);
-      
+
       // Auto-select first rate if nothing selected or current selection missing
       if (fetchedRates.length > 0 && (!selectedRateId || !fetchedRates.some(r => r.id === selectedRateId))) {
         onRateSelect(fetchedRates[0]);
@@ -198,10 +161,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
           <Zap className="h-3 w-3" /> API Latency detected. Using studio fallback rates.
         </div>
       )}
-      
+
       {rates.length > 0 ? (
-        <RadioGroup 
-          value={selectedRateId} 
+        <RadioGroup
+          value={selectedRateId}
           onValueChange={(id) => {
             const rate = rates.find(r => r.id === id);
             if (rate) onRateSelect(rate);
@@ -209,29 +172,34 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
           className="grid grid-cols-1 gap-2"
         >
           {rates.map((rate) => (
-            <div 
-              key={rate.id} 
+            <Label
+              key={rate.id}
               className={cn(
-                "flex items-center justify-between p-4 border-2 transition-all cursor-pointer hover:bg-secondary rounded-none",
-                selectedRateId === rate.id ? "border-primary bg-white shadow-md" : "bg-gray-50/50 border-transparent"
+                "flex items-center justify-between p-4 border-2 transition-all cursor-pointer rounded-none bg-white",
+                selectedRateId === rate.id ? "border-black shadow-md" : "border-[#f1f5f9] hover:border-gray-200"
               )}
             >
               <div className="flex items-center space-x-3">
-                <RadioGroupItem value={rate.id} id={rate.id} className="border-primary text-primary" />
-                <Label htmlFor={rate.id} className="cursor-pointer flex-1">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{rate.label}</span>
-                    <span className="text-[9px] text-muted-foreground uppercase font-bold">
-                      {rate.days} Days • {rate.service}
-                    </span>
-                  </div>
-                </Label>
+                <RadioGroupItem value={rate.id} id={rate.id} className="sr-only" />
+                <div className={cn(
+                  "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                  selectedRateId === rate.id ? "border-black bg-black" : "border-gray-200"
+                )}>
+                  {selectedRateId === rate.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{rate.label}</span>
+                  <span className="text-[9px] text-muted-foreground uppercase font-bold">
+                    {rate.estimate ? `Est. delivery: ${rate.estimate}` : (rate.type === 'express' ? 'Fast Archival Fulfillment' : 'Secure Delivery Service')}
+                  </span>
+                </div>
               </div>
-              <div className="text-right flex items-center gap-3">
-                <span className="text-[11px] font-bold text-primary">C${(Number(rate.totalCost) || 0).toFixed(2)}</span>
-                <ChevronRight className="h-3 w-3 text-muted-foreground opacity-20" />
+              <div className="text-right">
+                <span className="text-[11px] font-bold text-primary">
+                  {(isFreeEligible && rate.type === 'standard') ? 'FREE' : `C$${(Number(rate.totalCost) || 0).toFixed(2)}`}
+                </span>
               </div>
-            </div>
+            </Label>
           ))}
         </RadioGroup>
       ) : (

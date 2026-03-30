@@ -5,6 +5,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { User, MapPin, Phone, Mail, Save, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AccountLoadingCover } from '@/components/storefront/AccountLoadingCover';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,11 +107,7 @@ export default function ProfilePage() {
   };
 
   if (userLoading) {
-    return (
-      <div className="py-20 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-black" />
-      </div>
-    );
+    return <AccountLoadingCover />;
   }
 
   return (

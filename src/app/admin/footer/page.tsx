@@ -30,7 +30,7 @@ import {
   FileCode
 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useStorage } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -109,7 +109,9 @@ export default function FooterEditorPage() {
   const [privacyContent, setPrivacyContent] = useState('');
   const [returnsContent, setReturnsContent] = useState('');
   const [shippingContent, setShippingContent] = useState('');
+  const [contactContent, setContactContent] = useState('');
   const [checkoutConsentText, setCheckoutConsentText] = useState('I agree to the Terms & Conditions and Privacy Policy');
+
   const [checkoutSecurityMsg, setCheckoutSecurityMsg] = useState('SECURE CHECKOUT ACTIVE');
 
   useEffect(() => {
@@ -146,7 +148,9 @@ export default function FooterEditorPage() {
       setPrivacyContent(config.privacyContent || '');
       setReturnsContent(config.returnsContent || '');
       setShippingContent(config.shippingContent || '');
+      setContactContent(config.contactContent || '');
       setCheckoutConsentText(config.checkoutConsentText || 'I agree to the Terms & Conditions and Privacy Policy');
+
       setCheckoutSecurityMsg(config.checkoutSecurityMsg || 'SECURE CHECKOUT ACTIVE');
     }
   }, [config]);
@@ -206,9 +210,11 @@ export default function FooterEditorPage() {
         privacyContent,
         returnsContent,
         shippingContent,
+        contactContent,
         checkoutConsentText,
+
         checkoutSecurityMsg,
-        updatedAt: new Date().toISOString() 
+        updatedAt: serverTimestamp() 
       };
 
       await setDoc(configRef, updates, { merge: true });
@@ -499,7 +505,17 @@ export default function FooterEditorPage() {
                   className="min-h-[200px] text-xs leading-relaxed rounded-none"
                 />
               </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-gray-500">Contact Us Content</Label>
+                <Textarea 
+                  value={contactContent} 
+                  onChange={(e) => setContactContent(e.target.value)}
+                  placeholder="Custom contact page text (leave blank to use automated store info)..."
+                  className="min-h-[200px] text-xs leading-relaxed rounded-none"
+                />
+              </div>
             </CardContent>
+
           </Card>
         </div>
 

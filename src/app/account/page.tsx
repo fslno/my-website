@@ -3,11 +3,12 @@
 import React from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { ShoppingBag, Truck, MapPin, ChevronRight, Clock, Star, Package, Loader2 } from 'lucide-react';
+import { ShoppingBag, Truck, MapPin, ChevronRight, Clock, Star, Package } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AccountLoadingCover } from '@/components/storefront/AccountLoadingCover';
 
 export default function AccountDashboard() {
   const { user } = useUser();
@@ -108,9 +109,7 @@ export default function AccountDashboard() {
         </div>
 
         {ordersLoading ? (
-            <div className="py-12 flex justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-black" />
-            </div>
+            <AccountLoadingCover />
           ) : !recentOrders || recentOrders.length === 0 ? (
             <div className="text-center py-20 bg-gray-50/50 border border-dashed rounded-none">
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">No recent orders found.</p>

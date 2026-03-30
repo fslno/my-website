@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { 
   Mail, 
   Loader2, 
@@ -24,12 +25,20 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { getLivePath } from '@/lib/deployment';
 import { cn } from '@/lib/utils';
+import { queueNotification } from '@/lib/notifications';
 
 /**
  * High-fidelity responsive footer — all content controlled from Admin → Footer.
  */
-export function Footer() {
+export function Footer({ initialTheme }: { initialTheme?: any }) {
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith('/admin');
+
   const db = useFirestore();
+
+  const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
+  const { data: theme } = useDoc(themeRef, { initialData: initialTheme });
+
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/store')) : null, [db]);
   const { data: config } = useDoc(storeConfigRef);
 
@@ -57,28 +66,10 @@ export function Footer() {
         status: 'active'
       });
 
-      // 2. Queue Welcome Email Transmission
-      await addDoc(collection(db, 'mail'), {
-        to: email,
-        from: "Feiselino (FSLNO) <goal@feiselinosportjerseys.ca>",
-        replyTo: "goal@feiselinosportjerseys.ca",
-        message: {
-          subject: "Welcome to Feiselino (FSLNO) Studio",
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; color: #000;">
-              <h1 style="text-transform: uppercase; font-size: 24px; letter-spacing: -0.02em;">Welcome to the Archive</h1>
-              <p style="font-size: 14px; line-height: 1.6; margin: 30px 0;">
-                You are now synchronized with Feiselino (FSLNO) Studio. You'll be the first to receive updates on new drops, exclusive collections, and archival releases.
-              </p>
-              <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 40px;">
-                <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">
-                  Feiselino (FSLNO) Operational Command • Guelph, ON
-                </p>
-              </div>
-            </div>
-          `
-        }
-      });
+      // 2. Queue Welcome Email Transmission using template system
+      await queueNotification(db, 'newsletterWelcome', email, {
+        business_name: config?.businessName || ''
+      }, config?.staffEmails);
 
       setIsSubmittingDone(true);
       setEmail('');
@@ -135,12 +126,12 @@ export function Footer() {
   ].filter(s => !!s.url);
 
   const newsletterEnabled = config?.newsletterEnabled ?? true;
-  const newsletterHeadline = config?.newsletterHeadline || 'JOIN THE ARCHIVE';
+  const newsletterHeadline = config?.newsletterHeadline || 'JOIN THE COMMUNITY';
   const newsletterSubtext = config?.newsletterSubtext || 'Get our latest updates.';
-  const copyrightText = config?.copyrightText || `© ${currentYear} ${config?.businessName || 'Feiselino (FSLNO)'}. ALL RIGHTS RESERVED.`;
+  const copyrightText = config?.copyrightText || `© ${currentYear} ${config?.businessName || ''}. ALL RIGHTS RESERVED.`;
   const poweredByEnabled = config?.poweredByEnabled ?? false;
   const poweredByLabel = config?.poweredByLabel || 'Powered by';
-  const poweredByName = config?.poweredByStudioName || 'Feiselino (FSLNO)';
+  const poweredByName = config?.poweredByStudioName || '';
   const poweredByLogo = config?.poweredByLogoUrl || '';
 
   if (!mounted) return null;
@@ -157,12 +148,12 @@ export function Footer() {
           
           {/* Brand column */}
           <div className="space-y-8">
-            <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase">
-              {config?.businessName || "Feiselino (FSLNO)"}
+            <h2 className="text-4xl font-headline font-bold tracking-tighter uppercase min-h-[1em]">
+              {config?.businessName || " "}
             </h2>
             <div className="space-y-6">
-              <p className="max-w-xs text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">
-                {config?.footerDescription || "Modern clothing and accessories for every style."}
+              <p className="max-w-xs text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed min-h-[2em]">
+                {config?.footerDescription || " "}
               </p>
               
               <div className="space-y-4">
@@ -224,7 +215,7 @@ export function Footer() {
 
           {/* Legal links */}
           <div className="space-y-6 flex flex-col">
-            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Legal</h4>
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-40">Privacy & Terms</h4>
             <ul className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
               {(config?.footerLegalLinks?.length > 0)
                 ? config.footerLegalLinks.map((link: any, idx: number) => (
@@ -232,8 +223,8 @@ export function Footer() {
                   ))
                 : (
                   <>
-                    <li><Link href="/terms" className="hover:opacity-60 transition-opacity">Terms</Link></li>
-                    <li><Link href="/privacy" className="hover:opacity-60 transition-opacity">Privacy</Link></li>
+                    <li><Link href="/terms" className="hover:opacity-60 transition-opacity">Terms of Service</Link></li>
+                    <li><Link href="/privacy" className="hover:opacity-60 transition-opacity">Privacy Policy</Link></li>
                   </>
                 )}
             </ul>
@@ -295,7 +286,7 @@ export function Footer() {
               <div className="flex items-center gap-2 opacity-30 hover:opacity-80 transition-opacity">
                 {poweredByLogo && (
                   <div className="relative w-4 h-4">
-                    <Image src={poweredByLogo} alt={poweredByName} fill className="object-contain" />
+                    <Image src={poweredByLogo} alt={poweredByName} fill sizes="16px" className="object-contain" />
                   </div>
                 )}
                 <span className="text-[8px] font-bold uppercase tracking-widest">{poweredByLabel} {poweredByName}</span>

@@ -129,7 +129,7 @@ export default function SocialCommercePage() {
   const handleInstagramSync = () => {
     setIsSyncing(true);
     setTimeout(() => {
-      const updates = { lastInstagramSync: new Date().toISOString() };
+      const updates = { lastInstagramSync: serverTimestamp() };
       handleUpdate(updates);
       setIsSyncing(false);
       toast({ 
@@ -193,9 +193,10 @@ export default function SocialCommercePage() {
     handleUpdate({ customIntegrations: updatedIntegrations });
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const formatDate = (date: any) => {
+    if (!date) return 'Never';
+    const d = typeof date.toDate === 'function' ? date.toDate() : new Date(date);
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
   if (loading) {

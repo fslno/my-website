@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -28,8 +28,10 @@ import {
   RefreshCw,
   Globe,
   Search,
-  MinusCircle
+  MinusCircle,
+  Crop
 } from 'lucide-react';
+import { ImageCropper } from '@/components/admin/ImageCropper';
 import { 
   Dialog, 
   DialogContent, 
@@ -48,7 +50,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useIsAdmin, useStorage } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc, query, where, orderBy, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, query, where, orderBy, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -63,6 +65,11 @@ export default function CategoriesPage() {
   const { user } = useUser();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const isAdmin = useIsAdmin();
 
@@ -85,6 +92,10 @@ export default function CategoriesPage() {
   const [sizeChartId, setSizeChartId] = useState('');
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
+
+  // Cropping state
+  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   // Product Assignment State
   const [productSearchQuery, setProductSearchQuery] = useState('');
@@ -114,9 +125,28 @@ export default function CategoriesPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      setImageUrl(URL.createObjectURL(file));
+      setPendingCropFile(file);
+      setIsCropperOpen(true);
     }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob | null) => {
+    if (!pendingCropFile) return;
+
+    if (croppedBlob) {
+      // Use cropped image
+      const croppedFile = new File([croppedBlob], pendingCropFile.name, { type: 'image/jpeg' });
+      setImageFile(croppedFile);
+      setImageUrl(URL.createObjectURL(croppedFile));
+    } else {
+      // Skip crop - use original
+      setImageFile(pendingCropFile);
+      setImageUrl(URL.createObjectURL(pendingCropFile));
+    }
+
+    setPendingCropFile(null);
+    setIsCropperOpen(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleRestoreDefaults = async () => {
@@ -137,8 +167,8 @@ export default function CategoriesPage() {
           imageUrl: '',
           seoTitle: def.name,
           seoDescription: def.description,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
         });
         addedCount++;
       }
@@ -188,7 +218,7 @@ export default function CategoriesPage() {
         sizeChartId,
         seoTitle: seoTitle || name, 
         seoDescription: seoDescription || description,
-        updatedAt: new Date().toISOString()
+        updatedAt: serverTimestamp()
       };
       
       if (editingId) {
@@ -196,7 +226,7 @@ export default function CategoriesPage() {
         toast({ title: "Updated", description: "Category updated." }); 
       } else {
         const nextOrder = categories && categories.length > 0 ? Math.max(...categories.map(c => c.order || 0)) + 1 : 0;
-        const newData = { ...categoryData, order: nextOrder, createdAt: new Date().toISOString() };
+        const newData = { ...categoryData, order: nextOrder, createdAt: serverTimestamp() };
         const docRef = await addDoc(collection(db, 'categories'), newData);
         setEditingId(docRef.id);
         toast({ title: "Created", description: "Category created." }); 
@@ -220,7 +250,7 @@ export default function CategoriesPage() {
   const handleAssignProduct = (productId: string) => {
     if (!db || !editingId) return;
     const productRef = doc(db, 'products', productId);
-    updateDoc(productRef, { categoryId: editingId, updatedAt: new Date().toISOString() })
+    updateDoc(productRef, { categoryId: editingId, updatedAt: serverTimestamp() })
       .then(() => toast({ title: "Product Assigned", description: "Inventory synchronized." }))
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -234,7 +264,7 @@ export default function CategoriesPage() {
   const handleUnassignProduct = (productId: string) => {
     if (!db) return;
     const productRef = doc(db, 'products', productId);
-    updateDoc(productRef, { categoryId: '', updatedAt: new Date().toISOString() })
+    updateDoc(productRef, { categoryId: '', updatedAt: serverTimestamp() })
       .then(() => toast({ title: "Product Removed", description: "Inventory de-indexed." }))
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -305,7 +335,7 @@ export default function CategoriesPage() {
 
   return (
     <>
-      {categoriesLoading && (
+      {(!hasMounted || categoriesLoading) && (
         <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
           <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
         </div>
@@ -633,6 +663,14 @@ export default function CategoriesPage() {
           ))}
         </div>
       </div>
+      
+      <ImageCropper
+        image={pendingCropFile ? URL.createObjectURL(pendingCropFile) : null}
+        open={isCropperOpen}
+        aspectRatio={4/3} // Category cards usually look better with 4:3 or 1:1
+        onCropComplete={handleCropComplete}
+        onClose={() => setIsCropperOpen(false)}
+      />
     </div>
     </>
   );

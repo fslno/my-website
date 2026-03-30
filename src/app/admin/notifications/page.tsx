@@ -65,7 +65,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useFirebaseApp, useFirestore, useDoc, useMemoFirebase, useUser, useCollection, useStorage, useIsAdmin } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getMessagingInstance } from '@/firebase';
 import { getToken } from 'firebase/messaging';
@@ -90,17 +90,17 @@ interface NotificationConfig {
 const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
   orderConfirmation: {
     label: "Order Confirmation",
-    description: "Sent after purchase. Confirms order and studio prep.",
+    description: "Sent after purchase. Confirms order and begins prep.",
     enabled: true,
     subject: "Order Confirmed: #{{order_id}}",
-    body: "Hi {{customer_name}},\n\nYour archive order #{{order_id}} is confirmed. Our studio is preparing your pieces.\n\nYOUR SELECTION:\n{{product_list}}\n\nTotal: {{order_total}}\n\nSTUDIO:\n{{business_address}}\n{{business_phone}}\n\nWe will notify you when items ship."
+    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} from Feiselino (FSLNO) Sport Jerseys is confirmed. We're getting your items ready.\n\nYOUR SELECTION:\n{{product_list}}\n\nPayment Method: {{payment_method}}\nTotal: {{order_total}}\n\nSTUDIO:\n{{business_address}}\n{{business_phone}}\n\nWe'll let you know when it ships!"
   },
   statusChanged: {
     label: "Status Update",
-    description: "Sent when order status changes.",
+    description: "Sent when order status changes (e.g. Processing, Packed).",
     enabled: true,
-    subject: "Update: Order #{{order_id}}",
-    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} status updated to: {{status}}.\n\nRegards,\n{{business_name}} Team"
+    subject: "Update: Order #{{order_id}} is {{status}}",
+    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} has been updated.\n\nNEW STATUS: {{status}}\n\nRegards,\nFeiselino (FSLNO) Sport Jerseys"
   },
   shipped: {
     label: "Order Shipped",
@@ -116,23 +116,30 @@ const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
     subject: "Ready for Pickup: #{{order_id}}",
     body: "Hi {{customer_name}},\n\nYour order #{{order_id}} is ready for pickup.\n\nADDRESS:\n{{business_address}}\n\nHOURS:\nMon-Fri: 10AM - 6PM\n\nBring order ID for validation."
   },
-  delivered: {
-    label: "Order Delivered",
-    description: "Sent after delivery confirmation.",
-    enabled: true,
-    subject: "Delivered: Order #{{order_id}}",
-    body: "Hi {{customer_name}},\n\nOrder #{{order_id}} was delivered. We hope you enjoy the pieces.\n\nReply to this email with feedback.\n\nBest,\n{{business_name}}"
-  },
   refunded: {
     label: "Order Refunded",
     description: "Sent after refund processing.",
     enabled: true,
     subject: "Refund: Order #{{order_id}}",
     body: "Hi {{customer_name}},\n\nRefund processed for order #{{order_id}}. Funds will return to your payment method within 3-5 days.\n\nContact support at {{business_phone}} with questions."
+  },
+  invoice: {
+    label: "Invoice Delivery",
+    description: "Sent when an invoice is manually triggered from Invoice Maker.",
+    enabled: true,
+    subject: "{{invoice_number}} - Your Invoice from Feiselino (FSLNO) Sport Jerseys",
+    body: "Hi {{customer_name}},\n\nPlease find your invoice {{invoice_number}} for {{order_total}} below.\n\nItems:\n{{product_list}}\n\nPayment Method: {{payment_method}}\nTotal: {{order_total}}\n\nRegards,\nFeiselino (FSLNO) Sport Jerseys"
   }
 };
 
 const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
+  newsletterWelcome: {
+    label: "Welcome Email",
+    description: "Sent immediately after someone joins the group.",
+    enabled: true,
+    subject: "Welcome to Feiselino (FSLNO) Sport Jerseys",
+    body: "Hi {{customer_name}},\n\nYou've joined Feiselino (FSLNO) Sport Jerseys. You'll be the first to see new arrivals and exclusive drops.\n\nRegards,\nFeiselino (FSLNO) Sport Jerseys"
+  },
   cartRecovery: {
     label: "Abandoned Cart",
     description: "Reminds shoppers about unfinished orders.",
@@ -167,6 +174,13 @@ const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
     enabled: true,
     subject: "Review your {{business_name}} order",
     body: "Hi {{customer_name}},\n\nHow is the fit? Share your thoughts on order #{{order_id}}.\n\n[LEAVE A REVIEW]\n\nYour feedback helps us improve."
+  },
+  promotion: {
+    label: "Promotion / Discount",
+    description: "Manual promotional transmission.",
+    enabled: true,
+    subject: "Exclusive Archive Access: {{promo_code}}",
+    body: "Hi {{customer_name}},\n\nWe're offering exclusive access to our latest archival pieces. Use code {{promo_code}} for {{discount_percent}}% off.\n\nSHOP NOW:\nhttps://fslno.ca/shop\n\nRegards,\n{{business_name}} Studio"
   }
 };
 
@@ -209,6 +223,8 @@ function NotificationsContent() {
   const [logoUrl, setLogoUrl] = useState('');
   const [accentColor, setAccentColor] = useState('#000000');
   const [footerContent, setFooterContent] = useState('');
+  const [businessPhone, setBusinessPhone] = useState('');
+  const [businessEmail, setBusinessEmail] = useState('');
   const [attachInvoice, setAttachInvoice] = useState(true);
 
   const [orderAlarmEnabled, setOrderAlarmEnabled] = useState(true);
@@ -228,6 +244,8 @@ function NotificationsContent() {
       setLogoUrl(config.global.logoUrl || '');
       setAccentColor(config.global.accentColor || '#000000');
       setFooterContent(config.global.footer || '');
+      setBusinessPhone(config.global.business_phone || '');
+      setBusinessEmail(config.global.business_email || '');
       setAttachInvoice(config.global.attachInvoice ?? true);
     }
     if (config) {
@@ -280,6 +298,9 @@ function NotificationsContent() {
         if (err.message?.includes('applicationServerKey') || err.code === 'messaging/invalid-vapid-key') {
           throw new Error("Invalid VAPID key.");
         }
+        if (err.code === 'messaging/permission-blocked') {
+          throw new Error("Notification permission denied. Follow the Mobile Setup Guide below.");
+        }
         throw err;
       });
       if (!token) throw new Error("Could not get token.");
@@ -290,7 +311,19 @@ function NotificationsContent() {
         toast({ title: "Device registered", description: "Alarms active on this device." });
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Registration failed", description: error.message });
+      toast({ 
+        variant: "destructive", 
+        title: "Registration failed", 
+        description: error.message,
+        action: (
+          <Button variant="outline" size="sm" className="bg-white text-black border-none hover:bg-gray-100 font-bold uppercase text-[9px]" onClick={() => {
+            setActiveTab('alarms');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+          }}>
+            View Guide
+          </Button>
+        )
+      });
     } finally {
       setIsRegisteringDevice(false);
     }
@@ -344,7 +377,7 @@ function NotificationsContent() {
         subject: "[TEST] FSLNO Confirmation",
         html: `<p>Diagnostic email from FSLNO.</p><p>Sender: ${fromField || 'default'}</p>`
       },
-      createdAt: new Date().toISOString()
+      createdAt: serverTimestamp()
     };
     try {
       await addDoc(collection(db, 'mail'), testOrder);
@@ -383,12 +416,19 @@ function NotificationsContent() {
     if (!configRef) return;
     setIsSaving(true);
     const payload = {
-      global: { logoUrl, accentColor, footer: footerContent, attachInvoice },
+      global: { 
+        logoUrl, 
+        accentColor, 
+        footer: footerContent, 
+        business_phone: businessPhone,
+        business_email: businessEmail,
+        attachInvoice 
+      },
       orderAlarmEnabled,
       orderAlarmUrl,
       senderEmail,
       senderName,
-      updatedAt: new Date().toISOString()
+      updatedAt: serverTimestamp()
     };
     setDoc(configRef, payload, { merge: true })
       .then(() => toast({ title: "Settings saved", description: "Global configs updated." }))
@@ -446,12 +486,12 @@ function NotificationsContent() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start bg-transparent border-b rounded-none h-14 p-0 mb-8 overflow-x-auto">
-          <TabsTrigger value="general" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-8 font-bold uppercase tracking-widest text-[10px]">Transactional</TabsTrigger>
-          <TabsTrigger value="marketing" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-8 font-bold uppercase tracking-widest text-[10px]">Marketing</TabsTrigger>
-          <TabsTrigger value="sender" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-8 font-bold uppercase tracking-widest text-[10px]">Sender Details</TabsTrigger>
-          <TabsTrigger value="branding" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-8 font-bold uppercase tracking-widest text-[10px]">Branding</TabsTrigger>
-          <TabsTrigger value="alarms" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-8 font-bold uppercase tracking-widest text-[10px]">Alarms</TabsTrigger>
+        <TabsList className="w-full justify-start bg-transparent border-b rounded-none h-14 p-0 mb-8 overflow-x-auto scrollbar-hide">
+          <TabsTrigger value="general" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Order Emails</TabsTrigger>
+          <TabsTrigger value="marketing" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Marketing</TabsTrigger>
+          <TabsTrigger value="sender" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Sender Details</TabsTrigger>
+          <TabsTrigger value="branding" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Branding</TabsTrigger>
+          <TabsTrigger value="alarms" className="rounded-none border-b-2 border-transparent data:[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Alarms</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="mt-0">
@@ -463,36 +503,58 @@ function NotificationsContent() {
                   <h2 className="text-sm font-bold uppercase tracking-widest">Post-Purchase Flow</h2>
                 </div>
                 <div className="bg-white border rounded-none overflow-hidden shadow-sm">
-                  <Table>
-                    <TableHeader className="bg-gray-50/50">
-                      <TableRow>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Touchpoint</TableHead>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Status</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
-                        const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
-                        return (
-                          <TableRow key={key} className="hover:bg-gray-50/30 transition-colors border-black/5">
-                            <TableCell className="p-6">
-                              <div className="space-y-1">
-                                <span className="font-bold text-sm tracking-tight uppercase">{data.label}</span>
-                                <p className="text-[10px] text-gray-500 font-medium uppercase">{data.description}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, false)} />
-                            </TableCell>
-                            <TableCell className="pr-6">
-                              <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, false)}>Edit</Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                  {/* Desktop Table View */}
+                  <div className="hidden sm:block">
+                    <Table>
+                      <TableHeader className="bg-gray-50/50">
+                        <TableRow>
+                          <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Email Type</TableHead>
+                          <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Status</TableHead>
+                          <TableHead className="w-[100px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
+                          const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
+                          return (
+                            <TableRow key={key} className="hover:bg-gray-50/30 transition-colors border-black/5">
+                              <TableCell className="p-6">
+                                <div className="space-y-1">
+                                  <span className="font-bold text-sm tracking-tight uppercase">{data.label}</span>
+                                  <p className="text-[10px] text-gray-500 font-medium uppercase">{data.description}</p>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, false)} />
+                              </TableCell>
+                              <TableCell className="pr-6 text-right">
+                                <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, false)}>Edit</Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Mobile List View */}
+                  <div className="block sm:hidden divide-y">
+                    {Object.keys(DEFAULT_NOTIFICATIONS).map((key) => {
+                      const data = config?.[key] || DEFAULT_NOTIFICATIONS[key];
+                      return (
+                        <div key={key} className="p-4 space-y-4">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <span className="font-bold text-xs tracking-tight uppercase">{data.label}</span>
+                              <p className="text-[9px] text-gray-500 font-medium uppercase">{data.description}</p>
+                            </div>
+                            <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, false)} />
+                          </div>
+                          <Button variant="outline" className="w-full font-bold uppercase tracking-widest text-[10px] h-9 border-black" onClick={() => handleEdit(key, false)}>Edit Template</Button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </section>
             </div>
@@ -526,36 +588,58 @@ function NotificationsContent() {
                   <h2 className="text-sm font-bold uppercase tracking-widest">Growth & Retention Campaigns</h2>
                 </div>
                 <div className="bg-white border rounded-none overflow-hidden shadow-sm">
-                  <Table>
-                    <TableHeader className="bg-gray-50/50">
-                      <TableRow>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign</TableHead>
-                        <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Status</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Object.keys(DEFAULT_MARKETING).map((key) => {
-                        const data = config?.[key] || DEFAULT_MARKETING[key];
-                        return (
-                          <TableRow key={key} className="hover:bg-gray-50/30 transition-colors border-black/5">
-                            <TableCell className="p-6">
-                              <div className="space-y-1">
-                                <span className="font-bold text-sm tracking-tight uppercase">{data.label}</span>
-                                <p className="text-[10px] text-gray-500 font-medium uppercase">{data.description}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, true)} />
-                            </TableCell>
-                            <TableCell className="pr-6">
-                              <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, true)}>Edit</Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                  {/* Desktop Table View */}
+                  <div className="hidden sm:block">
+                    <Table>
+                      <TableHeader className="bg-gray-50/50">
+                        <TableRow>
+                          <TableHead className="text-[10px] font-bold uppercase tracking-widest p-6 text-gray-500">Campaign</TableHead>
+                          <TableHead className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Status</TableHead>
+                          <TableHead className="w-[100px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {Object.keys(DEFAULT_MARKETING).map((key) => {
+                          const data = config?.[key] || DEFAULT_MARKETING[key];
+                          return (
+                            <TableRow key={key} className="hover:bg-gray-50/30 transition-colors border-black/5">
+                              <TableCell className="p-6">
+                                <div className="space-y-1">
+                                  <span className="font-bold text-sm tracking-tight uppercase">{data.label}</span>
+                                  <p className="text-[10px] text-gray-500 font-medium uppercase">{data.description}</p>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, true)} />
+                              </TableCell>
+                              <TableCell className="pr-6 text-right">
+                                <Button variant="ghost" size="sm" className="font-bold uppercase tracking-widest text-[10px]" onClick={() => handleEdit(key, true)}>Edit</Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Mobile List View */}
+                  <div className="block sm:hidden divide-y">
+                    {Object.keys(DEFAULT_MARKETING).map((key) => {
+                      const data = config?.[key] || DEFAULT_MARKETING[key];
+                      return (
+                        <div key={key} className="p-4 space-y-4">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <span className="font-bold text-xs tracking-tight uppercase">{data.label}</span>
+                              <p className="text-[9px] text-gray-500 font-medium uppercase">{data.description}</p>
+                            </div>
+                            <Switch checked={data.enabled} onCheckedChange={(checked) => handleToggle(key, checked, true)} />
+                          </div>
+                          <Button variant="outline" className="w-full font-bold uppercase tracking-widest text-[10px] h-9 border-black" onClick={() => handleEdit(key, true)}>Edit Template</Button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </section>
             </div>
@@ -622,7 +706,7 @@ function NotificationsContent() {
               <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
                 <CardHeader className="bg-gray-50/50 border-b p-6">
                   <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
-                    <Palette className="h-3.5 w-3.5" /> Visual Overlays
+                    <Palette className="h-3.5 w-3.5" /> Email Design
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-8">
@@ -637,6 +721,16 @@ function NotificationsContent() {
                         <Input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="w-12 h-12 p-1 rounded-none border-black cursor-pointer" />
                         <Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="h-12 flex-1 rounded-none border-black font-mono text-[10px]" />
                       </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Business Phone</Label>
+                      <Input value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="+1 (XXX) XXX-XXXX" className="h-12 rounded-none border-black font-mono text-[10px]" />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Business Email</Label>
+                      <Input value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} placeholder="hello@yourstore.ca" className="h-12 rounded-none border-black font-mono text-[10px]" />
                     </div>
                   </div>
                   <div className="space-y-3">
@@ -657,7 +751,7 @@ function NotificationsContent() {
             <section className="space-y-6">
               <div className="flex items-center gap-2 text-red-600">
                 <ShieldAlert className="h-5 w-5" />
-                <h2 className="text-sm font-bold uppercase tracking-widest">Acoustic Protocol</h2>
+                <h2 className="text-sm font-bold uppercase tracking-widest">Notification Sounds</h2>
               </div>
               <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden border-l-4 border-l-border mb-8">
                 <CardHeader className="flex flex-row items-center justify-between border-b bg-zinc-50/10 p-6">
@@ -708,7 +802,7 @@ function NotificationsContent() {
                 <CardHeader className="flex flex-row items-center justify-between border-b bg-red-50/10 p-6">
                   <div className="space-y-1">
                     <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-red-600">Order Alerts</CardTitle>
-                    <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Real-time firing sequence.</CardDescription>
+                    <CardDescription className="text-[9px] uppercase font-bold text-zinc-500 mt-1">Real-time alerts for new orders.</CardDescription>
                   </div>
                   <Switch checked={orderAlarmEnabled} onCheckedChange={setOrderAlarmEnabled} className="data-[state=checked]:bg-red-600" />
                 </CardHeader>

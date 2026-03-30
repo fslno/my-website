@@ -3,31 +3,60 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  initializeFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager 
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
-// Unified Initialization Protocol (Restored)
+// Unified Initialization Protocol
+let cachedSdks: any = null;
+
 export function initializeFirebase() {
-  if (!getApps().length) {
-    let firebaseApp;
-    
-    // Explicit Validation Loop
-    if (!firebaseConfig.apiKey) {
-      console.error("CRITICAL: [FIREBASE] API Key missing. Verify environment manifest.");
-    }
+  if (cachedSdks) return cachedSdks;
 
-    try {
-      firebaseApp = initializeApp(firebaseConfig);
-    } catch (e) {
-      console.error('Firebase initialization failed.', e);
-      throw e;
-    }
-
-    return getSdks(firebaseApp);
+  const apps = getApps();
+  if (apps.length > 0) {
+    const app = apps[0];
+    cachedSdks = {
+      firebaseApp: app,
+      auth: getAuth(app),
+      firestore: getFirestore(app),
+      storage: getStorage(app)
+    };
+    return cachedSdks;
   }
 
-  return getSdks(getApp());
+  // Explicit Validation Loop
+  if (!firebaseConfig.apiKey) {
+    console.error("CRITICAL: [FIREBASE] API Key missing. Verify environment manifest.");
+  }
+
+  try {
+    const firebaseApp = initializeApp(firebaseConfig);
+    // Initialize Firestore with modern persistent cache and stability settings
+    const firestore = initializeFirestore(firebaseApp, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      }),
+      ignoreUndefinedProperties: true
+    });
+
+    cachedSdks = {
+      firebaseApp,
+      auth: getAuth(firebaseApp),
+      firestore,
+      storage: getStorage(firebaseApp)
+    };
+
+    return cachedSdks;
+  } catch (e) {
+    console.error('Firebase initialization failed.', e);
+    throw e;
+  }
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {

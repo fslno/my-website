@@ -24,7 +24,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      <ClientOnly fallback={<div className="h-[90vh] bg-black" />}>
+      <ClientOnly fallback={<div className="h-[26vh] bg-black" />}>
         <BentoHero
           isLoading={themeLoading}
           heroImages={theme?.heroImages}
@@ -34,6 +34,7 @@ export default function Home() {
           textAlign={theme?.heroTextAlign}
           verticalAlign={theme?.heroVerticalAlign}
           bannerEnabled={theme?.bannerEnabled}
+          heroAspectRatio={theme?.heroAspectRatio || 2.85}
         />
       </ClientOnly>
 
