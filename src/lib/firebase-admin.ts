@@ -46,18 +46,31 @@ const hasCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS ||
                        process.env.K_SERVICE; // Standard check for Cloud Run / App Hosting
 
 let adminDb: any;
-const createDummy = (): any => ({
-  doc: () => createDummy(),
-  collection: () => createDummy(),
-  where: () => createDummy(),
-  limit: () => createDummy(),
-  orderBy: () => createDummy(),
-  get: async () => ({ 
-    exists: false, 
-    data: () => null,
-    docs: [] 
-  })
-});
+const createDummy = (): any => {
+  const dummy: any = {
+    doc: () => dummy,
+    collection: () => dummy,
+    where: () => dummy,
+    limit: () => dummy,
+    orderBy: () => dummy,
+    offset: () => dummy,
+    select: () => dummy,
+    startAt: () => dummy,
+    startAfter: () => dummy,
+    endAt: () => dummy,
+    endBefore: () => dummy,
+    get: async () => ({ 
+      exists: false, 
+      id: "mock-id",
+      data: () => ({}), // Return empty object instead of null to prevent destructuring errors
+      docs: [],
+      size: 0,
+      empty: true,
+      forEach: (cb: any) => {}
+    })
+  };
+  return dummy;
+};
 
 if (!hasCredentials && process.env.NODE_ENV === 'development') {
   console.warn("[FIREBASE_ADMIN_CREDENTIAL_WARNING] No Google Application Default Credentials found locally. SSR and Metadata indexing will use fallback values.");

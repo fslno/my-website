@@ -5,8 +5,11 @@ service firebase.storage {
     function isAdmin() {
       return request.auth != null && (
         request.auth.uid in ['ulyu5w9XtYeVTmceUfOZLZwDQxF2', 'cge90HsQLwgri3quh6VBIZs4wiP2'] ||
-        request.auth.token.email in ['fslno.dev@gmail.com', 'admin@fslno.ca'] ||
-        (request.auth.token.email != null && request.auth.token.email.endsWith('@example.com'))
+        request.auth.token.email in ['fslno.dev@gmail.com', 'admin@fslno.ca', 'kingfslno@gmail.com'] ||
+        (request.auth.token.email != null && (
+          request.auth.token.email.endsWith('@fslno.ca') ||
+          request.auth.token.email.endsWith('@example.com')
+        ))
       );
     }
 

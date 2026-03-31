@@ -647,9 +647,21 @@ export default function ProductsPage() {
 
     setIsSaving(true);
 
-    // Sanitize numeric inputs to avoid Firestore NaN rejekts
-    const sanitizeNum = (val: string, fallback: number | null = 0) => {
-      const parsed = parseFloat(val);
+    // Helper to clear storefront cache
+    const revalidate = async (id: string, name: string) => {
+      try {
+        const handle = name.toLowerCase().replace(/\s+/g, '-');
+        await Promise.all([
+          fetch(`/api/revalidate?path=/products/${id}`),
+          fetch(`/api/revalidate?path=/products/${handle}`),
+          fetch(`/api/revalidate?path=/`)
+        ]);
+      } catch (e) { console.error('Revalidation failed', e); }
+    };
+
+    // Sanitize numeric inputs to avoid Firestore NaN rejections
+    const sanitizeNum = (val: string | number, fallback: number | null = 0) => {
+      const parsed = typeof val === 'string' ? parseFloat(val) : val;
       return isNaN(parsed) ? fallback : parsed;
     };
 
@@ -696,10 +708,12 @@ export default function ProductsPage() {
     try {
       if (editingId) {
         await updateDoc(doc(db, 'products', editingId), productData);
+        await revalidate(editingId, name);
         toast({ title: "Product Updated", description: `${name} has been synchronized.` });
       } else {
         const newData = { ...productData, createdAt: serverTimestamp() };
         const docRef = await addDoc(collection(db, 'products'), newData);
+        await revalidate(docRef.id, name);
         setEditingId(docRef.id);
         toast({ title: "Product Created", description: `${name} has been manifested in the catalog.` });
       }
@@ -991,14 +1005,21 @@ export default function ProductsPage() {
                           </Select>
                         </div>
                       </div>
-                      <div className="space-y-4 pt-4 border-t">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label>
+                        <div className="space-y-4 pt-4 border-t">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-[10px] uppercase font-bold text-gray-500">Key Features</Label>
+                            <span className="text-[8px] font-bold text-gray-400">COMMA SEPARATED</span>
+                          </div>
+                          <Input placeholder="e.g. 100% Cotton, Adjustable Cuff, Premium Stitching" value={features} onChange={(e) => setFeatures(e.target.value)} className="h-12 bg-white" />
                         </div>
-                        <Textarea className="min-h-[150px] resize-none bg-white p-4 text-sm" placeholder="Describe this product..." value={description} onChange={(e) => setDescription(e.target.value)} />
+                        <div className="space-y-4 pt-4 border-t">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-[10px] uppercase font-bold text-gray-500">Description</Label>
+                          </div>
+                          <Textarea className="min-h-[150px] resize-none bg-white p-4 text-sm" placeholder="Describe this product..." value={description} onChange={(e) => setDescription(e.target.value)} />
+                        </div>
                       </div>
-                    </div>
-                  </section>
+                    </section>
                   <section className="bg-blue-50/30 p-4 sm:p-8 rounded-xl border border-blue-100 space-y-6">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1"><div className="flex items-center gap-2"><Settings2 className="h-4 w-4 text-blue-600" /><h3 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-blue-900">Personalization</h3></div><p className="text-[8px] sm:text-[9px] uppercase font-bold text-blue-700 tracking-tight">Allow custom name or number at checkout.</p></div>

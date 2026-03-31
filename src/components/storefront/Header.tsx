@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter, SheetClose, SheetDescription } from '@/components/ui/sheet';
 import { useCart, parseFirestoreDate } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import NextImage from 'next/image';
@@ -293,6 +293,10 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 </Button>
               </SheetTrigger>
               <SheetContent side="top" className="h-[100dvh] bg-white border-none p-0 flex flex-col">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Search Products</SheetTitle>
+                  <SheetDescription>Search our catalog for products by name or SKU.</SheetDescription>
+                </SheetHeader>
                 <div className="px-4 pt-16 pb-8 space-y-6 flex-1 flex flex-col min-h-0">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
@@ -378,6 +382,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       WISHLIST {wishlistCount > 0 && <span className="text-red-600 text-sm sm:text-lg font-black bg-red-50 px-2 py-0.5 rounded-full">({wishlistCount})</span>}
                     </SheetTitle>
+                    <SheetDescription className="sr-only">Your saved items and favorites.</SheetDescription>
                     <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
@@ -477,6 +482,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       CART {cartCount > 0 && <span className="text-red-600 text-sm sm:text-lg font-black bg-red-50 px-2 py-0.5 rounded-full">({cartCount})</span>}
                     </SheetTitle>
+                    <SheetDescription className="sr-only">Your shopping cart and order summary.</SheetDescription>
                     <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
@@ -591,13 +597,20 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
             </div>
           )}
 
-          {!productsLoading && (
-            <div className="absolute right-4 -bottom-3 translate-y-full z-[60] pointer-events-auto">
-              <ReviewSystem productId="global" />
-            </div>
-          )}
         </div>
       </header>
+
+      {/* Floating Global Review Badge — manifest top-right for ALL devices */}
+      <div 
+        className={cn(
+          "fixed right-4 sm:right-8 z-[100] transition-all duration-500 animate-in fade-in slide-in-from-right-10 duration-700 origin-right scale-[0.8] sm:scale-100",
+          theme?.bannerEnabled 
+            ? "top-[85px] sm:top-[120px]" 
+            : "top-[60px] sm:top-[80px]"
+        )}
+      >
+        <ReviewSystem productId="global" variant="global-badge" customLabel="based 132" />
+      </div>
     </>
   );
 }

@@ -70,6 +70,8 @@ interface Product {
   customizationFee?: number;
 }
 
+export const revalidate = 3600; // Cache for 1 hour
+
 export default async function ProductDetailPage(props: PageProps) {
   const resolvedParams = await props.params;
   const { productId } = resolvedParams;
@@ -80,42 +82,47 @@ export default async function ProductDetailPage(props: PageProps) {
 
   try {
     const productDoc = await adminDb.doc(`products/${productId}`).get();
-    product = productDoc.exists ? { id: productDoc.id, ...(productDoc.data() as any) } as Product : null;
+    
+    if (productDoc.exists) {
+      const data = productDoc.data();
+      product = { id: productDoc.id, ...data } as Product;
 
-    if (product) {
-      // Fetch aggregate ratings
+      // Fetch aggregate ratings (using 'published' as the flag)
       const reviewsSnapshot = await adminDb.collection('reviews')
         .where('productId', '==', productId)
         .where('published', '==', true)
         .get();
       
-      reviewsSnapshot.docs.forEach((doc: any) => {
-        reviewsData.sum += (doc.data().rating || 0);
+      reviewsSnapshot.docs?.forEach((doc: any) => {
+        reviewsData.sum += (Number(doc.data()?.rating) || 0);
         reviewsData.count += 1;
       });
 
       // Try to get category name
       if (product.categoryId) {
-        const catDoc = await adminDb.doc(getLivePath(`categories/${product.categoryId}`)).get();
-        categoryName = catDoc.data()?.name || categoryName;
+        const catDoc = await adminDb.doc(`categories/${product.categoryId}`).get();
+        if (catDoc.exists) {
+          categoryName = catDoc.data()?.name || categoryName;
+        }
       }
     }
   } catch (error: any) {
-    console.warn("Error fetching product details in page:", error?.message || error);
+    console.warn("[PRODUCT_PAGE_DATA_ERROR] Error fetching product details:", error?.message || error);
   }
 
+  const siteUrl = "https://fslno.ca";
   const breadcrumbs = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://fslno.ca" },
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": siteUrl },
       { 
         "@type": "ListItem", 
         "position": 2, 
         "name": categoryName, 
-        "item": product?.categoryId ? `https://fslno.ca/collections/${product.categoryId}` : "https://fslno.ca/collections/all" 
+        "item": product?.categoryId ? `${siteUrl}/collections/${product.categoryId}` : `${siteUrl}/collections/all` 
       },
-      { "@type": "ListItem", "position": 3, "name": product?.name, "item": `https://fslno.ca/products/${productId}` }
+      { "@type": "ListItem", "position": 3, "name": product?.name || 'Product', "item": `${siteUrl}/products/${productId}` }
     ]
   };
 
@@ -124,7 +131,7 @@ export default async function ProductDetailPage(props: PageProps) {
     "@type": "Product",
     "name": product.name,
     "image": product.media?.map((m: any) => m.url) || [],
-    "description": product.description,
+    "description": product.description || `Buy ${product.name} at FSLNO.`,
     "sku": product.sku,
     "brand": {
       "@type": "Brand",
@@ -136,24 +143,21 @@ export default async function ProductDetailPage(props: PageProps) {
         "ratingValue": (reviewsData.sum / reviewsData.count).toFixed(1),
         "reviewCount": reviewsData.count
       }
-    } : {
-      // Default social proof if no reviews yet (optional, but keep it authentic if possible)
-      // "aggregateRating": { "@type": "AggregateRating", "ratingValue": "5.0", "reviewCount": "12" }
-    }),
+    } : {}),
     "offers": {
       "@type": "Offer",
-      "url": `https://fslno.ca/products/${product.id}`,
+      "url": `${siteUrl}/products/${product.id}`,
       "priceCurrency": "CAD",
       "price": product.price,
       "itemCondition": "https://schema.org/NewCondition",
-      "availability": (product.variants?.some((v: any) => v.stock > 0)) 
+      "availability": (product.variants?.some((v: any) => Number(v.stock) > 0)) 
         ? "https://schema.org/InStock" 
         : "https://schema.org/OutOfStock"
     }
   } : null;
 
   return (
-    <>
+    <div className="min-h-screen bg-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
@@ -165,6 +169,6 @@ export default async function ProductDetailPage(props: PageProps) {
         />
       )}
       <ProductDetail productId={productId} initialProduct={product} />
-    </>
+    </div>
   );
 }

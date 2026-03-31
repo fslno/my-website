@@ -21,6 +21,8 @@ import {
   Share2, 
   Ruler, 
   ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
   AlertCircle,
   Sparkles,
   Info,
@@ -97,11 +99,16 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
 
   const { data: categoryCharts } = useCollection(sizeChartsQuery);
 
+  const [hasMounted, setHasMounted] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [wantsCustomization, setWantsCustomization] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -193,7 +200,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
     toast({ title: "Added to Cart", description: `${activeProduct.name} is in your cart.` });
   };
 
-  if (loading && !initialProduct) {
+  if (!hasMounted || (loading && !initialProduct)) {
     return (
       <div className="min-h-[100vh] flex flex-col bg-white">
         <div className="flex-grow mobile-wrapper pt-20 sm:pt-32 pb-32">
@@ -229,11 +236,6 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                   <Skeleton className="h-14 w-full rounded-none" />
                   <Skeleton className="h-12 w-full rounded-none" />
                 </div>
-                <div className="pt-6 space-y-3">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                  <Skeleton className="h-4 w-4/6" />
-                </div>
               </div>
             </div>
           </div>
@@ -255,14 +257,20 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   return (
     <div className="mobile-wrapper bg-white pb-32 pt-20 sm:pt-32">
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-        <ClientOnly fallback={<Skeleton className="h-6 w-24 mb-6" />}>
-          <button onClick={() => router.back()} className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6 group w-fit">
-            <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back
-          </button>
-        </ClientOnly>
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-16 items-start">
+          {/* Left Column - Media */}
           <div className="md:col-span-7 lg:col-span-8 space-y-8">
+            <div className="flex items-center mb-6">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => router.back()}
+                className="h-9 px-4 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-gray-50 rounded-none gap-2"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back
+              </Button>
+            </div>
             <div className="flex flex-col md:flex-row gap-4">
               <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
                 {media.map((item: any, idx: number) => (
@@ -303,7 +311,6 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                   </CarouselContent>
                 </Carousel>
 
-                {/* Pagination Dots (Mobile optimized) */}
                 {media.length > 1 && (
                   <div className="flex justify-center gap-3 mt-6 mb-2 md:hidden">
                     {media.map((_: any, idx: number) => (
@@ -322,18 +329,23 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
               </div>
             </div>
 
-            <div className="hidden md:block pt-8 border-t space-y-8">
+            {/* Desktop Description (Below Images on Left) */}
+            <div className="hidden md:block pt-8 border-t border-gray-100 space-y-8">
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">About the Item</h3>
+                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Engineering & Quality</h3>
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                  {activeProduct.description || "Modern styles designed for everyday comfort."}
+                  {activeProduct.description ? (
+                    <div dangerouslySetInnerHTML={{ __html: activeProduct.description }} className="prose prose-sm max-w-none prose-p:leading-relaxed" />
+                  ) : (
+                    "Precision engineered sports apparel designed for elite performance. Every stitch is optimized for durability and movement."
+                  )}
                 </div>
               </div>
 
               {activeProduct.features && activeProduct.features.length > 0 && (
                 <div className="space-y-4">
                   <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground flex items-center gap-2">
-                    <div className="h-3 w-3"><Info className="h-full w-full" /></div> Details
+                    <Info className="h-3 w-3" /> Technical Specifications
                   </h3>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {activeProduct.features.map((feature: string, idx: number) => (
@@ -348,62 +360,69 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
             </div>
           </div>
 
-          <div className="md:col-span-5 lg:col-span-4 space-y-6 md:sticky md:top-32 self-start animate-in fade-in slide-in-from-right-4 duration-700">
-            <div className="space-y-4">
-              <div className="min-h-[3.5rem] flex flex-col justify-end">
-                <h1 className="text-2xl sm:text-3xl font-headline font-bold uppercase tracking-tight leading-tight">{activeProduct.name}</h1>
+          {/* Right Column - Purchase Info */}
+          <div className="md:col-span-5 lg:col-span-4 space-y-6 md:sticky md:top-24 self-start animate-in fade-in slide-in-from-right-4 duration-700">
+            <div className="space-y-4 relative">
+              <div className="flex items-start justify-between gap-4">
+                <h1 className="text-3xl sm:text-5xl font-headline font-bold uppercase tracking-tight leading-tight flex-1">{activeProduct.name}</h1>
+                <div className="md:hidden pt-2 shrink-0">
+                  <ReviewSystem productId={activeProduct.id} variant="minimal" />
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex items-center gap-4 h-8">
-                  <p className={cn("text-lg font-bold", isFlashActive ? "text-orange-600" : "text-black")}>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-baseline gap-4">
+                  <p className={cn("text-3xl font-bold tracking-tighter", isFlashActive ? "text-orange-600" : "text-black")}>
                     {`C$${totalPrice.toFixed(2)}`}
                   </p>
                   {hasDiscount && (
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground line-through">{`C$${displayComparedPrice.toFixed(2)}`}</p>
-                      <Badge className={cn("border-none text-[8px] font-bold shadow-none", isFlashActive ? "bg-black text-white" : "bg-emerald-50 text-emerald-700")}>
-                        {isFlashActive ? (promoConfig.flashLabel || 'FLASH SALE') : `${discountPercent}% OFF`}
+                      <p className="text-sm text-muted-foreground line-through tracking-tighter">{`C$${displayComparedPrice.toFixed(2)}`}</p>
+                      <Badge className={cn("border-none text-[8px] font-bold shadow-none rounded-none", isFlashActive ? "bg-black text-white" : "bg-red-50 text-red-600")}>
+                        -{isFlashActive ? promoConfig.flashValue : discountPercent}%
                       </Badge>
                     </div>
                   )}
                 </div>
-                
-                <div className="flex flex-col gap-0.5">
-                  {showBrand && (
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{activeProduct.brand || 'Feiselino (FSLNO) Studio'}</p>
-                  )}
-                  {activeProduct.sku && (
-                    <p className="text-[8px] font-mono font-bold text-muted-foreground uppercase tracking-widest">SKU: {activeProduct.sku}</p>
-                  )}
-                  <div className="pt-2">
+
+                <div className="flex flex-wrap items-center gap-4 py-1">
+                  <div className="hidden md:block">
                     <ReviewSystem productId={activeProduct.id} variant="minimal" />
+                  </div>
+                  <div className="h-3 w-[1px] bg-gray-200 hidden md:block" />
+                  <div className="flex items-center gap-1.5 pt-0.5 md:pt-0">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">SKU:</span>
+                    <span className="text-[9px] font-bold text-black uppercase leading-none">
+                      {selectedVariant?.sku || activeProduct.sku || (activeProduct.id.slice(0, 8) + (selectedSize ? `-${selectedSize}` : '')).toUpperCase()}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <Separator />
 
-            <div className="space-y-3">
+            {/* Size Selection */}
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Size</span>
                 {categoryCharts && categoryCharts.length > 0 && (
                   <Sheet>
                     <SheetTrigger asChild>
-                      <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline"><Ruler className="h-4 w-4" /> Size Chart</button>
+                      <button className="flex items-center gap-2 text-[10px] font-bold uppercase hover:underline opacity-60 hover:opacity-100 transition-opacity">
+                        <Ruler className="h-4 w-4" /> Size Guide
+                      </button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
                       <SheetHeader className="p-8 border-b">
-                        <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Size Guide</SheetTitle>
+                        <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Technical Sizing</SheetTitle>
                       </SheetHeader>
                       <ScrollArea className="flex-1 p-8">
                         {categoryCharts.map((chart: any) => (
-                          <div key={chart.id} className="space-y-6">
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest border-b pb-2">{chart.name}</h3>
-                            <div className="border overflow-x-auto">
+                          <div key={chart.id} className="space-y-6 mb-12 last:mb-0">
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest border-b pb-2 text-primary/60">{chart.name}</h3>
+                            <div className="border border-gray-100 overflow-x-auto">
                               <Table>
-                                <TableHeader className="bg-gray-50">
+                                <TableHeader className="bg-gray-50/50">
                                   <TableRow>
                                     <TableHead className="text-[9px] font-bold uppercase text-primary">Size</TableHead>
                                     {chart.columns.map((c: any, i: any) => (
@@ -413,7 +432,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                                 </TableHeader>
                                 <TableBody>
                                   {chart.rows.map((r: any, i: any) => (
-                                    <TableRow key={i}>
+                                    <TableRow key={i} className="hover:bg-gray-50/50 transition-colors">
                                       <TableCell className="text-[10px] font-bold uppercase">{r.label}</TableCell>
                                       {r.values.map((v: any, j: any) => (
                                         <TableCell key={j} className="text-center font-mono text-[10px]">{v || '-'}</TableCell>
@@ -430,32 +449,64 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                   </Sheet>
                 )}
               </div>
+              
               <div className="grid grid-cols-4 gap-2">
-                {(activeProduct.variants || []).map((v: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedSize(v.size)}
-                    disabled={Number(v.stock) === 0}
-                    className={cn(
-                      "h-12 border text-[10px] font-bold uppercase tracking-widest transition-all",
-                      selectedSize === v.size ? "bg-black text-white border-black" : "bg-white text-primary border-gray-200 hover:border-black",
-                      Number(v.stock) === 0 && "opacity-40 grayscale-[0.5] cursor-not-allowed"
-                    )}
-                  >
-                    {v.size}
-                  </button>
-                ))}
+                {(activeProduct.variants || []).map((v: any, idx: number) => {
+                  const stockNum = Number(v.stock) || 0;
+                  const isLowStock = stockNum > 0 && stockNum < 5;
+                  
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedSize(v.size)}
+                      disabled={stockNum === 0}
+                      className={cn(
+                        "relative h-12 border text-[10px] font-bold uppercase tracking-widest transition-all",
+                        selectedSize === v.size ? "bg-black text-white border-black shadow-lg scale-[1.02]" : "bg-white text-primary border-gray-100 hover:border-black",
+                        stockNum === 0 && "opacity-40 grayscale-[0.5] cursor-not-allowed"
+                      )}
+                    >
+                      {v.size}
+                    </button>
+                  );
+                })}
               </div>
+
             </div>
 
+            {/* Price section duplicate removed logic */}
+            
+            {isFlashActive && (
+              <div className="p-4 bg-black text-white rounded-none border border-white/10 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-orange-400 fill-orange-400 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{promoConfig.flashLabel || 'FLASH SALE'} ACTIVE</span>
+                  </div>
+                  <Badge variant="outline" className="text-[9px] font-bold uppercase border-orange-400/50 text-orange-400">-{promoConfig.flashValue}% OFF</Badge>
+                </div>
+                
+                {promoConfig.flashCountdownEnabled && promoConfig.flashEndTime && (
+                  <div className="pt-3 border-t border-white/10">
+                    <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest mb-2">OFFER ENDS IN:</p>
+                    <CountdownTimer 
+                      endTime={promoConfig.flashEndTime} 
+                      className="text-white"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Customization Section */}
             {activeProduct.customizationEnabled && (
-              <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-4 pt-6 border-t border-gray-100">
                 <div className="flex items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Personalize your item?</Label>
-                    <p className="text-[9px] text-muted-foreground uppercase font-bold">Additional C${(Number(activeProduct.customizationFee) || 10).toFixed(2)}</p>
+                    <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Add personal name?</Label>
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold">+C${(Number(activeProduct.customizationFee) || 10).toFixed(2)}</p>
                   </div>
-                  <div className="flex bg-gray-100 p-1 rounded-none border border-gray-100">
+                  <div className="flex bg-gray-50 p-1 rounded-none border border-gray-100">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -483,41 +534,25 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                 {wantsCustomization && (
                   <div className="grid gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Name</Label><Input value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-bold uppercase text-xs" /></div>
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Number</Label><Input value={customNumber} maxLength={2} onChange={(e) => setCustomNumber(e.target.value)} className="h-11 rounded-none bg-gray-50 border-none font-bold text-center" /></div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Name</Label>
+                        <Input value={customName} onChange={(e) => setCustomName(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-bold uppercase text-xs" placeholder="DOE" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase font-bold text-gray-400">Number</Label>
+                        <Input value={customNumber} maxLength={2} onChange={(e) => setCustomNumber(e.target.value)} className="h-11 rounded-none bg-gray-50 border-none font-bold text-center text-xs" placeholder="00" />
+                      </div>
                     </div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Special Notes</Label><Input value={specialRequest} onChange={(e) => setSpecialRequest(e.target.value.toUpperCase())} className="h-11 rounded-none bg-gray-50 border-none font-medium text-[10px]" /></div>
                   </div>
                 )}
               </div>
             )}
 
-            {isFlashActive && (
-              <div className="p-4 bg-black text-white rounded-none border border-white/10 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-orange-400 fill-orange-400 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{promoConfig.flashLabel || 'FLASH SALE'} ACTIVE</span>
-                  </div>
-                  <Badge variant="outline" className="text-[9px] font-bold uppercase border-orange-400/50 text-orange-400">-{promoConfig.flashValue}% OFF</Badge>
-                </div>
-                
-                {promoConfig.flashCountdownEnabled && promoConfig.flashEndTime && (
-                  <div className="pt-3 border-t border-white/10">
-                    <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest mb-2">OFFER ENDS IN:</p>
-                    <CountdownTimer 
-                      endTime={promoConfig.flashEndTime} 
-                      className="text-white"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="space-y-3 pt-6 border-t">
+            <div className="space-y-3 pt-6 border-t border-gray-100">
               <Button 
                 onClick={handleAddToCart} 
                 disabled={isButtonDisabled}
-                className="w-full h-14 bg-black text-white border border-black font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-gray-900 transition-all shadow-xl"
+                className="w-full h-14 bg-black text-white border border-black font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-gray-900 transition-all shadow-xl disabled:opacity-50 disabled:grayscale transition-all duration-500"
               >
                 {buttonText}
               </Button>
@@ -530,33 +565,24 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                 </Button>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-8 border-t">
-                <div className="flex flex-col items-center text-center gap-2">
-                  <div className="p-2 rounded-full bg-neutral-50">
-                    <Truck className="h-4 w-4 text-neutral-600" />
+              <div className="pt-8 space-y-4">
+                <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-8">
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <Truck className="h-4 w-4 text-neutral-400" />
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-500">Fast Local Delivery</span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Fast Shipping</span>
-                </div>
-                <div className="flex flex-col items-center text-center gap-2">
-                  <div className="p-2 rounded-full bg-neutral-50">
-                    <ShieldCheck className="h-4 w-4 text-neutral-600" />
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-neutral-400" />
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-500">Secure Payment</span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Secure Pay</span>
-                </div>
-                <div className="flex flex-col items-center text-center gap-2">
-                  <div className="p-2 rounded-full bg-neutral-50">
-                    <RotateCcw className="h-4 w-4 text-neutral-600" />
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <RotateCcw className="h-4 w-4 text-neutral-400" />
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-500">30-Day Policy</span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Free Returns</span>
                 </div>
-              </div>
-            </div>
 
-            <div className="md:hidden pt-8 border-t space-y-8">
-              <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">About the Item</h3>
-                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
-                  {activeProduct.description || "Modern styles designed for everyday comfort."}
+                <div className="flex justify-center pt-2">
+                  <ReviewSystem productId={activeProduct.id} variant="classic" customLabel="give your review here" />
                 </div>
               </div>
             </div>
@@ -564,11 +590,12 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-4 lg:px-8 pt-24 pb-12 transition-all">
+      {/* Related Products Section */}
+      <div className="max-w-[1440px] mx-auto px-4 lg:px-8 pt-24 pb-12 border-t border-gray-100">
         <div className="space-y-8">
           <div className="flex flex-col items-center text-center space-y-2">
-            <h2 className="text-xl font-headline font-bold uppercase tracking-tight">You May Also Like</h2>
-            <div className="h-1 w-12 bg-black" />
+            <h2 className="text-xl font-headline font-bold uppercase tracking-[0.2em] text-primary">Architectural Pairings</h2>
+            <div className="h-0.5 w-12 bg-black" />
           </div>
           <ProductGrid 
             categoryId={activeProduct.categoryId} 
@@ -579,8 +606,12 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
         </div>
       </div>
 
+      <div className="max-w-[1440px] mx-auto px-4 lg:px-8 py-24 border-t border-gray-100">
+        <ReviewSystem productId={activeProduct.id} />
+      </div>
+
       <ClientOnly>
-        <div className="pt-12">
+        <div className="pt-12 border-t border-gray-100">
           <TestimonialSection />
         </div>
       </ClientOnly>

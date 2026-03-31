@@ -7,7 +7,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useStorage } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Star, Camera, Loader2, MessageSquare, ShieldCheck, Trash2, X, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -26,14 +25,15 @@ import { getLivePath } from '@/lib/deployment';
 
 interface ReviewSystemProps {
   productId: string;
-  variant?: 'classic' | 'minimal';
+  variant?: 'classic' | 'minimal' | 'global-badge';
+  customLabel?: string;
 }
 
 /**
  * Product Review and Rating system.
  * High-fidelity rectangular geometry protocol with persistent manifestation.
  */
-export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemProps) {
+export function ReviewSystem({ productId, variant = 'classic', customLabel }: ReviewSystemProps) {
   const db = useFirestore();
   const storage = useStorage();
   const { user } = useUser();
@@ -69,7 +69,7 @@ export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemPro
     return allReviews.filter(r => r.productId === productId && r.published === true);
   }, [allReviews, productId]);
 
-  const stats = useMemo(() => {
+  const displayStats = useMemo(() => {
     // Authoritative Baseline Manifest: Start from 132 reviews and 5 stars if empty for global view
     if (productReviews.length === 0) {
       const baselineCount = productId === 'global' ? 132 : 1;
@@ -145,6 +145,8 @@ export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemPro
 
   if (config && config.enabled === false) return null;
 
+  // Authoritative Baseline Manifest: Ensure stats are always available for global launch view
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -156,22 +158,44 @@ export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemPro
                   key={s} 
                   className={cn(
                     "h-2.5 w-2.5 transition-all duration-300", 
-                    s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                    s <= Math.round(displayStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
                   )} 
                 />
               ))}
             </div>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1 group-hover:underline">({stats.count})</span>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1 group-hover:underline">({displayStats.count})</span>
+          </div>
+        ) : variant === 'global-badge' ? (
+          <div className="flex items-center gap-2 sm:gap-3 bg-black py-2 px-3 sm:py-2.5 sm:px-4 rounded-none border border-white/5 shadow-2xl group transition-all duration-500 hover:bg-zinc-900 active:scale-95 cursor-pointer">
+            <div className="text-2xl sm:text-3xl font-headline font-bold text-white tracking-tighter leading-none mb-1">
+              {displayStats.avg >= 4.9 ? '5' : displayStats.avg.toFixed(1)}
+            </div>
+            <div className="flex flex-col gap-0.5 sm:gap-1 justify-center">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star 
+                    key={s} 
+                    className={cn(
+                      "h-2 w-2 sm:h-2.5 sm:w-2.5 transition-all duration-300", 
+                      s <= Math.round(displayStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
+                    )} 
+                  />
+                ))}
+              </div>
+              <div className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-[0.25em] whitespace-nowrap leading-none">
+                {customLabel || `BASED ON ${displayStats.count} REVIEWS`}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="inline-block cursor-pointer group">
             <div className="bg-black/80 backdrop-blur-xl text-white py-1.5 px-3 rounded-none shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-500 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/20 h-8 group-hover:bg-black group-hover:border-white/40">
               <div className="flex items-center gap-1 pr-2 border-r border-white/10">
                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-[10px] font-black tracking-tight text-white">{stats.avg}</span>
+                <span className="text-[10px] font-black tracking-tight text-white">{displayStats.avg}</span>
               </div>
               <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/90 whitespace-nowrap pl-1">
-                {stats.count} {stats.count === 1 ? 'REVIEW' : 'REVIEWS'}
+                {customLabel || `${displayStats.count} ${displayStats.count === 1 ? 'REVIEW' : 'REVIEWS'}`}
               </p>
             </div>
           </div>
@@ -210,7 +234,7 @@ export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemPro
                 {user ? (
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-4">
-                      <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Rating</Label>
+                    <div className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Rating</div>
                       <div className="flex gap-3">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <button
@@ -229,7 +253,7 @@ export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemPro
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Review</Label>
+                      <div className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Your Review</div>
                       <Textarea 
                         required 
                         value={comment}
@@ -240,7 +264,7 @@ export function ReviewSystem({ productId, variant = 'classic' }: ReviewSystemPro
                     </div>
 
                     <div className="space-y-4">
-                      <Label className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Add a Photo</Label>
+                      <div className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Add a Photo</div>
                       <div className="flex items-center gap-4">
                         <div 
                           onClick={() => document.getElementById('review-image-drawer')?.click()}

@@ -74,13 +74,19 @@ function LayoutContent({
       setIsMounted(true);
       
       // Remove the opening cover smoothly
-      const cover = document.getElementById('fslno-opening-cover');
-      if (cover) {
-        cover.style.transition = 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
-        cover.style.opacity = '0';
-        setTimeout(() => cover.remove(), 900);
+      if (typeof window !== 'undefined') {
+        const cover = document.getElementById('fslno-opening-cover');
+        if (cover) {
+          cover.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+          cover.style.opacity = '0';
+          setTimeout(() => {
+            cover.style.display = 'none';
+            // Cleanup to free DOM memory
+            try { cover.remove(); } catch (e) {}
+          }, 700);
+        }
       }
-    }, 150);
+    }, 100);
 
     // Register PWA Service Worker
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {

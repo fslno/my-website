@@ -121,6 +121,11 @@ export default function OrdersPage() {
     });
   }, [orders, debouncedSearch, statusFilter]);
 
+  const sanitizeNum = (val: any) => {
+    if (val === null || val === undefined || isNaN(Number(val)) || !isFinite(Number(val))) return 0;
+    return Number(val);
+  };
+
   const stats = useMemo(() => {
     let total = 0;
     let pending = 0;
@@ -143,7 +148,7 @@ export default function OrdersPage() {
       if (order.status === 'returned') {
         returned++;
       }
-      revenue += Number(order.total) || 0;
+      revenue += sanitizeNum(order.total);
     }
 
     return { total, pending, revenue, returned };
@@ -296,7 +301,7 @@ export default function OrdersPage() {
       case 'canceled':
         return <Badge className="bg-rose-50 text-rose-700 border-rose-100 uppercase text-[10px] font-bold">Canceled</Badge>;
       case 'confirmed':
-        return <Badge className="bg-blue-50 text-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
+        return <Badge className="bg-blue-50 text-blue-700 border-blue-100 uppercase text-[10px] font-bold">Confirmed</Badge>;
       default:
         return <Badge className="bg-gray-50 text-gray-700 border-gray-100 uppercase text-[9px] font-bold">{status?.replace('_', ' ')}</Badge>;
     }
@@ -612,7 +617,7 @@ export default function OrdersPage() {
                     <TableCell className="text-right align-top py-6">
                       <div className="flex flex-col items-end gap-2">
                         <div className="font-bold text-base text-primary tracking-tighter">
-                          {`C$${formatCurrency(Number(order.total)||0)}`}
+                          {`C$${formatCurrency(sanitizeNum(order.total))}`}
                         </div>
                         {getPaymentStatusBadge(order.paymentStatus || 'awaiting_payment')}
                       </div>
@@ -678,7 +683,7 @@ export default function OrdersPage() {
                       </div>
                     </div>
                     <div className="text-right space-y-1">
-                      <div className="text-sm font-bold text-primary">{`C$${formatCurrency(Number(order.total) || 0)}`}</div>
+                      <div className="text-sm font-bold text-primary">{`C$${formatCurrency(sanitizeNum(order.total))}`}</div>
                       {getPaymentStatusBadge(order.paymentStatus || 'awaiting_payment')}
                     </div>
                   </div>

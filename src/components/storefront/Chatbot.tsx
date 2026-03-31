@@ -30,10 +30,9 @@ export function Chatbot() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  // Authoritative Guard: Strictly do not render until mounted AND theme is explicitly enabled
-  // AND we are NOT in the admin area.
-  if (!mounted || themeLoading || configLoading) return null;
-  if (!theme || theme.chatbotEnabled !== true) return null;
+  // Authoritative Guard: Manifest by default unless explicitly disabled in theme config.
+  if (!mounted || themeLoading) return null;
+  if (theme && theme.chatbotEnabled === false) return null;
   if (pathname?.startsWith('/admin')) return null;
 
   const phoneNumbers = config?.phoneNumbers || (config?.phone ? [{ label: 'Voice', value: config.phone }] : []);

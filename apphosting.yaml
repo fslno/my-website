@@ -5,3 +5,19 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+
+env:
+  - variable: NEXT_PUBLIC_APP_ENV
+    value: "production"
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "studio-1858050787-6ff85"
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "studio-1858050787-6ff85.firebaseapp.com"
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "studio-1858050787-6ff85.appspot.com"
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "576461835157"
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:576461835157:web:5b3208bccfeaf5aa6b449c"
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyCsr2KiSXUIp26muek1a9VR5tpinZHNOoA"
