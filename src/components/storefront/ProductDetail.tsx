@@ -38,6 +38,11 @@ import {
   type CarouselApi
 } from "@/components/ui/carousel";
 import {
+  Carousel as EmblaCarousel,
+  CarouselContent as EmblaCarouselContent,
+  CarouselItem as EmblaCarouselItem,
+} from "@/components/ui/carousel";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -90,8 +95,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
     [db]
   );
   const { data: theme } = useDoc(themeRef);
-  const showBrand = theme?.showBrand !== false; // Default to true if not set
-
+  
   const sizeChartsQuery = useMemoFirebase(() => {
     if (!db || !activeProduct?.categoryId) return null;
     return query(collection(db, getLivePath('sizeCharts')), where('category', '==', activeProduct.categoryId));
@@ -148,21 +152,22 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   const isButtonDisabled = !selectedSize || isOutOfStock || hasReachedLimit;
 
   const media = activeProduct?.media || [];
- 
+  
   const isFlashActive = useMemo(() => {
     if (!promoConfig?.flashEnabled) return false;
     if (!promoConfig.flashCountdownEnabled) return true;
     const end = parseFirestoreDate(promoConfig.flashEndTime);
     return end ? new Date() < end : false;
   }, [promoConfig]);
+
   const basePrice = Number(activeProduct?.price) || 0;
   const flashDecrease = isFlashActive ? (basePrice * (promoConfig.flashValue || 0)) / 100 : 0;
   const discountedBasePrice = isFlashActive ? basePrice - flashDecrease : basePrice;
- 
+  
   const hasDiscount = (Number(activeProduct?.comparedPrice) || 0) > (Number(activeProduct?.price) || 0) || isFlashActive;
   const displayComparedPrice = (Number(activeProduct?.comparedPrice) || 0) || (isFlashActive ? basePrice : 0);
   const discountPercent = isFlashActive ? promoConfig.flashValue : (hasDiscount ? Math.round(((Number(activeProduct?.comparedPrice) - basePrice) / Number(activeProduct?.comparedPrice)) * 100) : 0);
- 
+  
   const totalPrice = (() => {
     if (!activeProduct) return 0;
     const base = discountedBasePrice;
@@ -207,7 +212,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
           <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
             <Skeleton className="h-6 w-24 mb-6" />
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
-              <div className="md:col-span-7 lg:col-span-8 space-y-8">
+              <div className="md:col-span-6 lg:col-span-6 space-y-8">
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
                     {Array.from({ length: 4 }).map((_, i) => (
@@ -257,21 +262,25 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   return (
     <div className="mobile-wrapper bg-white pb-32 pt-20 sm:pt-32">
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-16 items-start">
-          {/* Left Column - Media */}
-          <div className="md:col-span-7 lg:col-span-8 space-y-8">
-            <div className="flex items-center mb-6">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => router.back()}
-                className="h-9 px-4 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-gray-50 rounded-none gap-2"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Back
-              </Button>
-            </div>
-            <div className="flex flex-col md:flex-row gap-4">
+        {/* Back Button */}
+        <div className="flex items-center mb-6">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => router.back()}
+            className="h-9 px-4 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-gray-50 rounded-none gap-2"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back
+          </Button>
+        </div>
+
+        {/* Main Grid: items-start ensures top alignment of columns */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-20 items-start">
+          
+          {/* Left Column - Media & Description */}
+          <div className="md:col-span-6 lg:col-span-6 space-y-8">
+            <div className="flex flex-col md:flex-row gap-4 items-start">
               <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
                 {media.map((item: any, idx: number) => (
                   <button 
@@ -329,10 +338,10 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
               </div>
             </div>
 
-            {/* Desktop Description (Below Images on Left) */}
+            {/* Desktop Description */}
             <div className="hidden md:block pt-8 border-t border-gray-100 space-y-8">
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Engineering & Quality</h3>
+                <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground">Product Details</h3>
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-tight font-medium">
                   {activeProduct.description ? (
                     <div dangerouslySetInnerHTML={{ __html: activeProduct.description }} className="prose prose-sm max-w-none prose-p:leading-relaxed" />
@@ -345,7 +354,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
               {activeProduct.features && activeProduct.features.length > 0 && (
                 <div className="space-y-4">
                   <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-muted-foreground flex items-center gap-2">
-                    <Info className="h-3 w-3" /> Technical Specifications
+                    <Info className="h-3 w-3" /> Features & Specifications
                   </h3>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {activeProduct.features.map((feature: string, idx: number) => (
@@ -361,18 +370,15 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
           </div>
 
           {/* Right Column - Purchase Info */}
-          <div className="md:col-span-5 lg:col-span-4 space-y-6 md:sticky md:top-24 self-start animate-in fade-in slide-in-from-right-4 duration-700">
+          <div className="md:col-span-6 lg:col-span-6 space-y-6 md:sticky md:top-24 self-start animate-in fade-in slide-in-from-right-4 duration-700">
             <div className="space-y-4 relative">
               <div className="flex items-start justify-between gap-4">
-                <h1 className="text-3xl sm:text-5xl font-headline font-bold uppercase tracking-tight leading-tight flex-1">{activeProduct.name}</h1>
-                <div className="md:hidden pt-2 shrink-0">
-                  <ReviewSystem productId={activeProduct.id} variant="minimal" />
-                </div>
+                <h1 className="font-headline font-bold uppercase tracking-tight leading-tight flex-1 detail-title-style">{activeProduct.name}</h1>
               </div>
               
               <div className="flex flex-col gap-2">
                 <div className="flex items-baseline gap-4">
-                  <p className={cn("text-3xl font-bold tracking-tighter", isFlashActive ? "text-orange-600" : "text-black")}>
+                  <p className={cn("font-bold tracking-tighter detail-price-style", isFlashActive ? "text-orange-600" : "")}>
                     {`C$${totalPrice.toFixed(2)}`}
                   </p>
                   {hasDiscount && (
@@ -385,21 +391,29 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 py-1">
-                  <div className="hidden md:block">
-                    <ReviewSystem productId={activeProduct.id} variant="minimal" />
+                <div className="flex flex-col gap-3 py-1">
+                  <div className="flex items-center gap-4">
+                    {activeProduct.brand && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">BRAND:</span>
+                        <span className="font-bold uppercase leading-none detail-brand-style">{activeProduct.brand}</span>
+                      </div>
+                    )}
+                    {activeProduct.brand && <div className="h-3 w-[1px] bg-gray-200" />}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">SKU:</span>
+                      <span className="font-bold uppercase leading-none detail-sku-style">
+                        {selectedVariant?.sku || activeProduct.sku || (activeProduct.id.slice(0, 8) + (selectedSize ? `-${selectedSize}` : '')).toUpperCase()}
+                      </span>
+                    </div>
                   </div>
-                  <div className="h-3 w-[1px] bg-gray-200 hidden md:block" />
-                  <div className="flex items-center gap-1.5 pt-0.5 md:pt-0">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">SKU:</span>
-                    <span className="text-[9px] font-bold text-black uppercase leading-none">
-                      {selectedVariant?.sku || activeProduct.sku || (activeProduct.id.slice(0, 8) + (selectedSize ? `-${selectedSize}` : '')).toUpperCase()}
-                    </span>
+                  
+                  <div className="pt-0.5">
+                    <ReviewSystem productId={activeProduct.id} variant="minimal" />
                   </div>
                 </div>
               </div>
             </div>
-
 
             {/* Size Selection */}
             <div className="space-y-4">
@@ -414,12 +428,12 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                     </SheetTrigger>
                     <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
                       <SheetHeader className="p-8 border-b">
-                        <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Technical Sizing</SheetTitle>
+                        <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Sizing Guide</SheetTitle>
                       </SheetHeader>
                       <ScrollArea className="flex-1 p-8">
                         {categoryCharts.map((chart: any) => (
                           <div key={chart.id} className="space-y-6 mb-12 last:mb-0">
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest border-b pb-2 text-primary/60">{chart.name}</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest border-b pb-2 text-primary/60">{chart.name} Measurements</h3>
                             <div className="border border-gray-100 overflow-x-auto">
                               <Table>
                                 <TableHeader className="bg-gray-50/50">
@@ -453,8 +467,6 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
               <div className="grid grid-cols-4 gap-2">
                 {(activeProduct.variants || []).map((v: any, idx: number) => {
                   const stockNum = Number(v.stock) || 0;
-                  const isLowStock = stockNum > 0 && stockNum < 5;
-                  
                   return (
                     <button
                       key={idx}
@@ -471,11 +483,8 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                   );
                 })}
               </div>
-
             </div>
 
-            {/* Price section duplicate removed logic */}
-            
             {isFlashActive && (
               <div className="p-4 bg-black text-white rounded-none border border-white/10 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl">
                 <div className="flex items-center justify-between">
@@ -580,21 +589,17 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                     <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-500">30-Day Policy</span>
                   </div>
                 </div>
-
-                <div className="flex justify-center pt-2">
-                  <ReviewSystem productId={activeProduct.id} variant="classic" customLabel="give your review here" />
-                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Related Products Section */}
-      <div className="max-w-[1440px] mx-auto px-4 lg:px-8 pt-24 pb-12 border-t border-gray-100">
+      {/* Related Products Section - Outside the first max-w but inside root */}
+      <div className="max-w-[1440px] mx-auto px-4 lg:px-8 pt-24 pb-12 border-t border-gray-100 mt-12">
         <div className="space-y-8">
           <div className="flex flex-col items-center text-center space-y-2">
-            <h2 className="text-xl font-headline font-bold uppercase tracking-[0.2em] text-primary">Architectural Pairings</h2>
+            <h2 className="text-xl font-headline font-bold uppercase tracking-[0.2em] text-primary">You May Also Like</h2>
             <div className="h-0.5 w-12 bg-black" />
           </div>
           <ProductGrid 
@@ -604,10 +609,6 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
             itemsPerPage={4}
           />
         </div>
-      </div>
-
-      <div className="max-w-[1440px] mx-auto px-4 lg:px-8 py-24 border-t border-gray-100">
-        <ReviewSystem productId={activeProduct.id} />
       </div>
 
       <ClientOnly>

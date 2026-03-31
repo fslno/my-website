@@ -105,7 +105,7 @@ export default function CheckoutPage() {
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
       .then(data => setCustomerIp(data.ip))
-      .catch(err => console.warn('[CHECKOUT] IP capture failed:', err));
+      .catch(err => console.warn('IP check failed:', err));
   }, []);
 
   const [formData, setFormData] = useState({
@@ -339,7 +339,7 @@ export default function CheckoutPage() {
             customer_name: currentOrderData.customer.name,
             order_total: `C$${finalTotal.toFixed(2)}`,
             product_list: formatProductList(currentOrderData.items),
-            product_manifest: formatProductListHtml(currentOrderData.items),
+            product_list_html: formatProductListHtml(currentOrderData.items),
             payment_method: selectedPayment,
             shipping_address: deliveryMethod === 'shipping' 
               ? `${formData.address}\n${formData.city}, ${formData.province} ${formData.postalCode}\n${formData.country}`
@@ -654,7 +654,7 @@ export default function CheckoutPage() {
             <div className="flex flex-col items-center gap-4 pt-6">
               <div className="flex items-center gap-6 grayscale opacity-40"><ShieldCheck className="h-5 w-5" /><div className="h-4 w-px bg-gray-200" /><div className="flex items-center gap-2"><div className="w-8 h-5 bg-gray-200 rounded-sm" /><div className="w-8 h-5 bg-gray-200 rounded-sm" /><div className="w-8 h-5 bg-gray-200 rounded-sm" /></div></div>
               <p className="text-[8px] text-center text-muted-foreground uppercase font-bold tracking-widest leading-relaxed whitespace-pre-line">
-                {storeConfig?.checkoutSecurityMsg || "Secure Payment Active.\nYour data is safe and encrypted."}
+                {storeConfig?.checkoutSecurityMsg || "Safe Payment Active.\nYour details are kept private and secure."}
               </p>
             </div>
           </div>
@@ -745,9 +745,9 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Pricing Breakdown */}
+            {/* Price breakdown */}
             <div className="px-8 py-5 space-y-2">
-              <p className="text-[9px] uppercase font-black tracking-widest text-gray-400 mb-3">Pricing Breakdown</p>
+              <p className="text-[9px] uppercase font-black tracking-widest text-gray-400 mb-3">Price details</p>
               <div className="flex justify-between text-[10px] font-bold uppercase text-gray-500">
                 <span>Subtotal</span>
                 <span>C${formatCurrency(confirmedOrder?.subtotal || 0)}</span>

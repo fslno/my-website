@@ -7,8 +7,8 @@ import { getLivePath } from '@/lib/deployment';
 
 /**
  * Listens for global theme configuration from Firestore
- * and injects dynamic CSS variables and style rules into the document.
- * Implements a high-fidelity fluid typography protocol for automatic mobile scaling.
+ * and injects dynamic styles into the page.
+ * Automatically scales fonts and layouts for mobile devices.
  */
 export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
   const db = useFirestore();
@@ -148,12 +148,86 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
         --product-price-size: ${productPriceSize}px;
         --product-price-color: ${productPriceColor};
         
+        /* Product Card Advanced Controls */
+        --card-sku-size: ${theme.cardSkuSize || 9}px;
+        --card-sku-color: ${theme.cardSkuColor || '#666666'};
+        --card-review-scale: ${theme.cardReviewScale || 1.0};
+        --card-review-color: ${theme.cardReviewColor || '#facc15'};
+
+        /* Product Detail Advanced Controls */
+        --detail-title-size: ${theme.detailTitleSize || 24}px;
+        --detail-title-color: ${theme.detailTitleColor || '#000000'};
+        --detail-price-size: ${theme.detailPriceSize || 18}px;
+        --detail-price-color: ${theme.detailPriceColor || '#000000'};
+        --detail-sku-size: ${theme.detailSkuSize || 10}px;
+        --detail-sku-color: ${theme.detailSkuColor || '#666666'};
+        --detail-brand-size: ${theme.detailBrandSize || 10}px;
+        --detail-brand-color: ${theme.detailBrandColor || '#000000'};
+        --detail-review-scale: ${theme.detailReviewScale || 1.2};
+        --detail-review-color: ${theme.detailReviewColor || '#facc15'};
+        
         --hero-headline-size: ${heroHeadlineSize}px;
         --hero-subheadline-size: ${heroSubheadlineSize}px;
         --hero-headline-color: ${heroHeadlineColor};
         --hero-subheadline-color: ${heroSubheadlineColor};
         --hero-button-bg: ${heroButtonBg};
         --hero-button-text: ${heroButtonText};
+
+        /* Review Badge Subsystem */
+        --review-badge-size: ${theme.reviewBadgeSize || 1.0};
+        --review-badge-color: ${theme.reviewBadgeColor || '#000000'};
+        --review-badge-right: ${theme.reviewBadgeRight || 32}px;
+        --review-badge-visibility: ${theme.reviewBadgeVisibility === false ? 'none' : 'block'};
+        
+        /* Responsive Offsets */
+        --review-badge-top: ${theme.reviewBadgeTopDesktop || 80}px;
+      }
+
+      /* Global Selectors for Advanced Product Styling */
+      .card-sku-style {
+        font-size: var(--card-sku-size) !important;
+        color: var(--card-sku-color) !important;
+      }
+      .card-review-style {
+        transform: scale(var(--card-review-scale)) !important;
+        transform-origin: left center !important;
+        color: var(--card-review-color) !important;
+      }
+      .card-review-star-fill {
+        fill: var(--card-review-color) !important;
+        color: var(--card-review-color) !important;
+      }
+
+      .detail-title-style {
+        font-size: clamp(20px, 5vw, var(--detail-title-size)) !important;
+        color: var(--detail-title-color) !important;
+      }
+      .detail-price-style {
+        font-size: var(--detail-price-size) !important;
+        color: var(--detail-price-color) !important;
+      }
+      .detail-sku-style {
+        font-size: var(--detail-sku-size) !important;
+        color: var(--detail-sku-color) !important;
+      }
+      .detail-brand-style {
+        font-size: var(--detail-brand-size) !important;
+        color: var(--detail-brand-color) !important;
+      }
+      .detail-review-style {
+        transform: scale(var(--detail-review-scale)) !important;
+        transform-origin: left center !important;
+        color: var(--detail-review-color) !important;
+      }
+      .detail-review-star-fill {
+        fill: var(--detail-review-color) !important;
+        color: var(--detail-review-color) !important;
+      }
+
+      @media (max-width: 640px) {
+        :root {
+          --review-badge-top: ${theme.reviewBadgeTopMobile || 60}px;
+        }
       }
       body, html, .font-body {
         font-family: var(--font-body) !important;
@@ -182,7 +256,7 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
         border-color: var(--accent) !important;
       }
       
-      /* RESPONSIVE BANNER PROTOCOL */
+      /* BANNER STYLES */
       .banner-style {
         font-family: var(--banner-font) !important;
         font-size: clamp(7px, 2.5vw, var(--banner-font-size)) !important;
@@ -196,7 +270,7 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
         align-items: var(--hero-flex-align) !important;
       }
       
-      /* AUTOMATIC FLUID SCALING PROTOCOL */
+      /* AUTOMATIC SCALING */
       .hero-headline-size {
         font-size: clamp(calc(var(--hero-headline-size) * 0.5), 8vw, var(--hero-headline-size)) !important;
         color: var(--hero-headline-color) !important;

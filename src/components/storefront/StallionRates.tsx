@@ -24,9 +24,9 @@ interface StallionRatesProps {
 }
 
 /**
- * Enhanced Logistics Discovery Engine.
- * Authoritatively manifests live API rates and Regional Manual Overrides.
- * Prioritizes manual regional overrides if they match the participant's province.
+ * Shipping Rates Calculator.
+ * Shows live shipping rates and regional prices.
+ * Uses regional prices if they match the user's province.
  */
 export function StallionRates({ address, cartItems, onRateSelect, selectedRateId, manualRates, isFreeEligible }: StallionRatesProps) {
   const db = useFirestore();
@@ -70,7 +70,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
       let fetchedRates: any[] = [];
 
-      // A. Ingest Regional Manual Rates (Province Overrides)
+      // 1. Check for manual regional rates
       if (shippingConfig?.provinceRatesEnabled && Array.isArray(manualRates) && address.province) {
         const matched = manualRates.find((r: any) =>
           r.province?.toUpperCase() === (address.province || '').toUpperCase() &&
@@ -100,10 +100,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
         }
       }
 
-      // B. Authoritative API Discovery (Stallion) - DISABLED as per simplification
+      // 2. Automated shipping rates (Disabled)
       // Note: Kept for reference but bypassed in favor of base rate
 
-      // C. Fallback Protocol: If no regional rates, use base rate
+      // 3. Fallback: Use standard shipping rate if no others match
       if (fetchedRates.length === 0) {
         fetchedRates.push({
           id: 'base-rate',
@@ -129,7 +129,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
   if (!isStallionEnabled && !(manualRates && manualRates.length > 0)) {
     return (
       <div className="p-8 border-2 border-dashed rounded-none text-center bg-gray-50/30">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Logistics protocol inactive.</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Shipping rates not available.</p>
       </div>
     );
   }
@@ -138,7 +138,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
     return (
       <div className="p-8 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-4 bg-gray-50/50">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Synchronizing logistics...</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Finding shipping rates...</p>
       </div>
     );
   }
@@ -158,7 +158,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
     <div className="space-y-4 animate-in fade-in duration-500">
       {useFallback && rates.some(r => r.id === 'fallback-std') && (
         <div className="p-3 bg-amber-50 border border-amber-100 text-[9px] font-bold uppercase text-amber-700 flex items-center gap-2">
-          <Zap className="h-3 w-3" /> API Latency detected. Using studio fallback rates.
+          <Zap className="h-3 w-3" /> Server delay. Using backup shipping rates.
         </div>
       )}
 
@@ -190,7 +190,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{rate.label}</span>
                   <span className="text-[9px] text-muted-foreground uppercase font-bold">
-                    {rate.estimate ? `Est. delivery: ${rate.estimate}` : (rate.type === 'express' ? 'Fast Archival Fulfillment' : 'Secure Delivery Service')}
+                    {rate.estimate ? `Est. delivery: ${rate.estimate}` : (rate.type === 'express' ? 'Fast Shipping' : 'Standard Shipping')}
                   </span>
                 </div>
               </div>
@@ -210,7 +210,7 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
       )}
 
       <div className="flex items-center gap-2 text-[8px] font-bold text-muted-foreground uppercase tracking-widest px-1">
-        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" /> Logistics Protocol Active
+        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" /> Shipping Ready
       </div>
     </div>
   );

@@ -19,8 +19,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
- * Authoritative protocol for temporal manifest transformation.
- * Safely converts Firestore Timestamps, ISO Strings, or Date objects.
+ * Helper function to handle dates from Firestore.
+ * Converts different date formats (Timestamps, Strings) into JavaScript Date objects.
  */
 export function parseFirestoreDate(dateValue: any): Date | null {
   if (!dateValue) return null;
@@ -142,7 +142,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Identify qualifying items
     const qualifyingCount = cartData.reduce((acc, item) => {
-      // Authoritative Category Evaluation
+      // Check qualifying categories
       const isQualifyingCategory = Array.isArray(bogoCategoryIds) 
         ? bogoCategoryIds.includes(item.categoryId)
         : item.categoryId === promoConfig.bogoCategoryId; // Legacy fallback
@@ -161,7 +161,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return [{
         id: 'promo-reward',
         variantId: 'promo-reward-free',
-        name: bogoItemName || 'Archive Reward',
+        name: bogoItemName || 'Special Reward',
         price: 0,
         quantity: 1,
         image: 'https://placehold.co/400x400?text=ARCHIVE+REWARD',
@@ -242,7 +242,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           updatedAt: serverTimestamp()
         };
 
-        // Authoritatively remove undefined fields to prevent Firestore errors
+        // Clean up data to prevent errors
         Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
 
         setDoc(itemRef, payload).catch(async () => {

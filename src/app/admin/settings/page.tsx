@@ -264,8 +264,8 @@ export default function SettingsPage() {
 
     setIsSaving(true);
     const toastId = toast({
-      title: "Uploading Logo...",
-      description: `Synchronizing ${target} identity with cloud storage.`,
+      title: "Uploading Logo",
+      description: "Uploading storefront logo to the cloud.",
     });
 
     try {
@@ -277,14 +277,14 @@ export default function SettingsPage() {
       else setAdminLogoUrl(downloadURL);
 
       toast({
-        title: "Logo Synthesized",
-        description: `${target.charAt(0).toUpperCase() + target.slice(1)} branding has been projected to storage.`,
+        title: "Logo Uploaded",
+        description: "Your branding has been saved.",
       });
     } catch (error) {
       console.error("Upload failed:", error);
       toast({
         title: "Upload Failed",
-        description: "Encountered a deviation in the storage uplink.",
+        description: "There was an error uploading to the cloud.",
         variant: "destructive"
       });
     } finally {
@@ -296,8 +296,8 @@ export default function SettingsPage() {
     setAdminBusinessName(businessName);
     setAdminLogoUrl(logoUrl);
     toast({
-      title: "Identity Synced",
-      description: "Admin branding now matches storefront manifest."
+      title: "Identity Updated",
+      description: "Admin branding now matches the store."
     });
   };
 
@@ -333,7 +333,7 @@ export default function SettingsPage() {
       updatedAt: serverTimestamp()
     };
     setDoc(storeConfigRef, updates, { merge: true })
-      .then(() => toast({ title: "Identity Synchronized", description: "Global settings have been Authoritatively updated." }))
+      .then(() => toast({ title: "Settings Saved", description: "Global settings have been updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: storeConfigRef.path, operation: 'write', requestResourceData: updates })))
       .finally(() => setIsSaving(false));
   };
@@ -344,7 +344,7 @@ export default function SettingsPage() {
     setTaxNexus(updated);
     setNewRegion('');
     setNewRate('');
-    toast({ title: "Nexus Added", description: `Tax rate for ${newRegion.toUpperCase()} staged.` });
+    toast({ title: "Tax Rate Added", description: `${newRegion.toUpperCase()} rate has been added.` });
   };
 
   const handleRemoveNexus = (idx: number) => {
@@ -382,7 +382,7 @@ export default function SettingsPage() {
       updatedAt: serverTimestamp() 
     };
     setDoc(themeRef, updates, { merge: true })
-      .then(() => toast({ title: "Status Synchronized", description: "Store visibility state has been projected." }))
+      .then(() => toast({ title: "Status Saved", description: "Store visibility has been updated." }))
       .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
       .finally(() => setIsSaving(false));
   };
@@ -786,7 +786,7 @@ export default function SettingsPage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Palette className="h-5 w-5 text-gray-400" />
-                    <CardTitle className="text-lg font-headline uppercase tracking-tight">Brand Identity Manifest</CardTitle>
+                    <CardTitle className="text-lg font-headline uppercase tracking-tight">Branding</CardTitle>
                   </div>
                   <CardDescription className="text-xs font-bold uppercase tracking-tight">Manage public storefront and backend administrative profiles.</CardDescription>
                 </div>
@@ -846,14 +846,14 @@ export default function SettingsPage() {
                 <div className="space-y-8 bg-blue-50/5 p-6 border border-blue-100/50 rounded-sm">
                   <div className="flex items-center gap-2 border-b border-blue-100 pb-4">
                     <Monitor className="h-4 w-4 text-blue-600" />
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-900">Admin Command</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-900">Admin Dashboard</h3>
                   </div>
                   
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-800">Admin Display Name</Label>
                       <Input 
-                        placeholder="FSLNO Command" 
+                        placeholder="FSLNO Dashboard" 
                         value={adminBusinessName} 
                         onChange={(e) => setAdminBusinessName(e.target.value)} 
                         className="h-12 uppercase font-bold text-xs bg-white border-blue-100" 
@@ -890,7 +890,7 @@ export default function SettingsPage() {
           <div className="flex justify-end pt-4">
             <Button onClick={handleSaveStore} disabled={isSaving} className="w-full sm:w-auto bg-black text-white h-14 px-16 font-bold uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:bg-[#D3D3D3] transition-all">
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <ShieldCheck className="h-4 w-4 mr-3" />}
-              Synchronize Identity Manifest
+              Save Branding Settings
             </Button>
           </div>
         </TabsContent>
@@ -1115,7 +1115,7 @@ export default function SettingsPage() {
                   </div>
                   
                   <p className="text-[10px] font-bold text-gray-500 uppercase leading-relaxed">
-                    Prefer a secure recovery link? We can send a password reset protocol directly to your registered email address.
+                    Prefer a secure recovery link? We can send a password reset email directly to your registered email address.
                   </p>
 
                   <div className="pt-4">
@@ -1134,7 +1134,7 @@ export default function SettingsPage() {
               <div className="bg-red-50/50 border border-red-100 p-4 flex gap-3 items-start">
                 <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-[9px] font-bold uppercase text-red-800 tracking-tight">Security Protocol Advisory</p>
+                  <p className="text-[9px] font-bold uppercase text-red-800 tracking-tight">Security Notice</p>
                   <p className="text-[8px] font-bold text-red-600 uppercase leading-relaxed">
                     For sensitive operations like password changes, Google requires a recent sign-in session. 
                     If prompted, you must re-verify your identity with your current credentials.
@@ -1425,7 +1425,7 @@ export default function SettingsPage() {
               <CardHeader className="border-b bg-gray-50/30">
                 <div className="flex items-center gap-2">
                   <Scale className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Taxation Protocols</CardTitle>
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Tax Settings</CardTitle>
                 </div>
                 <CardDescription className="text-xs font-bold uppercase tracking-tight">Manage regional tax nexus and manual overrides.</CardDescription>
               </CardHeader>
@@ -1433,10 +1433,10 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <div className="p-4 bg-blue-50 border border-blue-100 rounded-none space-y-2">
                     <p className="text-[10px] font-bold text-blue-800 uppercase tracking-widest flex items-center gap-2">
-                      <Zap className="h-3.5 w-3.5" /> Nexus Orchestration
+                      <Zap className="h-3.5 w-3.5" /> Tax Locations
                     </p>
                     <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">
-                      Define the regions where your archive has established tax obligations.
+                      Define the regions where your store has established tax obligations.
                     </p>
                   </div>
 
@@ -1494,7 +1494,7 @@ export default function SettingsPage() {
                         ))}
                         {taxNexus.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={3} className="text-center py-8 text-[9px] font-bold uppercase text-gray-400 italic">No nexus staged.</TableCell>
+                            <TableCell colSpan={3} className="text-center py-8 text-[9px] font-bold uppercase text-gray-400 italic">No tax locations added.</TableCell>
                           </TableRow>
                         )}
                       </TableBody>
@@ -1508,9 +1508,9 @@ export default function SettingsPage() {
               <CardHeader className="border-b bg-gray-50/30">
                 <div className="flex items-center gap-2">
                   <Languages className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Localization Engine</CardTitle>
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Language Settings</CardTitle>
                 </div>
-                <CardDescription className="text-xs font-bold uppercase tracking-tight">Configure the archival storefront language modes.</CardDescription>
+                <CardDescription className="text-xs font-bold uppercase tracking-tight">Configure the store language settings.</CardDescription>
               </CardHeader>
               <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
                 <div className="space-y-8">
@@ -1539,7 +1539,7 @@ export default function SettingsPage() {
                         Multi-Language Support
                       </p>
                       <p className="text-[9px] text-[#5c5f62] uppercase leading-tight font-medium opacity-70">
-                        Enable participant language switching.
+                        Enable customer language switching.
                       </p>
                     </div>
                     <Switch 
@@ -1551,7 +1551,7 @@ export default function SettingsPage() {
                   <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-none flex items-start gap-3">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
                     <p className="text-[9px] text-emerald-800 uppercase font-bold leading-relaxed">
-                      Archive translation protocols are forensicly cached for zero-latency switching.
+                      Store translations are saved for fast loading.
                     </p>
                   </div>
                 </div>
@@ -1562,7 +1562,7 @@ export default function SettingsPage() {
           <div className="flex justify-end pt-4">
             <Button onClick={handleSaveStore} disabled={isSaving} className="w-full sm:w-auto bg-black text-white h-14 px-16 font-bold uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:bg-[#D3D3D3] transition-all">
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <Save className="h-4 w-4 mr-3" />}
-              Synchronize Compliance Manifest
+              Save Compliance Settings
             </Button>
           </div>
         </TabsContent>

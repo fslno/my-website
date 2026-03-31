@@ -26,9 +26,10 @@ import { Label } from '@/components/ui/label';
 import { getLivePath } from '@/lib/deployment';
 import { cn } from '@/lib/utils';
 import { queueNotification } from '@/lib/notifications';
+import { useToast } from '@/hooks/use-toast';
 
 /**
- * High-fidelity responsive footer — all content controlled from Admin → Footer.
+ * Responsive footer — all content controlled from Admin → Footer.
  */
 export function Footer({ initialTheme }: { initialTheme?: any }) {
   const pathname = usePathname();
@@ -46,6 +47,7 @@ export function Footer({ initialTheme }: { initialTheme?: any }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubmittingDone] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { toast } = useToast();
   const [currentYear, setCurrentYear] = useState(2025);
 
   useEffect(() => {
@@ -56,11 +58,23 @@ export function Footer({ initialTheme }: { initialTheme?: any }) {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !db) return;
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // 1. Persist to subscribers database
       await addDoc(collection(db, 'subscribers'), {
-        email,
+        email: email.toLowerCase().trim(),
         timestamp: serverTimestamp(),
         source: 'footer',
         status: 'active'
@@ -73,14 +87,26 @@ export function Footer({ initialTheme }: { initialTheme?: any }) {
 
       setIsSubmittingDone(true);
       setEmail('');
-    } catch (error) {
+      toast({
+        title: "Subscribed!",
+        description: "You have been added to our community.",
+      });
+      
+      // Reset success state after 3 seconds
+      setTimeout(() => setIsSubmittingDone(false), 3000);
+    } catch (error: any) {
       console.error('Subscription error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Something went wrong. Please try again later.",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Authoritative URL Resolution logic for absolute paths
+  // Ensure URLs are complete
   const ensureAbsoluteUrl = (url: string) => {
     if (!url || url === '#') return '#';
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
@@ -126,7 +152,7 @@ export function Footer({ initialTheme }: { initialTheme?: any }) {
   ].filter(s => !!s.url);
 
   const newsletterEnabled = config?.newsletterEnabled ?? true;
-  const newsletterHeadline = config?.newsletterHeadline || 'JOIN THE COMMUNITY';
+  const newsletterHeadline = config?.newsletterHeadline || 'NEWSLETTER';
   const newsletterSubtext = config?.newsletterSubtext || 'Get our latest updates.';
   const copyrightText = config?.copyrightText || `© ${currentYear} ${config?.businessName || ''}. ALL RIGHTS RESERVED.`;
   const poweredByEnabled = config?.poweredByEnabled ?? false;
@@ -238,7 +264,7 @@ export function Footer({ initialTheme }: { initialTheme?: any }) {
                 <div className="absolute top-0 right-0 w-24 h-24 bg-current/[0.02] rounded-full -mr-12 -mt-12" />
                 
                 <div className="space-y-4 relative z-10">
-                  <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Newsletter</h4>
+                  <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Stay Updated</h4>
                   <div className="space-y-1">
                     <h3 className="text-3xl font-headline font-bold uppercase tracking-tight leading-none">
                       {newsletterHeadline}

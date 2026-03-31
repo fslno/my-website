@@ -1,5 +1,5 @@
 import React from 'react';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { ProductDetail } from '@/components/storefront/ProductDetail';
 import { Metadata } from 'next';
 import { getLivePath } from '@/lib/deployment';
@@ -14,6 +14,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { productId } = resolvedParams;
 
   try {
+    const adminDb = getAdminDb();
     const [productDoc, themeDoc] = await Promise.all([
       adminDb.doc(`products/${productId}`).get(),
       adminDb.doc('config/theme').get()
@@ -81,6 +82,7 @@ export default async function ProductDetailPage(props: PageProps) {
   let categoryName = "Jerseys";
 
   try {
+    const adminDb = getAdminDb();
     const productDoc = await adminDb.doc(`products/${productId}`).get();
     
     if (productDoc.exists) {

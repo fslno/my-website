@@ -31,7 +31,6 @@ interface ReviewSystemProps {
 
 /**
  * Product Review and Rating system.
- * High-fidelity rectangular geometry protocol with persistent manifestation.
  */
 export function ReviewSystem({ productId, variant = 'classic', customLabel }: ReviewSystemProps) {
   const db = useFirestore();
@@ -70,7 +69,7 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
   }, [allReviews, productId]);
 
   const displayStats = useMemo(() => {
-    // Authoritative Baseline Manifest: Start from 132 reviews and 5 stars if empty for global view
+    // If there are no reviews yet, show 5 stars and 132 reviews for the global view as a starting point.
     if (productReviews.length === 0) {
       const baselineCount = productId === 'global' ? 132 : 1;
       return { avg: 5, count: baselineCount };
@@ -145,20 +144,20 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
 
   if (config && config.enabled === false) return null;
 
-  // Authoritative Baseline Manifest: Ensure stats are always available for global launch view
+
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         {variant === 'minimal' ? (
-          <div className="flex items-center gap-1 cursor-pointer group">
+          <div className="flex items-center gap-1 cursor-pointer group detail-review-style">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 
                   key={s} 
                   className={cn(
                     "h-2.5 w-2.5 transition-all duration-300", 
-                    s <= Math.round(displayStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                    s <= Math.round(displayStats.avg) ? "detail-review-star-fill" : "text-gray-200"
                   )} 
                 />
               ))}
@@ -166,23 +165,29 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1 group-hover:underline">({displayStats.count})</span>
           </div>
         ) : variant === 'global-badge' ? (
-          <div className="flex items-center gap-2 sm:gap-3 bg-black py-2 px-3 sm:py-2.5 sm:px-4 rounded-none border border-white/5 shadow-2xl group transition-all duration-500 hover:bg-zinc-900 active:scale-95 cursor-pointer">
-            <div className="text-2xl sm:text-3xl font-headline font-bold text-white tracking-tighter leading-none mb-1">
+          <div 
+            className="flex items-center gap-1 sm:gap-1.5 py-2 px-3 sm:py-2.5 sm:px-4 rounded-none border border-white/5 shadow-2xl group transition-all duration-500 active:scale-95 cursor-pointer"
+            style={{ 
+              backgroundColor: 'var(--review-badge-color, #000000)',
+              transform: `scale(var(--review-badge-size, 1.0))`
+            }}
+          >
+            <div className="text-2xl sm:text-3xl font-headline font-bold text-white tracking-tighter leading-none mb-1 pr-1 border-r border-white/10" style={{ color: 'var(--primary-foreground, #FFFFFF)' }}>
               {displayStats.avg >= 4.9 ? '5' : displayStats.avg.toFixed(1)}
             </div>
-            <div className="flex flex-col gap-0.5 sm:gap-1 justify-center">
+            <div className="flex flex-col gap-0.5 sm:gap-1 justify-center pl-0.5">
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star 
                     key={s} 
                     className={cn(
-                      "h-2 w-2 sm:h-2.5 sm:w-2.5 transition-all duration-300", 
+                      "h-2.5 w-2.5 sm:h-3 sm:w-3 transition-all duration-300", 
                       s <= Math.round(displayStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
                     )} 
                   />
                 ))}
               </div>
-              <div className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-[0.25em] whitespace-nowrap leading-none">
+              <div className="text-[9px] sm:text-[10px] font-bold text-white uppercase tracking-[0.2em] whitespace-nowrap leading-none opacity-80" style={{ color: 'var(--primary-foreground, #FFFFFF)' }}>
                 {customLabel || `BASED ON ${displayStats.count} REVIEWS`}
               </div>
             </div>
@@ -216,7 +221,7 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
                 <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Customer Reviews</SheetTitle>
               </div>
               <SheetDescription className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
-                {productId === 'global' ? 'See what others say about the studio.' : 'See what others say about this piece.'}
+                {productId === 'global' ? 'See what others say about the studio.' : 'See what others say about this item.'}
               </SheetDescription>
             </div>
           </div>
@@ -308,7 +313,7 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
               <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Customer Photos & Reviews</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-primary">Customer Reviews</h3>
                 </div>
                 <Badge variant="outline" className="text-[8px] font-bold border-none bg-black text-white px-2 h-5">{productReviews.length} REVIEWS</Badge>
               </div>

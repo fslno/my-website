@@ -9,8 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getLivePath } from '@/lib/deployment';
 
 /**
- * Curated Featured Products segment.
- * Displays high-velocity drops and premium silhouettes.
+ * Featured Products section.
+ * Shows the latest popular items.
  */
 export function FeaturedProducts() {
   const db = useFirestore();
@@ -106,17 +106,17 @@ export function FeaturedProducts() {
             <Sparkles className="h-4 w-4" />
             <span className="text-[10px] uppercase tracking-[0.5em] font-bold">Spotlight</span>
           </div>
-          <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">Featured Silhouettes</h2>
+          <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">Featured Products</h2>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
           {products.map((product: any) => {
-            const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
+            const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'General';
             const ratingInfo = productRatings[product.id];
             const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
             const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
             
-            // Authoritative Inventory Intelligence: Sum variant stock if available
+            // Check total stock across all sizes
             const variants = product.variants || [];
             const totalStock = variants.length > 0 
                 ? variants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0)

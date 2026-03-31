@@ -1,10 +1,11 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { CollectionPageContent } from '../collections/[categoryId]/CollectionPageContent';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { getLivePath } from '@/lib/deployment';
 
 export async function generateMetadata(): Promise<Metadata> {
+  const adminDb = getAdminDb();
   const domainDoc = await adminDb.doc('config/domain').get();
   const domain = domainDoc?.data() || {};
   const primaryDomain = domain?.primaryDomain || "fslno.ca";
@@ -28,6 +29,7 @@ export default async function ProductsPage() {
   // Structured Data for Google
   let products: any[] = [];
   try {
+    const adminDb = getAdminDb();
     const productsPath = getLivePath('products');
     const snapshot = await adminDb.collection(productsPath).limit(30).get();
     

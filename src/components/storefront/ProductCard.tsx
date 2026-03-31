@@ -27,8 +27,8 @@ interface ProductCardProps {
 }
 
 /**
- * Authoritative Product Card component.
- * Recalibrated for high-density mobile displays.
+ * This is the main card used to show a product.
+ * Optimized to look good on phones.
  */
 export function ProductCard({
   id, name, price, comparedPrice, image, hoverImage, category,
@@ -41,7 +41,7 @@ export function ProductCard({
     [db]
   );
   const { data: theme } = useDoc(themeRef);
-  const showBrand = theme?.showBrand !== false; // Default to true if not set
+  const showBrand = theme?.showBrand !== false; // Show the brand by default
 
   const currentPriceNum = parseFloat(price.replace(/[^0-9.]/g, ''));
   
@@ -133,27 +133,44 @@ export function ProductCard({
           {name}
         </Link>
 
-        {reviewCount && reviewCount > 0 ? (
-          <div className="flex items-center gap-1 mt-0.5">
+        {theme?.cardReviewPosition === 'above' && reviewCount && reviewCount > 0 && (
+          <div className="flex items-center gap-1 mt-1 card-review-style">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star
                   key={s}
                   className={cn(
                     "h-2 sm:h-2.5 w-2 sm:w-2.5",
-                    s <= Math.round(rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                    s <= Math.round(rating || 0) ? "card-review-star-fill" : "text-gray-200"
                   )}
                 />
               ))}
             </div>
             <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
           </div>
-        ) : null}
+        )}
 
         {sku && (
-          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-muted-foreground font-bold leading-none truncate mt-1">
+          <p className="uppercase tracking-[0.2em] sm:tracking-[0.25em] font-bold leading-none truncate mt-0.5 card-sku-style">
             {showBrand && brand ? `${brand} • ` : ''}{sku}
           </p>
+        )}
+
+        {(theme?.cardReviewPosition === 'below' || !theme?.cardReviewPosition) && reviewCount && reviewCount > 0 && (
+          <div className="flex items-center gap-1 mt-1 card-review-style">
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={cn(
+                    "h-2 sm:h-2.5 w-2 sm:w-2.5",
+                    s <= Math.round(rating || 0) ? "card-review-star-fill" : "text-gray-200"
+                  )}
+                />
+              ))}
+            </div>
+            <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
+          </div>
         )}
       </div>
     </div>

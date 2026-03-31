@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 /**
  * ClientOnly wrapper to prevent hydration mismatches.
- * Authoritatively manifests children only after the client has mounted.
+ * Shows the content only after the page has loaded.
  */
 export function ClientOnly({ children, fallback = null }: { children: React.ReactNode, fallback?: React.ReactNode }) {
   const [hasMounted, setHasMounted] = useState(false);

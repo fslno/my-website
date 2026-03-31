@@ -151,21 +151,21 @@ export default function PaymentsPage() {
     });
   };
 
-  const handleDeleteProtocol = (gateway: string) => {
+  const handleDeleteGateway = (gateway: string) => {
     if (!config) return;
-    if (!confirm(`Authoritatively remove ${gateway.toUpperCase()} from the active manifest? This will hide the tab and deactivate the gateway.`)) return;
+    if (!confirm(`Remove ${gateway.toUpperCase()} from your store? This will hide the tab and deactivate the gateway.`)) return;
     
     const updates: any = {
       [`${gateway}Deleted`]: true,
       [`${gateway}Enabled`]: false
     };
     handleUpdate(updates);
-    toast({ title: "Protocol Removed", description: `${gateway.toUpperCase()} has been de-indexed.` });
+    toast({ title: "Gateway Removed", description: `${gateway.toUpperCase()} has been removed.` });
   };
 
   const handleInstallNative = (gateway: string) => {
     handleUpdate({ [`${gateway}Deleted`]: false });
-    toast({ title: "Protocol Restored", description: `${gateway.toUpperCase()} is now visible.` });
+    toast({ title: "Gateway Restored", description: `${gateway.toUpperCase()} is now active.` });
   };
 
   const handleAddGateway = () => {
@@ -176,14 +176,14 @@ export default function PaymentsPage() {
     handleUpdate({ customGateways: updated });
     setNewGateway({ name: '', apiKey: '', secretKey: '', enabled: true });
     setIsAddGatewayOpen(false);
-    toast({ title: "Gateway Added", description: `${newGateway.name} protocol ingested.` });
+    toast({ title: "Gateway Added", description: `${newGateway.name} has been added.` });
   };
 
   const handleRemoveGateway = (id: string) => {
     if (!configRef || !config) return;
     const updated = (config.customGateways || []).filter((g: any) => g.id !== id);
     handleUpdate({ customGateways: updated });
-    toast({ title: "Gateway Removed", description: "Protocol de-indexed from the vault." });
+    toast({ title: "Gateway Removed", description: "The gateway has been removed." });
   };
 
   const handleSaveAll = () => {
@@ -192,7 +192,7 @@ export default function PaymentsPage() {
       setIsSaving(false);
       toast({ 
         title: "Checkout Finalized", 
-        description: "Global payment orchestration has been synchronized." 
+        description: "Payment settings have been saved." 
       });
     }, 1000);
   };
@@ -210,8 +210,8 @@ export default function PaymentsPage() {
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
         <CreditCard className="h-12 w-12 text-gray-300" />
         <h2 className="text-xl font-bold text-gray-900">Payments Not Initialized</h2>
-        <p className="text-gray-500 max-w-sm">Configure your global gateways to start accepting payments across the archive.</p>
-        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest text-[10px]">Initialize Payment Core</Button>
+        <p className="text-gray-500 max-w-sm">Configure your global gateways to start accepting payments on your store.</p>
+        <Button onClick={handleInitialize} className="bg-black text-white px-8 h-12 font-bold uppercase tracking-widest text-[10px]">Set Up Payments</Button>
       </div>
     );
   }
@@ -230,8 +230,8 @@ export default function PaymentsPage() {
     <div className="space-y-8 min-w-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Global Checkout Orchestration</h1>
-          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage secure checkout integrations, AI fraud defense, and regional compliance.</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Payment Settings</h1>
+          <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Manage your payment methods and security settings.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <Dialog open={isAddGatewayOpen} onOpenChange={setIsAddGatewayOpen}>
@@ -242,14 +242,14 @@ export default function PaymentsPage() {
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl overflow-y-auto max-h-[90vh]">
               <DialogHeader className="pt-6">
-                <DialogTitle className="text-xl font-bold uppercase tracking-tight">Gateway Ingestion</DialogTitle>
-                <DialogDescription className="text-xs font-bold uppercase text-muted-foreground mt-1">Install native providers or connect a custom tool.</DialogDescription>
+                <DialogTitle className="text-xl font-bold uppercase tracking-tight">Add Payment Method</DialogTitle>
+                <DialogDescription className="text-xs font-bold uppercase text-muted-foreground mt-1">Enable payment providers or add a custom one.</DialogDescription>
               </DialogHeader>
               
               <div className="space-y-8 py-6">
                 {deletedNative.length > 0 && (
                   <div className="space-y-4">
-                    <Label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Install Native Providers</Label>
+                    <Label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Available Providers</Label>
                     <div className="grid grid-cols-1 gap-2">
                       {deletedNative.map(g => (
                         <Button 
@@ -270,7 +270,7 @@ export default function PaymentsPage() {
                 )}
 
                 <div className="space-y-4">
-                  <Label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Manual API Ingestion</Label>
+                  <Label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Custom Gateway</Label>
                   <div className="grid gap-4">
                     <div className="space-y-2">
                       <Label className="text-[9px] uppercase font-bold text-gray-500">Provider Name</Label>
@@ -291,7 +291,7 @@ export default function PaymentsPage() {
                       />
                     </div>
                     <Button onClick={handleAddGateway} disabled={!newGateway.name || !newGateway.apiKey} className="w-full bg-black text-white h-12 font-bold uppercase tracking-widest text-[9px]">
-                      Ingest Protocol
+                      Add Gateway
                     </Button>
                   </div>
                 </div>
@@ -336,7 +336,7 @@ export default function PaymentsPage() {
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="vault" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
-                  <Shield className="h-3.5 w-3.5" /> API Vault
+                  <Shield className="h-3.5 w-3.5" /> Keys
                 </TabsTrigger>
                 <TabsTrigger value="scope" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-primary data-[state=white]">
                   <Globe className="h-3.5 w-3.5" /> Global Scope
@@ -355,7 +355,7 @@ export default function PaymentsPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Zap className="h-5 w-5 text-[#635BFF]" />
-                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Stripe Connect (v3)</CardTitle>
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Stripe</CardTitle>
                       </div>
                       <div className="flex items-center gap-4">
                         <Switch 
@@ -366,7 +366,7 @@ export default function PaymentsPage() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
-                          onClick={() => handleDeleteProtocol('stripe')}
+                          onClick={() => handleDeleteGateway('stripe')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -408,18 +408,18 @@ export default function PaymentsPage() {
                               />
                             </div>
                           </div>
-                          <p className="text-[8px] text-gray-400 uppercase font-bold tracking-tight">Applied to both Storefront Checkout and Invoice Maker when Stripe is selected.</p>
+                          <p className="text-[8px] text-gray-400 uppercase font-bold tracking-tight">This fee is applied when customers checkout using Stripe.</p>
                         </div>
                       </div>
                       <div className="flex flex-col justify-end p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
-                        <p className="text-[9px] font-bold text-blue-800 uppercase tracking-widest mb-1">Fee Transparency</p>
-                        <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">Standard Stripe fees typically range from 2.9% + 30¢. This is tracked for margin analysis.</p>
+                        <p className="text-[9px] font-bold text-blue-800 uppercase tracking-widest mb-1">Stripe Fees</p>
+                        <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">Stripe typically charges 2.9% + 30¢ per transaction.</p>
                       </div>
                     </div>
 
                     <div className="p-6 bg-gray-50 border-2 border-dashed rounded-none space-y-8">
                       <div className="space-y-4">
-                        <Label className="text-[10px] uppercase tracking-widest font-bold text-primary">Operation Mode</Label>
+                        <Label className="text-[10px] uppercase tracking-widest font-bold text-primary">Mode</Label>
                         <div className="flex gap-2">
                           <Button 
                             variant={config.stripeMode === 'test' ? 'default' : 'outline'}
@@ -476,7 +476,7 @@ export default function PaymentsPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Globe className="h-5 w-5 text-[#0070BA]" />
-                        <CardTitle className="text-sm font-bold uppercase tracking-widest">PayPal Express Checkout</CardTitle>
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">PayPal</CardTitle>
                       </div>
                       <div className="flex items-center gap-4">
                         <Switch 
@@ -487,7 +487,7 @@ export default function PaymentsPage() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
-                          onClick={() => handleDeleteProtocol('paypal')}
+                          onClick={() => handleDeleteGateway('paypal')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -532,8 +532,8 @@ export default function PaymentsPage() {
                         </div>
                       </div>
                       <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-sm">
-                        <p className="text-[9px] font-bold text-blue-800 uppercase mb-1">Gateway Insights</p>
-                        <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">PayPal typically applies a 3.49% + 49¢ fee structure for high-fidelity transactions.</p>
+                        <p className="text-[9px] font-bold text-blue-800 uppercase mb-1">PayPal Fees</p>
+                        <p className="text-[10px] text-blue-700 leading-relaxed uppercase font-medium">PayPal typically charges 3.49% + 49¢ per transaction.</p>
                       </div>
                     </div>
 
@@ -596,7 +596,7 @@ export default function PaymentsPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Coins className="h-5 w-5 text-[#FFB3C7]" />
-                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Klarna BNPL (v2)</CardTitle>
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Klarna</CardTitle>
                       </div>
                       <div className="flex items-center gap-4">
                         <Switch 
@@ -607,7 +607,7 @@ export default function PaymentsPage() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
-                          onClick={() => handleDeleteProtocol('klarna')}
+                          onClick={() => handleDeleteGateway('klarna')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -652,8 +652,8 @@ export default function PaymentsPage() {
                         </div>
                       </div>
                       <div className="p-4 bg-pink-50/50 border border-pink-100 rounded-sm">
-                        <p className="text-[9px] font-bold text-pink-800 uppercase mb-1">BNPL Protocol</p>
-                        <p className="text-[10px] text-pink-700 leading-relaxed uppercase font-medium">BNPL fees are generally higher (~5.99%) due to credit risk handling by Klarna.</p>
+                        <p className="text-[9px] font-bold text-pink-800 uppercase mb-1">Klarna Fees</p>
+                        <p className="text-[10px] text-pink-700 leading-relaxed uppercase font-medium">Klarna fees are usually around 5.99% for buy now, pay later.</p>
                       </div>
                     </div>
 
@@ -716,7 +716,7 @@ export default function PaymentsPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <History className="h-5 w-5 text-[#B2FCE4]" />
-                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Afterpay Installments</CardTitle>
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Afterpay</CardTitle>
                       </div>
                       <div className="flex items-center gap-4">
                         <Switch 
@@ -727,7 +727,7 @@ export default function PaymentsPage() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
-                          onClick={() => handleDeleteProtocol('afterpay')}
+                          onClick={() => handleDeleteGateway('afterpay')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -772,8 +772,8 @@ export default function PaymentsPage() {
                         </div>
                       </div>
                       <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
-                        <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Split Payment Margin</p>
-                        <p className="text-[10px] text-emerald-700 leading-relaxed uppercase font-medium">Afterpay applies ~6.0% commission for split-payment orchestration.</p>
+                        <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Afterpay Fees</p>
+                        <p className="text-[10px] text-emerald-700 leading-relaxed uppercase font-medium">Afterpay typically charges around 6% for split payments.</p>
                       </div>
                     </div>
 
@@ -836,7 +836,7 @@ export default function PaymentsPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Banknote className="h-5 w-5 text-[#00FF66]" />
-                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Adyen Global Payments</CardTitle>
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest">Adyen</CardTitle>
                       </div>
                       <div className="flex items-center gap-4">
                         <Switch 
@@ -847,7 +847,7 @@ export default function PaymentsPage() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"
-                          onClick={() => handleDeleteProtocol('adyen')}
+                          onClick={() => handleDeleteGateway('adyen')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -892,8 +892,8 @@ export default function PaymentsPage() {
                         </div>
                       </div>
                       <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-sm">
-                        <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Enterprise Protocol</p>
-                        <p className="text-[10px] text-emerald-700 leading-relaxed uppercase font-medium">Adyen facilitates multi-currency settlement and local payment method mapping.</p>
+                        <p className="text-[9px] font-bold text-emerald-800 uppercase mb-1">Adyen Fees</p>
+                        <p className="text-[10px] text-emerald-700 leading-relaxed uppercase font-medium">Adyen supports multiple currencies and local payment methods.</p>
                       </div>
                     </div>
 
@@ -954,8 +954,8 @@ export default function PaymentsPage() {
                   <div className="flex items-center gap-3">
                     <Shield className="h-5 w-5 text-zinc-400" />
                     <div>
-                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Manual API Vault</CardTitle>
-                      <CardDescription className="text-[9px] text-zinc-500 uppercase font-bold mt-1">Manage manual gateway integrations and forensics.</CardDescription>
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest">Custom Gateways</CardTitle>
+                      <CardDescription className="text-[9px] text-zinc-500 uppercase font-bold mt-1">Manage your custom gateway integrations.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -1003,7 +1003,7 @@ export default function PaymentsPage() {
                     ))}
                     {(!config.customGateways || config.customGateways.length === 0) && (
                       <div className="py-16 text-center">
-                        <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">No custom gateways in the vault.</p>
+                        <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">No custom gateways added.</p>
                       </div>
                     )}
                   </div>
@@ -1016,7 +1016,7 @@ export default function PaymentsPage() {
                 <CardHeader className="bg-gray-50/50 border-b p-4 sm:p-6">
                   <div className="flex items-center gap-2">
                     <Globe className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest">Regional Compliance & Currencies</CardTitle>
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest">Region & Currency</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6 p-4 sm:p-6 space-y-8">
@@ -1053,7 +1053,7 @@ export default function PaymentsPage() {
                       <p className="text-[11px] font-bold text-red-800 uppercase flex items-center gap-2">
                         <AlertCircle className="h-3.5 w-3.5" /> High-Risk Geo Blocking
                       </p>
-                      <p className="text-[10px] text-red-700 uppercase tracking-tight opacity-70 font-medium">Block transactions from sanctioned or high-risk architectural zones.</p>
+                      <p className="text-[10px] text-red-700 uppercase tracking-tight opacity-70 font-medium">Block transactions from sanctioned or high-risk areas.</p>
                     </div>
                     <Switch 
                       checked={config.geoBlockingEnabled} 
@@ -1064,7 +1064,7 @@ export default function PaymentsPage() {
                   <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-sm">
                     <div className="space-y-1">
                       <p className="text-[11px] font-bold text-blue-800 uppercase flex items-center gap-2">
-                        <Scale className="h-3.5 w-3.5" /> Automated Sales Tax (Nexus)
+                        <Scale className="h-3.5 w-3.5" /> Automated Sales Tax
                       </p>
                       <p className="text-[10px] text-blue-700 uppercase tracking-tight opacity-70 font-medium">Calculate dynamic VAT/GST and local taxes in real-time across 12,000+ jurisdictions.</p>
                     </div>
@@ -1114,7 +1114,7 @@ export default function PaymentsPage() {
                   </CardHeader>
                   <CardContent className="pt-6 p-4 sm:p-6">
                     <p className="text-[11px] text-[#5c5f62] leading-relaxed uppercase font-bold tracking-tight">
-                      Express checkout for Android and Chrome. One-tap payment using stored archival data.
+                      Express checkout for Android and Chrome. One-tap payment using stored payment data.
                     </p>
                   </CardContent>
                 </Card>
@@ -1128,7 +1128,7 @@ export default function PaymentsPage() {
             <CardHeader className="border-b border-white/10 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex items-center gap-2">
-                  <ShieldCheck className="h-3.5 w-3.5 text-red-400" /> AI Fraud Guard
+                  <ShieldCheck className="h-3.5 w-3.5 text-red-400" /> Fraud Protection
                 </CardTitle>
                 <Badge variant="outline" className="text-red-400 border-red-400/20 bg-red-400/10 uppercase text-[8px] font-bold">Shield Active</Badge>
               </div>
@@ -1136,7 +1136,7 @@ export default function PaymentsPage() {
             <CardContent className="pt-6 px-4 sm:px-6 space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-[10px] uppercase font-bold text-gray-400">Security Intensity</Label>
+                  <Label className="text-[10px] uppercase font-bold text-gray-400">Protection Level</Label>
                   <span className="text-[9px] font-mono font-bold text-white uppercase">{config.fraudGuardLevel || 'HIGH'}</span>
                 </div>
                 <div className="flex gap-1">
@@ -1172,10 +1172,10 @@ export default function PaymentsPage() {
 
           <div className="p-6 bg-gray-50 border rounded-sm">
             <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-primary">
-              <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Operational Integrity
+              <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Security Tip
             </h3>
             <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-bold opacity-70">
-              Payment protocol changes apply to the live production manifest. Ensure all keys are validated before finalizing.
+              Payment changes are live immediately. Please verify all keys before saving.
             </p>
           </div>
         </div>
@@ -1188,7 +1188,7 @@ export default function PaymentsPage() {
           disabled={isSaving}
         >
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-          Synchronize Payment Core
+          Save Payment Settings
         </Button>
       </div>
     </div>

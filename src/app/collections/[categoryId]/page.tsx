@@ -1,6 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { getLivePath } from '@/lib/deployment';
 import { CollectionPageContent } from './CollectionPageContent';
 
@@ -13,6 +13,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { categoryId } = await props.params;
   
   try {
+    const adminDb = getAdminDb();
     const [categoryDoc, domainDoc] = await Promise.all([
       categoryId !== 'all' ? adminDb.doc(getLivePath(`categories/${categoryId}`)).get() : null,
       adminDb.doc('config/domain').get()
@@ -51,6 +52,7 @@ export default async function Page(props: PageProps) {
   let categoryName = "All Products";
 
   try {
+    const adminDb = getAdminDb();
     const productsPath = getLivePath('products');
     let productsQuery;
     

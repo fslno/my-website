@@ -1,16 +1,13 @@
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
-import * as admin from 'firebase-admin';
+import { getAdminDb } from './firebase-admin';
 import { queueNotification } from './notifications';
 
-// Note: This script is intended to be run in a Node environment (e.g., via tsx)
-// It uses firebase-admin to bypass client-side restrictions and directly interact with Firestore.
-
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+/**
+ * @fileOverview Diagnostic utility for email pipeline.
+ * Refactored for Next.js 15+ compatibility by using the lazy-loading barrier.
+ */
 
 async function runDiagnostic() {
-  const db = getFirestore() as unknown as any; // Cast to bypass slight interface differences between client and admin SDKs in this context
+  const db = getAdminDb();
   const targetEmail = 'goal@feiselinosportjerseys.ca';
 
   console.log('--- FSLNO EMAIL PIPELINE DIAGNOSTIC ---');
@@ -18,8 +15,9 @@ async function runDiagnostic() {
   console.log('Triggering "newsletterWelcome" template (Branded)...');
 
   try {
+    // Cast to any to bypass interface differences between client and admin SDKs in this context
     await queueNotification(
-      db,
+      db as any,
       'newsletterWelcome',
       targetEmail,
       {

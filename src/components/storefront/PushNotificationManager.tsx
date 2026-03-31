@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * Authoritative UI Neutralization Protocol.
- * The visual prompt manifest has been forensicly removed to ensure zero-intrusion for participants.
+ * Hidden Push Notification component.
+ * The notification prompt has been removed to keep the site clean.
  */
 export function PushNotificationManager() {
-  // Authoritative Removal: Strictly return null to purge UI from participant view
+  // Hide the component by returning null.
   return null;
 }

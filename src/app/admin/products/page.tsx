@@ -543,14 +543,14 @@ export default function ProductsPage() {
       setProcessedFiles(newProcessed);
       setCropQueue(newQueue);
     } else {
-      // End of queue - start the actual manifest upload
+      // End of queue - start the actually upload
       setCropQueue([]);
       setIsCropperOpen(false);
-      await executeUploadProtocol(newProcessed);
+      await startUpload(newProcessed);
     }
   };
 
-  const executeUploadProtocol = async (files: File[]) => {
+  const startUpload = async (files: File[]) => {
     if (!storage || files.length === 0) return;
     
     setIsSaving(true);
@@ -588,14 +588,14 @@ export default function ProductsPage() {
       setMedia(prev => [...prev, ...allResults]);
       if (fileInputRef.current) fileInputRef.current.value = '';
       toast({ 
-        title: "Manifest Synchronization Complete", 
-        description: `Successfully processed and categorized ${allResults.length} assets.` 
+        title: "Upload Complete", 
+        description: `Successfully processed and saved ${allResults.length} files.` 
       });
     } catch (error) {
       toast({ 
         variant: "destructive", 
-        title: "Transfer Interruption", 
-        description: "A critical error occurred during asset synchronization. Some files may not have been uploaded." 
+        title: "Upload Error", 
+        description: "A critical error occurred during upload. Some files may not have been saved." 
       });
     } finally {
       setIsSaving(false);
@@ -621,9 +621,9 @@ export default function ProductsPage() {
       setSeoTitle(result.metaTitle);
       setSeoDescription(result.metaDescription);
       
-      toast({ title: "AI Synthesis Complete", description: "Description and metadata manifested." });
+      toast({ title: "AI Text Generated", description: "Description and metadata added." });
     } catch (error) {
-      toast({ variant: "destructive", title: "AI Error", description: "Synthesis protocol failed. Check your API limit." });
+      toast({ variant: "destructive", title: "AI Error", description: "Generation failed. Check your API limit." });
     } finally {
       setIsGeneratingAi(false);
     }
@@ -633,7 +633,7 @@ export default function ProductsPage() {
     if (!db) return;
 
     if (!name || name.trim() === '') {
-      toast({ variant: "destructive", title: "Missing Name", description: "Provide a product name to manifest this item." });
+      toast({ variant: "destructive", title: "Missing Name", description: "Provide a product name to save this item." });
       return;
     }
     if (!price || isNaN(parseFloat(price))) {
@@ -641,7 +641,7 @@ export default function ProductsPage() {
       return;
     }
     if (!categoryId || categoryId === '') {
-      toast({ variant: "destructive", title: "Missing Category", description: "Assign this item to a structural collection." });
+      toast({ variant: "destructive", title: "Missing Category", description: "Assign this item to a category." });
       return;
     }
 
@@ -709,13 +709,13 @@ export default function ProductsPage() {
       if (editingId) {
         await updateDoc(doc(db, 'products', editingId), productData);
         await revalidate(editingId, name);
-        toast({ title: "Product Updated", description: `${name} has been synchronized.` });
+        toast({ title: "Product Updated", description: `${name} has been updated.` });
       } else {
         const newData = { ...productData, createdAt: serverTimestamp() };
         const docRef = await addDoc(collection(db, 'products'), newData);
         await revalidate(docRef.id, name);
         setEditingId(docRef.id);
-        toast({ title: "Product Created", description: `${name} has been manifested in the catalog.` });
+        toast({ title: "Product Created", description: `${name} has been added to the catalog.` });
       }
     } catch (error: any) {
       console.error("Save Product Error:", error);
@@ -728,8 +728,8 @@ export default function ProductsPage() {
       } else {
         toast({ 
           variant: "destructive", 
-          title: "Save Deviation", 
-          description: "Encountered an architectural rejection. Check console for details." 
+          title: "Save Error", 
+          description: "Encountered a server error. Check console for details." 
         });
       }
     } finally {
@@ -862,7 +862,7 @@ export default function ProductsPage() {
                       <ImagesIcon className={cn("h-4 w-4", uploadProgress ? "text-blue-500 animate-pulse" : "text-gray-400")} />
                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">
                         {uploadProgress 
-                          ? `Synchronizing Assets (${uploadProgress.current}/${uploadProgress.total})` 
+                          ? `Uploading Media (${uploadProgress.current}/${uploadProgress.total})` 
                           : 'Media Selection'
                         }
                       </h3>
@@ -975,7 +975,7 @@ export default function ProductsPage() {
                           className="h-10 px-4 gap-2 font-bold uppercase tracking-widest text-[9px] border-black hover:bg-black hover:text-white transition-all shadow-lg shadow-purple-100"
                         >
                           {isGeneratingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-purple-600" />}
-                          Generate Magic
+                          Generate with AI
                         </Button>
                       </div>
                     </div>
@@ -1081,7 +1081,7 @@ export default function ProductsPage() {
                 </TabsContent>
                 <TabsContent value="seo" className="p-4 sm:p-8 m-0 space-y-8 max-w-5xl mx-auto">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-gray-400" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Metadata Ingestion</h3></div>
+                    <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-gray-400" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">SEO Settings</h3></div>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -1090,7 +1090,7 @@ export default function ProductsPage() {
                       className="h-8 gap-2 font-bold uppercase tracking-widest text-[9px] text-purple-600 hover:text-purple-700 hover:bg-purple-50"
                     >
                       {isGeneratingAi ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                      Sync Metadata with AI
+                      Update with AI
                     </Button>
                   </div>
                   <div className="space-y-6">
@@ -1133,7 +1133,7 @@ export default function ProductsPage() {
           <div className="sticky bottom-0 sm:static z-40 p-4 border-t sm:border-t-0 sm:border-b bg-white sm:bg-blue-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-bottom-2 sm:slide-in-from-top-2 duration-300 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.1)] sm:shadow-none">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex items-center gap-2">
-                <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5 border-none">Selection Manifest</Badge>
+                <Badge className="bg-blue-600 text-white rounded-none uppercase text-[9px] font-bold px-2 h-5 border-none">Selected Items</Badge>
                 <span className="text-[10px] font-bold uppercase text-blue-700 tracking-widest">{selectedIds.length} Products Selected</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -1149,8 +1149,8 @@ export default function ProductsPage() {
                   </DialogTrigger>
                   <DialogContent className="max-w-[95vw] sm:max-w-md bg-white border-none rounded-none shadow-2xl">
                     <DialogHeader className="pt-6">
-                      <DialogTitle className="text-xl font-bold uppercase tracking-tight">Bulk Protocol Update</DialogTitle>
-                      <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Update global parameters for {selectedIds.length} pieces.</DialogDescription>
+                      <DialogTitle className="text-xl font-bold uppercase tracking-tight">Bulk Status Update</DialogTitle>
+                      <DialogDescription className="text-[10px] uppercase font-bold text-muted-foreground mt-1">Update settings for {selectedIds.length} products.</DialogDescription>
                     </DialogHeader>
                     <div className="py-6 space-y-6">
                       <div className="space-y-2">
@@ -1189,7 +1189,7 @@ export default function ProductsPage() {
                         className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]"
                       >
                         {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        Synchronize {selectedIds.length} Products
+                        Update {selectedIds.length} Products
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -1211,7 +1211,7 @@ export default function ProductsPage() {
                   disabled={isSaving}
                   className="h-9 border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase tracking-widest text-[9px] gap-2 flex-1 sm:flex-none"
                 >
-                  {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Purge
+                  {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Delete
                 </Button>
               </div>
             </div>
@@ -1229,7 +1229,7 @@ export default function ProductsPage() {
               stockFilter === 'all' ? "border-black text-black bg-gray-50/50" : "border-transparent text-gray-400 hover:text-black hover:bg-gray-50/30"
             )}
           >
-            Management Center
+            Product Management
           </button>
           <button 
             onClick={() => setStockFilter('low')} 

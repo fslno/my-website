@@ -30,7 +30,7 @@ messaging.onBackgroundMessage((payload) => {
     renotify: true,
     requireInteraction: true, // Persists until dismissed
     silent: false,
-    sound: '/alarm.mp3', // Note: Support varies by browser
+    sound: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3', // Remote fallback for missing local asset
     vibrate: [200, 100, 200, 100, 200, 100, 400],
     actions: [
       {

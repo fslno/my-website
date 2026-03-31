@@ -1,9 +1,10 @@
 import { MetadataRoute } from 'next';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { LIVE_DOMAIN } from '@/lib/deployment';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = `https://${LIVE_DOMAIN}`;
+  const adminDb = getAdminDb();
 
   // 1. Fetch Products
   const productsSnapshot = await adminDb.collection('products').where('status', '==', 'active').get();

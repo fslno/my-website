@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { getLivePath } from '@/lib/deployment';
 
 const STALLION_BASE_URL = 'https://stallionexpress.ca/api/v1';
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     }
 
     // 01. Context Extraction: Order & Configuration
+    const adminDb = getAdminDb();
     const orderDoc = await adminDb.collection('orders').doc(orderId).get();
     if (!orderDoc.exists) {
       return NextResponse.json({ error: 'Logistics Target (Order) not found.' }, { status: 404 });

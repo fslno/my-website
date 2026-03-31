@@ -116,7 +116,28 @@ const DEFAULT_THEME = {
   archiveSectionSubtitle: 'The Collection',
   showBrand: true,
   maintenanceMode: false,
-  maintenanceMessage: 'Store Maintenance. We are currently updating the store. We will be back online shortly.'
+  maintenanceMessage: 'Store Maintenance. We are currently updating the store. We will be back online shortly.',
+  reviewBadgeSize: '1.0',
+  reviewBadgeColor: '#000000',
+  reviewBadgeTopDesktop: '80',
+  reviewBadgeTopMobile: '60',
+  reviewBadgeRight: '32',
+  reviewBadgeVisibility: true,
+  cardSkuSize: '9',
+  cardSkuColor: '#8c9196',
+  cardReviewScale: '1.0',
+  cardReviewColor: '#8c9196',
+  cardReviewPosition: 'below_sku',
+  detailTitleSize: '48',
+  detailTitleColor: '#000000',
+  detailPriceSize: '30',
+  detailPriceColor: '#000000',
+  detailSkuSize: '9',
+  detailSkuColor: '#8c9196',
+  detailBrandSize: '9',
+  detailBrandColor: '#000000',
+  detailReviewScale: '1.0',
+  detailReviewColor: '#000000'
 };
 
 export default function ThemeEnginePage() {
@@ -174,6 +195,32 @@ export default function ThemeEnginePage() {
   const [maintenanceMode, setMaintenanceMode] = useState(DEFAULT_THEME.maintenanceMode);
   const [maintenanceMessage, setMaintenanceMessage] = useState(DEFAULT_THEME.maintenanceMessage);
 
+  // Review Badge Controls
+  const [reviewBadgeSize, setReviewBadgeSize] = useState(DEFAULT_THEME.reviewBadgeSize);
+  const [reviewBadgeColor, setReviewBadgeColor] = useState(DEFAULT_THEME.reviewBadgeColor);
+  const [reviewBadgeTopDesktop, setReviewBadgeTopDesktop] = useState(DEFAULT_THEME.reviewBadgeTopDesktop);
+  const [reviewBadgeTopMobile, setReviewBadgeTopMobile] = useState(DEFAULT_THEME.reviewBadgeTopMobile);
+  const [reviewBadgeRight, setReviewBadgeRight] = useState(DEFAULT_THEME.reviewBadgeRight);
+  const [reviewBadgeVisibility, setReviewBadgeVisibility] = useState(DEFAULT_THEME.reviewBadgeVisibility);
+
+  // Product UI Controls
+  const [cardSkuSize, setCardSkuSize] = useState(DEFAULT_THEME.cardSkuSize);
+  const [cardSkuColor, setCardSkuColor] = useState(DEFAULT_THEME.cardSkuColor);
+  const [cardReviewScale, setCardReviewScale] = useState(DEFAULT_THEME.cardReviewScale);
+  const [cardReviewColor, setCardReviewColor] = useState(DEFAULT_THEME.cardReviewColor);
+  const [cardReviewPosition, setCardReviewPosition] = useState(DEFAULT_THEME.cardReviewPosition);
+  
+  const [detailTitleSize, setDetailTitleSize] = useState(DEFAULT_THEME.detailTitleSize);
+  const [detailTitleColor, setDetailTitleColor] = useState(DEFAULT_THEME.detailTitleColor);
+  const [detailPriceSize, setDetailPriceSize] = useState(DEFAULT_THEME.detailPriceSize);
+  const [detailPriceColor, setDetailPriceColor] = useState(DEFAULT_THEME.detailPriceColor);
+  const [detailSkuSize, setDetailSkuSize] = useState(DEFAULT_THEME.detailSkuSize);
+  const [detailSkuColor, setDetailSkuColor] = useState(DEFAULT_THEME.detailSkuColor);
+  const [detailBrandSize, setDetailBrandSize] = useState(DEFAULT_THEME.detailBrandSize);
+  const [detailBrandColor, setDetailBrandColor] = useState(DEFAULT_THEME.detailBrandColor);
+  const [detailReviewScale, setDetailReviewScale] = useState(DEFAULT_THEME.detailReviewScale);
+  const [detailReviewColor, setDetailReviewColor] = useState(DEFAULT_THEME.detailReviewColor);
+
   // Form State - Admin
   const [adminPrimaryColor, setAdminPrimaryColor] = useState(DEFAULT_THEME.adminPrimaryColor);
   const [adminAccentColor, setAdminAccentColor] = useState(DEFAULT_THEME.adminAccentColor);
@@ -230,6 +277,32 @@ export default function ThemeEnginePage() {
       setShowBrand(themeData.showBrand ?? DEFAULT_THEME.showBrand);
       setMaintenanceMode(themeData.maintenanceMode ?? DEFAULT_THEME.maintenanceMode);
       setMaintenanceMessage(themeData.maintenanceMessage || DEFAULT_THEME.maintenanceMessage);
+      
+      // Review Badge Sync
+      setReviewBadgeSize(themeData.reviewBadgeSize?.toString() || DEFAULT_THEME.reviewBadgeSize);
+      setReviewBadgeColor(themeData.reviewBadgeColor || DEFAULT_THEME.reviewBadgeColor);
+      setReviewBadgeTopDesktop(themeData.reviewBadgeTopDesktop?.toString() || DEFAULT_THEME.reviewBadgeTopDesktop);
+      setReviewBadgeTopMobile(themeData.reviewBadgeTopMobile?.toString() || DEFAULT_THEME.reviewBadgeTopMobile);
+      setReviewBadgeRight(themeData.reviewBadgeRight?.toString() || DEFAULT_THEME.reviewBadgeRight);
+      setReviewBadgeVisibility(themeData.reviewBadgeVisibility ?? DEFAULT_THEME.reviewBadgeVisibility);
+
+      // Product UI Sync
+      setCardSkuSize(themeData.cardSkuSize?.toString() || DEFAULT_THEME.cardSkuSize);
+      setCardSkuColor(themeData.cardSkuColor || DEFAULT_THEME.cardSkuColor);
+      setCardReviewScale(themeData.cardReviewScale?.toString() || DEFAULT_THEME.cardReviewScale);
+      setCardReviewColor(themeData.cardReviewColor || DEFAULT_THEME.cardReviewColor);
+      setCardReviewPosition(themeData.cardReviewPosition || DEFAULT_THEME.cardReviewPosition);
+      
+      setDetailTitleSize(themeData.detailTitleSize?.toString() || DEFAULT_THEME.detailTitleSize);
+      setDetailTitleColor(themeData.detailTitleColor || DEFAULT_THEME.detailTitleColor);
+      setDetailPriceSize(themeData.detailPriceSize?.toString() || DEFAULT_THEME.detailPriceSize);
+      setDetailPriceColor(themeData.detailPriceColor || DEFAULT_THEME.detailPriceColor);
+      setDetailSkuSize(themeData.detailSkuSize?.toString() || DEFAULT_THEME.detailSkuSize);
+      setDetailSkuColor(themeData.detailSkuColor || DEFAULT_THEME.detailSkuColor);
+      setDetailBrandSize(themeData.detailBrandSize?.toString() || DEFAULT_THEME.detailBrandSize);
+      setDetailBrandColor(themeData.detailBrandColor || DEFAULT_THEME.detailBrandColor);
+      setDetailReviewScale(themeData.detailReviewScale?.toString() || DEFAULT_THEME.detailReviewScale);
+      setDetailReviewColor(themeData.detailReviewColor || DEFAULT_THEME.detailReviewColor);
 
       // Admin Sync
       setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
@@ -306,6 +379,27 @@ export default function ThemeEnginePage() {
       adminSidebarItemColor,
       adminSidebarActiveBg,
       adminSidebarActiveText,
+      reviewBadgeSize: Number(reviewBadgeSize),
+      reviewBadgeColor,
+      reviewBadgeTopDesktop: Number(reviewBadgeTopDesktop),
+      reviewBadgeTopMobile: Number(reviewBadgeTopMobile),
+      reviewBadgeRight: Number(reviewBadgeRight),
+      reviewBadgeVisibility,
+      cardSkuSize: Number(cardSkuSize),
+      cardSkuColor,
+      cardReviewScale: Number(cardReviewScale),
+      cardReviewColor,
+      cardReviewPosition,
+      detailTitleSize: Number(detailTitleSize),
+      detailTitleColor,
+      detailPriceSize: Number(detailPriceSize),
+      detailPriceColor,
+      detailSkuSize: Number(detailSkuSize),
+      detailSkuColor,
+      detailBrandSize: Number(detailBrandSize),
+      detailBrandColor,
+      detailReviewScale: Number(detailReviewScale),
+      detailReviewColor,
       updatedAt: serverTimestamp()
     };
 
@@ -361,6 +455,20 @@ export default function ThemeEnginePage() {
           --preview-prod-color: ${productTitleColor};
           --preview-price-size: ${productPriceSize}px;
           --preview-price-color: ${productPriceColor};
+          --preview-card-sku-size: ${cardSkuSize}px;
+          --preview-card-sku-color: ${cardSkuColor};
+          --preview-card-review-scale: ${cardReviewScale};
+          --preview-card-review-color: ${cardReviewColor};
+          --preview-detail-title-size: ${detailTitleSize}px;
+          --preview-detail-title-color: ${detailTitleColor};
+          --preview-detail-price-size: ${detailPriceSize}px;
+          --preview-detail-price-color: ${detailPriceColor};
+          --preview-detail-sku-size: ${detailSkuSize}px;
+          --preview-detail-sku-color: ${detailSkuColor};
+          --preview-detail-brand-size: ${detailBrandSize}px;
+          --preview-detail-brand-color: ${detailBrandColor};
+          --preview-detail-review-scale: ${detailReviewScale};
+          --preview-detail-review-color: ${detailReviewColor};
         }
         #theme-preview-root .font-headline { font-family: var(--preview-headline) !important; }
         #theme-preview-root .font-body { font-family: var(--preview-body) !important; }
@@ -372,6 +480,13 @@ export default function ThemeEnginePage() {
         #theme-preview-root .preview-prod-card { text-align: var(--preview-prod-align) !important; }
         #theme-preview-root .preview-prod-title { font-size: var(--preview-prod-size) !important; color: var(--preview-prod-color) !important; }
         #theme-preview-root .preview-price { font-size: var(--preview-price-size) !important; color: var(--preview-price-color) !important; }
+        #theme-preview-root .preview-card-sku { font-size: var(--preview-card-sku-size) !important; color: var(--preview-card-sku-color) !important; }
+        #theme-preview-root .preview-card-review { transform: scale(var(--preview-card-review-scale)) !important; color: var(--preview-card-review-color) !important; }
+        #theme-preview-root .preview-detail-title { font-size: var(--preview-detail-title-size) !important; color: var(--preview-detail-title-color) !important; }
+        #theme-preview-root .preview-detail-price { font-size: var(--preview-detail-price-size) !important; color: var(--preview-detail-price-color) !important; }
+        #theme-preview-root .preview-detail-sku { font-size: var(--preview-detail-sku-size) !important; color: var(--preview-detail-sku-color) !important; }
+        #theme-preview-root .preview-detail-brand { font-size: var(--preview-detail-brand-size) !important; color: var(--preview-detail-brand-color) !important; }
+        #theme-preview-root .preview-detail-review { transform: scale(var(--preview-detail-review-scale)) !important; color: var(--preview-detail-review-color) !important; }
       `}</style>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -409,6 +524,7 @@ export default function ThemeEnginePage() {
                   <TabsTrigger value="identity" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Identity</TabsTrigger>
                   <TabsTrigger value="categories" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Category</TabsTrigger>
                   <TabsTrigger value="products" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Product</TabsTrigger>
+                  <TabsTrigger value="reviews" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Reviews</TabsTrigger>
                   <TabsTrigger value="archive" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Archive</TabsTrigger>
                 </TabsList>
 
@@ -455,26 +571,274 @@ export default function ThemeEnginePage() {
 
                 <TabsContent value="products" className="space-y-6">
                   <Card className="border-[#e1e3e5] shadow-none rounded-none">
-                    <CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><ShoppingBag className="h-3.5 w-3.5" /> Product selection Orchestration</CardTitle></CardHeader>
+                    <CardHeader className="pb-4 border-b bg-gray-50/30">
+                      <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                        <ShoppingBag className="h-3.5 w-3.5" /> Product UI Orchestration
+                      </CardTitle>
+                    </CardHeader>
                     <CardContent className="pt-6 space-y-8">
+                      {/* Product Card Section */}
                       <div className="space-y-6">
-                        <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge></div><input type="range" min="10" max="24" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                        <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Title Color</Label><div className="flex gap-2"><Input type="color" value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
-                        <div className="flex items-center justify-between p-4 bg-gray-50/50 border border-dashed rounded-none mt-4">
-                          <div className="space-y-0.5">
-                            <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Brand Visibility</Label>
-                            <p className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">Display product brand on cards and details.</p>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-black" />
+                          <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Grid Display (Cards)</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Title Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{productTitleSize}PX</Badge>
+                            </div>
+                            <input type="range" min="10" max="24" value={productTitleSize} onChange={(e) => setProductTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
                           </div>
-                          <Switch checked={showBrand} onCheckedChange={setShowBrand} />
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Title Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={productTitleColor} onChange={(e) => setProductTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Price Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge>
+                            </div>
+                            <input type="range" min="10" max="24" value={productPriceSize} onChange={(e) => setProductPriceSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Price Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">SKU Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{cardSkuSize}PX</Badge>
+                            </div>
+                            <input type="range" min="8" max="16" value={cardSkuSize} onChange={(e) => setCardSkuSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">SKU Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={cardSkuColor} onChange={(e) => setCardSkuColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={cardSkuColor} onChange={(e) => setCardSkuColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Review Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{cardReviewScale}X</Badge>
+                            </div>
+                            <input type="range" min="0.5" max="2.0" step="0.1" value={cardReviewScale} onChange={(e) => setCardReviewScale(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Review Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={cardReviewColor} onChange={(e) => setCardReviewColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={cardReviewColor} onChange={(e) => setCardReviewColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-[9px] uppercase font-bold text-gray-400">Review Position (Card)</Label>
+                          <Select value={cardReviewPosition} onValueChange={setCardReviewPosition}>
+                            <SelectTrigger className="h-10 rounded-none bg-gray-50 border-none text-[10px] font-bold uppercase">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above_sku" className="text-[10px] font-bold uppercase">Above SKU</SelectItem>
+                              <SelectItem value="below_sku" className="text-[10px] font-bold uppercase">Below SKU</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Text Align</Label>
+                            <div className="flex border p-1 rounded-none bg-gray-50">
+                              <Button variant={productTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button>
+                              <Button variant={productTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button>
+                              <Button variant={productTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-gray-50 border rounded-none">
+                            <div className="space-y-0.5">
+                              <Label className="text-[9px] uppercase font-bold text-gray-500">Show Brand</Label>
+                            </div>
+                            <Switch checked={showBrand} onCheckedChange={setShowBrand} className="scale-75" />
+                          </div>
                         </div>
                       </div>
+
                       <Separator />
+
+                      {/* Product Detail Section */}
                       <div className="space-y-6">
-                        <div className="space-y-4"><div className="flex justify-between items-center"><Label className="text-[9px] uppercase font-bold text-gray-400">Price Scale</Label><Badge variant="outline" className="text-[10px] font-mono font-bold">{productPriceSize}PX</Badge></div><input type="range" min="10" max="24" value={productPriceSize} onChange={(e) => setProductPriceSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" /></div>
-                        <div className="grid gap-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Price Color</Label><div className="flex gap-2"><Input type="color" value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="w-12 h-10 p-1" /><Input value={productPriceColor} onChange={(e) => setProductPriceColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" /></div></div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-black" />
+                          <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Detail View (Page)</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Title Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{detailTitleSize}PX</Badge>
+                            </div>
+                            <input type="range" min="20" max="80" value={detailTitleSize} onChange={(e) => setDetailTitleSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Title Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={detailTitleColor} onChange={(e) => setDetailTitleColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={detailTitleColor} onChange={(e) => setDetailTitleColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Price Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{detailPriceSize}PX</Badge>
+                            </div>
+                            <input type="range" min="16" max="64" value={detailPriceSize} onChange={(e) => setDetailPriceSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Price Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={detailPriceColor} onChange={(e) => setDetailPriceColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={detailPriceColor} onChange={(e) => setDetailPriceColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">SKU Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{detailSkuSize}PX</Badge>
+                            </div>
+                            <input type="range" min="8" max="20" value={detailSkuSize} onChange={(e) => setDetailSkuSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">SKU Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={detailSkuColor} onChange={(e) => setDetailSkuColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={detailSkuColor} onChange={(e) => setDetailSkuColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Brand Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{detailBrandSize}PX</Badge>
+                            </div>
+                            <input type="range" min="8" max="20" value={detailBrandSize} onChange={(e) => setDetailBrandSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Brand Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={detailBrandColor} onChange={(e) => setDetailBrandColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={detailBrandColor} onChange={(e) => setDetailBrandColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Review Scale</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{detailReviewScale}X</Badge>
+                            </div>
+                            <input type="range" min="0.5" max="2.0" step="0.1" value={detailReviewScale} onChange={(e) => setDetailReviewScale(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Review Color</Label>
+                            <div className="flex gap-2">
+                              <Input type="color" value={detailReviewColor} onChange={(e) => setDetailReviewColor(e.target.value)} className="w-12 h-10 p-1" />
+                              <Input value={detailReviewColor} onChange={(e) => setDetailReviewColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <Separator />
-                      <div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Card Alignment</Label><div className="flex border p-1 rounded-none bg-gray-50"><Button variant={productTextAlign === 'left' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('left')}><AlignLeft className="h-3.5 w-3.5" /></Button><Button variant={productTextAlign === 'center' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('center')}><AlignCenter className="h-3.5 w-3.5" /></Button><Button variant={productTextAlign === 'right' ? 'default' : 'ghost'} size="icon" className="flex-1 h-8 rounded-none" onClick={() => setProductTextAlign('right')}><AlignRight className="h-3.5 w-3.5" /></Button></div></div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="reviews" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4 border-b bg-gray-50/30">
+                      <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                        <CircleDot className="h-3.5 w-3.5" /> Review Badge System
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-8">
+                      <div className="flex items-center justify-between p-4 bg-gray-50/50 border border-dashed rounded-none">
+                        <div className="space-y-0.5">
+                          <Label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Global Visibility</Label>
+                          <p className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">Show floating review badge on storefront.</p>
+                        </div>
+                        <Switch checked={reviewBadgeVisibility} onCheckedChange={setReviewBadgeVisibility} />
+                      </div>
+                      
+                      <div className="space-y-6">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Scale Multiplier</Label>
+                            <Badge variant="outline" className="text-[10px] font-mono font-bold">{reviewBadgeSize}X</Badge>
+                          </div>
+                          <input type="range" min="0.5" max="2.0" step="0.1" value={reviewBadgeSize} onChange={(e) => setReviewBadgeSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                        </div>
+                        
+                        <div className="grid gap-2">
+                          <Label className="text-[9px] uppercase font-bold text-gray-400">Badge Color</Label>
+                          <div className="flex gap-2">
+                            <Input type="color" value={reviewBadgeColor} onChange={(e) => setReviewBadgeColor(e.target.value)} className="w-12 h-10 p-1" />
+                            <Input value={reviewBadgeColor} onChange={(e) => setReviewBadgeColor(e.target.value)} className="h-10 font-mono text-[10px] uppercase" />
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Top Offset (Desktop)</Label>
+                            <Badge variant="outline" className="text-[10px] font-mono font-bold">{reviewBadgeTopDesktop}PX</Badge>
+                          </div>
+                          <input type="range" min="0" max="300" value={reviewBadgeTopDesktop} onChange={(e) => setReviewBadgeTopDesktop(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Top Offset (Mobile)</Label>
+                            <Badge variant="outline" className="text-[10px] font-mono font-bold">{reviewBadgeTopMobile}PX</Badge>
+                          </div>
+                          <input type="range" min="0" max="300" value={reviewBadgeTopMobile} onChange={(e) => setReviewBadgeTopMobile(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Right Padding</Label>
+                            <Badge variant="outline" className="text-[10px] font-mono font-bold">{reviewBadgeRight}PX</Badge>
+                          </div>
+                          <input type="range" min="0" max="100" value={reviewBadgeRight} onChange={(e) => setReviewBadgeRight(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>

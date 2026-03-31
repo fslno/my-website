@@ -93,47 +93,53 @@ export default function OrderHistoryPage() {
         ) : (
           <div className="space-y-6">
             {orders.map((order) => (
-              <Card key={order.id} className="rounded-none border shadow-none hover:border-black transition-colors">
-                <CardHeader className="bg-gray-50/50 border-b py-4 flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-6">
-                    <div className="space-y-1">
-                      <p className="text-[9px] uppercase font-bold text-gray-400">Order ID</p>
-                      <p className="text-xs font-mono font-bold uppercase">#{order.id.substring(0, 8)}</p>
+              <Link 
+                key={order.id} 
+                href={`/account/orders/${order.id}`}
+                className="block group"
+              >
+                <Card className="rounded-none border shadow-none group-hover:border-black transition-all duration-300">
+                  <CardHeader className="bg-gray-50/50 border-b py-4 flex flex-row items-center justify-between">
+                    <div className="flex items-center gap-6">
+                      <div className="space-y-1">
+                        <p className="text-[9px] uppercase font-bold text-gray-400">Order ID</p>
+                        <p className="text-xs font-mono font-bold uppercase transition-colors group-hover:text-black">#{order.id.substring(0, 8).toUpperCase()}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] uppercase font-bold text-gray-400">Date</p>
+                        <p className="text-xs font-bold uppercase">{formatDate(order.createdAt)}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] uppercase font-bold text-gray-400">Total</p>
+                        <p className="text-xs font-black uppercase text-black">{`C$${Number(order.total || 0).toFixed(2)}`}</p>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-[9px] uppercase font-bold text-gray-400">Date</p>
-                      <p className="text-xs font-bold uppercase">{formatDate(order.createdAt)}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[9px] uppercase font-bold text-gray-400">Total</p>
-                      <p className="text-xs font-bold uppercase">{`C$${order.total?.toFixed(2)}`}</p>
-                    </div>
-                  </div>
-                  {getStatusBadge(order.status)}
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row gap-8 justify-between">
-                    <div className="flex-1 space-y-4">
-                      {order.items?.map((item: any, i: number) => (
-                        <div key={i} className="flex gap-4">
-                          <div className="w-16 h-20 bg-gray-100 relative overflow-hidden border shrink-0">
-                            {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                    {getStatusBadge(order.status)}
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row gap-8 justify-between">
+                      <div className="flex-1 space-y-4">
+                        {(order.items || []).map((item: any, i: number) => (
+                          <div key={i} className="flex gap-4">
+                            <div className="w-16 h-20 bg-gray-100 relative overflow-hidden border shrink-0">
+                              {item.image && <img src={item.image} alt="" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />}
+                            </div>
+                            <div className="flex flex-col justify-center">
+                              <p className="text-xs font-bold uppercase line-clamp-2">{item.name}</p>
+                              <p className="text-[10px] text-gray-400 uppercase font-bold">Size: {item.size} • Qty: {item.quantity}</p>
+                            </div>
                           </div>
-                          <div className="flex flex-col justify-center">
-                            <p className="text-xs font-bold uppercase line-clamp-2">{item.name}</p>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">Size: {item.size} • Qty: {item.quantity}</p>
-                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-end self-end md:self-auto">
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-black transition-colors">
+                          View Details <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                         </div>
-                      ))}
+                      </div>
                     </div>
-                    <div className="flex items-end">
-                      <Link href={`/account/orders/${order.id}`} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors group">
-                        Order Details <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

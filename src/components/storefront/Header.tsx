@@ -75,10 +75,10 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [pendingAuthOpen, setPendingAuthOpen] = useState(false);
 
-  // Sequencer to fix the "freezing" issue by ensuring sidebar is closed before modal opens
+  // Make sure the side menu is closed before opening the login box
   useEffect(() => {
     if (!isMenuOpen && pendingAuthOpen) {
-      // Small delay to ensure Radix has finished its Sheet cleanup
+      // Small delay to ensure the menu has finished closing
       const timer = setTimeout(() => {
         openAuth();
         setPendingAuthOpen(false);
@@ -86,6 +86,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
       return () => clearTimeout(timer);
     }
   }, [isMenuOpen, pendingAuthOpen, openAuth]);
+
 
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -266,7 +267,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                         {filteredProducts.map((p: any) => (
                           <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
                             <div className="w-14 h-14 relative bg-gray-100 border shrink-0">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill sizes="56px" className="object-cover" />}</div>
-                            <div className="flex-1 flex flex-col justify-center min-w-0 pr-2">
+                            <div className="flex-1 flex flex-col justify-start pt-0.5 min-w-0 pr-2">
                               <h3 className="text-xs text-black font-bold uppercase leading-tight mb-1">{p.name}</h3>
                               <p className="text-[10px] font-bold text-black/40 uppercase tracking-wider">C${Number(p.price).toFixed(2)}</p>
                             </div>
@@ -292,12 +293,20 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                   <Search className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="top" className="h-[100dvh] bg-white border-none p-0 flex flex-col">
-                <SheetHeader className="sr-only">
-                  <SheetTitle>Search Products</SheetTitle>
-                  <SheetDescription>Search our catalog for products by name or SKU.</SheetDescription>
+              <SheetContent side="top" className="h-[100dvh] bg-white border-none p-0 flex flex-col" hideClose>
+                <SheetHeader className="p-6 pb-4 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                  <div className="flex items-center justify-between w-full mt-2">
+                    <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
+                      SEARCH
+                    </SheetTitle>
+                    <SheetDescription className="sr-only">Search for products by name or SKU.</SheetDescription>
+                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
+                      <X className="h-5 w-5" />
+                      <span className="sr-only">Close</span>
+                    </SheetClose>
+                  </div>
                 </SheetHeader>
-                <div className="px-4 pt-16 pb-8 space-y-6 flex-1 flex flex-col min-h-0">
+                <div className="px-4 pt-4 pb-4 space-y-4 flex-1 flex flex-col min-h-0">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                     <Input
@@ -310,15 +319,15 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                   </div>
                    <ScrollArea className="flex-1 -mx-4 overflow-y-auto">
                      {searchQuery.length >= 2 && (
-                      <div className="divide-y border-t mt-4 px-4">
+                      <div className="divide-y border-t mt-4 px-4 pb-20">
                         {filteredProducts.length === 0 ? (
                           <div className="p-8 text-center text-[10px] font-bold text-black/40 uppercase tracking-widest">No products found.</div>
                         ) : (
                           filteredProducts.map((p: any) => (
                             <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setSearchQuery(''); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
                               <div className="w-12 h-12 relative bg-gray-100 border shrink-0">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill sizes="48px" className="object-cover" />}</div>
-                              <div className="flex-1 flex flex-col justify-center min-w-0">
-                                 <h3 className="text-[10px] text-black font-bold uppercase leading-tight">{p.name}</h3>
+                              <div className="flex-1 flex flex-col justify-start pt-0.5 min-w-0">
+                                <h3 className="text-[10px] text-black font-bold uppercase leading-tight">{p.name}</h3>
                                 <p className="text-[9px] font-bold text-black/40 uppercase tracking-wider">C${Number(p.price).toFixed(2)}</p>
                               </div>
                             </Link>
@@ -382,7 +391,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       WISHLIST {wishlistCount > 0 && <span className="text-red-600 text-sm sm:text-lg font-black bg-red-50 px-2 py-0.5 rounded-full">({wishlistCount})</span>}
                     </SheetTitle>
-                    <SheetDescription className="sr-only">Your saved items and favorites.</SheetDescription>
+                    <SheetDescription className="sr-only">Your saved items.</SheetDescription>
                     <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
@@ -482,7 +491,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       CART {cartCount > 0 && <span className="text-red-600 text-sm sm:text-lg font-black bg-red-50 px-2 py-0.5 rounded-full">({cartCount})</span>}
                     </SheetTitle>
-                    <SheetDescription className="sr-only">Your shopping cart and order summary.</SheetDescription>
+                    <SheetDescription className="sr-only">Your cart and total.</SheetDescription>
                     <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
@@ -600,17 +609,20 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
         </div>
       </header>
 
-      {/* Floating Global Review Badge — manifest top-right for ALL devices */}
-      <div 
-        className={cn(
-          "fixed right-4 sm:right-8 z-[100] transition-all duration-500 animate-in fade-in slide-in-from-right-10 duration-700 origin-right scale-[0.8] sm:scale-100",
-          theme?.bannerEnabled 
-            ? "top-[85px] sm:top-[120px]" 
-            : "top-[60px] sm:top-[80px]"
-        )}
-      >
-        <ReviewSystem productId="global" variant="global-badge" customLabel="based 132" />
-      </div>
+      {(mounted && theme?.reviewBadgeVisibility !== false) && (
+        <div 
+          className={cn(
+            "fixed transition-all duration-500 animate-in fade-in slide-in-from-right-10 duration-700 origin-right",
+            (isMenuOpen || isCartOpen || isWishlistOpen) ? "z-0 opacity-0 pointer-events-none" : "z-40"
+          )}
+          style={{
+            right: 'var(--review-badge-right)',
+            top: 'var(--review-badge-top)',
+          }}
+        >
+          <ReviewSystem productId="global" variant="global-badge" customLabel="based 132" />
+        </div>
+      )}
     </>
   );
 }

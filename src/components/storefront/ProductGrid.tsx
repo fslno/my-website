@@ -22,9 +22,8 @@ interface ProductGridProps {
 }
 
 /**
- * Unified Product Grid Manifest.
- * Authoritatively manifests all studio drops in a high-fidelity responsive grid.
- * Forensicly stabilized to eliminate hydration mismatches by ensuring class consistency.
+ * This shows a grid of products.
+ * It is set up to load products smoothly and avoid errors when the page starts.
  */
 export function ProductGrid({
   initialProducts,
@@ -39,7 +38,7 @@ export function ProductGrid({
 }: ProductGridProps) {
   const db = useFirestore();
 
-  // 01. Catalog Ingestion
+  // 01. Get products from the database
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, getLivePath('products')), orderBy('createdAt', 'desc'));
@@ -47,7 +46,7 @@ export function ProductGrid({
 
   const { data: rawProducts, isLoading: productsLoading } = useCollection(productsQuery);
 
-  // 02. Metadata Synchronization
+  // 02. Get extra info like categories and reviews
   const categoriesQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, getLivePath('categories'));
@@ -93,7 +92,7 @@ export function ProductGrid({
 
   const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
 
-  // Forensic Constant for grid classes to ensure zero hydration mismatch
+  // Fixed layout classes for the grid
   const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16";
 
   const reviewsEnabled = reviewConfig?.enabled !== false;
@@ -144,7 +143,7 @@ export function ProductGrid({
           const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
           const reviewCount = reviewsEnabled && ratingInfo ? ratingInfo.count : 0;
           
-          // Authoritative Inventory Intelligence: Sum variant stock if available
+          // Check how many items are in stock
           const variants = product.variants || [];
           const totalStock = variants.length > 0 
             ? variants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0)
@@ -172,7 +171,7 @@ export function ProductGrid({
         })}
       </div>
 
-      {/* Forensic Minimalist Pagination UI */}
+      {/* Simple Pagination */}
       {totalPages > 1 && (
         <div className="mt-24 border-t border-gray-100 pt-12 flex flex-col items-center gap-8">
           <div className="flex items-center gap-12">
@@ -206,7 +205,7 @@ export function ProductGrid({
             </button>
           </div>
           <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">
-            Manifest Section {currentPage} of {totalPages}
+            Page {currentPage} of {totalPages}
           </p>
         </div>
       )}

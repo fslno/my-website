@@ -115,14 +115,5 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if isAdmin();
     }
-
-    match /staff/{staffId} {
-      allow read, write, list: if isAdmin();
-    }
-
-    match /mail/{mailId} {
-      allow create: if true;
-      allow read, list: if isAdmin();
-    }
   }
 }

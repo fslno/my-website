@@ -9,8 +9,8 @@ interface FirebaseClientProviderProps {
 }
 
 /**
- * Authoritative Client-Side Provider.
- * Forensicly simplified to ensure absolute stability and immediate rendering.
+ * Main Client-Side Provider.
+ * Simplified to ensure stability and immediate display.
  */
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
   const firebaseServices = useMemo(() => {

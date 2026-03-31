@@ -83,7 +83,7 @@ export default function AdminDashboard() {
         }
       } catch (e) {
         console.error("Failed to load saved date range", e);
-        // Fallback to default date range already set in state
+        // Go back to the default date if loading fails
       }
     }
   }, []);
@@ -334,7 +334,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-5">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="w-full lg:w-auto">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Dashboard</h1>
@@ -432,7 +432,7 @@ export default function AdminDashboard() {
         <StatsCard 
           title="Processing Fees" 
           value={`C$${formatCurrency(stats.fees)}`} 
-          trend="Estimate" 
+          trend="Expected" 
           icon={<CreditCard className="h-4 w-4 text-red-600" />} 
           data={chartData.map(d => ({ value: d.fees }))}
           color="#dc2626"
@@ -559,7 +559,7 @@ function StatsCard({ title, value, trend, icon, data, color = "#000" }: {
         </div>
         
         {data && (
-          <div className="h-[40px] w-full mt-4">
+          <div className="h-[35px] w-full mt-2">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data}>
                 <Area 

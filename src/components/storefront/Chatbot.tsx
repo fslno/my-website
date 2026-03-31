@@ -9,9 +9,9 @@ import { cn } from '@/lib/utils';
 import { getLivePath } from '@/lib/deployment';
 
 /**
- * High-fidelity Floating Dispatch UI.
- * Manifests a radial staggered animation when active.
- * Each platform icon is Authoritatively differentiated by its brand-specific color.
+ * Floating Contact Button.
+ * Shows contact options when clicked.
+ * Each icon uses its official brand color.
  */
 export function Chatbot() {
   const pathname = usePathname();
@@ -30,13 +30,13 @@ export function Chatbot() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  // Authoritative Guard: Manifest by default unless explicitly disabled in theme config.
+  // Check if the chatbot is enabled in settings.
   if (!mounted || themeLoading) return null;
   if (theme && theme.chatbotEnabled === false) return null;
   if (pathname?.startsWith('/admin')) return null;
 
   const phoneNumbers = config?.phoneNumbers || (config?.phone ? [{ label: 'Voice', value: config.phone }] : []);
-  // Authoritative Restriction: Strictly suppress config.email from Chatbot display as it is for internal logistics only.
+  // Hide internal email from the contact list.
   const emailAddresses = config?.emailAddresses || [];
   const socialChannels = config?.socialChannels || [];
 
@@ -52,7 +52,7 @@ export function Chatbot() {
     color: '#3B82F6'
   }));
   
-  // 02. WhatsApp Path - High-Fidelity API Link
+  // 02. WhatsApp Link
   if (config?.whatsAppNumber) {
     contactMethods.push({
       type: 'social',

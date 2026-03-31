@@ -89,7 +89,7 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
   };
 
   const adminLogo = storeConfig?.adminLogoUrl || storeConfig?.logoUrl;
-  const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "STUDIO";
+  const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "DASHBOARD";
 
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r border-[#e1e3e5] admin-sidebar-bg">
@@ -107,9 +107,9 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="py-1 admin-sidebar-bg overflow-y-auto scrollbar-hide">
-        <SidebarGroup className="p-1">
-          <SidebarMenu className="gap-0.5">
+      <SidebarContent className="py-0 admin-sidebar-bg overflow-y-auto scrollbar-hide">
+        <SidebarGroup className="p-0">
+          <SidebarMenu className="gap-0">
             <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Home" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin">
@@ -196,9 +196,9 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-1 p-1">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-6 uppercase tracking-widest font-bold font-admin-headline">Sales Channels</SidebarGroupLabel>
-          <SidebarMenu className="gap-0.5">
+        <SidebarGroup className="mt-0 p-0">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline">Sales Channels</SidebarGroupLabel>
+          <SidebarMenu className="gap-0">
             <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/analytics">
@@ -234,9 +234,9 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-1 p-1">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-6 uppercase tracking-widest font-bold font-admin-headline">Settings</SidebarGroupLabel>
-          <SidebarMenu className="gap-0.5">
+        <SidebarGroup className="mt-0 p-0">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline">Settings</SidebarGroupLabel>
+          <SidebarMenu className="gap-0">
             <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/storefront">
@@ -304,8 +304,8 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-[#e1e3e5] p-2 admin-sidebar-bg">
-        <SidebarMenu className="gap-0.5">
+      <SidebarFooter className="border-t border-[#e1e3e5] p-0 admin-sidebar-bg">
+        <SidebarMenu className="gap-0">
           <SidebarMenuItem>
             <SidebarMenuButton size="sm" asChild tooltip="Settings" onClick={handleNavClick} className="font-admin-body">
               <Link href="/admin/settings">
@@ -404,7 +404,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       toast({ 
         className: "bg-black border-black text-white rounded-none",
         title: "🚨 NEW ORDER RECEIVED", 
-        description: "An order has just been archived in Feiselino (FSLNO). Check orders portal immediately.", 
+        description: "An order has just been received in Feiselino (FSLNO). Check orders portal immediately.", 
         duration: 2000 
       });
       setTimeout(() => setNewOrderDetected(false), 5000);
@@ -551,7 +551,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         ) : (
           <>
             <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Sign In</h1>
-            <p className="mb-6 text-[10px] uppercase font-bold text-muted-foreground tracking-[0.2em]">{adminName} Command</p>
+            <p className="mb-6 text-[10px] uppercase font-bold text-muted-foreground tracking-[0.2em]">{adminName} Admin</p>
             <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
               <div className="space-y-2 text-left">
                 <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email</Label>
@@ -690,7 +690,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 w-full font-admin-body bg-white scrollbar-hide">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-5 w-full font-admin-body bg-white scrollbar-hide">
             <div className="max-w-7xl mx-auto w-full min-w-0">
               {children}
             </div>

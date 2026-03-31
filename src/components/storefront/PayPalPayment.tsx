@@ -19,8 +19,8 @@ interface PayPalPaymentProps {
 const ENV_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
 /**
- * Official PayPal Orchestration Component.
- * Manifests high-fidelity payment buttons with archival synchronization.
+ * PayPal Payment Component.
+ * Shows payment buttons and saves order details.
  * Uses isolated stacking context to stay behind fixed UI elements.
  */
 export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId }: PayPalPaymentProps) {
@@ -29,11 +29,11 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
 
   const activeClientId = clientId || ENV_CLIENT_ID;
 
-  // Logical Gate: Verification state before manifestation
+  // Wait for security keys to load
   if (!activeClientId || activeClientId === 'pending' || activeClientId === 'fslno_sample_key') {
     return (
       <div className="p-8 border-2 border-dashed border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Validating security keys...</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Checking security keys...</p>
       </div>
     );
   }
@@ -45,7 +45,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
         currency: "CAD",
         intent: "capture",
         components: "buttons",
-        "disable-funding": "paylater" // Authoritatively removed per directive
+        "disable-funding": "paylater" // Disabled for this store
       }}
     >
       <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500 relative z-0 isolate">
@@ -74,8 +74,8 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
             if (!db) throw new Error("Database not initialized");
             
             try {
-              // 0. Authoritative Inventory Validation Protocol
-              // Verify stock levels before manifested payment initiation
+              // 0. Check Stock Levels
+              // Make sure items are in stock before payment starts
               const items = orderData.items || [];
               for (const item of items) {
                 const productRef = doc(db, getLivePath(`products/${item.id}`));
@@ -92,7 +92,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                       title: "Inventory Error",
                       description: `Size ${item.size} of ${item.name} no longer available.`
                     });
-                    throw new Error("Variant Manifestation Failure");
+                    throw new Error("Product size not found");
                   }
 
                   const currentStock = Number(variant.stock) || 0;
@@ -104,7 +104,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                       title: "Inventory Shortage",
                       description: `${item.name} (${item.size}) is out of stock or insufficient. Available: ${currentStock}`
                     });
-                    throw new Error("Stock Depletion Error");
+                    throw new Error("Out of stock");
                   }
                 } else {
                   toast({
@@ -112,20 +112,20 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                     title: "Product Error",
                     description: `${item.name} is no longer in our catalog.`
                   });
-                  throw new Error("Product Manifestation Failure");
+                  throw new Error("Product not found");
                 }
               }
 
-              // 1. Construct the initial manifest
+              // 1. Create the order details
               const payload = {
                 ...orderData,
                 status: 'awaiting_processing',
                 paymentStatus: 'awaiting_payment',
-                viewed: false, // Authoritative Entry Protocol: Initialize as unviewed
+                viewed: false, // Mark as new order
                 createdAt: serverTimestamp()
               };
 
-              // 2. Ingest into archival database
+              // 2. Save to database
               const docRef = await addDoc(collection(db, 'orders'), payload);
 
               // 3. Initiate PayPal transaction tied to our Doc ID
@@ -138,12 +138,12 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                       value: amount.toFixed(2),
                     },
                     custom_id: docRef.id,
-                    description: `FSLNO Archive Order #${docRef.id.substring(0, 6)}`
+                    description: `FSLNO Order #${docRef.id.substring(0, 6)}`
                   },
                 ],
               });
             } catch (err) {
-              console.error("[PAYPAL] Order Ingestion or Validation Failed:", err);
+              console.error("[PAYPAL] Order Failed:", err);
               throw err;
             }
           }}
@@ -156,7 +156,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
               const firestoreId = purchaseUnit?.custom_id;
 
               if (firestoreId) {
-                // Synchronize success state back to archival record
+                // Update order to paid status
                 await updateDoc(doc(db, 'orders', firestoreId), {
                   paymentStatus: 'paid',
                   status: 'awaiting_processing',
@@ -165,7 +165,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                   payerEmail: details.payer?.email_address || 'unknown'
                 });
 
-                // Authoritative Inventory Deduction Protocol
+                // Update Stock Levels
                 try {
                   const items = orderData.items || [];
                   for (const item of items) {
@@ -212,11 +212,11 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
           onCancel={() => {
             toast({
               title: "Payment Cancelled",
-              description: "Transaction aborted by participant."
+              description: "Payment cancelled by user."
             });
           }}
           onError={(err) => {
-            console.error("[PAYPAL] Forensic Error:", err);
+            console.error("[PAYPAL] Payment Error:", err);
             toast({
               variant: "destructive",
               title: "Payment failed",

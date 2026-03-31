@@ -1,5 +1,5 @@
 /**
- * @fileOverview Firebase Cloud Function for Order Alarms.
+ * This file handles notifications for new orders.
  */
 
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
@@ -11,7 +11,7 @@ if (!admin.apps.length) {
 }
 
 /**
- * Dispatches an alarm when a new order is created.
+ * Sends a notification when a new order is made.
  */
 export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event) => {
   const data = event.data?.data();
@@ -21,32 +21,41 @@ export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event
   const total = data.total || 0;
   const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(total);
 
-  const payload = {
+  const message = {
+    topic: "admin_orders",
     notification: {
       title: `New Order - ${formattedTotal}`,
       body: `Order received. Status: ${data.status || 'pending'}`,
-      sound: "alarm.mp3",
     },
     data: {
       orderId: orderId,
       total: total.toString(),
-      type: "ORDER_ALARM",
       click_action: "/admin/orders"
+    },
+    android: {
+      priority: "high" as const,
+      notification: {
+        sound: "alarm.mp3",
+      }
+    },
+    apns: {
+      payload: {
+        aps: {
+          sound: "alarm.mp3",
+        }
+      }
     }
   };
 
   try {
-    await admin.messaging().sendToTopic("admin_orders", payload, {
-      priority: "high",
-      timeToLive: 60 * 60 * 24
-    });
+    await admin.messaging().send(message);
   } catch (error) {
-    console.error("[ALARM] Notification failed:", error);
+    console.error("Order notification failed:", error);
   }
 });
 
 /**
- * Dispatches an alarm when an order is paid.
+ * Sends a notification when an order is paid.
  */
 export const onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) => {
   const beforeData = event.data?.before.data();
@@ -54,59 +63,65 @@ export const onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) =
 
   if (!beforeData || !afterData) return;
 
-  // Authoritative Check: Detect transition to 'paid' status
+  // Check if the order status changed to 'paid'
   if (beforeData.paymentStatus !== 'paid' && afterData.paymentStatus === 'paid') {
     const orderId = event.params.orderId;
     const total = afterData.total || 0;
     const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(total);
 
-    const payload = {
+    const message = {
+      topic: "admin_orders",
       notification: {
         title: `Payment Received - ${formattedTotal}`,
         body: `Order #${orderId.substring(0, 6)} has been paid.`,
-        sound: "alarm.mp3",
       },
       data: {
         orderId: orderId,
-        type: "PAID_ALARM",
         click_action: `/admin/orders/${orderId}`
+      },
+      android: {
+        priority: "high" as const,
+        notification: {
+          sound: "alarm.mp3"
+        }
       }
     };
 
     try {
-      await admin.messaging().sendToTopic("admin_orders", payload, {
-        priority: "high"
-      });
+      await admin.messaging().send(message);
     } catch (error) {
-      console.error("[ALARM] Paid notification failed:", error);
+      console.error("Payment notification failed:", error);
     }
   }
 });
 
 /**
- * Dispatches a test alarm.
+ * Sends a test notification.
  */
 export const sendTestNotification = onCall(async (request) => {
   if (!request.auth || (request.auth.token.email?.endsWith('@example.com') === false && request.auth.uid !== 'cge90HsQLwgri3quh6VBIZs4wiP2')) {
     throw new HttpsError('permission-denied', 'Unauthorized access.');
   }
 
-  const payload = {
+  const message = {
+    topic: "admin_orders",
     notification: {
-      title: "Test Alarm - Diagnostic",
-      body: "High-priority test alert.",
-      sound: "alarm.mp3",
+      title: "Test Notification",
+      body: "This is a test alert.",
     },
     data: {
-      type: "TEST_ALARM",
       click_action: "/admin/notifications"
+    },
+    android: {
+      priority: "high" as const,
+      notification: {
+        sound: "alarm.mp3",
+      }
     }
   };
 
   try {
-    await admin.messaging().sendToTopic("admin_orders", payload, {
-      priority: "high"
-    });
+    await admin.messaging().send(message);
     return { success: true, message: "Alarm sent." };
   } catch (error: any) {
     throw new HttpsError('internal', `Error: ${error.message}`);

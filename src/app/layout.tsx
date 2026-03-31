@@ -1,11 +1,12 @@
 import React from 'react';
 import './globals.css';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { Metadata } from 'next';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
+    const adminDb = getAdminDb();
     const [themeDoc, domainDoc] = await Promise.all([
       adminDb.doc('config/theme').get(),
       adminDb.doc('config/domain').get()
@@ -97,6 +98,7 @@ export default async function RootLayout({
   let store: any = {};
   
   try {
+    const adminDb = getAdminDb();
     const [themeDoc, storeDoc] = await Promise.all([
       adminDb.doc('config/theme').get().catch((e: Error) => { 
         console.warn("[ADMIN_THEME_FETCH_FAIL]", e.message); 

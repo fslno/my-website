@@ -1,4 +1,9 @@
-import * as admin from 'firebase-admin';
+import { getAdminFieldValue } from './firebase-admin';
+
+/**
+ * @fileOverview Email Sender.
+ * This sends emails from the server without slowing down the website.
+ */
 
 interface NotificationConfig {
   enabled: boolean;
@@ -10,7 +15,7 @@ const DEFAULT_TEMPLATES: Record<string, NotificationConfig> = {
   orderConfirmation: {
     enabled: true,
     subject: "Confirmed / Confirmée: #{{order_id}}",
-    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} is confirmed. Our studio is preparing your pieces.\n\nYOUR SELECTION:\n{{product_manifest}}\n\nTotal: {{order_total}}\n\nWe will notify you when items ship.\n\n---\n\nBonjour {{customer_name}},\n\nVotre commande #{{order_id}} est confirmée. Notre studio prépare vos articles.\n\nVOTRE SÉLECTION:\n{{product_manifest}}\n\nTotal: {{order_total}}\n\nNous vous informerons lors de l'expédition."
+    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} is confirmed. Our studio is preparing your pieces.\n\nYOUR ITEMS:\n{{product_manifest}}\n\nTotal: {{order_total}}\n\nWe will notify you when items ship.\n\n---\n\nBonjour {{customer_name}},\n\nVotre commande #{{order_id}} est confirmée. Notre studio prépare vos articles.\n\nVOTRE SÉLECTION:\n{{product_manifest}}\n\nTotal: {{order_total}}\n\nNous vous informerons lors de l'expédition."
   },
   statusChanged: {
     enabled: true,
@@ -25,11 +30,10 @@ const DEFAULT_TEMPLATES: Record<string, NotificationConfig> = {
 };
 
 /**
- * Server-side notification queuer using firebase-admin.
- * Synchronizes with the client-side notifications.ts logic.
+ * Send an email from the server.
  */
 export async function queueNotificationServer(
-  db: admin.firestore.Firestore,
+  db: any,
   type: string,
   to: string,
   variables: Record<string, string>,
@@ -94,6 +98,7 @@ export async function queueNotificationServer(
       </div>
     `;
 
+    const FieldValue = getAdminFieldValue();
     const mailPayload = {
       message: {
         subject: subject,
@@ -102,7 +107,7 @@ export async function queueNotificationServer(
       },
       from: `${senderName} <${senderEmail}>`,
       replyTo: senderEmail,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     };
 
     // 5. Queue for Customer
@@ -124,8 +129,8 @@ export async function queueNotificationServer(
       });
     }
 
-    console.log(`[NOTIFICATIONS-SERVER] Queued ${type} for ${to}`);
+    console.log(`[NOTIFICATIONS-SERVER] Email for ${type} sent to ${to}`);
   } catch (error) {
-    console.error("[NOTIFICATIONS-SERVER] Failed to queue email:", error);
+    console.error("[NOTIFICATIONS-SERVER] Failed to send email:", error);
   }
 }

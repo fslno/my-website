@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { getLivePath } from '@/lib/deployment';
 
 /**
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout protocol
 
   try {
-    const db = adminDb;
+    const db = getAdminDb();
 
     // 01. PAYLOAD_VALIDATION Protocol
     let body;
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Stallion Express is currently deactivated.' }, { status: 503 });
     }
 
-    const storeConfig = (await adminDb.doc(getLivePath('config/store')).get()).data();
+    const storeConfig = (await getAdminDb().doc(getLivePath('config/store')).get()).data();
     const origin = {
       countryCode: storeConfig?.originCountryCode || 'CA',
       postalCode: storeConfig?.originPostalCode,
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
     }
 
     // FALLBACK_PROTOCOL: Ensure checkout flow persists despite internal failure
-    const db = adminDb;
+    const db = getAdminDb();
     const shippingConfigDoc = await db.collection('config').doc('shipping').get();
     return NextResponse.json({ rates: await getFallbackRates(db, shippingConfigDoc.data()) });
   }

@@ -88,7 +88,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           createdAt: serverTimestamp()
         };
 
-        // Authoritatively remove undefined fields to prevent Firestore errors
+        // Clean up data to prevent errors
         Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
 
         setDoc(itemRef, payload).catch(() => {
