@@ -1523,6 +1523,7 @@ export default function SettingsPage() {
                       <SelectContent>
                         <SelectItem value="English" className="text-[10px] font-bold uppercase">English (Default)</SelectItem>
                         <SelectItem value="US English" className="text-[10px] font-bold uppercase">US English</SelectItem>
+                        <SelectItem value="Tigrigna" className="text-[10px] font-bold uppercase">Tigrigna (ትግርኛ)</SelectItem>
                         <SelectItem value="French" className="text-[10px] font-bold uppercase">French</SelectItem>
                         <SelectItem value="Spanish" className="text-[10px] font-bold uppercase">Spanish</SelectItem>
                         <SelectItem value="German" className="text-[10px] font-bold uppercase">German</SelectItem>

@@ -1,23 +1,18 @@
 'use client';
 
 /**
- * @fileOverview Environment Protocol.
- * Direct mapping to root collections ensures edits show on domain immediately.
+ * @fileOverview Browser-only environment utilities.
+ * This module is client-only (uses window). Do NOT import into Server Components.
+ * For path utilities, import from '@/lib/paths' instead.
  */
 
 export const LIVE_DOMAIN = 'fslno.ca';
 
 /**
- * Determines if the current execution context is the primary domain.
+ * Determines if the current execution context is the primary live domain.
+ * Depends on the browser `window` object — client-only.
  */
 export const isLiveEnvironment = () => {
   if (typeof window === 'undefined') return false;
-  const host = window.location.hostname;
-  return host.includes(LIVE_DOMAIN);
+  return window.location.hostname.includes(LIVE_DOMAIN);
 };
-
-/**
- * Returns the path as-is (Pass-through Protocol).
- * Direct mapping to root collections ensures edits manifest immediately.
- */
-export const getLivePath = (path: string) => path;

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 /**
  * SEO Meta Tag Manager.

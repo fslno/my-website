@@ -6,7 +6,7 @@ import NextImage from 'next/image';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 import { cn } from '@/lib/utils';
 
 /**
@@ -61,7 +61,7 @@ export function CategorySection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-2 md:gap-x-6 md:gap-y-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-2 md:gap-x-6 md:gap-y-12 max-w-[1143.6px] mx-auto">
           {categories.map((cat) => (
             <div key={cat.id} className="flex flex-col gap-2 sm:gap-4 group">
               <Link 

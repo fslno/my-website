@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Gift, Sparkles, ArrowRight } from 'lucide-react';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 /**
  * Promotion popup alert for customers.

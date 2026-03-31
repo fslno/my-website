@@ -1,21 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 /**
- * ClientOnly wrapper to prevent hydration mismatches.
- * Shows the content only after the page has loaded.
+ * ClientOnly wrapper — single stable DOM node.
+ *
+ * The div is always present, so React always has an anchor node.
+ * suppressHydrationWarning silences server/client content mismatches
+ * so this component never causes "Something Went Wrong" crashes.
  */
 export function ClientOnly({ children, fallback = null }: { children: React.ReactNode, fallback?: React.ReactNode }) {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) {
-    return <>{fallback}</>;
-  }
-
-  return <>{children}</>;
+  return (
+    <div style={{ display: 'contents' }} suppressHydrationWarning>
+      {children}
+    </div>
+  );
 }

@@ -2,7 +2,6 @@ import React from 'react';
 import { getAdminDb } from '@/lib/firebase-admin';
 import { ProductDetail } from '@/components/storefront/ProductDetail';
 import { Metadata } from 'next';
-import { getLivePath } from '@/lib/deployment';
 
 interface PageProps {
   params: Promise<{ productId: string }>;

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebase-admin';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 /**
  * @fileOverview Stallion Express Rate Discovery API (Backend Layer)

@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
         template: `%s | ${theme?.businessName || 'FSLNO'}`
       },
       description,
-      metadataBase: new URL(`https://${primaryDomain}`),
+      metadataBase: primaryDomain ? new URL(`https://${primaryDomain.trim()}`) : null,
       alternates: {
         canonical: '/',
       },
@@ -67,10 +67,10 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     };
 
-    if (domain?.metaTags) {
+    if (domain?.metaTags && Array.isArray(domain.metaTags)) {
       const other: Record<string, string> = {};
       domain.metaTags.forEach((tag: { name: string; content: string }) => {
-        if (tag.name && tag.content) {
+        if (tag && tag.name && tag.content) {
           other[tag.name] = tag.content;
         }
       });
@@ -158,6 +158,11 @@ export default async function RootLayout({
             --archive-title-color: ${theme.archiveTitleColor || primaryColor};
             --product-title-size: ${theme.productTitleSize || 14}px;
             --product-price-size: ${theme.productPriceSize || 14}px;
+          }
+          @media (max-width: 640px) {
+            :root {
+              --hero-headline-size: 32px !important;
+            }
           }
           body { font-family: var(--font-body) !important; background-color: var(--background) !important; }
           h1, h2, h3, h4, h5, h6, .font-headline { font-family: var(--font-headline) !important; }

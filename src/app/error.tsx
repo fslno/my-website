@@ -26,9 +26,9 @@ export default function Error({
       </div>
       
       <div className="space-y-3">
-        <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">System Deviation</h1>
-        <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground max-w-xs mx-auto leading-relaxed">
-          An unexpected architectural interruption occurred. Our systems have logged the event.
+        <h1 className="text-2xl font-headline font-bold uppercase tracking-tight">Something Went Wrong</h1>
+        <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground max-w-xs mx-auto leading-[1.8]">
+          We encountered an unexpected error. Please try again.
         </p>
       </div>
 
@@ -37,7 +37,7 @@ export default function Error({
           onClick={() => reset()}
           className="bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none shadow-xl gap-3"
         >
-          <RotateCcw className="h-4 w-4" /> Synchronize State
+          <RotateCcw className="h-4 w-4" /> Try Again
         </Button>
         <Button asChild variant="ghost" className="h-12 font-bold uppercase tracking-widest text-[9px]">
           <a href="/">Return to Home</a>

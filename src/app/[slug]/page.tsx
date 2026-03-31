@@ -4,7 +4,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 import { Loader2 } from 'lucide-react';
 
 interface PageProps {
@@ -41,7 +41,7 @@ const STATIC_FALLBACKS: Record<string, string[]> = {
     'RETURN POLICY',
     'CONTACT SUPPORT TO INITIATE',
     'ITEMS MUST BE UNUSED',
-    'WINDOW: 30 DAYS'
+    'WINDOW: 7 DAYS'
   ]
 };
 

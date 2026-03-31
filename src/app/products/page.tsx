@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import { CollectionPageContent } from '../collections/[categoryId]/CollectionPageContent';
 import { getAdminDb } from '@/lib/firebase-admin';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 export async function generateMetadata(): Promise<Metadata> {
   const adminDb = getAdminDb();

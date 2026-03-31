@@ -6,7 +6,7 @@ import { useFirestore } from '@/firebase';
 import { collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 interface PayPalPaymentProps {
   amount: number;

@@ -29,10 +29,15 @@ export function FirebaseErrorListener() {
     };
   }, []);
 
-  // On re-render, if an error exists in state, throw it.
-  if (error) {
-    throw error;
-  }
+  // On re-render, we specifically DO NOT throw the error anymore.
+  // Throwing here triggers the Next.js global error boundary ("Something Went Wrong"), 
+  // which is too disruptive for non-critical Firestore permission errors.
+  // The application will now handle missing data gracefully in individual components.
+  useEffect(() => {
+    if (error) {
+      console.error("[FirebaseErrorListener] caught permission error:", error);
+    }
+  }, [error]);
 
   // This component renders nothing.
   return null;

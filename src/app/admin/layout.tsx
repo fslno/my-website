@@ -346,6 +346,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const alertedOrderIds = useRef<Set<string>>(new Set());
   const alertedReviewIds = useRef<Set<string>>(new Set());
+  const [isTestLoading, setIsTestLoading] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
@@ -398,15 +399,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     if (type === 'order') {
       setNewOrderDetected(true);
-      if (notificationConfig?.orderAlarmEnabled && !isAudioMuted) {
-        audioRef.current?.play().catch(e => console.warn("Order audio prevented", e));
+      if (!isAudioMuted) {
+        // Force play with maximum volume if possible
+        if (audioRef.current) {
+          audioRef.current.volume = 1.0;
+          audioRef.current.play().catch(e => console.warn("Order audio prevented", e));
+        }
       }
       toast({ 
-        className: "bg-black border-black text-white rounded-none",
+        className: "bg-black border-black text-white rounded-none shadow-2xl",
         title: "🚨 NEW ORDER RECEIVED", 
-        description: "An order has just been received in Feiselino (FSLNO). Check orders portal immediately.", 
-        duration: 2000 
+        description: "A new order just arrived. Check the portal immediately.", 
+        duration: 5000 
       });
+      
+      // Haptic feedback for mobile
+      if ("vibrate" in navigator) {
+        navigator.vibrate([100, 30, 100, 30, 200]);
+      }
+      
       setTimeout(() => setNewOrderDetected(false), 5000);
     } else {
       setNewReviewDetected(true);
@@ -441,10 +452,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           if (createdAt > sessionStartTime.current && !alertedOrderIds.current.has(change.doc.id)) {
             triggerAlert('order', change.doc.id);
             if ("Notification" in window && Notification.permission === "granted") {
-              new Notification("New Order Received", {
+              new Notification("🚨 NEW ORDER RECEIVED", {
                 body: `Order #${change.doc.id.slice(-6)} just arrived!`,
-                icon: "/logo.png"
-              });
+                icon: "/icon.png",
+                tag: "new-order",
+                requireInteraction: true,
+                renotify: true,
+                silent: false,
+                vibrate: [200, 100, 200]
+              } as any);
             }
           }
         }
@@ -466,10 +482,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           if (createdAt > sessionStartTime.current && !alertedReviewIds.current.has(change.doc.id)) {
             triggerAlert('review', change.doc.id);
             if ("Notification" in window && Notification.permission === "granted") {
-              new Notification("New Customer Review", {
+              new Notification("⭐ NEW CUSTOMER REVIEW", {
                 body: `A new review was submitted for ${reviewData.productName || 'a product'}.`,
-                icon: "/logo.png"
-              });
+                icon: "/icon.png",
+                tag: "new-review",
+                requireInteraction: true,
+                renotify: true,
+                silent: false,
+                vibrate: [100, 50, 100]
+              } as any);
             }
           }
         }
@@ -484,11 +505,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const unsubscribeUnviewed = onSnapshot(unviewedOrdersQuery, (snapshot) => {
       const count = snapshot.size;
       setUnviewedOrdersCount(count);
-      // Dynamic tab title update
+      // Dynamic tab title and PWA badge update
       if (count > 0) {
         document.title = `(${count}) ${adminName} Admin`;
+        if ('setAppBadge' in navigator) {
+          navigator.setAppBadge(count).catch(console.error);
+        }
       } else {
         document.title = `${adminName} Admin`;
+        if ('clearAppBadge' in navigator) {
+          navigator.clearAppBadge().catch(console.error);
+        }
       }
     });
 
@@ -642,7 +669,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     .font-admin-headline { font-family: var(--admin-font-headline); }
     .font-admin-body { font-family: var(--admin-font-body); }
+    
+    @keyframes pulse-ring {
+      0% { transform: scale(0.33); opacity: 1; }
+      80%, 100% { opacity: 0; }
+    }
+    
+    .animate-pulse-ring {
+      animation: pulse-ring 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    }
   `;
+
+  const testAlert = () => {
+    setIsTestLoading(true);
+    triggerAlert('order', 'test-' + Date.now());
+    setTimeout(() => setIsTestLoading(false), 1000);
+  };
 
   return (
     <SidebarProvider>
@@ -656,35 +698,49 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SidebarTrigger className="h-9 w-9 shrink-0" />
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={() => setIsAudioMuted(!isAudioMuted)}
-                className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors"
-              >
-                {isAudioMuted ? <VolumeX className="h-5 w-5 text-red-400" /> : <Volume2 className="h-5 w-5 text-[#5c5f62]" />}
-              </button>
-              <button className="p-2 hover:bg-[#f1f2f3] rounded-md transition-colors relative">
-                <Bell className={cn("h-5 w-5 text-[#5c5f62]")} />
-                {(newOrderDetected || newReviewDetected) && <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border border-white" />}
-              </button>
-              {notificationPermission !== 'granted' && (
-                <Button 
-                  onClick={enableNotifications} 
-                  variant="outline" 
-                  size="sm" 
-                  className="hidden md:flex h-9 px-3 gap-2 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-bold uppercase text-[9px] tracking-widest animate-pulse"
-                >
-                  <ShieldAlert className="h-4 w-4" />
-                  Enable Alerts
-                </Button>
-              )}
-              {notificationPermission !== 'granted' && (
-                <button 
-                  onClick={enableNotifications} 
-                  className="md:hidden p-2 bg-red-50 rounded-md text-red-600 animate-pulse border border-red-200"
-                >
-                  <ShieldAlert className="h-5 w-5" />
-                </button>
-              )}
+              {/* Notification Status Indicator */}
+              <div className="flex items-center">
+                {notificationPermission === 'granted' ? (
+                  <Button 
+                    onClick={() => setIsAudioMuted(!isAudioMuted)} 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn(
+                      "h-9 px-3 gap-2 border-[#e1e3e5] font-bold uppercase text-[9px] tracking-widest transition-all duration-300",
+                      isAudioMuted ? "text-red-500 hover:text-red-600" : "text-emerald-600 hover:text-emerald-700"
+                    )}
+                  >
+                    {isAudioMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    {isAudioMuted ? "ALERTS MUTED" : "ALERTS ACTIVE"}
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={enableNotifications} 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-3 gap-2 border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700 font-bold uppercase text-[9px] tracking-widest relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-orange-200/20 animate-pulse-ring rounded-full scale-[3] pointer-events-none" />
+                    <ShieldAlert className="h-4 w-4 relative z-10" />
+                    <span className="relative z-10">ENABLE SYSTEM ALERTS (ON TOP)</span>
+                  </Button>
+                )}
+                
+                {notificationPermission === 'granted' && !isAudioMuted && (
+                  <Button 
+                    onClick={testAlert} 
+                    variant="ghost" 
+                    size="icon" 
+                    disabled={isTestLoading}
+                    className="h-9 w-9 text-[#5c5f62] hover:text-black ml-1 relative"
+                    title="Administrative Priority Check"
+                  >
+                    <Bell className={cn("h-4 w-4", isTestLoading && "animate-bounce", (newOrderDetected || newReviewDetected) && "text-red-600 animate-pulse")} />
+                    {(newOrderDetected || newReviewDetected) && <span className="absolute top-0 right-0 h-2 w-2 bg-red-600 rounded-full animate-ping" />}
+                  </Button>
+                )}
+              </div>
+
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
                 {user.photoURL && <NextImage src={user.photoURL} alt="Admin" fill className="object-cover" />}
               </div>

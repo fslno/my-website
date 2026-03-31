@@ -7,8 +7,7 @@ import { ProductCard } from '@/components/storefront/ProductCard';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
-import { getLivePath } from '@/lib/deployment';
-import { ClientOnly } from '@/components/shared/ClientOnly';
+import { getLivePath } from '@/lib/paths';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface CollectionPageContentProps {
@@ -87,7 +86,7 @@ export function CollectionPageContent({ categoryId }: CollectionPageContentProps
           </div>
         </div>
         <div className="py-20 max-w-[1440px] mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-[1095.6px] mx-auto">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-square w-full" />)}
           </div>
         </div>
@@ -122,7 +121,7 @@ export function CollectionPageContent({ categoryId }: CollectionPageContentProps
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No products found in this category.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-16 max-w-[1095.6px] mx-auto">
               {products.map((product: any) => {
                 const productCategory = category?.name || allCategories?.find(c => c.id === product.categoryId)?.name || 'Product';
                 const ratingInfo = productRatings[product.id];
@@ -148,9 +147,7 @@ export function CollectionPageContent({ categoryId }: CollectionPageContentProps
         </div>
       </section>
 
-      <ClientOnly>
-        <TestimonialSection />
-      </ClientOnly>
+      <TestimonialSection />
     </div>
   );
 }

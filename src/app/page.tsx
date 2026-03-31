@@ -1,20 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
 import { CategorySection } from '@/components/storefront/CategorySection';
 import { BentoHero } from '@/components/storefront/BentoHero';
 import { TestimonialSection } from '@/components/storefront/TestimonialSection';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 import { cn } from '@/lib/utils';
-import { ClientOnly } from '@/components/shared/ClientOnly';
 
 /**
  * Main Home Page.
- * Displays the hero section, categories, and product grid.
- * Forensicly stabilized to eliminate hydration mismatches.
+ * All child components are already 'use client', so no ClientOnly wrappers needed.
  */
 export default function Home() {
   const db = useFirestore();
@@ -22,25 +20,45 @@ export default function Home() {
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
   const { data: theme, isLoading: themeLoading } = useDoc(themeRef);
 
+  // Robust Scroll-to-Top to ensure landing exactly on the Hero Banner
+  React.useEffect(() => {
+    // Disable browser scroll restoration to prevent jumping back to old position
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
+    // Immediate scroll
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+
+    // Secondary scroll after a minor delay to handle any dynamic layout shifts or late image renders
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      // Re-enable on unmount if needed, though manual is often safer for this app
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'auto';
+      }
+    };
+  }, []);
+
   return (
     <div className="flex flex-col">
-      <ClientOnly fallback={<div className="h-[26vh] bg-black" />}>
-        <BentoHero
-          isLoading={themeLoading}
-          heroImages={theme?.heroImages}
-          headline={theme?.heroHeadline}
-          subheadline={theme?.heroSubheadline}
-          buttonText={theme?.heroButtonText}
-          textAlign={theme?.heroTextAlign}
-          verticalAlign={theme?.heroVerticalAlign}
-          bannerEnabled={theme?.bannerEnabled}
-          heroAspectRatio={theme?.heroAspectRatio || 2.85}
-        />
-      </ClientOnly>
+      <BentoHero
+        isLoading={themeLoading}
+        heroImages={theme?.heroImages}
+        headline={theme?.heroHeadline}
+        subheadline={theme?.heroSubheadline}
+        buttonText={theme?.heroButtonText}
+        textAlign={theme?.heroTextAlign}
+        verticalAlign={theme?.heroVerticalAlign}
+        bannerEnabled={theme?.bannerEnabled}
+        heroAspectRatio={theme?.heroAspectRatio || 3.8}
+      />
 
-      <ClientOnly>
-        <CategorySection />
-      </ClientOnly>
+      <CategorySection />
 
       <div className="bg-white">
         <div className="max-w-[1440px] mx-auto px-4 pt-12">
@@ -59,14 +77,10 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <ClientOnly>
-          <ProductGrid />
-        </ClientOnly>
+        <ProductGrid />
       </div>
 
-      <ClientOnly>
-        <TestimonialSection />
-      </ClientOnly>
+      <TestimonialSection />
     </div>
   );
 }

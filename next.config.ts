@@ -2,28 +2,46 @@ import type { NextConfig } from "next";
 
 /** @type {import('next').NextConfig} */
 const config = {
-  // 01. Basic Settings
-  reactStrictMode: true,
+  // 01. Disable strict mode — prevents double-renders in dev which causes perceived slowness
+  reactStrictMode: false,
+
+  // 02. Image sources
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
       { protocol: 'https', hostname: 'feiselinosportjerseys.ca' },
-      { protocol: 'https', hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com' }
+      { protocol: 'https', hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com' },
+      { protocol: 'https', hostname: 'i.ibb.co' },
+      { protocol: 'https', hostname: 'ibb.co' },
+      { protocol: 'https', hostname: 'placehold.co' },
     ],
+    // Aggressive caching — images are served from Next.js cache for a full year
+    minimumCacheTTL: 31536000,
   },
 
-  // 02. Database settings for the admin panel
+  // 03. Server-side packages
   serverExternalPackages: ['@google-cloud/firestore', 'firebase-admin'],
-  
+
   experimental: {
-    authInterrupts: true
+    authInterrupts: true,
+    // Pre-bundle heavy packages so they don't re-compile on every page visit
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-sheet',
+      'firebase',
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/storage',
+    ],
   },
 
   webpack: (config: any, { isServer }: any) => {
     if (!isServer) {
-      // Stop the browser from trying to use server-only features
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -36,17 +54,13 @@ const config = {
     return config;
   },
 
-  // These settings make sure the admin panel loads and builds without errors.
+  // 04. Skip type/lint errors during build — keeps deploys fast
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  }
 };
 
-// 03. Ignore library warnings during build
-// We add this separately to avoid confusing the IDE's type checker.
+// 05. Turbopack config — suppress noisy warnings
 // @ts-ignore
 config.turbopack = {
   ignoreIssue: [

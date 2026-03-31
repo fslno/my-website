@@ -64,9 +64,9 @@ import { cn } from '@/lib/utils';
 import { useCart, parseFirestoreDate } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
-import { ClientOnly } from '@/components/shared/ClientOnly';
+import { ProductImageLightbox } from './ProductImageLightbox';
 import { CountdownTimer } from '@/components/shared/CountdownTimer';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
 
@@ -81,6 +81,9 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   const { cart, addToCart, promoConfig } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
+
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const productRef = useMemoFirebase(() => 
     db ? doc(db, getLivePath(`products/${productId}`)) : null, 
@@ -259,16 +262,21 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
     );
   }
 
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setIsLightboxOpen(true);
+  };
+
   return (
     <div className="mobile-wrapper bg-white pb-32 pt-20 sm:pt-32">
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-        {/* Back Button */}
-        <div className="flex items-center mb-6">
+        {/* Back Button & Global Rank */}
+        <div className="flex items-center justify-between mb-8">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => router.back()}
-            className="h-9 px-4 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-gray-50 rounded-none gap-2"
+            className="h-9 px-0 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-transparent rounded-none gap-2"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back
@@ -276,11 +284,11 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
         </div>
 
         {/* Main Grid: items-start ensures top alignment of columns */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-20 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-24 items-start">
           
           {/* Left Column - Media & Description */}
-          <div className="md:col-span-6 lg:col-span-6 space-y-8">
-            <div className="flex flex-col md:flex-row gap-4 items-start">
+          <div className="md:col-span-6 lg:col-span-7 space-y-8">
+            <div className="flex flex-col md:flex-row gap-6 w-full">
               <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
                 {media.map((item: any, idx: number) => (
                   <button 
@@ -296,13 +304,16 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                 ))}
               </div>
 
-              <div className="flex-1 relative">
+              <div className="flex-1 relative w-full">
                 <Carousel setApi={setApi} className="w-full">
                   <CarouselContent>
                     {media.length > 0 ? (
                       media.map((item: any, idx: number) => (
                         <CarouselItem key={idx}>
-                          <div className="relative aspect-square bg-white overflow-hidden border rounded-sm">
+                          <div 
+                            className="relative aspect-square bg-white overflow-hidden border rounded-sm cursor-zoom-in"
+                            onClick={() => openLightbox(idx)}
+                          >
                             <Image 
                               src={item.url} 
                               alt={activeProduct.name} 
@@ -370,7 +381,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
           </div>
 
           {/* Right Column - Purchase Info */}
-          <div className="md:col-span-6 lg:col-span-6 space-y-6 md:sticky md:top-24 self-start animate-in fade-in slide-in-from-right-4 duration-700">
+          <div className="md:col-span-6 lg:col-span-5 space-y-8 md:sticky md:top-24 self-start animate-in fade-in slide-in-from-right-4 duration-700">
             <div className="space-y-4 relative">
               <div className="flex items-start justify-between gap-4">
                 <h1 className="font-headline font-bold uppercase tracking-tight leading-tight flex-1 detail-title-style">{activeProduct.name}</h1>
@@ -586,7 +597,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                   </div>
                   <div className="flex flex-col items-center text-center gap-2">
                     <RotateCcw className="h-4 w-4 text-neutral-400" />
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-500">30-Day Policy</span>
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-500">7-Day Policy</span>
                   </div>
                 </div>
               </div>
@@ -611,11 +622,16 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
         </div>
       </div>
 
-      <ClientOnly>
-        <div className="pt-12 border-t border-gray-100">
-          <TestimonialSection />
-        </div>
-      </ClientOnly>
+      <div className="pt-12 border-t border-gray-100">
+        <TestimonialSection />
+      </div>
+
+      <ProductImageLightbox 
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        images={media}
+        initialIndex={lightboxIndex}
+      />
     </div>
   );
 }

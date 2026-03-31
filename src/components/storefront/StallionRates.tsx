@@ -7,7 +7,7 @@ import { Loader2, Truck, AlertCircle, CheckCircle2, MapPin, Zap, ChevronRight } 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 interface StallionRatesProps {
   address: {

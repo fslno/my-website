@@ -21,7 +21,7 @@ import {
   SheetDescription
 } from "@/components/ui/sheet"; 
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 interface ReviewSystemProps {
   productId: string;
@@ -155,14 +155,15 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 
                   key={s} 
+                  style={s <= Math.round(displayStats.avg) ? { fill: '#facc15', color: '#facc15' } : {}}
                   className={cn(
                     "h-2.5 w-2.5 transition-all duration-300", 
-                    s <= Math.round(displayStats.avg) ? "detail-review-star-fill" : "text-gray-200"
+                    s <= Math.round(displayStats.avg) ? "" : "text-gray-200"
                   )} 
                 />
               ))}
             </div>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1 group-hover:underline">({displayStats.count})</span>
+            <span className="text-[9px] font-bold text-black uppercase tracking-widest ml-1 group-hover:underline">({displayStats.count})</span>
           </div>
         ) : variant === 'global-badge' ? (
           <div 

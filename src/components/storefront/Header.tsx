@@ -32,17 +32,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CountdownTimer } from '@/components/shared/CountdownTimer';
+import { useLanguage } from '@/context/LanguageContext';
+import { LanguageSwitcher } from '@/components/storefront/LanguageSwitcher';
 import { useAuthDialog } from '@/context/AuthDialogContext';
 import { useToast } from '@/hooks/use-toast';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 import { Separator } from '@/components/ui/separator';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
-import { CountdownTimer } from '@/components/shared/CountdownTimer';
 
 export function Header({ initialTheme, initialStore }: { initialTheme?: any, initialStore?: any }) {
   const [mounted, setMounted] = useState(false);
   const { cart, cartCount, cartSubtotal, addToCart, removeFromCart, discountTotal, totalBeforeTax, promoConfig, thresholdProgress, THRESHOLD_VALUE } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
+  const { t } = useLanguage();
   const { user } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
@@ -108,6 +111,24 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
   }, [pathname]);
 
   const isAdmin = useIsAdmin();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    if (pathname !== '/') {
+      setIsScrolled(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
+
+  const isTransparent = false; // Forced to false per user request to make header white always
 
   useEffect(() => {
     setMounted(true);
@@ -153,7 +174,10 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
       )}
       <header
         className={cn(
-          'fixed left-0 right-0 z-50 transition-all duration-300 h-12 sm:h-16 flex items-center bg-white border-b shadow-none',
+          'fixed left-0 right-0 z-50 transition-all duration-500 h-12 sm:h-16 flex items-center border-b',
+          isTransparent 
+            ? 'bg-transparent border-transparent' 
+            : 'bg-white border-border shadow-sm',
           theme?.bannerEnabled ? 'top-7 sm:top-10' : 'top-0'
         )}
       >
@@ -162,7 +186,14 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-black h-9 w-9 p-0">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={cn(
+                    "lg:hidden h-9 w-9 p-0 transition-colors duration-300",
+                    isTransparent ? "text-white" : "text-black"
+                  )}
+                >
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -170,9 +201,9 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 <SheetHeader className="p-8 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
-                      MENU
+                      {t('nav.menu')}
                     </SheetTitle>
-                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
+                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 mt-2 -mr-1">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
                     </SheetClose>
@@ -227,10 +258,22 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
             <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
               {storeConfig?.logoUrl && (
                 <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-sm overflow-hidden flex items-center justify-center">
-                  <NextImage src={storeConfig.logoUrl} alt="Logo" fill sizes="32px" className="object-contain" />
+                  <NextImage 
+                    src={storeConfig.logoUrl} 
+                    alt="Logo" 
+                    fill 
+                    sizes="32px" 
+                    className={cn(
+                      "object-contain transition-all duration-300",
+                      isTransparent && "invert contrast-200"
+                    )} 
+                  />
                 </div>
               )}
-              <h1 className="text-lg sm:text-2xl font-headline font-bold tracking-tighter text-black hidden md:block">
+              <h1 className={cn(
+                "text-lg sm:text-2xl font-headline font-bold tracking-tighter hidden md:block transition-colors duration-300",
+                isTransparent ? "text-white" : "text-black"
+              )}>
                 {!storeLoading && (storeConfig?.businessName || " ")}
               </h1>
             </Link>
@@ -241,8 +284,13 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
             <div className="relative w-full max-w-[400px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
               <Input
-                placeholder="SEARCH"
-                className="pl-10 h-10 w-full bg-gray-100 border-none text-black text-sm font-bold uppercase tracking-[0.2em] rounded-none focus-visible:ring-1 focus-visible:ring-black/20"
+                placeholder={t('nav.search')}
+                className={cn(
+                  "pl-10 h-10 w-full border-none text-sm font-bold uppercase tracking-[0.2em] rounded-none focus-visible:ring-1 focus-visible:ring-black/20 transition-all duration-300",
+                  isTransparent 
+                    ? "bg-white/10 text-white placeholder:text-white/60 backdrop-blur-md" 
+                    : "bg-gray-100 text-black placeholder:text-gray-400"
+                )}
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setIsSearching(true); }}
                 onFocus={() => setIsSearching(true)}
@@ -289,7 +337,14 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
             {/* Search (Mobile) */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-9 w-9 text-black lg:hidden">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={cn(
+                    "relative h-9 w-9 lg:hidden transition-colors duration-300",
+                    isTransparent ? "text-white" : "text-black"
+                  )}
+                >
                   <Search className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
@@ -300,7 +355,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                       SEARCH
                     </SheetTitle>
                     <SheetDescription className="sr-only">Search for products by name or SKU.</SheetDescription>
-                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
+                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 mt-2 mr-2">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
                     </SheetClose>
@@ -316,33 +371,43 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                  </div>
-                   <ScrollArea className="flex-1 -mx-4 overflow-y-auto">
-                     {searchQuery.length >= 2 && (
-                      <div className="divide-y border-t mt-4 px-4 pb-20">
-                        {filteredProducts.length === 0 ? (
-                          <div className="p-8 text-center text-[10px] font-bold text-black/40 uppercase tracking-widest">No products found.</div>
-                        ) : (
-                          filteredProducts.map((p: any) => (
-                            <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setSearchQuery(''); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
-                              <div className="w-12 h-12 relative bg-gray-100 border shrink-0">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill sizes="48px" className="object-cover" />}</div>
-                              <div className="flex-1 flex flex-col justify-start pt-0.5 min-w-0">
-                                <h3 className="text-[10px] text-black font-bold uppercase leading-tight">{p.name}</h3>
-                                <p className="text-[9px] font-bold text-black/40 uppercase tracking-wider">C${Number(p.price).toFixed(2)}</p>
-                              </div>
-                            </Link>
-                          ))
-                        )}
+                    
+                    {searchQuery.length >= 2 && (
+                      <div className="absolute top-[calc(100%+8px)] left-0 right-0 w-full bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-[999] overflow-hidden rounded-lg animate-in fade-in zoom-in-95 duration-200">
+                        <ScrollArea className="h-[400px]">
+                          {filteredProducts.length === 0 ? (
+                            <div className="p-8 text-center text-[10px] font-bold text-black/40 uppercase tracking-widest">No products found.</div>
+                          ) : (
+                            <div className="divide-y">
+                              {filteredProducts.map((p: any) => (
+                                <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setSearchQuery(''); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
+                                  <div className="w-12 h-12 relative bg-gray-100 border shrink-0">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill sizes="48px" className="object-cover" />}</div>
+                                  <div className="flex-1 flex flex-col justify-start pt-0.5 min-w-0">
+                                    <h3 className="text-[10px] text-black font-bold uppercase leading-tight">{p.name}</h3>
+                                    <p className="text-[9px] font-bold text-black/40 uppercase tracking-wider">C${Number(p.price).toFixed(2)}</p>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </ScrollArea>
                       </div>
                     )}
-                  </ScrollArea>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-9 w-9 text-black focus-visible:ring-0 focus-visible:ring-offset-0 hidden lg:flex shrink-0">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={cn(
+                    "relative h-9 w-9 focus-visible:ring-0 focus-visible:ring-offset-0 hidden lg:flex shrink-0 transition-colors duration-300",
+                    isTransparent ? "text-white" : "text-black"
+                  )}
+                >
                   <CircleUser className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -372,7 +437,14 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
 
             <Sheet open={isWishlistOpen} onOpenChange={setIsWishlistOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-10 w-10 text-black">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={cn(
+                    "relative h-10 w-10 transition-colors duration-300",
+                    isTransparent ? "text-white" : "text-black"
+                  )}
+                >
                   <Heart className="h-5 w-5" />
                   {wishlistCount > 0 && <span className="absolute top-1 right-1 bg-red-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black shadow-sm transition-all duration-300 animate-in zoom-in">{wishlistCount}</span>}
                 </Button>
@@ -472,7 +544,14 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
 
             <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-10 w-10 text-black">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={cn(
+                    "relative h-10 w-10 transition-colors duration-300",
+                    isTransparent ? "text-white" : "text-black"
+                  )}
+                >
                   <ShoppingBag className="h-5 w-5" />
                   {cartCount > 0 && <span className="absolute top-1 right-1 bg-red-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black shadow-sm transition-all duration-300 animate-in zoom-in">{cartCount}</span>}
                 </Button>
@@ -568,7 +647,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
           {!isAdmin && pathname === '/' && (
             <div className="fixed right-4 bottom-4 md:right-6 md:bottom-6 z-[60] flex flex-col gap-2 pointer-events-none">
               {isFlashActive && !isFlashPillDismissed && (
-                <div className="animate-in fade-in slide-in-from-top-4 duration-700 pointer-events-auto">
+                <div className="pointer-events-auto">
                   <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-full px-4 py-2 flex items-center gap-3 shadow-2xl group">
                     <div className="flex items-center gap-2 pr-3 border-r border-white/10">
                       <Zap className="h-3.5 w-3.5 text-orange-400 fill-orange-400 animate-pulse" />
@@ -586,7 +665,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                         />
                       )}
                       
-                      <Link href="/collections/all" className="text-[8px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-colors border-r border-white/10 pr-3">Shop Now</Link>
+                      <Link href="/collections/6v6eO9n6U7f8lI6i9iGk" className="text-[8px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-colors border-r border-white/10 pr-3">Shop Now</Link>
                       
                       <button 
                         onClick={(e) => {
@@ -612,7 +691,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
       {(mounted && theme?.reviewBadgeVisibility !== false) && (
         <div 
           className={cn(
-            "fixed transition-all duration-500 animate-in fade-in slide-in-from-right-10 duration-700 origin-right",
+            "fixed",
             (isMenuOpen || isCartOpen || isWishlistOpen) ? "z-0 opacity-0 pointer-events-none" : "z-40"
           )}
           style={{

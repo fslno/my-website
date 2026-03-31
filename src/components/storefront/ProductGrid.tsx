@@ -5,7 +5,7 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 import { cn } from '@/lib/utils';
 
@@ -92,8 +92,8 @@ export function ProductGrid({
 
   const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
 
-  // Fixed layout classes for the grid
-  const gridClasses = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16";
+  // Fixed layout classes for the grid: 2 columns on mobile, exactly 4 on desktop
+  const gridClasses = "grid grid-cols-2 md:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16 max-w-[1095.6px] mx-auto";
 
   const reviewsEnabled = reviewConfig?.enabled !== false;
 

@@ -370,25 +370,70 @@ export default function OrdersPage() {
                         onCheckedChange={(checked) => handleToggleSelect(order.id, !!checked)} 
                       />
                     </TableCell>
-                    <TableCell className="py-6">
-                      <div className="flex gap-4">
-                        <div className="flex -space-x-4 shrink-0">
-                          {(order.items || []).slice(0, 3).map((item: any, i: number) => (
-                            <div key={i} className="w-12 h-16 bg-gray-100 border border-white shadow-sm overflow-hidden z-[1] relative">
-                              {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                    <TableCell className="py-6 align-top">
+                      <div className="flex flex-col gap-6">
+                        {/* Customer Info */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-3">
+                            <p className="text-sm font-black uppercase tracking-tight text-black">
+                              {order.customer?.name || 'Guest Participant'}
+                            </p>
+                            {!order.viewed && (
+                              <Badge className="bg-red-600 text-white text-[7px] font-black tracking-tighter px-2 h-4 border-none rounded-none animate-pulse">NEW</Badge>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-col gap-1">
+                            {order.customer?.phone && (
+                              <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 drop-shadow-sm">
+                                <Phone className="h-3 w-3 text-emerald-600" /> {order.customer.phone}
+                              </p>
+                            )}
+                            {(() => {
+                              const address = order.customer?.shipping || order.customer?.billing;
+                              if (!address) return null;
+                              return (
+                                <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 leading-tight">
+                                  <MapPin className="h-3 w-3 text-blue-600" /> 
+                                  {address.address}, {address.city}, {address.postalCode}
+                                </p>
+                              );
+                            })()}
+                            {order.email && (
+                              <p className="text-[9px] font-medium text-gray-400 lowercase flex items-center gap-1.5">
+                                <Mail className="h-2.5 w-2.5" /> {order.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Detailed Items List */}
+                        <div className="space-y-3 bg-gray-50/50 p-3 border border-dashed border-gray-200">
+                          <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 border-b border-gray-200 pb-1 flex justify-between items-center">
+                            <span>Order Items ({(order.items || []).length})</span>
+                            <Package className="h-2.5 w-2.5" />
+                          </p>
+                          {(order.items || []).map((item: any, i: number) => (
+                            <div key={i} className="flex gap-4 items-start group/item">
+                              <div className="w-10 h-14 bg-white shrink-0 border border-gray-200 shadow-sm relative overflow-hidden">
+                                {item.image && <img src={item.image} alt="" className="object-cover w-full h-full group-hover/item:scale-110 transition-transform duration-300" />}
+                              </div>
+                              <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
+                                <p className="text-[11px] font-black uppercase text-black truncate leading-tight">{item.name}</p>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                  <span className="text-[9px] font-black text-gray-500 uppercase bg-gray-100 px-1.5 py-0.5 rounded-sm">Size: {item.size || 'N/A'}</span>
+                                  {(item.customName || item.customNumber) && (
+                                    <span className="text-[9px] font-black text-blue-700 uppercase bg-blue-50 px-1.5 py-0.5 rounded-sm flex items-center gap-1">
+                                      <Sparkles className="h-2.5 w-2.5" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                    </span>
+                                  )}
+                                  {item.quantity > 1 && (
+                                    <span className="text-[9px] font-black text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Qty: {item.quantity}</span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           ))}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-black uppercase tracking-tight text-black truncate mb-1">
-                            {order.customer?.name || 'Guest Participant'}
-                          </p>
-                          <div className="flex items-center gap-2">
-                             {!order.viewed && <Badge className="bg-red-600 text-white text-[7px] font-black tracking-tighter px-1 h-3.5 border-none rounded-none">NEW</Badge>}
-                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-                               {(order.items || []).length} ITEMS
-                             </p>
-                          </div>
                         </div>
                       </div>
                     </TableCell>
@@ -454,17 +499,39 @@ export default function OrdersPage() {
                     {getStatusBadge(order.status)}
                   </div>
 
-                  <div className="flex items-center gap-4">
-                     <div className="flex -space-x-4">
-                       {(order.items || []).slice(0, 3).map((item: any, i: number) => (
-                         <div key={i} className="w-10 h-14 bg-gray-100 border border-white shadow-sm overflow-hidden z-[1] relative">
-                           {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
-                         </div>
-                       ))}
-                     </div>
+                  <div className="flex flex-col gap-4">
+                     {/* Mobile Customer Info */}
                      <div className="min-w-0">
-                       <p className="text-[11px] font-black uppercase text-black truncate leading-tight">{order.customer?.name || 'Guest Participant'}</p>
-                       <p className="text-[9px] font-bold text-gray-400 uppercase mt-0.5">{(order.items || []).length} ITEMS</p>
+                        <p className="text-[13px] font-black uppercase text-black leading-tight mb-1">{order.customer?.name || 'Guest Participant'}</p>
+                        <div className="flex flex-col gap-1">
+                          {order.customer?.phone && <p className="text-[10px] font-bold text-gray-700 flex items-center gap-1"><Phone className="h-3 w-3 text-emerald-600" /> {order.customer.phone}</p>}
+                          {(() => {
+                            const address = order.customer?.shipping || order.customer?.billing;
+                            if (!address) return null;
+                            return <p className="text-[10px] font-bold text-gray-700 flex items-center gap-1"><MapPin className="h-3 w-3 text-blue-600" /> {address.address}, {address.city}</p>;
+                          })()}
+                        </div>
+                     </div>
+
+                     {/* Mobile Item List */}
+                     <div className="space-y-3 bg-gray-50 p-3 border border-[#e1e3e5]">
+                        <p className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-2 border-b pb-1">Items List</p>
+                        {(order.items || []).map((item: any, i: number) => (
+                          <div key={i} className="flex gap-3 items-start">
+                            <div className="w-8 h-10 bg-white shrink-0 border border-gray-200 shadow-xs relative overflow-hidden">
+                              {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-black uppercase text-black truncate leading-tight">{item.name}</p>
+                              <div className="flex flex-wrap gap-x-2 mt-0.5">
+                                <span className="text-[8px] font-black text-gray-500 uppercase">Size: {item.size || 'N/A'}</span>
+                                {(item.customName || item.customNumber) && (
+                                  <span className="text-[8px] font-black text-blue-600 uppercase flex items-center gap-1">✦ {item.customName} {item.customNumber}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                      </div>
                   </div>
 

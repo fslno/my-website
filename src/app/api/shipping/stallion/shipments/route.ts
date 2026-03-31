@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebase-admin';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 const STALLION_BASE_URL = 'https://stallionexpress.ca/api/v1';
 const SYNC_API_KEY = '4disCJPKssZQwxz5fHzN532w4Y0WW3eZGWXDQ0VJ9e7rbgiUz0qIswiH568H';

@@ -6,7 +6,7 @@ import { collection, query, orderBy, limit, where, doc } from 'firebase/firestor
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { Loader2, Sparkles } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 
 /**
  * Featured Products section.
@@ -109,7 +109,7 @@ export function FeaturedProducts() {
           <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight">Featured Products</h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-16 max-w-[1095.6px] mx-auto">
           {products.map((product: any) => {
             const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'General';
             const ratingInfo = productRatings[product.id];

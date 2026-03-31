@@ -1,7 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { getAdminDb } from '@/lib/firebase-admin';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 import { CollectionPageContent } from './CollectionPageContent';
 
 interface PageProps {

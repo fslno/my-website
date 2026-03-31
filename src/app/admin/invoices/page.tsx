@@ -44,7 +44,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 import { queueNotification, formatProductList, formatProductListHtml } from '@/lib/notifications';
 
 interface InvoiceItem {

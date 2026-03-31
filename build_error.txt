@@ -1,0 +1,27 @@
+﻿npx : ΓÜá `eslint` configuration in next.config.ts is no 
+longer supported. See more info here: https://nextjs.org/d
+ocs/app/api-reference/cli/next#next-lint-options
+At line:1 char:1
++ npx next build 2>&1 | Out-File -FilePath 
+build_error.txt -Encoding ut ...
++ ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ΓÜá `eslint` 
+    co...xt-lint-options:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ΓÜá Invalid next.config.ts options detected: 
+ΓÜá     Unrecognized key(s) in object: 'eslint'
+ΓÜá See more info here: 
+https://nextjs.org/docs/messages/invalid-next-config
+
+> Build error occurred
+Error: EPERM: operation not permitted, rmdir 
+'C:\Users\kingf\OneDrive\Desktop\fslno sport 
+website\.next\build\chunks'
+    at ignore-listed frames {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'rmdir',
+  path: 'C:\\Users\\kingf\\OneDrive\\Desktop\\fslno sport 
+website\\.next\\build\\chunks'
+}

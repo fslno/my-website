@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { Star, Zap } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { getLivePath } from '@/lib/deployment';
+import { getLivePath } from '@/lib/paths';
 import { useCart } from '@/context/CartContext';
 
 interface ProductCardProps {
@@ -133,43 +133,27 @@ export function ProductCard({
           {name}
         </Link>
 
-        {theme?.cardReviewPosition === 'above' && reviewCount && reviewCount > 0 && (
-          <div className="flex items-center gap-1 mt-1 card-review-style">
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={cn(
-                    "h-2 sm:h-2.5 w-2 sm:w-2.5",
-                    s <= Math.round(rating || 0) ? "card-review-star-fill" : "text-gray-200"
-                  )}
-                />
-              ))}
-            </div>
-            <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
-          </div>
-        )}
-
         {sku && (
           <p className="uppercase tracking-[0.2em] sm:tracking-[0.25em] font-bold leading-none truncate mt-0.5 card-sku-style">
             {showBrand && brand ? `${brand} • ` : ''}{sku}
           </p>
         )}
 
-        {(theme?.cardReviewPosition === 'below' || !theme?.cardReviewPosition) && reviewCount && reviewCount > 0 && (
-          <div className="flex items-center gap-1 mt-1 card-review-style">
+        {(reviewCount || 0) > 0 && (
+          <div className="flex items-center gap-1 mt-1">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star
                   key={s}
+                  style={s <= Math.round(rating || 0) ? { fill: '#facc15', color: '#facc15' } : {}}
                   className={cn(
-                    "h-2 sm:h-2.5 w-2 sm:w-2.5",
-                    s <= Math.round(rating || 0) ? "card-review-star-fill" : "text-gray-200"
+                    "h-2 sm:h-2.5 w-2 sm:w-2.5 transition-all duration-300",
+                    s <= Math.round(rating || 0) ? "" : "text-gray-200"
                   )}
                 />
               ))}
             </div>
-            <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">({reviewCount})</span>
+            <span className="text-[8px] sm:text-[9px] font-bold text-black uppercase tracking-widest ml-1">({reviewCount})</span>
           </div>
         )}
       </div>
