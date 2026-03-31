@@ -85,7 +85,8 @@ export default async function ProductDetailPage(props: PageProps) {
     const productDoc = await adminDb.doc(`products/${productId}`).get();
     
     if (productDoc.exists) {
-      const data = productDoc.data();
+      const rawData = productDoc.data() || {};
+      const data = JSON.parse(JSON.stringify(rawData));
       product = { id: productDoc.id, ...data } as Product;
 
       // Fetch aggregate ratings (using 'published' as the flag)

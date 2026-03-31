@@ -67,7 +67,7 @@ export default async function Page(props: PageProps) {
     }
 
     const snapshot = await productsQuery.get();
-    products = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+    products = snapshot.docs.map((doc: any) => ({ id: doc.id, ...JSON.parse(JSON.stringify(doc.data() || {})) }));
   } catch (err) {
     console.warn("[COLLECTION_SSR_FETCH_ERROR]", err);
   }

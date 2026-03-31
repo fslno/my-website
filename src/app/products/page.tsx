@@ -35,7 +35,7 @@ export default async function ProductsPage() {
     
     if (snapshot && snapshot.docs) {
       products = snapshot.docs.map((doc: any) => {
-        const data = doc.data() || {};
+        const data = JSON.parse(JSON.stringify(doc.data() || {}));
         return { id: doc.id, ...data };
       });
     }
