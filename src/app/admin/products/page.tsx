@@ -41,8 +41,13 @@ import {
   Sparkles,
   Images as ImagesIcon,
   FileText,
-  Crop
+  Crop,
+  Mic,
+  ScanLine,
+  AlertTriangle,
+  Volume2
 } from 'lucide-react';
+import { BarcodeScanner } from '@/components/admin/BarcodeScanner';
 import { ImageCropper } from '@/components/admin/ImageCropper';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -59,7 +64,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useIsAdmin, useStorage } from '@/firebase';
-import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, serverTimestamp, writeBatch, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -68,6 +73,7 @@ import { Badge } from '@/components/ui/badge';
 import NextImage from 'next/image';
 import { cn } from '@/lib/utils';
 import { adminGenerateProductDescription } from '@/ai/flows/admin-generate-product-description';
+import { getLivePath } from '@/lib/paths';
 
 interface MediaItem {
   url: string;
@@ -157,6 +163,10 @@ export default function ProductsPage() {
   const [shippingClass, setShippingClass] = useState('standard');
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [features, setFeatures] = useState('');
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState('10');
+  const [globalVariantLowStockThreshold, setGlobalVariantLowStockThreshold] = useState('5');
 
   // Drag and Drop State
   const [draggedMediaIndex, setDraggedMediaIndex] = useState<number | null>(null);
@@ -166,10 +176,115 @@ export default function ProductsPage() {
   const [processedFiles, setProcessedFiles] = useState<File[]>([]);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  
+  const [showBrand, setShowBrand] = useState(true);
+  const [showSku, setShowSku] = useState(true);
+  const [showLowStockAlert, setShowLowStockAlert] = useState(true);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (storeConfig) {
+      setGlobalLowStockThreshold((storeConfig.globalLowStockThreshold ?? 10).toString());
+      setGlobalVariantLowStockThreshold((storeConfig.globalVariantLowStockThreshold ?? 5).toString());
+      setShowBrand(storeConfig.showBrandStorefront !== false);
+      setShowSku(storeConfig.showSkuStorefront !== false);
+      setShowLowStockAlert(storeConfig.showLowStockAlertStorefront !== false);
+    }
+  }, [storeConfig]);
+
+  // Debounced Auto-Save for Thresholds
+  useEffect(() => {
+    if (!hasMounted || !isDirty) return;
+    const timeout = setTimeout(() => {
+      updateGlobalThresholds(globalLowStockThreshold, globalVariantLowStockThreshold);
+      setIsDirty(false);
+    }, 1500);
+    return () => clearTimeout(timeout);
+  }, [globalLowStockThreshold, globalVariantLowStockThreshold, hasMounted, isDirty]);
+
+  const updateDisplayOptions = async (field: 'showBrandStorefront' | 'showSkuStorefront' | 'showLowStockAlertStorefront', value: boolean) => {
+    if (!db) return;
+    try {
+      await updateDoc(doc(db, 'config', 'store'), {
+        [field]: value,
+        updatedAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.error("Display option update failed", err);
+    }
+  };
+
+  const updateGlobalThresholds = async (totalVal: string, sizeVal: string) => {
+    if (!db) return;
+    setIsSaving(true);
+    try {
+      const totalNum = parseInt(totalVal) || 0;
+      const sizeNum = parseInt(sizeVal) || 0;
+
+      // 1. Update the global config
+      await updateDoc(doc(db, 'config', 'store'), {
+        globalLowStockThreshold: totalNum,
+        globalVariantLowStockThreshold: sizeNum,
+        updatedAt: serverTimestamp()
+      });
+
+      // 2. Bulk update all products to use these values "rightaway"
+      const productsPath = getLivePath('products');
+      const snapshot = await getDocs(collection(db, productsPath));
+      
+      let batch = writeBatch(db);
+      let count = 0;
+      let totalUpdated = 0;
+
+      for (const d of snapshot.docs) {
+        const data = d.data();
+        // Update product level threshold and individual variant thresholds
+        const updatedVariants = (data.variants || []).map((v: any) => ({
+          ...v,
+          lowStockThreshold: sizeNum
+        }));
+
+        batch.update(d.ref, {
+          lowStockThreshold: totalNum,
+          variantLowStockThreshold: sizeNum,
+          variants: updatedVariants,
+          updatedAt: serverTimestamp()
+        });
+
+        count++;
+        totalUpdated++;
+        
+        // Firestore batch limit is 500
+        if (count >= 500) {
+          await batch.commit();
+          batch = writeBatch(db);
+          count = 0;
+        }
+      }
+
+      if (count > 0) {
+        await batch.commit();
+      }
+
+      toast({ 
+        title: "Inventory Synced Successfully", 
+        description: `Updated thresholds for ${totalUpdated} products and their variants.` 
+      });
+    } catch (err) {
+      console.error("Threshold sync failed", err);
+      toast({ 
+        variant: "destructive",
+        title: "Sync Error", 
+        description: "Failed to synchronize some products. Please try again." 
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleDragStartMedia = (index: number) => {
     setDraggedMediaIndex(index);
@@ -463,6 +578,43 @@ export default function ProductsPage() {
       });
     };
     reader.readAsText(file);
+  };
+
+  const startVoiceSearch = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ 
+        variant: "destructive", 
+        title: "Not Supported", 
+        description: "Your browser does not support Voice Search." 
+      });
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchQuery(transcript);
+      toast({ title: "Voice Search", description: `Searching for: "${transcript}"` });
+    };
+    recognition.onerror = (event: any) => {
+      console.error("Speech Recognition Error:", event.error);
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
+  const handleBarcodeScan = (code: string) => {
+    setSearchQuery(code);
+    setIsScannerOpen(false);
+    toast({ title: "Barcode Scanned", description: `Searching for SKU: ${code}` });
   };
 
   const generateSku = (productName: string) => {
@@ -806,23 +958,42 @@ export default function ProductsPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Products</h1>
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Add, edit, and manage your products.</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto bg-black hover:bg-black/90 text-white font-bold h-10 gap-2">
-              <Plus className="h-4 w-4" /> Add Product
+
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <Button 
+              onClick={() => {
+                updateGlobalThresholds(globalLowStockThreshold, globalVariantLowStockThreshold);
+                setIsDirty(false);
+              }}
+              disabled={isSaving}
+              className={cn(
+                "h-10 px-6 gap-2 font-bold uppercase tracking-widest text-[10px] transition-all duration-500 shadow-lg",
+                isDirty 
+                  ? "bg-orange-600 hover:bg-orange-700 text-white ring-4 ring-orange-500/20" 
+                  : "bg-white border text-gray-400 hover:text-black shadow-none"
+              )}
+            >
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {isSaving ? 'Syncing...' : 'Save & Sync'}
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
-            <DialogHeader className="p-4 sm:p-6 border-b shrink-0 flex flex-row items-center justify-between">
-              <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setIsDialogOpen(false)} 
-                  className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] hidden xs:flex items-center text-muted-foreground hover:text-black transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to Previous</span>
+
+            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+              <DialogTrigger asChild>
+                <Button className="flex-1 sm:flex-none bg-black hover:bg-black/90 text-white font-bold h-10 gap-2">
+                  <Plus className="h-4 w-4" /> Add Product
                 </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[100vw] w-screen h-screen m-0 rounded-none bg-white flex flex-col p-0 border-none">
+                <DialogHeader className="p-4 sm:p-6 border-b shrink-0 flex flex-row items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setIsDialogOpen(false)} 
+                      className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] hidden xs:flex items-center text-muted-foreground hover:text-black transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to Previous</span>
+                    </Button>
                 <DialogTitle className="text-lg sm:text-xl font-headline font-bold uppercase tracking-tight truncate">
                   {editingId ? `Edit: ${name}` : 'New Product'}
                 </DialogTitle>
@@ -1124,9 +1295,10 @@ export default function ProductsPage() {
                 </Button>
               </DialogFooter>
             </Tabs>
-          </DialogContent>
-        </Dialog>
-      </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
 
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
         {selectedIds.length > 0 && (
@@ -1254,7 +1426,36 @@ export default function ProductsPage() {
         </div>
 
         <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row items-center justify-between gap-4">
-          <div className="relative w-full lg:flex-1 lg:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" /><Input placeholder="Search products..." className="pl-10 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
+          <div className="relative w-full lg:flex-1 lg:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
+            <Input 
+              placeholder="Search products..." 
+              className="pl-10 pr-24 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+            />
+            <div className="absolute right-0 top-0 h-full flex items-center pr-1 gap-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={startVoiceSearch}
+                className={cn(
+                  "h-8 w-8 rounded-none transition-colors",
+                  isListening ? "text-blue-500 bg-blue-50" : "text-gray-400 hover:text-black hover:bg-gray-100"
+                )}
+              >
+                <Mic className={cn("h-4 w-4", isListening && "animate-pulse")} />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsScannerOpen(true)}
+                className="h-8 w-8 rounded-none text-gray-400 hover:text-black hover:bg-gray-100"
+              >
+                <ScanLine className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto">
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="lg:hidden flex items-center gap-3 mr-3 border-r pr-4 border-[#e1e3e5]">
@@ -1328,7 +1529,7 @@ export default function ProductsPage() {
                         />
                       </TableCell>
                       <TableCell><div className="w-16 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{product.media?.[0]?.url ? (product.media[0].type === 'video' ? <video src={product.media[0].url} className="object-cover w-full h-full" /> : <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" />) : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
-                      <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span></div></TableCell>
+                      <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><div className="flex flex-wrap gap-2 items-center">{showBrand && product.brand && <span className="text-[9px] uppercase tracking-widest text-blue-600 font-bold bg-blue-50 px-1 rounded-sm">{product.brand}</span>}{showSku && <span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span>}</div></div></TableCell>
                       <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'None'}</div></TableCell>
                       <TableCell className="py-4">
                         {(() => {
@@ -1456,7 +1657,8 @@ export default function ProductsPage() {
                     <div className="w-16 h-20 bg-gray-100 relative overflow-hidden border shrink-0 shadow-sm">{product.media?.[0]?.url ? (product.media[0].type === 'video' ? <video src={product.media[0].url} className="object-cover w-full h-full" /> : <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" />) : <Layers className="h-6 w-6 text-gray-200" />}</div>
                     <div className="flex-1 min-0 space-y-1">
                       <div className="flex justify-between items-start gap-2"><h3 className="font-bold text-xs uppercase line-clamp-2 leading-tight">{product.name}</h3><span className="font-bold text-xs shrink-0">C${formatCurrency(Number(product.price))}</span></div>
-                      <p className="text-[9px] font-mono text-gray-400 uppercase truncate">SKU: {product.sku || 'N/A'}</p>
+                      {showSku && <p className="text-[9px] font-mono text-gray-400 uppercase truncate">SKU: {product.sku || 'N/A'}</p>}
+                      {showBrand && product.brand && <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-1.5 w-fit rounded-sm mt-1">{product.brand}</p>}
                       <div className="flex flex-wrap gap-2 pt-1">
                         <Badge variant="outline" className="text-[8px] h-4 font-bold uppercase tracking-tighter border-none bg-gray-100 text-gray-600 px-1.5"><Tag className="h-2 w-2 mr-1" /> {category?.name || 'None'}</Badge>
                         <Badge 
@@ -1516,6 +1718,173 @@ export default function ProductsPage() {
             </div>
           )}
         </div>
+
+        <div className="mt-12 space-y-10 pt-8 border-t border-gray-100 pb-24">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Settings2 className="h-6 w-6 text-orange-500 fill-orange-500/5" strokeWidth={2.5} />
+              <h2 className="text-[14px] uppercase tracking-[0.3em] font-heavy text-black">Global Storefront Controls</h2>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {isSaving ? (
+                <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full">
+                  <Loader2 className="h-3 w-3 text-orange-500 animate-spin" />
+                  <span className="text-[9px] uppercase font-bold tracking-[0.1em] text-orange-600">Syncing Changes...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full">
+                  <CheckCircle2 className="h-3 w-3 text-gray-400" />
+                  <span className="text-[9px] uppercase font-bold tracking-[0.1em] text-gray-500">All Changes Saved</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            {/* Display Visibility Controls */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <LayoutGrid className="h-5 w-5 text-orange-500 fill-orange-500/5" strokeWidth={2.5} />
+                <Label className="text-[12px] uppercase tracking-[0.25em] font-heavy text-orange-500">Storefront Layout</Label>
+              </div>
+              <div className="p-12 bg-white border-2 border-dashed border-orange-100 rounded-[2.5rem] space-y-10 shadow-sm/10">
+                {/* Brand Toggle */}
+                <div className="flex items-center gap-6 pb-6 border-b border-orange-50">
+                  <button 
+                    onClick={() => {
+                      const newVal = !showBrand;
+                      setShowBrand(newVal);
+                      updateDisplayOptions('showBrandStorefront', newVal);
+                    }}
+                    className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
+                      showBrand ? "bg-black" : "bg-gray-100"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-5 h-5 rounded-full bg-white transition-all duration-300",
+                      showBrand ? "opacity-100 scale-100" : "opacity-30 scale-75"
+                    )} />
+                  </button>
+                  <div className="flex flex-col">
+                    <span className="text-[12px] uppercase font-heavy tracking-[0.2em] text-black">All Brand Visibility</span>
+                    <span className="text-[9px] uppercase font-bold tracking-[0.1em] text-orange-400 mt-0.5">Toggle brand names on product cards</span>
+                  </div>
+                </div>
+
+                {/* SKU Toggle */}
+                <div className="flex items-center gap-6">
+                  <button 
+                    onClick={() => {
+                      const newVal = !showSku;
+                      setShowSku(newVal);
+                      updateDisplayOptions('showSkuStorefront', newVal);
+                    }}
+                    className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
+                      showSku ? "bg-black" : "bg-gray-100"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-5 h-5 rounded-full bg-white transition-all duration-300",
+                      showSku ? "opacity-100 scale-100" : "opacity-30 scale-75"
+                    )} />
+                  </button>
+                  <div className="flex flex-col">
+                    <span className="text-[12px] uppercase font-heavy tracking-[0.2em] text-black">Global SKU Toggle</span>
+                    <span className="text-[9px] uppercase font-bold tracking-[0.1em] text-orange-400 mt-0.5">Toggle SKU display globally</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Inventory Alerts Section */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-orange-500 fill-orange-500/5" strokeWidth={2.5} />
+                <Label className="text-[12px] uppercase tracking-[0.25em] font-heavy text-orange-500">Inventory Alert Levels</Label>
+              </div>
+              <div className="p-12 bg-white border-2 border-dashed border-orange-100 rounded-[2.5rem] space-y-10 shadow-sm/10 flex flex-col">
+                <div className="flex items-center gap-6 pb-6 border-b border-orange-50">
+                  <button 
+                    onClick={() => {
+                      const newVal = !showLowStockAlert;
+                      setShowLowStockAlert(newVal);
+                      updateDisplayOptions('showLowStockAlertStorefront', newVal);
+                    }}
+                    className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
+                      showLowStockAlert ? "bg-black" : "bg-gray-100"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-5 h-5 rounded-full bg-white transition-all duration-300",
+                      showLowStockAlert ? "opacity-100 scale-100" : "opacity-30 scale-75"
+                    )} />
+                  </button>
+                  <div className="flex flex-col">
+                    <span className="text-[12px] uppercase font-heavy tracking-[0.2em] text-black">Low Stock Alert</span>
+                    <span className="text-[9px] uppercase font-bold tracking-[0.1em] text-orange-400 mt-0.5">Toggle customer-facing alerts</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-12">
+                  <div className="space-y-5">
+                    <Label className="text-[12px] uppercase text-[#2d3748] font-heavy tracking-[0.12em]">Total Threshold</Label>
+                    <Input 
+                      type="number" 
+                      value={globalLowStockThreshold} 
+                      onChange={(e) => {
+                        setGlobalLowStockThreshold(e.target.value);
+                        setIsDirty(true);
+                      }} 
+                      disabled={isSaving}
+                      className="h-24 text-4xl font-bold bg-white border-gray-100 rounded-lg focus-visible:ring-0 focus-visible:border-orange-200 transition-all px-8 text-left shadow-none hover:border-orange-100/50" 
+                    />
+                    <p className="text-[10px] text-orange-500 font-heavy uppercase tracking-[0.2em]">All sizes combined</p>
+                  </div>
+                  <div className="space-y-5">
+                    <Label className="text-[12px] uppercase text-[#2d3748] font-heavy tracking-[0.12em]">Size Threshold</Label>
+                    <Input 
+                      type="number" 
+                      value={globalVariantLowStockThreshold} 
+                      onChange={(e) => {
+                        setGlobalVariantLowStockThreshold(e.target.value);
+                        setIsDirty(true);
+                      }} 
+                      disabled={isSaving}
+                      className="h-24 text-4xl font-bold bg-white border-gray-100 rounded-lg focus-visible:ring-0 focus-visible:border-orange-200 transition-all px-8 text-left shadow-none hover:border-orange-100/50" 
+                    />
+                    <p className="text-[10px] text-orange-500 font-heavy uppercase tracking-[0.2em]">Per individual size</p>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-orange-50 mt-4">
+                  <Button 
+                    onClick={() => {
+                      updateGlobalThresholds(globalLowStockThreshold, globalVariantLowStockThreshold);
+                      setIsDirty(false);
+                    }}
+                    disabled={isSaving}
+                    className={cn(
+                      "w-full h-16 bg-black text-white font-heavy uppercase tracking-[0.3em] text-[11px] rounded-2xl shadow-xl transition-all duration-500 hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] group",
+                      isDirty && "ring-4 ring-orange-500/20 bg-orange-600"
+                    )}
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-3 text-white" />
+                    ) : (
+                      <Save className={cn("h-4 w-4 mr-3 transition-transform duration-500 group-hover:rotate-12", isDirty ? "text-white" : "text-orange-500")} />
+                    )}
+                    {isSaving ? 'Syncing To Products...' : (isDirty ? 'Save & Sync Now' : 'Sync All Settings')}
+                  </Button>
+                  <p className="text-[8px] text-gray-400 font-bold uppercase tracking-[0.1em] text-center mt-4">Update all products in the database immediately.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <ImageCropper
@@ -1525,6 +1894,36 @@ export default function ProductsPage() {
         onCropComplete={handleCropComplete}
         onClose={() => setIsCropperOpen(false)}
       />
+
+      {isScannerOpen && (
+        <BarcodeScanner 
+          onScan={handleBarcodeScan} 
+          onClose={() => setIsScannerOpen(false)} 
+        />
+      )}
+
+      {/* Floating Save Bar */}
+      <div className={cn(
+        "fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 transform",
+        isDirty && !isSaving ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
+      )}>
+        <div className="bg-black text-white px-8 py-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 flex items-center gap-8 backdrop-blur-md">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-heavy uppercase tracking-[0.2em] text-orange-500">Unsaved Changes</span>
+            <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400 mt-0.5">Global thresholds modified</span>
+          </div>
+          <div className="h-8 w-[1px] bg-white/10" />
+          <Button 
+            onClick={() => {
+              updateGlobalThresholds(globalLowStockThreshold, globalVariantLowStockThreshold);
+              setIsDirty(false);
+            }}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-heavy uppercase tracking-[0.2em] text-[10px] h-11 px-8 rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+          >
+            <Save className="h-3.5 w-3.5 mr-2" /> Save & Sync Now
+          </Button>
+        </div>
+      </div>
     </div>
     </>
   );

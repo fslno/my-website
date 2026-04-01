@@ -144,12 +144,6 @@ export default function SettingsPage() {
   // Admin Identity
   const [adminBusinessName, setAdminBusinessName] = useState('');
   const [adminLogoUrl, setAdminLogoUrl] = useState('');
-
-  // Social Sales Channels
-  const [metaPixelId, setMetaPixelId] = useState('');
-  const [tiktokPixelId, setTiktokPixelId] = useState('');
-  const [instagramBusinessId, setInstagramBusinessId] = useState('');
-
   // Contact & Logistics
   const [address, setAddress] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
@@ -238,10 +232,8 @@ export default function SettingsPage() {
       setGlobalLowStockThreshold((storeConfig.globalLowStockThreshold ?? 10).toString());
       setGlobalVariantLowStockThreshold((storeConfig.globalVariantLowStockThreshold ?? 5).toString());
       
-      // Social Sales Channels Sync
-      setMetaPixelId(storeConfig.metaPixelId || '');
-      setTiktokPixelId(storeConfig.tiktokPixelId || '');
-      setInstagramBusinessId(storeConfig.instagramBusinessId || '');
+      // Compliance Sync
+      setTaxNexus(storeConfig.taxNexus || []);
     }
     if (themeData) {
       setChatbotEnabled(themeData.chatbotEnabled ?? true);
@@ -327,9 +319,6 @@ export default function SettingsPage() {
       multiLanguageEnabled,
       globalLowStockThreshold: parseInt(globalLowStockThreshold),
       globalVariantLowStockThreshold: parseInt(globalVariantLowStockThreshold),
-      metaPixelId,
-      tiktokPixelId,
-      instagramBusinessId,
       updatedAt: serverTimestamp()
     };
     setDoc(storeConfigRef, updates, { merge: true })
@@ -648,22 +637,6 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-orange-50/10 border border-dashed border-orange-100/30 space-y-4">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-orange-400" />
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-orange-400">Default Inventory Alert Levels</Label>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase text-gray-400">Total Threshold</Label>
-                        <Input type="number" value={globalLowStockThreshold} onChange={(e) => setGlobalLowStockThreshold(e.target.value)} className="h-9 text-xs font-bold" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase text-gray-400">Size Threshold</Label>
-                        <Input type="number" value={globalVariantLowStockThreshold} onChange={(e) => setGlobalVariantLowStockThreshold(e.target.value)} className="h-9 text-xs font-bold" />
-                      </div>
-                    </div>
-                  </div>
 
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Google Maps Coordination</Label>
@@ -687,54 +660,6 @@ export default function SettingsPage() {
                   />
                 </div>
 
-                <div className="p-4 bg-blue-50/10 border border-dashed border-blue-100/30 space-y-6 mt-6">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-blue-400" />
-                    <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-400">Social Sales Channels & Tracking</Label>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-1">
-                      <Label className="text-[8px] uppercase text-gray-400">Meta (Facebook/Instagram) Pixel ID</Label>
-                      <div className="relative">
-                        <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                        <Input placeholder="1234567890..." value={metaPixelId} onChange={(e) => setMetaPixelId(e.target.value)} className="pl-9 h-9 text-xs font-bold" />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[8px] uppercase text-gray-400">Instagram Business ID</Label>
-                      <div className="relative">
-                        <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                        <Input placeholder="INSTA_BIZ_123..." value={instagramBusinessId} onChange={(e) => setInstagramBusinessId(e.target.value)} className="pl-9 h-9 text-xs font-bold" />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[8px] uppercase text-gray-400">TikTok Pixel ID</Label>
-                      <div className="relative">
-                        <Zap className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                        <Input placeholder="TIKTOK_PIXEL_123..." value={tiktokPixelId} onChange={(e) => setTiktokPixelId(e.target.value)} className="pl-9 h-9 text-xs font-bold" />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-[8px] uppercase text-gray-400">Product Feed URL (Facebook/Instagram)</Label>
-                        <Badge variant="outline" className="text-[7px] uppercase tracking-tighter h-3.5 border-blue-200 text-blue-500">Auto Generated</Badge>
-                      </div>
-                      <div className="relative">
-                        <ShoppingBag className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                        <Input 
-                          readOnly 
-                          value={typeof window !== 'undefined' ? `${window.location.origin}/api/feeds/facebook` : ''} 
-                          className="pl-9 h-9 text-[10px] font-mono bg-gray-50 text-gray-500 cursor-help" 
-                          onClick={(e) => {
-                            (e.target as HTMLInputElement).select();
-                            navigator.clipboard.writeText((e.target as HTMLInputElement).value);
-                            toast({ title: "Copied to Clipboard", description: "Product feed URL updated for catalog synchronization." });
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 <div className="flex flex-col gap-6 p-4 sm:p-6 bg-black text-white border border-white/10 rounded-none shadow-xl">
                   <div className="flex items-center justify-between">

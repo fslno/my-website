@@ -55,13 +55,25 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
 const sportsFonts = [
+  // --- Athletic & Impactful ---
   "Anton", "Bebas Neue", "Oswald", "Teko", "Kanit", 
-  "Roboto Condensed", "Chakra Petch", "Rajdhani", "Titillium Web", "Exo 2", 
-  "Michroma", "Orbitron", "Montserrat", "Squada One", "Racing Sans One", 
-  "Archivo Black", "Russo One", "Black Ops One", "Stardos Stencil", "Syncopate", 
-  "Inter", "Playfair Display", "Cinzel", "Syne", "Space Mono", "Bodoni Moda", 
-  "Unbounded", "Italiana", "Tenor Sans", "Cormorant Garamond", "Fraunces", 
-  "Outfit", "DM Sans", "Host Grotesk", "Bricolage Grotesque"
+  "Archivo Black", "Russo One", "Black Ops One", "Squada One", 
+  "Racing Sans One", "Staatliches", "Big Shoulders Display", "Saira Stencil One",
+  "Chakra Petch", "Rajdhani",
+
+  // --- Modern & Clean E-commerce ---
+  "Inter", "Montserrat", "Outfit", "Urbanist", "Plus Jakarta Sans", 
+  "Public Sans", "Lexend", "Space Grotesk", "DM Sans", 
+  "Host Grotesk", "Bricolage Grotesque", "Work Sans", "Jost",
+
+  // --- Luxury & High-End Design ---
+  "Syncopate", "Michroma", "Syne", "Unbounded", "Bodoni Moda", 
+  "Cormorant Garamond", "Playfair Display", "Cinzel", "Tenor Sans", 
+  "Italiana", "Fraunces", "Belleza",
+
+  // --- Display & Technical ---
+  "Space Mono", "Orbitron", "Righteous", "Stardos Stencil", 
+  "Titillium Web", "Exo 2"
 ];
 
 const DEFAULT_THEME = {

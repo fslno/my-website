@@ -138,6 +138,7 @@ export function FeaturedProducts() {
                 rating={avgRating}
                 reviewCount={reviewCount}
                 isSoldOut={isSoldOut}
+                inventory={totalStock}
               />
             );
           })}

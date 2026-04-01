@@ -841,7 +841,7 @@ export default function OrderDetailPage(props: PageProps) {
               {firstOrderDate && (
                 <div className="flex items-center gap-1.5 pb-2">
                   <History className="h-2.5 w-2.5 text-gray-400" />
-                  <span className="text-[9px] font-bold uppercase text-gray-400">Customer Since {firstOrderDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                  <span className="text-[9px] font-bold uppercase text-gray-400">Customer Since {formatDate(firstOrderDate)}</span>
                 </div>
               )}
 

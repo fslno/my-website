@@ -24,7 +24,10 @@ import {
   Lock,
   Target,
   X,
-  PlusCircle
+  PlusCircle,
+  Facebook,
+  ShoppingBag,
+  Globe
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -72,12 +75,16 @@ export default function SocialCommercePage() {
   const [tiktokToken, setTiktokToken] = useState('');
   const [pixelId, setPixelId] = useState('');
   const [metaToken, setMetaToken] = useState('');
+  const [instagramBusinessId, setInstagramBusinessId] = useState('');
+  const [tiktokPixelId, setTiktokPixelId] = useState('');
 
   useEffect(() => {
     if (config) {
       setTiktokToken(config.tiktokAccessToken || '');
       setPixelId(config.metaPixelId || '');
       setMetaToken(config.metaAccessToken || '');
+      setInstagramBusinessId(config.instagramBusinessId || '');
+      setTiktokPixelId(config.tiktokPixelId || '');
     }
   }, [config]);
 
@@ -89,6 +96,8 @@ export default function SocialCommercePage() {
       metaPixelId: '',
       metaAccessToken: '',
       metaEmqEnabled: true,
+      instagramBusinessId: '',
+      tiktokPixelId: '',
       lastInstagramSync: null,
       customIntegrations: []
     };
@@ -117,7 +126,9 @@ export default function SocialCommercePage() {
     const updates = {
       tiktokAccessToken: tiktokToken,
       metaPixelId: pixelId,
-      metaAccessToken: metaToken
+      metaAccessToken: metaToken,
+      instagramBusinessId,
+      tiktokPixelId
     };
     handleUpdate(updates);
     setTimeout(() => {
@@ -373,6 +384,49 @@ export default function SocialCommercePage() {
                 </div>
               </div>
             </div>
+
+            <div className="pt-6 border-t space-y-6">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-blue-400" />
+                <Label className="text-[9px] uppercase tracking-widest font-bold text-blue-400">Native Platform IDs</Label>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <Label className="text-[8px] uppercase text-gray-400 font-bold">Instagram Business ID</Label>
+                  <div className="relative">
+                    <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <Input placeholder="INSTA_BIZ_123..." value={instagramBusinessId} onChange={(e) => setInstagramBusinessId(e.target.value)} className="pl-9 h-9 text-xs font-bold" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[8px] uppercase text-gray-400 font-bold">TikTok Pixel ID</Label>
+                  <div className="relative">
+                    <Zap className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <Input placeholder="TIKTOK_PIXEL_123..." value={tiktokPixelId} onChange={(e) => setTiktokPixelId(e.target.value)} className="pl-9 h-9 text-xs font-bold" />
+                  </div>
+                </div>
+                <div className="md:col-span-2 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[8px] uppercase text-gray-400 font-bold">Product Feed URL (Facebook/Instagram)</Label>
+                    <Badge variant="outline" className="text-[7px] uppercase tracking-tighter h-3.5 border-blue-200 text-blue-500">Auto Generated</Badge>
+                  </div>
+                  <div className="relative">
+                    <ShoppingBag className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <Input 
+                      readOnly 
+                      value={typeof window !== 'undefined' ? `${window.location.origin}/api/feeds/facebook` : ''} 
+                      className="pl-9 h-9 text-[10px] font-mono bg-gray-50 text-gray-500 cursor-help" 
+                      onClick={(e) => {
+                        (e.target as HTMLInputElement).select();
+                        navigator.clipboard.writeText((e.target as HTMLInputElement).value);
+                        toast({ title: "Copied to Clipboard", description: "Product feed URL updated for catalog synchronization." });
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="space-y-1">
                 <p className="text-[11px] font-bold uppercase tracking-tight flex items-center gap-2">

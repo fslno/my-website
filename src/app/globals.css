@@ -71,7 +71,14 @@
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
-  background-color: #FFFFFF;
+  background-color: #f7f7f7; /* Subtle light gray background for loading stability */
+}
+
+/* Ensure the product card container doesn't shift when content wraps */
+.product-text-align {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 /* Smooth transition for data hydration */

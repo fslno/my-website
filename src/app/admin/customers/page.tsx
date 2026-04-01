@@ -386,8 +386,15 @@ export default function CustomersPage() {
                           </div>
                         )}
                       </div>
+                    <TableCell className="pr-6">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ArrowRight className="h-4 w-4 text-gray-400" />
+                      </Button>
                     </TableCell>
-                    <TableCell className="pr-6"><Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"><ArrowRight className="h-4 w-4 text-gray-400" /></Button></TableCell>
                   </TableRow>
                 ))
               )}

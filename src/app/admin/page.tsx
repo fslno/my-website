@@ -97,12 +97,13 @@ export default function AdminDashboard() {
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    return query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(500));
+    // Limit dashboard summary to last 100 most recent records initially for speed
+    return query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100));
   }, [db, isAdmin]);
 
   const usersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    return query(collection(db, 'users'), limit(500));
+    return query(collection(db, 'users'), limit(100));
   }, [db, isAdmin]);
 
   const { data: orders, isLoading: ordersLoading } = useCollection(ordersQuery);
@@ -216,16 +217,22 @@ export default function AdminDashboard() {
       }
     }).reverse();
 
+    // Optimize with a Map for O(1) lookup during data point aggregation
+    const dataMap = new Map();
+    dataPoints.forEach(p => {
+      if (unit === 'hour') dataMap.set(`${new Date(p.time!).getDate()}-${new Date(p.time!).getHours()}`, p);
+      else if (unit === 'month') dataMap.set(`${p.year}-${p.month}`, p);
+      else dataMap.set(p.date, p);
+    });
+
     fOrders.forEach(order => {
       const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-      const point = dataPoints.find(p => {
-        if (unit === 'hour') {
-          return new Date(p.time!).getHours() === orderDate.getHours() && new Date(p.time!).getDate() === orderDate.getDate();
-        } else if (unit === 'month') {
-          return (p as any).month === orderDate.getMonth() && (p as any).year === orderDate.getFullYear();
-        }
-        return (p as any).date === orderDate.toLocaleDateString();
-      });
+      let key = "";
+      if (unit === 'hour') key = `${orderDate.getDate()}-${orderDate.getHours()}`;
+      else if (unit === 'month') key = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
+      else key = orderDate.toLocaleDateString();
+
+      const point = dataMap.get(key);
       if (point) {
         point.sales += (Number(order.total) || 0);
         point.tax += (Number(order.tax) || 0);
@@ -236,14 +243,12 @@ export default function AdminDashboard() {
 
     fUsers.forEach(u => {
       const userDate = u.createdAt?.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
-      const point = dataPoints.find(p => {
-        if (unit === 'hour') {
-          return new Date(p.time!).getHours() === userDate.getHours() && new Date(p.time!).getDate() === userDate.getDate();
-        } else if (unit === 'month') {
-          return (p as any).month === userDate.getMonth() && (p as any).year === userDate.getFullYear();
-        }
-        return (p as any).date === userDate.toLocaleDateString();
-      });
+      let key = "";
+      if (unit === 'hour') key = `${userDate.getDate()}-${userDate.getHours()}`;
+      else if (unit === 'month') key = `${userDate.getFullYear()}-${userDate.getMonth()}`;
+      else key = userDate.toLocaleDateString();
+
+      const point = dataMap.get(key);
       if (point) {
         point.members += 1;
       }

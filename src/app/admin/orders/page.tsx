@@ -158,6 +158,7 @@ export default function OrdersPage() {
 
   // Handle individual status update (Optimistic)
   const updateOrderStatus = async (orderId: string, updates: any) => {
+    if (!db) return;
     // 1. Optimistic Update
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates } : o));
     
@@ -183,7 +184,7 @@ export default function OrdersPage() {
   const [bulkEditValue, setBulkEditValue] = useState('');
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [viewMode, setViewMode] = useState<'compact' | 'expanded'>('expanded');
+  const [viewMode, setViewMode] = useState<'compact' | 'expanded'>('compact');
   const [idToDelete, setIdToDelete] = useState<string | null>(null);
   const lastSelectedId = React.useRef<string | null>(null);
 
@@ -269,6 +270,10 @@ export default function OrdersPage() {
         });
       });
       await batch.commit();
+      
+      const updates = { [bulkEditField]: bulkEditValue, updatedAt: new Date() };
+      setOrders(prev => prev.map(o => selectedIds.includes(o.id) ? { ...o, ...updates } : o));
+
       toast({ 
         title: "Bulk Update Successful", 
         description: `${selectedIds.length} orders updated for field ${bulkEditField}.` 
@@ -293,6 +298,9 @@ export default function OrdersPage() {
         batch.delete(doc(db, 'orders', id));
       });
       await batch.commit();
+
+      setOrders(prev => prev.filter(o => !ids.includes(o.id)));
+
       toast({ 
         title: "Delete Successful", 
         description: `${ids.length} order${ids.length > 1 ? 's were' : ' was'} permanently removed.` 
@@ -555,28 +563,30 @@ export default function OrdersPage() {
                             )}
                           </div>
                           
-                          <div className="flex flex-col gap-1">
-                            {order.customer?.phone && (
-                              <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 drop-shadow-sm">
-                                <Phone className="h-3 w-3 text-emerald-600" /> {order.customer.phone}
-                              </p>
-                            )}
-                            {(() => {
-                              const address = order.customer?.shipping || order.customer?.billing;
-                              if (!address) return null;
-                              return (
-                                <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 leading-tight">
-                                  <MapPin className="h-3 w-3 text-blue-600" /> 
-                                  {address.address}, {address.city}, {address.postalCode}
+                          {viewMode === 'expanded' && (
+                            <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                              {order.customer?.phone && (
+                                <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 drop-shadow-sm">
+                                  <Phone className="h-3 w-3 text-emerald-600" /> {order.customer.phone}
                                 </p>
-                              );
-                            })()}
-                            {order.email && (
-                              <p className="text-[9px] font-medium text-gray-400 lowercase flex items-center gap-1.5">
-                                <Mail className="h-2.5 w-2.5" /> {order.email}
-                              </p>
-                            )}
-                          </div>
+                              )}
+                              {(() => {
+                                const address = order.customer?.shipping || order.customer?.billing;
+                                if (!address) return null;
+                                return (
+                                  <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 leading-tight">
+                                    <MapPin className="h-3 w-3 text-blue-600" /> 
+                                    {address.address}, {address.city}, {address.postalCode}
+                                  </p>
+                                );
+                              })()}
+                              {order.email && (
+                                <p className="text-[9px] font-medium text-gray-400 lowercase flex items-center gap-1.5">
+                                  <Mail className="h-2.5 w-2.5" /> {order.email}
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                           {/* Compact Items Summary - UPDATED */}
@@ -798,23 +808,25 @@ export default function OrdersPage() {
                      {/* Mobile Customer Info */}
                      <div className="min-w-0">
                         <p className="text-[13px] font-black uppercase text-black leading-tight mb-1">{order.customer?.name || 'Guest Participant'}</p>
-                        <div className="flex flex-col gap-1">
-                          {order.customer?.phone && <p className="text-[10px] font-bold text-gray-700 flex items-center gap-1"><Phone className="h-3 w-3 text-emerald-600" /> {order.customer.phone}</p>}
-                          {(() => {
-                            const address = order.customer?.shipping || order.customer?.billing;
-                            if (!address) return null;
-                            return (
-                              <a 
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address.address}, ${address.city}, ${address.province || ''}`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[10px] font-bold text-gray-700 flex items-center gap-1 hover:text-blue-600 transition-colors"
-                              >
-                                <MapPin className="h-3 w-3 text-blue-600" /> {address.address}, {address.city}
-                              </a>
-                            );
-                          })()}
-                        </div>
+                        {viewMode === 'expanded' && (
+                          <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                            {order.customer?.phone && <p className="text-[10px] font-bold text-gray-700 flex items-center gap-1"><Phone className="h-3 w-3 text-emerald-600" /> {order.customer.phone}</p>}
+                            {(() => {
+                              const address = order.customer?.shipping || order.customer?.billing;
+                              if (!address) return null;
+                              return (
+                                <a 
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address.address}, ${address.city}, ${address.province || ''}`)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-bold text-gray-700 flex items-center gap-1 hover:text-blue-600 transition-colors"
+                                >
+                                  <MapPin className="h-3 w-3 text-blue-600" /> {address.address}, {address.city}
+                                </a>
+                              );
+                            })()}
+                          </div>
+                        )}
                      </div>
 
                      {/* Mobile Compact Item Summary - UPDATED */}

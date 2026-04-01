@@ -9,6 +9,7 @@ import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { getLivePath } from '@/lib/paths';
 import { useCart } from '@/context/CartContext';
+import { LoadingCover } from '@/components/ui/LoadingCover';
 
 interface ProductCardProps {
   id: string;
@@ -24,6 +25,8 @@ interface ProductCardProps {
   isSoldOut?: boolean;
   priority?: boolean;
   brand?: string;
+  inventory?: number;
+  onImageLoad?: () => void;
 }
 
 /**
@@ -32,16 +35,28 @@ interface ProductCardProps {
  */
 export const ProductCard = React.memo(({
   id, name, price, comparedPrice, image, hoverImage, category,
-  sku, rating, reviewCount, isSoldOut, priority = false, brand
+  sku, rating, reviewCount, isSoldOut, priority = false, brand, inventory,
+  onImageLoad
 }: ProductCardProps) => {
   const { promoConfig } = useCart();
   const db = useFirestore();
+  const [isLoaded, setIsLoaded] = React.useState(false);
   const themeRef = useMemoFirebase(() => 
     db ? doc(db, getLivePath('config/theme')) : null, 
     [db]
   );
   const { data: theme } = useDoc(themeRef);
-  const showBrand = theme?.showBrand !== false; // Show the brand by default
+
+  const storeRef = useMemoFirebase(() => 
+    db ? doc(db, getLivePath('config/store')) : null, 
+    [db]
+  );
+  const { data: storeConfig } = useDoc(storeRef);
+
+  const showBrand = storeConfig?.showBrandStorefront !== false;
+  const showSku = storeConfig?.showSkuStorefront !== false;
+  const showLowStockAlert = storeConfig?.showLowStockAlertStorefront !== false;
+  const globalThreshold = Number(storeConfig?.globalLowStockThreshold) || 10;
 
   const currentPriceNum = parseFloat(price.replace(/[^0-9.]/g, ''));
   
@@ -59,7 +74,7 @@ export const ProductCard = React.memo(({
       <Link
         href={`/products/${id}`}
         onClick={() => {
-          if (typeof window !== 'undefined') sessionStorage.setItem('lastProductId', id);
+          if (typeof window !== 'undefined') sessionStorage.setItem('fslno_last_product_id', id);
         }}
         className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}
       >
@@ -74,8 +89,13 @@ export const ProductCard = React.memo(({
                 hoverImage ? "group-hover:opacity-0" : ""
               )}
               priority={priority}
+              onLoad={() => {
+                setIsLoaded(true);
+                if (onImageLoad) onImageLoad();
+              }}
               data-ai-hint="fashion product"
             />
+          {!isLoaded && <LoadingCover logoSize={40} />}
           {hoverImage && (
             <Image
               src={hoverImage}
@@ -114,50 +134,78 @@ export const ProductCard = React.memo(({
         )}
       </Link>
 
-      <div className="flex flex-col gap-0 py-1 product-flex-align">
-        <div className="flex items-center gap-2">
-          <p className={cn("product-price-size font-bold leading-none", isFlashActive ? "text-orange-600" : "product-price-color")}>
+      <div className="flex flex-col py-1 product-flex-align">
+        {/* Price Slot - Stable Height */}
+        <div className="h-5 sm:h-6 flex items-center gap-2 overflow-hidden">
+          <p className={cn("product-price-size font-bold leading-none shrink-0", isFlashActive ? "text-orange-600" : "product-price-color")}>
             C${finalPrice.toFixed(2)}
           </p>
           {hasDiscount && (
-            <p className="text-[8px] sm:text-[10px] text-muted-foreground line-through decoration-muted-foreground/50 font-medium">
+            <p className="text-[8px] sm:text-[10px] text-muted-foreground line-through decoration-muted-foreground/50 font-medium truncate">
               C${displayComparedPrice.toFixed(2)}
             </p>
           )}
         </div>
-        <Link
-          href={`/products/${id}`}
-          onClick={() => {
-            if (typeof window !== 'undefined') sessionStorage.setItem('lastProductId', id);
-          }}
-          className="product-title-size product-title-color font-medium line-clamp-2 group-hover:underline leading-snug tracking-tight min-h-0"
-        >
-          {name}
-        </Link>
 
-        {sku && (
-          <p className="uppercase tracking-[0.2em] sm:tracking-[0.25em] font-bold leading-none truncate mt-0.5 card-sku-style">
-            {showBrand && brand ? `${brand} • ` : ''}{sku}
-          </p>
-        )}
+        {/* Title Slot - Reserves 2 lines */}
+        <div className="h-[2.4rem] sm:h-[2.8rem] flex flex-col justify-start overflow-hidden mt-0.5">
+          <Link
+            href={`/products/${id}`}
+            onClick={() => {
+              if (typeof window !== 'undefined') sessionStorage.setItem('fslno_last_product_id', id);
+            }}
+            className="product-title-size product-title-color font-medium line-clamp-2 group-hover:underline leading-tight tracking-tight"
+          >
+            {name}
+          </Link>
+        </div>
 
-        {(reviewCount || 0) > 0 && (
-          <div className="flex items-center gap-1 mt-1">
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  style={s <= Math.round(rating || 0) ? { fill: '#facc15', color: '#facc15' } : {}}
-                  className={cn(
-                    "h-2 sm:h-2.5 w-2 sm:w-2.5 transition-all duration-300",
-                    s <= Math.round(rating || 0) ? "" : "text-gray-200"
-                  )}
-                />
-              ))}
+        {/* Brand / SKU Slot - Stable Height */}
+        <div className="h-4 flex items-center overflow-hidden mt-0.5">
+          {(showBrand && brand || showSku && sku) && (
+            <p className="uppercase tracking-[0.2em] sm:tracking-[0.25em] font-bold leading-none truncate card-sku-style">
+              {showBrand && brand ? brand : ''}
+              {showBrand && brand && showSku && sku ? ' • ' : ''}
+              {showSku && sku ? sku : ''}
+            </p>
+          )}
+        </div>
+
+        {/* Stock Status Slot - Stable Height */}
+        <div className="h-4 flex items-center mt-1">
+          {inventory !== undefined && inventory <= 0 ? (
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.2 h-1.2 rounded-full bg-[#ff4d4d] shadow-[0_0_4px_rgba(255,77,77,0.4)]" />
+              <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-[#ff4d4d]">Out of Stock</span>
             </div>
-            <span className="text-[8px] sm:text-[9px] font-bold text-black uppercase tracking-widest ml-1">({reviewCount})</span>
-          </div>
-        )}
+          ) : showLowStockAlert && inventory !== undefined && inventory <= globalThreshold && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.2 h-1.2 rounded-full bg-orange-500 shadow-[0_0_4px_rgba(249,115,22,0.4)] animate-pulse" />
+              <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-orange-500">Low Stock</span>
+            </div>
+          )}
+        </div>
+
+        {/* Reviews Slot - Stable Height */}
+        <div className="h-4 flex items-center mt-1">
+          {(reviewCount || 0) > 0 && (
+            <div className="flex items-center gap-1">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    style={s <= Math.round(rating || 0) ? { fill: '#facc15', color: '#facc15' } : {}}
+                    className={cn(
+                      "h-2 sm:h-2.5 w-2 sm:w-2.5 transition-all duration-300",
+                      s <= Math.round(rating || 0) ? "" : "text-gray-200"
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-[8px] sm:text-[9px] font-bold text-black uppercase tracking-widest ml-1">({reviewCount})</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -28,7 +28,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
       };
     }
 
-    const title = `${product.name} | ${product.brand || theme?.businessName || 'FSLNO'}`;
+    const title = product.name || "Product Details";
     const description = product.description?.substring(0, 160) || `Buy ${product.name} at our store. High-quality jerseys and apparel.`;
     const image = product.media?.[0]?.url || "";
 

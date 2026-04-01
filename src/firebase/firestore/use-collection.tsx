@@ -38,6 +38,14 @@ export interface InternalQuery extends Query<DocumentData> {
 }
 
 /**
+ * Interface for options passed to the useCollection hook.
+ * @template T Type of the document data.
+ */
+export interface UseCollectionOptions<T> {
+  initialData?: T[];
+}
+
+/**
  * React hook to subscribe to a Firestore collection or query in real-time.
  * Handles nullable references/queries.
  * 
@@ -47,27 +55,36 @@ export interface InternalQuery extends Query<DocumentData> {
  * @template T Optional type for document data. Defaults to any.
  * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} memoizedTargetRefOrQuery -
  * The Firestore CollectionReference or Query. Waits if null/undefined.
+ * @param {UseCollectionOptions<T>} options - Optional configuration for initial data.
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: (CollectionReference<DocumentData> | Query<DocumentData>) | null | undefined,
+    options?: UseCollectionOptions<T>
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
-  const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [data, setData] = useState<StateDataType>(() => {
+    if (options?.initialData) {
+      return (options.initialData as any[]).map(item => ({ ...item, id: item.id || '' })) as ResultItemType[];
+    }
+    return null;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(!options?.initialData && !!memoizedTargetRefOrQuery);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
     if (!memoizedTargetRefOrQuery) {
-      setData(null);
+      if (!options?.initialData) setData(null);
       setIsLoading(false);
       setError(null);
       return;
     }
 
-    setIsLoading(true);
+    if (!options?.initialData) {
+      setIsLoading(true);
+    }
     setError(null);
 
     const unsubscribe = onSnapshot(
@@ -104,7 +121,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]);
+  }, [memoizedTargetRefOrQuery, options?.initialData]);
 
   return { data, isLoading, error };
 }

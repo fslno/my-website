@@ -32,7 +32,9 @@ import {
   Star,
   Zap,
   PanelBottom,
-  Receipt
+  Receipt,
+  Package,
+  Megaphone
 } from 'lucide-react';
 import {
   Sidebar,
@@ -60,7 +62,8 @@ import { useToast } from '@/hooks/use-toast';
 import { doc, collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
-function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { storeConfig: any, storeLoading?: boolean, unviewedOrdersCount?: number }) {
+// Memoize AppSidebar to prevent unnecessary re-renders when dashboard data or layout state changes
+const AppSidebar = React.memo(function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { storeConfig: any, storeLoading?: boolean, unviewedOrdersCount?: number }) {
   const { isMobile, setOpenMobile } = useSidebar();
   const auth = useAuth();
   const { toast } = useToast();
@@ -118,7 +121,12 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
 
+        <SidebarGroup className="mt-2 p-0">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline px-6 opacity-30">Inventory & Logistics</SidebarGroupLabel>
+          <SidebarMenu className="gap-0">
             <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Orders" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/orders" className="flex items-center justify-between w-full pr-1">
@@ -140,7 +148,7 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
             <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Products" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/products">
-                  <BarChart3 />
+                  <Package />
                   <span>Products</span>
                 </Link>
               </SidebarMenuButton>
@@ -154,9 +162,31 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Customers" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/customers">
+                  <Users />
+                  <span>Customers</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-2 p-0">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline px-6 opacity-30">Marketing & Data</SidebarGroupLabel>
+          <SidebarMenu className="gap-0">
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/sales-channels/analytics">
+                  <BarChart3 />
+                  <span>Analytics</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Promotions" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/promotions">
-                  <TicketPercent />
+                  <Megaphone />
                   <span>Promotions</span>
                 </Link>
               </SidebarMenuButton>
@@ -177,66 +207,20 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Size Chart" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/size-chart">
-                  <Ruler />
-                  <span>Size Chart</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Customers" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/customers">
-                  <Users />
-                  <span>Customers</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-0 p-0">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline">Sales Channels</SidebarGroupLabel>
+        <SidebarGroup className="mt-2 p-0">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline px-6 opacity-30">Online Store</SidebarGroupLabel>
           <SidebarMenu className="gap-0">
             <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Analytics" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/analytics">
-                  <BarChart3 />
-                  <span>Analytics</span>
+              <SidebarMenuButton size="sm" asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/theme">
+                  <Palette />
+                  <span>Theme</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Google Sync" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/google">
-                  <Globe />
-                  <span>Google Sync</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Social Commerce" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/sales-channels/social">
-                  <Share2 />
-                  <span>Social Commerce</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Invoices" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/invoices">
-                  <Receipt />
-                  <span>Invoices</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <SidebarGroup className="mt-0 p-0">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline">Settings</SidebarGroupLabel>
-          <SidebarMenu className="gap-0">
             <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/storefront">
@@ -254,26 +238,54 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/theme">
-                  <Palette />
-                  <span>Theme</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/notifications">
-                  <MailWarning />
-                  <span>Notifications</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Domain" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/domain">
                   <Globe />
                   <span>Domain</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-2 p-0">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline px-6 opacity-30">Sales Channels</SidebarGroupLabel>
+          <SidebarMenu className="gap-0">
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Google Sync" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/sales-channels/google">
+                  <Globe />
+                  <span>Google Sync</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Social Commerce" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/sales-channels/social">
+                  <Share2 />
+                  <span>Social Commerce</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-2 p-0">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline px-6 opacity-30">Operations & Logistics</SidebarGroupLabel>
+          <SidebarMenu className="gap-0">
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Size Chart" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/size-chart">
+                  <Ruler />
+                  <span>Size Chart</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Invoices" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/invoices">
+                  <Receipt />
+                  <span>Invoices</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -290,6 +302,14 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
                 <Link href="/admin/shipping">
                   <Truck />
                   <span>Shipping</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="sm" asChild tooltip="Emails" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/notifications">
+                  <MailWarning />
+                  <span>Notifications</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -324,7 +344,7 @@ function AppSidebar({ storeConfig, storeLoading, unviewedOrdersCount = 0 }: { st
       </SidebarFooter>
     </Sidebar>
   );
-}
+});
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading: loading } = useUser();
@@ -434,8 +454,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [notificationConfig, isAudioMuted, toast]);
 
+  const [shouldLoadListeners, setShouldLoadListeners] = useState(false);
+
   useEffect(() => {
-    if (!db || !user || !hasMounted || !isAdmin) return;
+    if (!hasMounted) return;
+    // Defer non-critical real-time listeners to ensure initial dashboard paint is ultra-fast
+    const timer = setTimeout(() => setShouldLoadListeners(true), 1500);
+    return () => clearTimeout(timer);
+  }, [hasMounted]);
+
+  useEffect(() => {
+    if (!db || !user || !hasMounted || !isAdmin || !shouldLoadListeners) return;
 
     const q = query(
       collection(db, 'orders'),
@@ -532,25 +561,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: storeConfig, isLoading: storeLoading } = useDoc(storeConfigRef);
   const { data: theme } = useDoc(themeRef);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const adminLogo = storeConfig?.adminLogoUrl || storeConfig?.logoUrl;
+  const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "Feiselino (FSLNO)";
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!auth || !email || !password) return;
-    setIsLoggingIn(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Signed in", description: "Identity confirmed." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: "Invalid email or password." });
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  if (!hasMounted || loading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
         <img src="/icon.png" alt="Loading" className="w-24 h-24 object-contain animate-pulse opacity-50" />
@@ -558,49 +572,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  const adminLogo = storeConfig?.adminLogoUrl || storeConfig?.logoUrl;
-  const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "Feiselino (FSLNO)";
-
+  // Auth Guard
+  const isLoginPage = pathname === '/admin/login';
   if (!user || !isAdmin) {
+    if (!isLoginPage) {
+      router.replace('/admin/login');
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-white">
+          <img src="/icon.png" alt="Redirecting" className="w-16 h-16 object-contain animate-pulse opacity-30" />
+        </div>
+      );
+    }
+    // If we are on the login page, just render children (which will be the login page content)
+    return <>{children}</>;
+  }
+
+  // If we are logged in and on the login page, redirect to admin root
+  if (isLoginPage) {
+    router.replace('/admin');
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-white p-4 text-center">
-        {user && !isAdmin ? (
-          <div className="max-w-sm space-y-6">
-            <div className="bg-red-50 border border-red-100 p-8 rounded-sm">
-              <ShieldAlert className="h-12 w-12 text-red-600 mx-auto mb-4" />
-              <h1 className="text-xl font-headline font-bold mb-2 uppercase tracking-tight">Access Denied</h1>
-              <p className="text-gray-500 text-xs leading-relaxed uppercase tracking-widest font-bold">
-                Account ({user.email}) lacks permissions.
-              </p>
-            </div>
-            <Button onClick={() => signOut(auth!)} variant="outline" className="w-full border-black font-bold uppercase text-[10px] tracking-widest">Sign Out</Button>
-          </div>
-        ) : (
-          <>
-            <h1 className="text-3xl font-headline font-bold mb-3 tracking-tight">Sign In</h1>
-            <p className="mb-6 text-[10px] uppercase font-bold text-muted-foreground tracking-[0.2em]">{adminName} Admin</p>
-            <form onSubmit={handleEmailLogin} className="w-full max-w-sm space-y-4 mb-8 bg-white p-8 border border-[#e1e3e5] shadow-sm">
-              <div className="space-y-2 text-left">
-                <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input id="email" type="email" placeholder="admin@example.com" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                </div>
-              </div>
-              <div className="space-y-2 text-left">
-                <Label htmlFor="password" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 h-12 bg-[#f9fafb] border-[#e1e3e5]" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                </div>
-              </div>
-              <Button type="submit" disabled={isLoggingIn} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black/90 transition-all rounded-none">
-                {isLoggingIn ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
-          </>
-        )}
-        <p className="mt-8 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Admin Panel v1.0</p>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <img src="/icon.png" alt="Redirecting" className="w-16 h-16 object-contain animate-pulse opacity-30" />
       </div>
     );
   }

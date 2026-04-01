@@ -139,8 +139,8 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Pruned font set for performance (Inter, Playfair, Montserrat, Bebas Neue, Oswald) */}
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=Oswald:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+        {/* Enhanced font library: Athletic, E-commerce, Modern, and Luxury collections */}
+        <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Oswald:wght@400;700&family=Teko:wght@400;700&family=Kanit:wght@400;700&family=Archivo+Black&family=Russo+One&family=Black+Ops+One&family=Squada+One&family=Racing+Sans+One&family=Staatliches&family=Big+Shoulders+Display:wght@400;700&family=Saira+Stencil+One&family=Chakra+Petch:wght@400;700&family=Rajdhani:wght@400;700&family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;700&family=Outfit:wght@400;700&family=Urbanist:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=Public+Sans:wght@400;700&family=Lexend:wght@400;700&family=Space+Grotesk:wght@400;700&family=DM+Sans:wght@400;700&family=Host+Grotesk:wght@400;700&family=Bricolage+Grotesque:wght@400;700&family=Work+Sans:wght@400;700&family=Jost:wght@400;700&family=Syncopate:wght@400;700&family=Michroma&family=Syne:wght@400;700&family=Unbounded:wght@400;700&family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;700&family=Tenor+Sans&family=Italiana&family=Fraunces:ital,wght@0,400;0,700;1,400&family=Belleza&family=Space+Mono&family=Orbitron:wght@400;700&family=Righteous&family=Stardos+Stencil&family=Titillium+Web:wght@400;700&family=Exo+2:wght@400;700&display=swap" rel="stylesheet" />
         
         {/* Critical CSS Injection for instant theme application */}
         <style id="ssr-theme-style" dangerouslySetInnerHTML={{ __html: `
@@ -167,6 +167,33 @@ export default async function RootLayout({
           }
           body { font-family: var(--font-body) !important; background-color: var(--background) !important; }
           h1, h2, h3, h4, h5, h6, .font-headline { font-family: var(--font-headline) !important; }
+
+          /* Static Splash Screen Styles - Instant Load */
+          #initial-splash-screen {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100000;
+            opacity: 1;
+          }
+          #initial-splash-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+          }
+          #initial-splash-screen img {
+            width: 120px;
+            height: 120px;
+            max-width: 50vw;
+            animation: splash-pulse 2s infinite ease-in-out;
+          }
+          @keyframes splash-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+          }
         `}} />
 
         <script
@@ -201,6 +228,13 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-white text-foreground overflow-x-hidden" suppressHydrationWarning>
+        {/* Static SplashScreen - Present in raw HTML for instant render */}
+        <div id="initial-splash-screen">
+          <img 
+            src="https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png" 
+            alt="FSLNO Loading"
+          />
+        </div>
         <ClientLayout initialTheme={theme} initialStore={store}>
           {children}
         </ClientLayout>

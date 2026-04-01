@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { LanguageProvider } from '@/context/LanguageContext';
+import { LoadingProvider, useLoading } from '@/context/LoadingContext';
 import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
 import { Chatbot } from '@/components/storefront/Chatbot';
 import { PromotionPopup } from '@/components/storefront/PromotionPopup';
@@ -18,6 +19,8 @@ import { getLivePath } from '@/lib/paths';
 import { AuthDialogProvider } from '@/context/AuthDialogContext';
 import { SocialPixels } from '@/components/shared/SocialPixels';
 import { RoutePrefetcher } from '@/components/shared/RoutePrefetcher';
+import { SplashScreen } from '@/components/layout/SplashScreen';
+import { ReturnTransition } from '@/components/storefront/ReturnTransition';
 
 export function ClientLayout({ 
   children,
@@ -34,21 +37,24 @@ export function ClientLayout({
     <FirebaseClientProvider>
       <AuthDialogProvider>
         <LanguageProvider>
-          <ThemeStyleInjector initialTheme={initialTheme} />
-          <WishlistProvider>
-            <CartProvider>
-              <LayoutContent pathname={pathname} initialTheme={initialTheme} initialStore={initialStore}>
-                <div className="mobile-wrapper">
-                  {children}
-                </div>
-              </LayoutContent>
-              <Toaster />
-              <Chatbot />
-              <PromotionPopup />
-              <SocialPixels />
-              <RoutePrefetcher />
-            </CartProvider>
-          </WishlistProvider>
+          <LoadingProvider>
+            <ThemeStyleInjector initialTheme={initialTheme} />
+            <WishlistProvider>
+              <CartProvider>
+                <LayoutContent pathname={pathname} initialTheme={initialTheme} initialStore={initialStore}>
+                  <div className="mobile-wrapper">
+                    {children}
+                  </div>
+                </LayoutContent>
+                <ReturnTransition />
+                <Toaster />
+                <Chatbot />
+                <PromotionPopup />
+                <SocialPixels />
+                <RoutePrefetcher />
+              </CartProvider>
+            </WishlistProvider>
+          </LoadingProvider>
         </LanguageProvider>
       </AuthDialogProvider>
     </FirebaseClientProvider>
@@ -68,6 +74,9 @@ function LayoutContent({
 }) {
   const isAdmin = pathname?.startsWith('/admin');
   const [isMounted, setIsMounted] = useState(false);
+  const [isAppReady, setIsAppReady] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const { isLoading: isGlobalLoading } = useLoading();
 
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
@@ -82,6 +91,7 @@ function LayoutContent({
       
     }
     setIsMounted(true);
+    setIsAppReady(true); // Instant ready to avoid flashback
 
     // Register PWA Service Worker
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
@@ -93,26 +103,42 @@ function LayoutContent({
         });
       });
     }
+
+    return;
   }, []);
 
-  // Global Scroll Management
+  // Global Scroll Management & Transition Trigger
   useEffect(() => {
-    if (typeof window !== 'undefined' && pathname === '/') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-      
-      // Secondary scroll for confidence during hydration shifts
-      const timer = setTimeout(() => {
+    if (typeof window !== 'undefined') {
+      if (pathname === '/') {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-      }, 50);
-      
-      return () => clearTimeout(timer);
+        
+        // Secondary scroll for confidence during hydration shifts
+        const timer = setTimeout(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+        }, 50);
+        
+        return () => clearTimeout(timer);
+      }
+
+      // Trigger brief transition overlay on route change
+      if (isMounted) {
+        setIsPageLoading(true);
+        const timer = setTimeout(() => {
+          setIsPageLoading(false);
+        }, 400); // Short duration to cover render/shift
+        return () => clearTimeout(timer);
+      }
     }
-  }, [pathname]);
+  }, [pathname, isMounted]);
 
   const showMaintenance = isMounted && !!theme?.maintenanceMode && !isAdmin;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      {/* Global Splash Screen — covers everything until app is ready, root navigation finishes, or custom components are loading */}
+      <SplashScreen isVisible={!isAdmin && (!isAppReady || isPageLoading || isGlobalLoading)} />
+
       {/* Maintenance overlay — always rendered but hidden via CSS when not active */}
       <div
         aria-hidden={!showMaintenance}

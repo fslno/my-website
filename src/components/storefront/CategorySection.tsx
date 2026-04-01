@@ -7,12 +7,14 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { getLivePath } from '@/lib/paths';
+import { useLoading } from '@/context/LoadingContext';
+import { LoadingCover } from '@/components/ui/LoadingCover';
 import { cn } from '@/lib/utils';
 
 /**
  * Category section display.
  */
-export function CategorySection() {
+export function CategorySection({ initialCategories }: { initialCategories?: any[] }) {
   const db = useFirestore();
 
   const themeRef = useMemoFirebase(() => db ? doc(db, getLivePath('config/theme')) : null, [db]);
@@ -23,13 +25,44 @@ export function CategorySection() {
     return query(collection(db, getLivePath('categories')), orderBy('order', 'asc'));
   }, [db]);
 
-  const { data: categories, isLoading } = useCollection(categoriesQuery);
+  const { data: categories, isLoading } = useCollection(categoriesQuery, { initialData: initialCategories });
+  const { pushLoading, popLoading } = useLoading();
+  const [loadedCount, setLoadedCount] = React.useState(0);
+  const lockId = React.useMemo(() => `cat-section-${Math.random().toString(36).substring(7)}`, []);
+
+  React.useEffect(() => {
+    pushLoading(lockId);
+    const timer = setTimeout(() => popLoading(lockId), 5000);
+    return () => {
+      clearTimeout(timer);
+      popLoading(lockId);
+    };
+  }, [pushLoading, popLoading, lockId]);
+
+  React.useEffect(() => {
+    const target = Math.min(categories?.length || 0, 4);
+    if (!isLoading && (loadedCount >= target || !categories?.length)) {
+      popLoading(lockId);
+    }
+  }, [loadedCount, categories?.length, isLoading, popLoading, lockId]);
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
-        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
-      </div>
+      <section className="py-6 sm:py-12 bg-white border-b">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="h-20 w-48 bg-muted animate-pulse mb-12" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-2 md:gap-x-6 md:gap-y-12 max-w-[1143.6px] mx-auto">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-4">
+                <div className="aspect-square bg-white relative overflow-hidden border border-gray-100 rounded-sm">
+                  <LoadingCover logoSize={60} />
+                </div>
+                <div className="h-4 w-24 bg-gray-50 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     );
   }
 
@@ -75,6 +108,7 @@ export function CategorySection() {
                     fill 
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-110" 
+                    onLoad={() => setLoadedCount(prev => prev + 1)}
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-gray-300">

@@ -6,6 +6,8 @@ import { collection, query, orderBy, doc, limit as firestoreLimit, startAfter, g
 import { ProductCard } from './ProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getLivePath } from '@/lib/paths';
+import { useLoading } from '@/context/LoadingContext';
+import { LoadingCover } from '@/components/ui/LoadingCover';
 
 import { cn } from '@/lib/utils';
 
@@ -44,17 +46,28 @@ export function ProductGrid({
   const [lastDoc, setLastDoc] = React.useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [hasMore, setHasMore] = React.useState(true);
   const [isLoadingMore, setIsLoadingMore] = React.useState(!initialProducts?.length);
+  const [loadedCount, setLoadedCount] = React.useState(0);
+  const { pushLoading, popLoading } = useLoading();
+  const lockId = React.useMemo(() => `grid-${categoryId || 'all'}-${Math.random().toString(36).substring(7)}`, [categoryId]);
   const INITIAL_BATCH = 20;
 
   // Hydration Stability: Force a consistent initial render
   useEffect(() => {
     setHasMounted(true);
-  }, []);
+    pushLoading(lockId);
+    
+    // Safety timeout to prevent the splash screen from hanging if images fail
+    const safetyTimer = setTimeout(() => popLoading(lockId), 5000);
+    return () => {
+      clearTimeout(safetyTimer);
+      popLoading(lockId);
+    };
+  }, [pushLoading, popLoading, lockId]);
 
   // Initial Fetch & Category Filtering
   useEffect(() => {
     async function fetchInitial() {
-      if (!db) return;
+      if (!db || initialProducts?.length) return;
       
       setIsLoadingMore(true);
       try {
@@ -133,15 +146,32 @@ export function ProductGrid({
     return map;
   }, [allReviews]);
 
+  // Combined loading state with hydration guard
+  // If we have initial products, we don't show the skeleton during hydration
+  const isInitialLoading = !hasMounted 
+    ? !initialProducts?.length 
+    : !products.length && isLoadingMore;
+
   const filteredProducts = useMemo(() => {
     let p = products || [];
-    if (excludeId) p = p.filter(item => item.id !== excludeId);
+    if (excludeId) p = p.filter((item: any) => item.id !== excludeId);
     if (limit) p = p.slice(0, limit);
     return p;
   }, [products, excludeId, limit]);
 
-  // Combined loading state with hydration guard
-  const isInitialLoading = !hasMounted || (!products.length && isLoadingMore);
+  // Handle image load tracking to release the lock
+  const handleImageLoad = React.useCallback(() => {
+    setLoadedCount(prev => prev + 1);
+  }, []);
+
+  useEffect(() => {
+    // Release the splash screen only when data is fetched AND the first row (up to 4 images) is visible
+    const targetImages = Math.min(filteredProducts.length, 4);
+    if (!isInitialLoading && (loadedCount >= targetImages || filteredProducts.length === 0)) {
+      popLoading(lockId);
+    }
+  }, [loadedCount, filteredProducts.length, isInitialLoading, popLoading, lockId]);
+
   // Fixed layout classes for the grid: 2 columns on mobile, exactly 4 on desktop
   const gridClasses = "grid grid-cols-2 md:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16 max-w-[1095.6px] mx-auto";
 
@@ -150,16 +180,20 @@ export function ProductGrid({
   useEffect(() => {
     if (!isInitialLoading && products?.length) {
       if (typeof window !== 'undefined') {
-        const lastId = sessionStorage.getItem('lastProductId');
-        if (lastId) {
+        const lastId = sessionStorage.getItem('fslno_last_product_id');
+        const isReturning = sessionStorage.getItem('fslno_returning_to_product') === 'true';
+        
+        if (lastId && isReturning) {
+          // Perform instant scroll while covered by white overlay
           setTimeout(() => {
             const el = document.getElementById(`product-${lastId}`);
             if (el) {
               const y = el.getBoundingClientRect().top + window.scrollY - 150;
               window.scrollTo({ top: y, behavior: 'instant' });
-              sessionStorage.removeItem('lastProductId');
+              // Clear product ID but keep returning flag for the overlay to finish its fade
+              sessionStorage.removeItem('fslno_last_product_id');
             }
-          }, 200);
+          }, 50); // Faster trigger
         }
       }
     }
@@ -170,11 +204,32 @@ export function ProductGrid({
       <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
         <div className={gridClasses}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-2">
-              <Skeleton className="w-full aspect-square rounded-sm" />
-              <div className="space-y-1.5 mt-2">
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-4 w-1/3" />
+            <div key={i} className="flex flex-col gap-0 py-1">
+              <div className="w-full aspect-square rounded-sm bg-gray-50 relative overflow-hidden border border-gray-100">
+                <LoadingCover logoSize={60} />
+              </div>
+              <div className="flex flex-col py-1">
+                {/* Price Skeleton */}
+                <div className="h-5 sm:h-6 flex items-center">
+                  <Skeleton className="h-3 w-16 bg-gray-100 rounded-none" />
+                </div>
+                {/* Title Skeleton */}
+                <div className="h-[2.4rem] sm:h-[2.8rem] flex flex-col justify-start mt-0.5">
+                  <Skeleton className="h-3 w-full bg-gray-50 rounded-none mt-1" />
+                  <Skeleton className="h-3 w-2/3 bg-gray-50 rounded-none mt-1.5" />
+                </div>
+                {/* Brand/SKU Skeleton */}
+                <div className="h-4 flex items-center mt-0.5">
+                  <Skeleton className="h-2 w-24 bg-gray-100 rounded-none" />
+                </div>
+                {/* Stock Skeleton */}
+                <div className="h-4 flex items-center mt-1">
+                  <Skeleton className="h-2 w-12 bg-gray-50 rounded-none" />
+                </div>
+                {/* Reviews Skeleton */}
+                <div className="h-4 flex items-center mt-1">
+                  <Skeleton className="h-2 w-20 bg-gray-50 rounded-none" />
+                </div>
               </div>
             </div>
           ))}
@@ -214,14 +269,16 @@ export function ProductGrid({
               rating={avgRating}
               reviewCount={reviewCount}
               isSoldOut={isSoldOut}
+              inventory={totalStock}
               priority={idx < 4}
+              onImageLoad={handleImageLoad}
             />
           );
         })}
       </div>
 
       {/* Infinite Scroll Load More */}
-      {hasMore && (
+      {hasMore && !limit && (
         <div className="mt-24 border-t border-gray-100 pt-12 flex flex-col items-center gap-8">
           <button
             onClick={loadMore}

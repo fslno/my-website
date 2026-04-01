@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useLanguage } from '@/context/LanguageContext';
+import { useLoading } from '@/context/LoadingContext';
+import { LoadingCover } from '@/components/ui/LoadingCover';
 
 interface BentoHeroProps {
   isLoading: boolean;
@@ -49,10 +51,33 @@ export function BentoHero({
   const [api, setApi] = useState<CarouselApi>();
   const [mounted, setMounted] = useState(false);
   const { t } = useLanguage();
+  const { pushLoading, popLoading } = useLoading();
+  const lockId = React.useMemo(() => `hero-static-${Math.random().toString(36).substring(7)}`, []);
+  const [firstImageLoaded, setFirstImageLoaded] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    pushLoading(lockId);
+    
+    // Safety timeout
+    const timer = setTimeout(() => popLoading(lockId), 5000);
+    return () => {
+      clearTimeout(timer);
+      popLoading(lockId);
+    };
+  }, [pushLoading, popLoading, lockId]);
+
+  useEffect(() => {
+    // Release the splash screen only when:
+    // 1. Data is completely fetched (!isLoading)
+    // 2. AND either an image is ready OR there are no images to load
+    const imagesToLoad = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
+    if (!isLoading) {
+      if (firstImageLoaded || imagesToLoad.length === 0) {
+        popLoading(lockId);
+      }
+    }
+  }, [firstImageLoaded, isLoading, heroImages, fallbackImageUrl, popLoading, lockId]);
 
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
@@ -66,7 +91,26 @@ export function BentoHero({
     return end ? new Date() < end : false;
   }, [promoConfig]);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <section className={cn(
+        "w-full overflow-hidden relative",
+        bannerEnabled ? "pt-7 sm:pt-10" : "pt-0"
+      )}>
+        <div 
+          className={cn(
+            "w-full bg-white shadow-2xl relative overflow-hidden",
+            "aspect-square sm:aspect-[var(--hero-aspect-ratio,7.2)]"
+          )}
+          style={{
+            '--hero-aspect-ratio': (heroAspectRatio || 7.2) * 2.04
+          } as React.CSSProperties}
+        >
+          <LoadingCover logoSize={180} />
+        </div>
+      </section>
+    );
+  }
 
   const images = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
 
@@ -78,10 +122,10 @@ export function BentoHero({
       <div 
         className={cn(
           "w-full bg-black group shadow-2xl relative overflow-hidden",
-          "aspect-[1.43/1] sm:aspect-[var(--hero-aspect-ratio,5.4)]"
+          "aspect-square sm:aspect-[var(--hero-aspect-ratio,7.2)]"
         )}
         style={{
-          '--hero-aspect-ratio': heroAspectRatio
+          '--hero-aspect-ratio': heroAspectRatio * 2.04
         } as React.CSSProperties}
       >
         <Carousel
@@ -102,6 +146,7 @@ export function BentoHero({
                   sizes="100vw"
                   className="object-cover"
                   priority={idx === 0}
+                  onLoad={idx === 0 ? () => setFirstImageLoaded(true) : undefined}
                   {...(idx === 0 ? { fetchPriority: "high" } : {})}
                 />
               </CarouselItem>
@@ -122,11 +167,11 @@ export function BentoHero({
 
           <div className={cn(
             "absolute inset-0 p-6 sm:p-12 flex flex-col text-primary-foreground bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 hero-vertical-align hero-text-align pointer-events-none",
-            mounted ? "animate-in fade-in duration-1000" : "opacity-0"
+            "animate-in fade-in duration-1000"
           )}>
             <div className={cn(
               "pointer-events-auto w-full transition-all duration-1000 delay-300",
-              mounted ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+              mounted ? "translate-y-0 opacity-100" : "translate-y-0 opacity-100"
             )}>
               <span className="hero-subheadline-color hero-subheadline-size text-[8px] sm:text-[10px] uppercase tracking-[0.4em] sm:tracking-[0.5em] font-bold mb-4 sm:mb-6 block">
                 {subheadline}

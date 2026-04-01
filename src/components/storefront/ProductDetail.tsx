@@ -65,6 +65,8 @@ import { useCart, parseFirestoreDate } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/paths';
+import { useLoading } from '@/context/LoadingContext';
+import { usePathname } from 'next/navigation';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { ProductImageLightbox } from './ProductImageLightbox';
 import { CountdownTimer } from '@/components/shared/CountdownTimer';
@@ -98,6 +100,18 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
     [db]
   );
   const { data: theme } = useDoc(themeRef);
+
+  const storeConfigRef = useMemoFirebase(() => 
+    db ? doc(db, getLivePath('config/store')) : null, 
+    [db]
+  );
+  const { data: storeConfig } = useDoc(storeConfigRef);
+
+  const showBrand = storeConfig?.showBrandStorefront !== false;
+  const showSku = storeConfig?.showSkuStorefront !== false;
+  const showLowStockAlert = storeConfig?.showLowStockAlertStorefront !== false;
+  const globalThreshold = Number(storeConfig?.globalLowStockThreshold) || 10;
+  const globalVariantThreshold = Number(storeConfig?.globalVariantLowStockThreshold) || 5;
   
   const sizeChartsQuery = useMemoFirebase(() => {
     if (!db || !activeProduct?.categoryId) return null;
@@ -112,6 +126,41 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   const [customName, setCustomName] = useState('');
   const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
+  const { pushLoading, popLoading } = useLoading();
+  const [primaryImageLoaded, setPrimaryImageLoaded] = useState(false);
+  const pathname = usePathname();
+
+  const media = activeProduct?.media || [];
+
+  // Manage loading lock
+  useEffect(() => {
+    const lockId = `product-${productId}`;
+    pushLoading(lockId);
+    
+    // Safety timeout to ensure splash doesn't get stuck forever
+    const timeout = setTimeout(() => {
+      popLoading(lockId);
+    }, 5000);
+
+    return () => {
+      popLoading(lockId);
+      clearTimeout(timeout);
+    };
+  }, [productId, pushLoading, popLoading]);
+
+  // Release lock when data and image are ready
+  const isDataReady = !loading || !!activeProduct;
+  const isVisualReady = media.length === 0 || primaryImageLoaded;
+
+  useEffect(() => {
+    if (hasMounted && isDataReady && isVisualReady) {
+      // Delay slightly for final layout settle
+      const timer = setTimeout(() => {
+        popLoading(`product-${productId}`);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [hasMounted, isDataReady, isVisualReady, productId, popLoading]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -145,6 +194,19 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   const isOutOfStock = selectedVariant && Number(selectedVariant.stock) <= 0;
   const hasReachedLimit = selectedVariant && cartItemCount >= Number(selectedVariant.stock);
 
+  const totalStock = useMemo(() => {
+    return activeProduct?.variants?.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0) || 0;
+  }, [activeProduct]);
+
+  const isLowStock = useMemo(() => {
+    if (!showLowStockAlert) return false;
+    if (selectedVariant) {
+      const stock = Number(selectedVariant.stock);
+      return stock > 0 && stock <= globalVariantThreshold;
+    }
+    return totalStock > 0 && totalStock <= globalThreshold;
+  }, [showLowStockAlert, selectedVariant, totalStock, globalVariantThreshold, globalThreshold]);
+
   const buttonText = useMemo(() => {
     if (!selectedSize) return 'Select Size';
     if (isOutOfStock) return 'Out of Stock';
@@ -154,8 +216,6 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
 
   const isButtonDisabled = !selectedSize || isOutOfStock || hasReachedLimit;
 
-  const media = activeProduct?.media || [];
-  
   const isFlashActive = useMemo(() => {
     if (!promoConfig?.flashEnabled) return false;
     if (!promoConfig.flashCountdownEnabled) return true;
@@ -275,7 +335,13 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => router.back()}
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem('fslno_returning_to_product', 'true');
+                sessionStorage.setItem('fslno_last_product_id', productId);
+              }
+              router.back();
+            }}
             className="h-9 px-0 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-transparent rounded-none gap-2"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
@@ -320,7 +386,10 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                               fill 
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px" 
                               className="object-cover" 
-                              priority={idx === 0} 
+                              priority={idx === 0}
+                              onLoad={() => {
+                                if (idx === 0) setPrimaryImageLoaded(true);
+                              }}
                             />
                           </div>
                         </CarouselItem>
@@ -404,20 +473,29 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
 
                 <div className="flex flex-col gap-3 py-1">
                   <div className="flex items-center gap-4">
-                    {activeProduct.brand && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">BRAND:</span>
-                        <span className="font-bold uppercase leading-none detail-brand-style">{activeProduct.brand}</span>
+                    {showBrand && activeProduct.brand && (
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className="text-[9px] text-gray-400 uppercase tracking-widest leading-none">BRAND:</span>
+                        <span className="uppercase leading-none detail-brand-style">{activeProduct.brand}</span>
                       </div>
                     )}
-                    {activeProduct.brand && <div className="h-3 w-[1px] bg-gray-200" />}
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">SKU:</span>
-                      <span className="font-bold uppercase leading-none detail-sku-style">
-                        {selectedVariant?.sku || activeProduct.sku || (activeProduct.id.slice(0, 8) + (selectedSize ? `-${selectedSize}` : '')).toUpperCase()}
-                      </span>
-                    </div>
+                    {showBrand && activeProduct.brand && showSku && <div className="h-3 w-[1px] bg-gray-200" />}
+                    {showSku && (
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className="text-[9px] text-gray-400 uppercase tracking-widest leading-none">SKU:</span>
+                        <span className="uppercase leading-none detail-sku-style">
+                          {selectedVariant?.sku || activeProduct.sku || (activeProduct.id.slice(0, 8) + (selectedSize ? `-${selectedSize}` : '')).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                   </div>
+
+                  {isLowStock && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)] animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">Low Stock Alert</span>
+                    </div>
+                  )}
                   
                   <div className="pt-0.5">
                     <ReviewSystem productId={activeProduct.id} variant="minimal" />
@@ -438,10 +516,10 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                       </button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
-                      <SheetHeader className="p-8 border-b">
+                      <SheetHeader className="px-5 py-8 border-b">
                         <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Sizing Guide</SheetTitle>
                       </SheetHeader>
-                      <ScrollArea className="flex-1 p-8">
+                      <ScrollArea className="flex-1 px-4 py-6">
                         {categoryCharts.map((chart: any) => (
                           <div key={chart.id} className="space-y-6 mb-12 last:mb-0">
                             <h3 className="text-[10px] font-bold uppercase tracking-widest border-b pb-2 text-primary/60">{chart.name} Measurements</h3>
@@ -449,18 +527,20 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                               <Table>
                                 <TableHeader className="bg-gray-50/50">
                                   <TableRow>
-                                    <TableHead className="text-[9px] font-bold uppercase text-primary">Size</TableHead>
+                                    <TableHead className="text-[8px] sm:text-[9px] font-bold uppercase text-primary px-2 h-10">Size</TableHead>
                                     {chart.columns.map((c: any, i: any) => (
-                                      <TableHead key={i} className="text-[9px] font-bold uppercase text-center text-primary">{c}</TableHead>
+                                      <TableHead key={i} className="text-[8px] sm:text-[9px] font-bold uppercase text-center text-primary px-1 h-10 leading-tight">
+                                        {c}
+                                      </TableHead>
                                     ))}
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                   {chart.rows.map((r: any, i: any) => (
                                     <TableRow key={i} className="hover:bg-gray-50/50 transition-colors">
-                                      <TableCell className="text-[10px] font-bold uppercase">{r.label}</TableCell>
+                                      <TableCell className="text-[9px] sm:text-[10px] font-bold uppercase px-2 py-3">{r.label}</TableCell>
                                       {r.values.map((v: any, j: any) => (
-                                        <TableCell key={j} className="text-center font-mono text-[10px]">{v || '-'}</TableCell>
+                                        <TableCell key={j} className="text-center font-mono text-[9px] sm:text-[10px] px-1 py-3 whitespace-nowrap">{v || '-'}</TableCell>
                                       ))}
                                     </TableRow>
                                   ))}
