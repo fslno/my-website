@@ -76,6 +76,8 @@ export default function CustomersPage() {
 
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [globalCartCounts, setGlobalCartCounts] = useState<Record<string, number>>({});
+  const [isCartsLoading, setIsCartsLoading] = useState(false);
 
   const [advName, setAdvName] = useState('');
   const [advOrderNum, setAdvOrderNum] = useState('');
@@ -131,7 +133,9 @@ export default function CustomersPage() {
         productNames: new Set<string>(),
         addresses: new Set<string>(),
         phones: new Set<string>(),
-        cartItems: [] // Placeholder
+        orderHistory: [],
+        cartItems: [],
+        cartCount: globalCartCounts[u.id] || 0
       });
     });
 
@@ -146,6 +150,7 @@ export default function CustomersPage() {
           lastOrderDate: null, status: 'Guest Purchaser', orderIds: new Set<string>(),
           lastPaymentStatus: null, lastFulfillmentStatus: null,
           productNames: new Set<string>(), addresses: new Set<string>(), phones: new Set<string>(),
+          orderHistory: [],
           cartItems: []
         };
         customerMap.set(email, entry);
@@ -164,10 +169,18 @@ export default function CustomersPage() {
         if (o.customer?.phone) entry.phones.add(o.customer.phone);
         if (o.customer?.shipping?.address) entry.addresses.add(o.customer.shipping.address.toUpperCase());
         o.items?.forEach((item: any) => { if (item.name) entry.productNames.add(item.name.toUpperCase()); });
+        entry.orderHistory.push({
+          id: o.id,
+          date: oDate,
+          total: o.total,
+          status: o.status,
+          paymentStatus: o.paymentStatus || 'unpaid'
+        });
       }
     });
 
     return Array.from(customerMap.values()).map(c => {
+      c.orderHistory.sort((a: any, b: any) => b.date - a.date);
       if (c.tier === 'Registered' && c.orderCount === 0) return { ...c, status: 'Abandoned / Lead', isAbandoned: true };
       return c;
     });
@@ -211,6 +224,57 @@ export default function CustomersPage() {
       return true;
     });
   }, [unifiedCustomers, searchQuery, filterTier, advName, advOrderNum, advPhone, advAddress, advProduct, advDateRange]);
+
+  // ON-DEMAND CART FETCHING
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (!selectedCustomer || selectedCustomer.tier !== 'Registered' || !db) return;
+      
+      try {
+        const cartRef = collection(db, 'users', selectedCustomer.id, 'cart');
+        const cartSnap = await getDocs(cartRef);
+        const items = cartSnap.docs.map(d => ({ ...d.data(), id: d.id }));
+        
+        setSelectedCustomer((prev: any) => {
+          if (!prev || prev.id !== selectedCustomer.id) return prev;
+          return { ...prev, cartItems: items, isHighIntent: items.length > 0, cartCount: items.length };
+        });
+        
+        // Update global count too if it changed
+        setGlobalCartCounts(prev => ({ ...prev, [selectedCustomer.id]: items.length }));
+      } catch (err) {
+        console.error("Cart Fetch Failed:", err);
+      }
+    };
+
+    fetchCart();
+  }, [selectedCustomer?.id, db]);
+
+  // OPTIONAL: Fetch all active carts (limit to first 50 users for performance)
+  useEffect(() => {
+    const fetchAllCarts = async () => {
+      if (!pUsers || pUsers.length === 0 || !db || isCartsLoading) return;
+      setIsCartsLoading(true);
+      
+      try {
+        const counts: Record<string, number> = {};
+        // Fetch up to 50 users' cart contents
+        const userBatch = pUsers.slice(0, 50);
+        await Promise.all(userBatch.map(async (u) => {
+          const cartRef = collection(db, 'users', u.id, 'cart');
+          const cartSnap = await getDocs(cartRef);
+          counts[u.id] = cartSnap.size;
+        }));
+        setGlobalCartCounts(counts);
+      } catch (err) {
+        console.error("Fetch all carts failed:", err);
+      } finally {
+        setIsCartsLoading(false);
+      }
+    };
+
+    if (pUsers) fetchAllCarts();
+  }, [pUsers?.length, db]);
 
   const formatDate = (date: any) => {
     if (!date) return 'N/A';
@@ -308,7 +372,21 @@ export default function CustomersPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell><Badge variant="secondary" className={cn("uppercase text-[9px] font-bold border-none px-3", customer.isAbandoned ? "bg-purple-50 text-purple-700" : customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700")}>{customer.status}</Badge></TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className={cn("uppercase text-[9px] font-bold border-none px-3", 
+                          customer.isHighIntent ? "bg-orange-100 text-orange-700 animate-pulse" :
+                          customer.isAbandoned ? "bg-purple-50 text-purple-700" : 
+                          customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700")}>
+                          {customer.status}
+                        </Badge>
+                        {customer.cartCount > 0 && (
+                          <div className="flex items-center gap-1 text-[9px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100 uppercase tracking-tighter">
+                            <ShoppingBag className="h-2.5 w-2.5" />
+                            {customer.cartCount} in cart
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="pr-6"><Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"><ArrowRight className="h-4 w-4 text-gray-400" /></Button></TableCell>
                   </TableRow>
                 ))
