@@ -3,6 +3,7 @@ import './globals.css';
 import { getAdminDb } from '@/lib/firebase-admin';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { Metadata } from 'next';
+import { serializeData } from '@/lib/utils';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -109,8 +110,8 @@ export default async function RootLayout({
         return null; 
       })
     ]);
-    theme = themeDoc?.data() || {};
-    store = storeDoc?.data() || {};
+    theme = serializeData(themeDoc?.data()) || {};
+    store = serializeData(storeDoc?.data()) || {};
   } catch (err) {
     console.error("[SSR_DATA_FETCH_CRITICAL_FAILURE]", err);
   }
