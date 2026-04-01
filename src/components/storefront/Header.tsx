@@ -480,7 +480,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                     <div className="space-y-6">
                       {wishlist.map((item) => (
                         <div key={item.id} className="flex gap-4">
-                          <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-20 relative bg-gray-50 border border-gray-100 shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</Link>
+                          <Link href={`/products/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="w-20 h-20 relative bg-gray-50 border border-gray-100 shrink-0">{item.image && <NextImage src={item.image} alt="" fill sizes="80px" className="object-cover" />}</Link>
                           <div className="flex-1 flex flex-col justify-between py-1">
                             <div>
                               <h3 className="text-[10px] font-bold uppercase leading-tight text-black">{item.name}</h3>
@@ -588,7 +588,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                     <div className="space-y-6">
                       {cart.map((item) => (
                         <div key={item.variantId} className="flex gap-4">
-                          <div className="w-20 h-20 relative bg-gray-50 border border-gray-100 shrink-0">{item.image && <NextImage src={item.image} alt="" fill className="object-cover" />}</div>
+                          <div className="w-20 h-20 relative bg-gray-50 border border-gray-100 shrink-0">{item.image && <NextImage src={item.image} alt="" fill sizes="80px" className="object-cover" />}</div>
                           <div className="flex-1 flex flex-col justify-between py-1">
                             <div>
                               <div className="flex justify-between items-start gap-2">

@@ -34,7 +34,9 @@ import {
   Package,
   Calendar,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  LayoutList,
+  List
 } from 'lucide-react';
 import {
   Select,
@@ -46,7 +48,18 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useIsAdmin } from '@/firebase';
-import { collection, query, orderBy, limit, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
+import { 
+  collection, 
+  query, 
+  orderBy, 
+  limit as firestoreLimit, 
+  startAfter, 
+  getDocs, 
+  writeBatch, 
+  doc, 
+  serverTimestamp,
+  updateDoc
+} from 'firebase/firestore';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -54,8 +67,29 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription
+  DialogDescription,
+  DialogTrigger
 } from '@/components/ui/dialog';
+import Image from 'next/image';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -73,27 +107,84 @@ export default function OrdersPage() {
   const { toast } = useToast();
   const isAdmin = useIsAdmin();
 
-  // 1. Data Fetching
-  const ordersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return query(
-      collection(db, 'orders'),
-      orderBy('createdAt', 'desc'),
-      limit(100)
-    );
-  }, [db, isAdmin]);
+  // 1. Data Fetching & State
+  const [orders, setOrders] = useState<any[]>([]);
+  const [lastDoc, setLastDoc] = useState<any>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isQueryLoading, setIsQueryLoading] = useState(false);
+  const INITIAL_BATCH = 25;
 
-  const { data: ordersData, isLoading: isQueryLoading } = useCollection(ordersQuery);
-  const orders = ordersData || [];
+  const fetchOrders = async (isInitial = false) => {
+    if (!db || isQueryLoading || (!hasMore && !isInitial)) return;
+    
+    setIsQueryLoading(true);
+    try {
+      let q = query(
+        collection(db, 'orders'), 
+        orderBy('createdAt', 'desc'), 
+        firestoreLimit(INITIAL_BATCH)
+      );
+      
+      if (!isInitial && lastDoc) {
+        q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), startAfter(lastDoc), firestoreLimit(INITIAL_BATCH));
+      }
+
+      const snapshot = await getDocs(q);
+      const fetched = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      
+      if (isInitial) {
+        setOrders(fetched);
+      } else {
+        setOrders(prev => [...prev, ...fetched]);
+      }
+      
+      setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null);
+      setHasMore(snapshot.docs.length === INITIAL_BATCH);
+    } catch (err) {
+      console.error("Failed to fetch orders", err);
+      toast({
+        title: "FETCH ERROR",
+        description: "Failed to sync archive records.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsQueryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (db) fetchOrders(true);
+  }, [db]);
+
+  // Handle individual status update (Optimistic)
+  const updateOrderStatus = async (orderId: string, updates: any) => {
+    // 1. Optimistic Update
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates } : o));
+    
+    // 2. Persist to Firestore
+    try {
+      await updateDoc(doc(db, 'orders', orderId), updates);
+      toast({
+        title: "ORDER UPDATED",
+        description: `Successfully modified record #${orderId.slice(0, 8)}`,
+      });
+    } catch (err) {
+      console.error("Update failed", err);
+    }
+  };
 
   // 2. UI State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [isBulkStatusOpen, setIsBulkStatusOpen] = useState(false);
-  const [bulkStatus, setBulkStatus] = useState('');
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+  const [bulkEditField, setBulkEditField] = useState<'status' | 'paymentStatus'>('status');
+  const [bulkEditValue, setBulkEditValue] = useState('');
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [viewMode, setViewMode] = useState<'compact' | 'expanded'>('expanded');
+  const [idToDelete, setIdToDelete] = useState<string | null>(null);
   const lastSelectedId = React.useRef<string | null>(null);
 
   useEffect(() => {
@@ -166,23 +257,51 @@ export default function OrdersPage() {
     }
   };
 
-  const handleBulkStatusUpdate = async () => {
-    if (!db || selectedIds.length === 0 || !bulkStatus) return;
+  const handleBulkUpdate = async () => {
+    if (!db || selectedIds.length === 0 || !bulkEditValue) return;
     setIsProcessing(true);
     try {
       const batch = writeBatch(db);
       selectedIds.forEach(id => {
         batch.update(doc(db, 'orders', id), { 
-          status: bulkStatus,
+          [bulkEditField]: bulkEditValue,
           updatedAt: serverTimestamp() 
         });
       });
       await batch.commit();
-      toast({ title: "Bulk Update Successful", description: `${selectedIds.length} orders updated to ${bulkStatus}.` });
+      toast({ 
+        title: "Bulk Update Successful", 
+        description: `${selectedIds.length} orders updated for field ${bulkEditField}.` 
+      });
       setSelectedIds([]);
-      setIsBulkStatusOpen(false);
+      setIsBulkEditOpen(false);
+      setBulkEditValue('');
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Bulk update failed." });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = idToDelete ? [idToDelete] : selectedIds;
+    if (!db || ids.length === 0) return;
+    setIsProcessing(true);
+    try {
+      const batch = writeBatch(db);
+      ids.forEach(id => {
+        batch.delete(doc(db, 'orders', id));
+      });
+      await batch.commit();
+      toast({ 
+        title: "Delete Successful", 
+        description: `${ids.length} order${ids.length > 1 ? 's were' : ' was'} permanently removed.` 
+      });
+      if (idToDelete) setIdToDelete(null);
+      else setSelectedIds([]);
+      setIsBulkDeleteOpen(false);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to delete orders." });
     } finally {
       setIsProcessing(false);
     }
@@ -249,12 +368,45 @@ export default function OrdersPage() {
         
         <div className="flex items-center gap-3">
           {selectedIds.length > 0 && (
-            <Button 
-              onClick={() => setIsBulkStatusOpen(true)}
-              className="bg-black text-white h-11 px-6 font-bold uppercase text-[10px] tracking-widest rounded-none shadow-lg hover:scale-105 transition-all"
-            >
-              Bulk Actions ({selectedIds.length})
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  className="bg-black text-white h-11 px-6 font-bold uppercase text-[10px] tracking-widest rounded-none shadow-lg hover:scale-105 transition-all"
+                >
+                  Bulk Actions ({selectedIds.length})
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="rounded-none border-[#e1e3e5] min-w-[200px]">
+                <DropdownMenuLabel className="text-[9px] font-black uppercase text-gray-400 p-3">Manage Selection</DropdownMenuLabel>
+                <DropdownMenuItem 
+                  className="text-[10px] font-bold uppercase p-3 cursor-pointer"
+                  onClick={() => {
+                    setBulkEditField('status');
+                    setBulkEditValue('');
+                    setIsBulkEditOpen(true);
+                  }}
+                >
+                  <Edit className="h-3.5 w-3.5 mr-2" /> Update status
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="text-[10px] font-bold uppercase p-3 cursor-pointer"
+                  onClick={() => {
+                    setBulkEditField('paymentStatus');
+                    setBulkEditValue('');
+                    setIsBulkEditOpen(true);
+                  }}
+                >
+                  <DollarSign className="h-3.5 w-3.5 mr-2" /> Update payment
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="text-[10px] font-bold uppercase p-3 cursor-pointer text-red-600 focus:text-red-700"
+                  onClick={() => setIsBulkDeleteOpen(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete selected
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <Button variant="outline" className="border-[#e1e3e5] h-11 px-6 font-bold uppercase text-[10px] tracking-widest rounded-none bg-white">
             Export Orders
@@ -312,18 +464,38 @@ export default function OrdersPage() {
                 <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* View Mode Toggle */}
+            <div className="flex bg-white border border-[#e1e3e5] p-1 gap-1">
+              <Button
+                variant={viewMode === 'compact' ? 'default' : 'ghost'}
+                size="icon"
+                onClick={() => setViewMode('compact')}
+                className={cn(
+                  "h-10 w-10 rounded-none transition-all",
+                  viewMode === 'compact' ? "bg-black text-white" : "text-[#8c9196] hover:bg-gray-100"
+                )}
+                title="Compact View"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'expanded' ? 'default' : 'ghost'}
+                size="icon"
+                onClick={() => setViewMode('expanded')}
+                className={cn(
+                  "h-10 w-10 rounded-none transition-all",
+                  viewMode === 'expanded' ? "bg-black text-white" : "text-[#8c9196] hover:bg-gray-100"
+                )}
+                title="Expanded View"
+              >
+                <LayoutList className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
         <div className="relative">
-          {/* Internal Content Loader - Non-blocking */}
-          {isQueryLoading && orders.length === 0 && (
-            <div className="py-32 flex flex-col items-center justify-center gap-4 text-center">
-              <Loader2 className="h-10 w-10 animate-spin text-black opacity-20" />
-              <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-400">Loading Orders...</p>
-            </div>
-          )}
-
           {/* Desktop Table View */}
           <div className="hidden lg:block overflow-x-auto">
             <Table>
@@ -341,7 +513,7 @@ export default function OrdersPage() {
                   <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] py-4">Participant & Items</TableHead>
                   <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Order Hash</TableHead>
                   <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Order Status</TableHead>
-                  <TableHead className="text-right text-[10px] uppercase font-bold tracking-widest text-[#5c5f62] pr-8">Financials</TableHead>
+                  <TableHead className="text-[10px] uppercase font-bold tracking-widest text-[#5c5f62]">Financials</TableHead>
                   <TableHead className="w-[40px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -407,34 +579,82 @@ export default function OrdersPage() {
                           </div>
                         </div>
 
-                        {/* Detailed Items List */}
-                        <div className="space-y-3 bg-gray-50/50 p-3 border border-dashed border-gray-200">
-                          <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 border-b border-gray-200 pb-1 flex justify-between items-center">
-                            <span>Order Items ({(order.items || []).length})</span>
-                            <Package className="h-2.5 w-2.5" />
-                          </p>
-                          {(order.items || []).map((item: any, i: number) => (
-                            <div key={i} className="flex gap-4 items-start group/item">
-                              <div className="w-10 h-14 bg-white shrink-0 border border-gray-200 shadow-sm relative overflow-hidden">
-                                {item.image && <img src={item.image} alt="" className="object-cover w-full h-full group-hover/item:scale-110 transition-transform duration-300" />}
+                          {/* Compact Items Summary - UPDATED */}
+                          {viewMode === 'compact' && (
+                            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                              <div className="flex items-center gap-1.5 overflow-hidden p-1 bg-gray-50/50 border border-dashed border-gray-200">
+                                {(order.items || []).slice(0, 4).map((item: any, i: number) => (
+                                  <div 
+                                    key={i} 
+                                    className="w-12 h-12 rounded-none border border-white bg-white shrink-0 relative shadow-sm overflow-hidden group/thumb"
+                                  >
+                                    {item.image ? (
+                                      <Image 
+                                        src={item.image} 
+                                        alt={item.name} 
+                                        fill 
+                                        sizes="48px"
+                                        className="object-cover group-hover/thumb:scale-110 transition-transform duration-300" 
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                        <Package className="h-4 w-4 text-gray-300" />
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                                {(order.items || []).length > 4 && (
+                                  <div className="w-12 h-12 bg-gray-100 border border-white flex items-center justify-center z-0 shadow-sm">
+                                    <span className="text-[10px] font-black text-gray-400">+{(order.items || []).length - 4}</span>
+                                  </div>
+                                )}
                               </div>
-                              <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
-                                <p className="text-[11px] font-black uppercase text-black truncate leading-tight">{item.name}</p>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                  <span className="text-[9px] font-black text-gray-500 uppercase bg-gray-100 px-1.5 py-0.5 rounded-sm">Size: {item.size || 'N/A'}</span>
-                                  {(item.customName || item.customNumber) && (
-                                    <span className="text-[9px] font-black text-blue-700 uppercase bg-blue-50 px-1.5 py-0.5 rounded-sm flex items-center gap-1">
-                                      <Sparkles className="h-2.5 w-2.5" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
-                                    </span>
-                                  )}
-                                  {item.quantity > 1 && (
-                                    <span className="text-[9px] font-black text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Qty: {item.quantity}</span>
-                                  )}
-                                </div>
+                              <div className="flex flex-col gap-1">
+                                <Badge className="bg-black text-white border-none text-[9px] font-black uppercase tracking-tighter px-2 h-5 rounded-none w-fit">
+                                  {(order.items || []).length} {(order.items || []).length === 1 ? 'ITEM' : 'ITEMS'}
+                                </Badge>
                               </div>
                             </div>
-                          ))}
-                        </div>
+                          )}
+
+                          {/* Detailed Items List - Conditional */}
+                          {viewMode === 'expanded' && (
+                            <div className="space-y-3 bg-gray-50/50 p-3 border border-dashed border-gray-200 animate-in slide-in-from-top-2 duration-300">
+                              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 border-b border-gray-200 pb-1 flex justify-between items-center">
+                                <span>Order Items ({(order.items || []).length})</span>
+                                <Package className="h-2.5 w-2.5" />
+                              </p>
+                              {(order.items || []).map((item: any, i: number) => (
+                                <div key={i} className="flex gap-4 items-start group/item">
+                                  <div className="w-12 h-12 bg-white shrink-0 border border-gray-200 shadow-sm relative overflow-hidden">
+                                    {item.image && (
+                                      <Image 
+                                        src={item.image} 
+                                        alt={item.name} 
+                                        fill 
+                                        sizes="48px"
+                                        className="object-cover group-hover/item:scale-110 transition-transform duration-300" 
+                                      />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
+                                    <p className="text-[11px] font-black uppercase text-black truncate leading-tight">{item.name}</p>
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                      <span className="text-[9px] font-black text-gray-500 uppercase bg-gray-100 px-1.5 py-0.5 rounded-sm">Size: {item.size || 'N/A'}</span>
+                                      {(item.customName || item.customNumber) && (
+                                        <span className="text-[9px] font-black text-blue-700 uppercase bg-blue-50 px-1.5 py-0.5 rounded-sm flex items-center gap-1">
+                                          <Sparkles className="h-2.5 w-2.5" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                        </span>
+                                      )}
+                                      {item.quantity > 1 && (
+                                        <span className="text-[9px] font-black text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Qty: {item.quantity}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -445,28 +665,89 @@ export default function OrdersPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="space-y-2">
-                        {getStatusBadge(order.status)}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <div className="cursor-pointer hover:opacity-80 transition-opacity">
+                              {getStatusBadge(order.status)}
+                            </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="rounded-none border-[#e1e3e5] min-w-[180px]">
+                            <DropdownMenuLabel className="text-[9px] font-black uppercase text-gray-400 p-3">Update Status</DropdownMenuLabel>
+                            {[
+                              { label: 'Processing', value: 'processing' },
+                              { label: 'Shipped', value: 'shipped' },
+                              { label: 'Ready for Pickup', value: 'ready_for_pickup' },
+                              { label: 'Delivered', value: 'delivered' },
+                              { label: 'Cancelled', value: 'cancelled' },
+                            ].map((opt) => (
+                              <DropdownMenuItem 
+                                key={opt.value}
+                                className={cn(
+                                  "text-[10px] font-bold uppercase p-3 cursor-pointer",
+                                  order.status === opt.value && "bg-gray-50 text-black"
+                                )}
+                                onClick={() => updateOrderStatus(order.id, { status: opt.value, updatedAt: serverTimestamp() })}
+                              >
+                                {opt.label}
+                                {order.status === opt.value && <CheckCircle2 className="h-3 w-3 ml-auto text-emerald-500" />}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <div className="flex items-center gap-1.5 opacity-50">
                           {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
                           <span className="text-[8px] font-black uppercase tracking-tighter">{order.deliveryMethod || 'STANDBY'}</span>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right pr-8">
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                        <div className="space-y-1.5">
                          <div className="text-sm font-black tracking-tighter text-black">C${Number(order.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                         {getPaymentStatusBadge(order.paymentStatus)}
+                         <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                             <div className="cursor-pointer hover:opacity-80 transition-opacity w-fit">
+                               {getPaymentStatusBadge(order.paymentStatus)}
+                             </div>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent className="rounded-none border-[#e1e3e5] min-w-[150px] z-50">
+                             <DropdownMenuLabel className="text-[9px] font-black uppercase text-gray-400 p-3">Payment State</DropdownMenuLabel>
+                             <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'paid' })}>Mark as Paid</DropdownMenuItem>
+                             <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'awaiting_payment' })}>Awaiting Payment</DropdownMenuItem>
+                             <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'refunded' })}>Refunded</DropdownMenuItem>
+                           </DropdownMenuContent>
+                         </DropdownMenu>
                        </div>
                     </TableCell>
                     <TableCell>
-                       <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />
+                       <div className="flex items-center gap-2">
+                         <Button
+                           variant="ghost"
+                           size="icon"
+                           className="h-8 w-8 text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors rounded-none opacity-0 group-hover:opacity-100"
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setIdToDelete(order.id);
+                             setIsBulkDeleteOpen(true);
+                           }}
+                         >
+                           <Trash2 className="h-4 w-4" />
+                         </Button>
+                         <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />
+                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            {hasMore && (
+              <div className="p-6 text-center">
+                <Button variant="outline" onClick={() => fetchOrders()} disabled={isQueryLoading}>
+                  {isQueryLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load More"}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Card View */}
@@ -496,7 +777,21 @@ export default function OrdersPage() {
                       </div>
                       <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{formatDate(order.createdAt)}</p>
                     </div>
-                    {getStatusBadge(order.status)}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:text-red-600 active:bg-red-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIdToDelete(order.id);
+                          setIsBulkDeleteOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      {getStatusBadge(order.status)}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-4">
@@ -508,31 +803,68 @@ export default function OrdersPage() {
                           {(() => {
                             const address = order.customer?.shipping || order.customer?.billing;
                             if (!address) return null;
-                            return <p className="text-[10px] font-bold text-gray-700 flex items-center gap-1"><MapPin className="h-3 w-3 text-blue-600" /> {address.address}, {address.city}</p>;
+                            return (
+                              <a 
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address.address}, ${address.city}, ${address.province || ''}`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] font-bold text-gray-700 flex items-center gap-1 hover:text-blue-600 transition-colors"
+                              >
+                                <MapPin className="h-3 w-3 text-blue-600" /> {address.address}, {address.city}
+                              </a>
+                            );
                           })()}
                         </div>
                      </div>
 
-                     {/* Mobile Item List */}
-                     <div className="space-y-3 bg-gray-50 p-3 border border-[#e1e3e5]">
-                        <p className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-2 border-b pb-1">Items List</p>
-                        {(order.items || []).map((item: any, i: number) => (
-                          <div key={i} className="flex gap-3 items-start">
-                            <div className="w-8 h-10 bg-white shrink-0 border border-gray-200 shadow-xs relative overflow-hidden">
-                              {item.image && <img src={item.image} alt="" className="object-cover w-full h-full" />}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-black uppercase text-black truncate leading-tight">{item.name}</p>
-                              <div className="flex flex-wrap gap-x-2 mt-0.5">
-                                <span className="text-[8px] font-black text-gray-500 uppercase">Size: {item.size || 'N/A'}</span>
-                                {(item.customName || item.customNumber) && (
-                                  <span className="text-[8px] font-black text-blue-600 uppercase flex items-center gap-1">✦ {item.customName} {item.customNumber}</span>
+                     {/* Mobile Compact Item Summary - UPDATED */}
+                     {viewMode === 'compact' && (
+                        <div className="flex flex-col gap-3 bg-gray-50/80 p-3 border border-dashed border-gray-200 animate-in fade-in zoom-in-95 duration-200">
+                          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                           {(order.items || []).length > 5 && (
+                             <div className="w-12 h-12 bg-gray-100 border border-white flex items-center justify-center text-[10px] font-black text-gray-400 shadow-sm shrink-0">
+                               +{(order.items || []).length - 5}
+                             </div>
+                           )}
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <p className="text-[9px] font-black uppercase text-gray-500 tracking-widest bg-white px-2 py-1 border border-gray-100 shadow-sm">
+                              {(order.items || []).length} ITEMS
+                            </p>
+                          </div>
+                        </div>
+                     )}
+
+                     {/* Mobile Item List - Conditional */}
+                     {viewMode === 'expanded' && (
+                        <div className="space-y-3 bg-gray-50 p-3 border border-[#e1e3e5] animate-in zoom-in-95 duration-200">
+                          <p className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-2 border-b pb-1">Items List</p>
+                          {(order.items || []).map((item: any, i: number) => (
+                            <div key={i} className="flex gap-3 items-start">
+                              <div className="w-10 h-10 bg-white shrink-0 border border-gray-200 shadow-xs relative overflow-hidden">
+                                {item.image && (
+                                  <Image 
+                                    src={item.image} 
+                                    alt={item.name} 
+                                    fill 
+                                    sizes="48px"
+                                    className="object-cover" 
+                                  />
                                 )}
                               </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-black uppercase text-black truncate leading-tight">{item.name}</p>
+                                <div className="flex flex-wrap gap-x-2 mt-0.5">
+                                  <span className="text-[8px] font-black text-gray-500 uppercase">Size: {item.size || 'N/A'}</span>
+                                  {(item.customName || item.customNumber) && (
+                                    <span className="text-[8px] font-black text-blue-600 uppercase flex items-center gap-1">✦ {item.customName} {item.customNumber}</span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                     </div>
+                          ))}
+                        </div>
+                     )}
                   </div>
 
                   <div className="flex justify-between items-end pt-2 border-t border-dashed border-[#e1e3e5]">
@@ -548,47 +880,102 @@ export default function OrdersPage() {
                 </div>
               </div>
             ))}
+            {hasMore && (
+              <div className="p-6 text-center">
+                <Button variant="outline" onClick={() => fetchOrders()} disabled={isQueryLoading}>
+                  {isQueryLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load More"}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </Card>
     </div>
 
-    {/* Bulk Status Update Dialog */}
-    <Dialog open={isBulkStatusOpen} onOpenChange={setIsBulkStatusOpen}>
+    {/* Bulk Edit Dialog */}
+    <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
       <DialogContent className="max-w-[400px] bg-white border-none rounded-none shadow-2xl p-0 overflow-hidden">
         <DialogHeader className="p-8 pb-4">
-          <DialogTitle className="text-xl font-headline font-black uppercase tracking-tighter">Bulk Status Update</DialogTitle>
+          <DialogTitle className="text-xl font-headline font-black uppercase tracking-tighter">
+            Bulk {bulkEditField === 'status' ? 'Status' : 'Payment'} Update
+          </DialogTitle>
           <DialogDescription className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mt-1">
-            Updating {selectedIds.length} orders to a new state.
+            Updating {selectedIds.length} orders across the archive.
           </DialogDescription>
         </DialogHeader>
         <div className="p-8 pt-0 space-y-6">
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase tracking-widest text-gray-500">Status</Label>
-            <Select value={bulkStatus} onValueChange={setBulkStatus}>
+            <Label className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+              Select New {bulkEditField === 'status' ? 'Status' : 'Payment State'}
+            </Label>
+            <Select value={bulkEditValue} onValueChange={setBulkEditValue}>
               <SelectTrigger className="h-12 rounded-none border-[#e1e3e5] font-bold uppercase text-[10px] tracking-widest">
-                <SelectValue placeholder="SELECT NEW STATUS" />
+                <SelectValue placeholder="CHOOSE VALUE..." />
               </SelectTrigger>
               <SelectContent className="rounded-none border-[#e1e3e5]">
-                <SelectItem value="processing" className="text-[10px] font-bold uppercase">Processing</SelectItem>
-                <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
-                <SelectItem value="ready_for_pickup" className="text-[10px] font-bold uppercase">Ready for Pickup</SelectItem>
-                <SelectItem value="delivered" className="text-[10px] font-bold uppercase">Delivered</SelectItem>
-                <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
+                {bulkEditField === 'status' ? (
+                  <>
+                    <SelectItem value="processing" className="text-[10px] font-bold uppercase">Processing</SelectItem>
+                    <SelectItem value="shipped" className="text-[10px] font-bold uppercase">Shipped</SelectItem>
+                    <SelectItem value="ready_for_pickup" className="text-[10px] font-bold uppercase">Ready for Pickup</SelectItem>
+                    <SelectItem value="delivered" className="text-[10px] font-bold uppercase">Delivered</SelectItem>
+                    <SelectItem value="cancelled" className="text-[10px] font-bold uppercase">Cancelled</SelectItem>
+                  </>
+                ) : (
+                  <>
+                    <SelectItem value="paid" className="text-[10px] font-bold uppercase">Mark as Paid</SelectItem>
+                    <SelectItem value="awaiting_payment" className="text-[10px] font-bold uppercase">Awaiting payment</SelectItem>
+                    <SelectItem value="refunded" className="text-[10px] font-bold uppercase">Refunded</SelectItem>
+                    <SelectItem value="canceled" className="text-[10px] font-bold uppercase">Canceled</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
           <Button 
-            onClick={handleBulkStatusUpdate} 
-            disabled={isProcessing || !bulkStatus}
+            onClick={handleBulkUpdate} 
+            disabled={isProcessing || !bulkEditValue}
             className="w-full h-14 bg-black text-white hover:bg-black/90 font-black uppercase tracking-[0.2em] text-[10px] rounded-none shadow-xl transition-all disabled:opacity-50"
           >
             {isProcessing ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : null}
-            Execute Bulk Update
+            Apply Bulk Changes
           </Button>
         </div>
       </DialogContent>
     </Dialog>
+
+     {/* Delete Confirm */}
+    <AlertDialog open={isBulkDeleteOpen} onOpenChange={(open) => {
+      setIsBulkDeleteOpen(open);
+      if (!open) setIdToDelete(null);
+    }}>
+      <AlertDialogContent className="rounded-none bg-white border-none shadow-2xl">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-xl font-headline font-black uppercase tracking-tighter">
+            {idToDelete ? 'Delete Order' : 'Confirm Bulk Deletion'}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-[10px] uppercase font-bold text-gray-600 tracking-widest leading-relaxed">
+            {idToDelete ? (
+               <>You are about to permanently delete order <span className="text-red-600 font-black">#{idToDelete.slice(-8).toUpperCase()}</span>.</>
+            ) : (
+               <>You are about to permanently delete <span className="text-red-600 font-black">{selectedIds.length} orders</span>.</>
+            )}
+            <br />This action is irreversible and will remove all audit trails.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="mt-6 flex gap-3">
+          <AlertDialogCancel className="rounded-none border-gray-200 text-[10px] font-bold uppercase tracking-widest h-12 flex-1">Cancel</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleBulkDelete}
+            disabled={isProcessing}
+            className="rounded-none bg-red-600 text-white hover:bg-red-700 text-[10px] font-bold uppercase tracking-widest h-12 flex-1 shadow-lg"
+          >
+            {isProcessing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Trash2 className="h-3.5 w-3.5 mr-2" />}
+            Confirm Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }

@@ -78,7 +78,7 @@ export function BentoHero({
       <div 
         className={cn(
           "w-full bg-black group shadow-2xl relative overflow-hidden",
-          "aspect-square sm:aspect-[var(--hero-aspect-ratio,3.8)]"
+          "aspect-[1.43/1] sm:aspect-[var(--hero-aspect-ratio,5.4)]"
         )}
         style={{
           '--hero-aspect-ratio': heroAspectRatio
@@ -102,6 +102,7 @@ export function BentoHero({
                   sizes="100vw"
                   className="object-cover"
                   priority={idx === 0}
+                  {...(idx === 0 ? { fetchPriority: "high" } : {})}
                 />
               </CarouselItem>
             ))}

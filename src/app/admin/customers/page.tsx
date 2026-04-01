@@ -1,30 +1,23 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { 
-  Search, 
-  Users, 
-  Loader2, 
-  Mail, 
-  Calendar as CalendarIcon, 
-  UserCircle,
-  MoreHorizontal,
-  Filter,
-  ShoppingBag,
+import { UserCircle, Mail, Calendar as CalendarIcon, ArrowRight, Loader2, Clock, Search, Filter, ShoppingBag } from "lucide-react";
+import Image from 'next/image';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
   CreditCard,
   UserCheck,
   UserPlus,
-  ArrowRight,
   X,
   MapPin,
   Tag,
@@ -38,16 +31,16 @@ import {
   Package
 } from 'lucide-react';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useIsAdmin } from '@/firebase';
-import { collection, query, orderBy, limit, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, deleteDoc, doc, updateDoc, getDoc, getDocs } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
@@ -83,7 +76,7 @@ export default function CustomersPage() {
 
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  
+
   const [advName, setAdvName] = useState('');
   const [advOrderNum, setAdvOrderNum] = useState('');
   const [advPhone, setAdvPhone] = useState('');
@@ -91,24 +84,38 @@ export default function CustomersPage() {
   const [advProduct, setAdvProduct] = useState('');
   const [advDateRange, setAdvDateRange] = useState<DateRange | undefined>(undefined);
 
-  const usersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-  }, [db, isAdmin]);
+  // 1. Data Fetching with Pagination
+  const [pUsers, setPUsers] = useState<any[]>([]);
+  const [pOrders, setPOrders] = useState<any[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const BATCH_SIZE = 50;
 
-  const ordersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-  }, [db, isAdmin]);
+  const fetchData = async () => {
+    if (!db || isDataLoading) return;
+    setIsDataLoading(true);
+    try {
+      const uQ = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(100));
+      const oQ = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100));
+      
+      const [uSnap, oSnap] = await Promise.all([getDocs(uQ), getDocs(oQ)]);
+      setPUsers(uSnap.docs.map(d => ({ ...d.data(), id: d.id })));
+      setPOrders(oSnap.docs.map(d => ({ ...d.data(), id: d.id })));
+    } catch (err) {
+      console.error("Fetch Data Failed:", err);
+    } finally {
+      setIsDataLoading(false);
+    }
+  };
 
-  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
-  const { data: orders, isLoading: ordersLoading } = useCollection(ordersQuery);
+  useEffect(() => {
+    if (db) fetchData();
+  }, [db]);
 
   const unifiedCustomers = useMemo(() => {
-    if (!users || !orders) return [];
+    if (!pUsers || !pOrders) return [];
     const customerMap = new Map<string, any>();
 
-    users.forEach(u => {
+    pUsers.forEach(u => {
       customerMap.set(u.email?.toLowerCase(), {
         id: u.id,
         email: u.email,
@@ -123,11 +130,12 @@ export default function CustomersPage() {
         orderIds: new Set<string>(),
         productNames: new Set<string>(),
         addresses: new Set<string>(),
-        phones: new Set<string>()
+        phones: new Set<string>(),
+        cartItems: [] // Placeholder
       });
     });
 
-    orders.forEach(o => {
+    pOrders.forEach(o => {
       const email = o.email?.toLowerCase();
       if (!email) return;
       let entry = customerMap.get(email);
@@ -136,7 +144,9 @@ export default function CustomersPage() {
           id: `guest_${o.id}`, email: o.email, displayName: o.customer?.name || 'Guest Piece',
           photoURL: null, createdAt: o.createdAt, tier: 'Guest', orderCount: 0, totalSpent: 0,
           lastOrderDate: null, status: 'Guest Purchaser', orderIds: new Set<string>(),
-          productNames: new Set<string>(), addresses: new Set<string>(), phones: new Set<string>()
+          lastPaymentStatus: null, lastFulfillmentStatus: null,
+          productNames: new Set<string>(), addresses: new Set<string>(), phones: new Set<string>(),
+          cartItems: []
         };
         customerMap.set(email, entry);
       }
@@ -145,7 +155,11 @@ export default function CustomersPage() {
         entry.totalSpent += (Number(o.total) || 0);
         entry.status = entry.tier === 'Registered' ? 'Member' : 'Guest Purchaser';
         const oDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
-        if (!entry.lastOrderDate || oDate > new Date(entry.lastOrderDate)) entry.lastOrderDate = oDate;
+        if (!entry.lastOrderDate || oDate > new Date(entry.lastOrderDate)) {
+          entry.lastOrderDate = oDate;
+          entry.lastPaymentStatus = o.paymentStatus;
+          entry.lastFulfillmentStatus = o.status;
+        }
         entry.orderIds.add(o.id.toUpperCase());
         if (o.customer?.phone) entry.phones.add(o.customer.phone);
         if (o.customer?.shipping?.address) entry.addresses.add(o.customer.shipping.address.toUpperCase());
@@ -157,7 +171,25 @@ export default function CustomersPage() {
       if (c.tier === 'Registered' && c.orderCount === 0) return { ...c, status: 'Abandoned / Lead', isAbandoned: true };
       return c;
     });
-  }, [users, orders]);
+  }, [pUsers, pOrders]);
+
+  const getStatusBadge = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'fulfilled': return <Badge className="bg-green-50 text-green-700 border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-none">Fulfilled</Badge>;
+      case 'processing': return <Badge className="bg-blue-50 text-blue-700 border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-none">Processing</Badge>;
+      case 'cancelled': return <Badge className="bg-red-50 text-red-700 border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-none">Cancelled</Badge>;
+      default: return <Badge className="bg-gray-100 text-gray-500 border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-none">{status || 'Standby'}</Badge>;
+    }
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'paid': return <Badge className="bg-green-600 text-white border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-none">Paid</Badge>;
+      case 'awaiting_payment': return <Badge className="bg-orange-500 text-white border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-none">Awaiting</Badge>;
+      case 'refunded': return <Badge className="bg-gray-800 text-white border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-none">Refunded</Badge>;
+      default: return <Badge className="bg-gray-400 text-white border-none px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-none">{status || 'Unpaid'}</Badge>;
+    }
+  };
 
   const filteredCustomers = useMemo(() => {
     return unifiedCustomers.filter(customer => {
@@ -183,10 +215,10 @@ export default function CustomersPage() {
   const formatDate = (date: any) => {
     if (!date) return 'N/A';
     const d = date.toDate ? date.toDate() : new Date(date);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
   };
 
-  const isLoading = usersLoading || ordersLoading;
+  const isLoading = isDataLoading;
 
   return (
     <div className="space-y-8 min-w-0">
@@ -240,20 +272,42 @@ export default function CustomersPage() {
             <TableHeader className="bg-[#f6f6f7]"><TableRow className="border-[#e1e3e5]"><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62] py-4 pl-6">Identity</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Contact</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Joined</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Purchase History</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Status</TableHead><TableHead className="w-[50px]"></TableHead></TableRow></TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" /></TableCell></TableRow>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="border-[#e1e3e5]">
+                    <TableCell className="pl-6"><div className="flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full" /><div className="space-y-1"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-20" /></div></div></TableCell>
+                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><div className="space-y-1"><Skeleton className="h-4 w-16" /><Skeleton className="h-3 w-24" /></div></TableCell>
+                    <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                ))
               ) : filteredCustomers.length === 0 ? (
                 <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-medium uppercase text-[10px] tracking-widest">No members found.</TableCell></TableRow>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <TableRow 
-                    key={customer.id} 
+                  <TableRow
+                    key={customer.id}
                     onClick={() => setSelectedCustomer(customer)}
                     className="hover:bg-[#f6f6f7]/50 border-[#e1e3e5] group cursor-pointer transition-colors"
                   >
-                    <TableCell className="pl-6"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm">{customer.photoURL ? <img src={customer.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircle className="h-6 w-6 text-gray-300" />}</div><div className="flex flex-col"><span className="text-sm font-bold uppercase tracking-tight text-primary">{customer.displayName}</span><span className="text-[9px] font-mono text-gray-400 uppercase">ID: {customer.id.substring(0, 8)}...</span></div></div></TableCell>
+                    <TableCell className="pl-6"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative">{customer.photoURL ? <Image src={customer.photoURL} alt={customer.displayName} fill sizes="40px" className="object-cover" /> : <UserCircle className="h-6 w-6 text-gray-300" />}</div><div className="flex flex-col"><span className="text-sm font-bold uppercase tracking-tight text-primary">{customer.displayName}</span><span className="text-[9px] font-mono text-gray-400 uppercase">ID: {customer.id.substring(0, 8)}...</span></div></div></TableCell>
                     <TableCell><div className="flex flex-col gap-1"><div className="flex items-center gap-2 text-xs font-medium"><Mail className="h-3 w-3 text-gray-400" /><span className="lowercase">{customer.email}</span></div></div></TableCell>
                     <TableCell><div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase"><CalendarIcon className="h-3 w-3" />{formatDate(customer.createdAt)}</div></TableCell>
-                    <TableCell><div className="flex flex-col gap-0.5"><span className="text-xs font-bold text-primary">C$${customer.totalSpent.toFixed(2)}</span><span className="text-[9px] font-bold text-gray-400 uppercase">{customer.orderCount} ORDERS</span></div></TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-bold text-primary">C${customer.totalSpent.toFixed(2)}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{customer.orderCount} ORDERS</span>
+                          {customer.lastOrderDate && (
+                            <div className="flex gap-1">
+                              {getPaymentStatusBadge(customer.lastPaymentStatus)}
+                              {getStatusBadge(customer.lastFulfillmentStatus)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell><Badge variant="secondary" className={cn("uppercase text-[9px] font-bold border-none px-3", customer.isAbandoned ? "bg-purple-50 text-purple-700" : customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700")}>{customer.status}</Badge></TableCell>
                     <TableCell className="pr-6"><Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"><ArrowRight className="h-4 w-4 text-gray-400" /></Button></TableCell>
                   </TableRow>
@@ -265,20 +319,33 @@ export default function CustomersPage() {
 
         <div className="lg:hidden">
           {isLoading ? (
-            <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-gray-300" /></div>
+            <div className="divide-y border-t">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="p-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : filteredCustomers.length === 0 ? (
             <div className="p-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">No members found.</div>
           ) : (
             <div className="divide-y border-t">
               {filteredCustomers.map((customer) => (
-                <div 
-                  key={customer.id} 
+                <div
+                  key={customer.id}
                   onClick={() => setSelectedCustomer(customer)}
                   className="p-4 space-y-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm">{customer.photoURL ? <img src={customer.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircle className="h-6 w-6 text-gray-300" />}</div>
+                      <div className="w-10 h-10 rounded-full bg-gray-100 border overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative">{customer.photoURL ? <Image src={customer.photoURL} alt={customer.displayName} fill sizes="40px" className="object-cover" /> : <UserCircle className="h-6 w-6 text-gray-300" />}</div>
                       <div className="flex flex-col"><span className="text-sm font-bold uppercase tracking-tight text-primary">{customer.displayName}</span><Badge variant="secondary" className={cn("w-fit uppercase text-[7px] font-bold border-none px-1.5 h-4 mt-0.5", customer.isAbandoned ? "bg-purple-50 text-purple-700" : customer.tier === 'Guest' ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700")}>{customer.status}</Badge></div>
                     </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8"><ArrowRight className="h-4 w-4 text-gray-400" /></Button>
@@ -286,8 +353,18 @@ export default function CustomersPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Contact</p><p className="text-[10px] font-medium truncate lowercase">{customer.email}</p></div>
                     <div className="space-y-1 text-right"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Joined</p><p className="text-[10px] font-bold uppercase">{formatDate(customer.createdAt)}</p></div>
-                    <div className="space-y-1"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Spent</p><p className="text-[10px] font-bold text-primary">C$${customer.totalSpent.toFixed(2)}</p></div>
-                    <div className="space-y-1 text-right"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Orders</p><p className="text-[10px] font-bold">{customer.orderCount}</p></div>
+                    <div className="space-y-1"><p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Spent</p><p className="text-[10px] font-bold text-primary">C${customer.totalSpent.toFixed(2)}</p></div>
+                    <div className="space-y-1 text-right">
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Account Status</p>
+                      <div className="flex justify-end gap-1">
+                        {customer.lastOrderDate && (
+                          <>
+                            {getPaymentStatusBadge(customer.lastPaymentStatus)}
+                            {getStatusBadge(customer.lastFulfillmentStatus)}
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -297,16 +374,29 @@ export default function CustomersPage() {
       </div>
 
       <Sheet open={!!selectedCustomer} onOpenChange={(open) => !open && setSelectedCustomer(null)}>
-        <SheetContent className="w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10">
+        <SheetContent className="w-full sm:max-w-2xl bg-white p-0 flex flex-col border-l border-black/10 overflow-hidden">
           {selectedCustomer && (
             <>
               <SheetHeader className="p-8 border-b bg-gray-50/50 shrink-0">
                 <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 rounded-full bg-white border-2 border-primary/5 overflow-hidden flex items-center justify-center shrink-0 shadow-xl">
-                    {selectedCustomer.photoURL ? (
-                      <img src={selectedCustomer.photoURL} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <UserCircle className="h-12 w-12 text-gray-200" />
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-white border-2 border-primary/5 overflow-hidden flex items-center justify-center shrink-0 shadow-xl relative">
+                      {selectedCustomer.photoURL ? (
+                        <Image 
+                          src={selectedCustomer.photoURL} 
+                          alt={selectedCustomer.displayName} 
+                          fill 
+                          sizes="80px"
+                          className="object-cover" 
+                        />
+                      ) : (
+                        <UserCircle className="h-12 w-12 text-gray-200" />
+                      )}
+                    </div>
+                    {selectedCustomer.isHighIntent && (
+                      <div className="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full p-1.5 shadow-lg animate-pulse">
+                        <ShoppingBag className="h-3 w-3" />
+                      </div>
                     )}
                   </div>
                   <div className="space-y-1 overflow-hidden">
@@ -314,8 +404,10 @@ export default function CustomersPage() {
                       <SheetTitle className="text-2xl font-headline font-bold uppercase tracking-tight truncate">
                         {selectedCustomer.displayName}
                       </SheetTitle>
-                      <Badge className={cn("uppercase text-[8px] font-bold tracking-widest px-2 h-5 border-none", selectedCustomer.tier === 'Registered' ? 'bg-blue-600' : 'bg-orange-500')}>
-                        {selectedCustomer.tier}
+                      <Badge className={cn("uppercase text-[8px] font-bold tracking-widest px-2 h-5 border-none", 
+                        selectedCustomer.isHighIntent ? 'bg-orange-600' : 
+                        selectedCustomer.tier === 'Registered' ? 'bg-blue-600' : 'bg-orange-500')}>
+                        {selectedCustomer.status}
                       </Badge>
                     </div>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest truncate">{selectedCustomer.email}</p>
@@ -327,13 +419,14 @@ export default function CustomersPage() {
               </SheetHeader>
 
               <ScrollArea className="flex-1">
-                <div className="p-8 space-y-12">
+                <div className="p-8 space-y-10">
                   
+                  {/* METRICS */}
                   <div className="grid grid-cols-2 gap-4">
                     <Card className="shadow-none rounded-none border border-black/5 bg-gray-50/30">
                       <CardContent className="p-6">
                         <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Lifetime Value</p>
-                        <p className="text-2xl font-bold font-headline text-primary">C$${selectedCustomer.totalSpent.toFixed(2)}</p>
+                        <p className="text-2xl font-bold font-headline text-primary">C${selectedCustomer.totalSpent.toFixed(2)}</p>
                       </CardContent>
                     </Card>
                     <Card className="shadow-none rounded-none border border-black/5 bg-gray-50/30">
@@ -344,74 +437,149 @@ export default function CustomersPage() {
                     </Card>
                   </div>
 
-                  <section className="space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
-                      <History className="h-3.5 w-3.5 text-blue-500" /> Order History
-                    </h3>
-                    {selectedCustomer.orderIds.size > 0 ? (
-                      <div className="grid gap-3">
-                        {Array.from(selectedCustomer.orderIds).map((id: any) => (
-                          <div key={id} className="p-4 border rounded-none bg-white hover:border-black transition-all group flex items-center justify-between">
-                            <div className="space-y-1">
-                              <p className="text-[10px] font-mono font-bold">#{id}</p>
-                              <p className="text-[9px] font-bold uppercase text-muted-foreground">Archival Transaction</p>
+                  {/* ABANDONED CART SECTION */}
+                  {selectedCustomer.cartItems?.length > 0 && (
+                    <section className="space-y-6">
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-600 flex items-center gap-2">
+                          <ShoppingBag className="h-3.5 w-3.5" /> Live Abandoned Cart
+                        </h3>
+                        <Badge className="bg-orange-50 text-orange-700 border-none rounded-none text-[8px] font-bold">
+                          {selectedCustomer.cartItems.length} ITEMS
+                        </Badge>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedCustomer.cartItems.map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between p-3 border bg-orange-50/20 group hover:border-orange-200 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-white border flex items-center justify-center p-1 relative overflow-hidden">
+                                {item.image ? (
+                                  <Image 
+                                    src={item.image} 
+                                    alt={item.name} 
+                                    fill 
+                                    sizes="40px"
+                                    className="object-contain" 
+                                  />
+                                ) : (
+                                  <Package className="h-5 w-5 text-gray-300" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold uppercase truncate max-w-[200px]">{item.name}</p>
+                                <p className="text-[8px] font-bold text-gray-400">SIZE: {item.size || 'N/A'} • QTY: {item.quantity}</p>
+                              </div>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                              <a href={`/admin/orders/${id.toLowerCase()}`} target="_blank">
-                                <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-primary transition-colors" />
-                              </a>
-                            </Button>
+                            <p className="text-[10px] font-bold text-primary">C${(item.price * item.quantity).toFixed(2)}</p>
                           </div>
                         ))}
+                        <div className="pt-2 flex justify-between items-center text-orange-700">
+                          <span className="text-[9px] font-bold uppercase">Estimated Value</span>
+                          <span className="text-sm font-bold">C${selectedCustomer.cartItems.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </section>
+                  )}
+
+                  {/* ORDER HISTORY TABLE */}
+                  <section className="space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
+                      <History className="h-3.5 w-3.5 text-blue-500" /> Transactional History
+                    </h3>
+                    {selectedCustomer.orderHistory?.length > 0 ? (
+                      <div className="border rounded-none overflow-hidden bg-white shadow-sm">
+                        <Table>
+                          <TableHeader className="bg-gray-50">
+                            <TableRow className="border-b">
+                              <TableHead className="text-[8px] font-bold uppercase h-8 py-0 pl-4 w-[20%]">Date</TableHead>
+                              <TableHead className="text-[8px] font-bold uppercase h-8 py-0 w-[40%]">ID & Summary</TableHead>
+                              <TableHead className="text-[8px] font-bold uppercase h-8 py-0">Amount</TableHead>
+                              <TableHead className="text-[8px] font-bold uppercase h-8 py-0 pr-4 text-right">View</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedCustomer.orderHistory.map((order: any) => (
+                              <TableRow key={order.id} className="group hover:bg-gray-50/50 transition-colors">
+                                <TableCell className="pl-4 py-3">
+                                  <p className="text-[9px] font-bold uppercase leading-tight">
+                                    {order.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
+                                  </p>
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  <div className="space-y-1">
+                                    <p className="text-[9px] font-mono font-bold text-primary">#{order.id.substring(0, 8).toUpperCase()}...</p>
+                                    <div className="flex gap-1">
+                                      {getPaymentStatusBadge(order.paymentStatus)}
+                                      {getStatusBadge(order.status)}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="py-3 font-bold text-[9px]">C${Number(order.total).toFixed(2)}</TableCell>
+                                <TableCell className="pr-4 py-3 text-right">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-none border border-black/5 hover:border-black transition-all" asChild>
+                                    <a href={`/admin/orders/${order.id.toLowerCase()}`} target="_blank">
+                                      <ArrowRight className="h-3 w-3" />
+                                    </a>
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       </div>
                     ) : (
-                      <p className="text-[10px] font-bold uppercase text-gray-400 italic py-4">No transactions found.</p>
+                      <div className="py-12 border-2 border-dashed border-gray-100 flex flex-col items-center justify-center space-y-2 opacity-60">
+                         <Activity className="h-6 w-6 text-gray-200" />
+                         <p className="text-[10px] font-bold uppercase text-gray-400 italic">No transactional record found.</p>
+                      </div>
                     )}
                   </section>
 
+                  {/* LOGISTICS & CONTACT */}
                   <section className="space-y-6">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
-                      <Package className="h-3.5 w-3.5 text-orange-500" /> Items Manifest
+                      <MapPin className="h-3.5 w-3.5 text-emerald-500" /> Logistics & Contact
+                    </h3>
+                    <div className="grid gap-6">
+                      <div className="space-y-3">
+                        <Label className="text-[9px] font-bold text-gray-400 uppercase">Registered Addresses</Label>
+                        <div className="grid gap-3">
+                          {Array.from(selectedCustomer.addresses).map((addr: any) => (
+                            <div key={addr} className="p-4 bg-gray-50/50 border rounded-none text-[10px] font-bold uppercase leading-relaxed text-gray-600 flex items-start gap-3">
+                              <MapPin className="h-3 w-3 mt-0.5 shrink-0" /> {addr}
+                            </div>
+                          ))}
+                          {selectedCustomer.addresses.size === 0 && <p className="text-[9px] font-medium text-gray-400 italic">No address on file.</p>}
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[9px] font-bold text-gray-400 uppercase">Direct Contact</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {Array.from(selectedCustomer.phones).map((p: any) => (
+                            <div key={p} className="flex items-center gap-2 px-3 py-2 bg-gray-50/30 border text-[10px] font-mono font-bold text-primary rounded-none">
+                              <Phone className="h-3 w-3 text-gray-400" /> {p}
+                            </div>
+                          ))}
+                          {selectedCustomer.phones.size === 0 && <p className="text-[9px] font-medium text-gray-400 italic">No phone record.</p>}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* MANIFEST */}
+                  <section className="space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
+                      <Layers className="h-3.5 w-3.5 text-purple-500" /> Items Manifest
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {Array.from(selectedCustomer.productNames).map((name: any) => (
-                        <Badge key={name} variant="outline" className="rounded-none border-black/10 bg-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-tight">
+                        <Badge key={name} variant="outline" className="rounded-none border-black/10 bg-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-tight shadow-sm">
                           {name}
                         </Badge>
                       ))}
                       {selectedCustomer.productNames.size === 0 && (
-                        <p className="text-[10px] font-bold uppercase text-gray-400 italic">No items cataloged.</p>
+                        <p className="text-[10px] font-bold uppercase text-gray-400 italic">No products cataloged.</p>
                       )}
-                    </div>
-                  </section>
-
-                  <section className="space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-2 text-primary flex items-center gap-2">
-                      <MapPin className="h-3.5 w-3.5 text-emerald-500" /> Contact & Logistics
-                    </h3>
-                    <div className="grid gap-6">
-                      <div className="space-y-3">
-                        <Label className="text-[9px] font-bold text-gray-400 uppercase">Addresses</Label>
-                        <div className="grid gap-3">
-                          {Array.from(selectedCustomer.addresses).map((addr: any) => (
-                            <div key={addr} className="p-4 bg-gray-50 border rounded-none text-xs font-bold uppercase leading-relaxed text-gray-600">
-                              {addr}
-                            </div>
-                          ))}
-                          {selectedCustomer.addresses.size === 0 && <p className="text-[9px] font-medium text-gray-400 italic">None provided.</p>}
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <Label className="text-[9px] font-bold text-gray-400 uppercase">Phones</Label>
-                        <div className="flex flex-wrap gap-3">
-                          {Array.from(selectedCustomer.phones).map((p: any) => (
-                            <div key={p} className="flex items-center gap-2 px-3 py-2 bg-gray-50 border text-[10px] font-mono font-bold text-primary">
-                              <Phone className="h-3 w-3 text-gray-400" /> {p}
-                            </div>
-                          ))}
-                          {selectedCustomer.phones.size === 0 && <p className="text-[9px] font-medium text-gray-400 italic">None provided.</p>}
-                        </div>
-                      </div>
                     </div>
                   </section>
                 </div>
@@ -419,7 +587,7 @@ export default function CustomersPage() {
 
               <div className="p-8 border-t bg-gray-50/50 shrink-0">
                 <Button 
-                  className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl"
+                  className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-gray-900 transition-all rounded-none"
                   onClick={() => setSelectedCustomer(null)}
                 >
                   Close Manifest

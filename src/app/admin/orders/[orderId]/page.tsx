@@ -113,6 +113,42 @@ export default function OrderDetailPage(props: PageProps) {
   const { data: customerOrders } = useCollection(customerOrdersQuery);
   const orderCount = customerOrders?.length || 0;
 
+  const { totalSpent, firstOrderDate, otherOrders } = useMemo(() => {
+    if (!customerOrders) return { totalSpent: 0, firstOrderDate: null, otherOrders: [] };
+    
+    let total = 0;
+    let earliest: Date | null = null;
+    const others: any[] = [];
+
+    customerOrders.forEach(o => {
+      // Calculate LTV from paid orders
+      if (o.paymentStatus === 'paid') {
+        total += Number(o.total || 0);
+      }
+
+      // Track first order date
+      const date = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+      if (!earliest || date < earliest) {
+        earliest = date;
+      }
+
+      // Collect other orders for the history list
+      if (o.id !== orderId) {
+        others.push(o);
+      }
+    });
+
+    return { 
+      totalSpent: total, 
+      firstOrderDate: earliest, 
+      otherOrders: others.sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime(); // Newest first
+      })
+    };
+  }, [customerOrders, orderId]);
+
   const addressHistory = useMemo(() => {
     if (!customerOrders) return [];
     const addresses = new Map<string, any>();
@@ -135,6 +171,7 @@ export default function OrderDetailPage(props: PageProps) {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isFulfilling, setIsFulfilling] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const handlePrintInvoice = () => {
     if (!order) return;
@@ -674,25 +711,65 @@ export default function OrderDetailPage(props: PageProps) {
             </CardHeader>
             <CardContent className="p-0">
               <Table>
-                <TableHeader className="bg-white"><TableRow><TableHead className="text-[9px] font-bold uppercase">Product</TableHead><TableHead className="text-[9px] font-bold uppercase text-center">Qty</TableHead><TableHead className="text-[9px] font-bold uppercase text-right">Price</TableHead></TableRow></TableHeader>
+                <TableHeader className="bg-white"><TableRow><TableHead className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Product</TableHead><TableHead className="text-[9px] font-bold uppercase text-center tracking-widest text-gray-400">Qty</TableHead><TableHead className="text-[9px] font-bold uppercase text-right tracking-widest text-gray-400">Price</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {(order.items || []).map((item: any, i: number) => (
-                    <TableRow key={i} className="border-b last:border-0">
+                    <TableRow key={i} className="border-b last:border-0 hover:bg-gray-50/50 transition-colors">
                       <TableCell>
-                        <div className="flex gap-3">
-                          <div className="w-12 h-16 bg-gray-50 relative shrink-0 border">{item.image && <Image src={item.image} alt="" fill className="object-cover" />}</div>
-                          <div className="flex flex-col justify-center">
-                            <span className="text-[10px] font-bold uppercase">{item.name}</span>
-                            <span className="text-[8px] text-gray-400 font-bold uppercase">Size: {item.size}</span>
+                        <div className="flex gap-4">
+                          <div className="w-14 h-14 bg-gray-50 relative shrink-0 border overflow-hidden">{item.image && <Image src={item.image} alt="" fill className="object-cover" />}</div>
+                          <div className="flex flex-col justify-center gap-0.5">
+                            <span className="text-[10px] font-bold uppercase tracking-tight">{item.name}</span>
+                            <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Size: {item.size}</span>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-center font-bold text-xs">{item.quantity}</TableCell>
-                      <TableCell className="text-right text-xs font-bold">{`C$${formatCurrency(Number(item.price) || 0)}`}</TableCell>
+                      <TableCell className="text-right text-xs font-bold font-mono tracking-tighter">{`C$${formatCurrency(Number(item.price) || 0)}`}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+
+              <div className="p-6 bg-gray-50/30 border-t space-y-2.5">
+                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <span>Subtotal</span>
+                  <span className="text-black font-mono">C${formatCurrency(order.subtotal || 0)}</span>
+                </div>
+                
+                {(order.discountTotal || 0) > 0 && (
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-red-500">
+                    <span>Discount {order.couponCode && `(${order.couponCode})`}</span>
+                    <span className="font-mono">-C${formatCurrency(order.discountTotal)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <span>Shipping Fee</span>
+                  <span className="text-black font-mono">
+                    {order.shipping > 0 ? `C$${formatCurrency(order.shipping)}` : 'FREE'}
+                  </span>
+                </div>
+
+                {(order.processingFee || 0) > 0 && (
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <span>Processing Fee ({order.paymentMethod?.toUpperCase() || 'PAYPAL'})</span>
+                    <span className="text-black font-mono">C${formatCurrency(order.processingFee)}</span>
+                  </div>
+                )}
+
+                {(order.tax || 0) > 0 && (
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <span>Tax</span>
+                    <span className="text-black font-mono">C${formatCurrency(order.tax)}</span>
+                  </div>
+                )}
+
+                <div className="pt-3 border-t border-dashed flex justify-between items-end">
+                  <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">Total Paid</span>
+                  <span className="text-2xl font-bold font-headline tracking-tighter text-primary">C${formatCurrency(order.total || 0)}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -732,8 +809,10 @@ export default function OrderDetailPage(props: PageProps) {
                       size="icon" 
                       className="h-4 w-4 text-gray-300 hover:text-black hover:bg-transparent"
                       onClick={() => {
-                        navigator.clipboard.writeText(order.customer.phone);
-                        toast({ title: "Phone Copied", description: "Number copied to clipboard." });
+                        if (order.customer?.phone) {
+                          navigator.clipboard.writeText(order.customer.phone);
+                          toast({ title: "Phone Copied", description: "Number copied to clipboard." });
+                        }
                       }}
                     >
                       <Copy className="h-3 w-3" />
@@ -741,6 +820,31 @@ export default function OrderDetailPage(props: PageProps) {
                   </div>
                 )}
               </div>
+
+              <div className="grid grid-cols-2 gap-3 pb-2 pt-1">
+                <div className="p-3 border bg-gray-50/50 space-y-1 transition-colors hover:border-black cursor-default">
+                  <p className="text-[8px] font-bold uppercase text-gray-400 tracking-widest">Total Orders</p>
+                  <p className="text-sm font-black tracking-tight flex items-center justify-between">
+                    {orderCount}
+                    <Package className="h-3 w-3 text-gray-300" />
+                  </p>
+                </div>
+                <div className="p-3 border bg-gray-50/50 space-y-1 transition-colors hover:border-black cursor-default">
+                  <p className="text-[8px] font-bold uppercase text-gray-400 tracking-widest">Lifetime Value</p>
+                  <p className="text-sm font-black tracking-tight flex items-center justify-between font-mono">
+                    C${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    <CreditCard className="h-3 w-3 text-gray-300" />
+                  </p>
+                </div>
+              </div>
+
+              {firstOrderDate && (
+                <div className="flex items-center gap-1.5 pb-2">
+                  <History className="h-2.5 w-2.5 text-gray-400" />
+                  <span className="text-[9px] font-bold uppercase text-gray-400">Customer Since {firstOrderDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                </div>
+              )}
+
               <Separator />
               <div className="space-y-4">
                 {(() => {
@@ -757,8 +861,18 @@ export default function OrderDetailPage(props: PageProps) {
                   return (
                     <div className="flex flex-col gap-4">
                       {isSame ? (
-                        <div className="space-y-1">
-                          <p className="text-[9px] uppercase font-bold text-gray-400">Shipping & Billing Address</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[9px] uppercase font-bold text-gray-400">Shipping & Billing Address</p>
+                            <a 
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${s.address}, ${s.city}, ${s.province} ${s.postalCode}, ${s.country}`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[9px] font-black uppercase text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                            >
+                              <MapPin className="h-3 w-3" /> View Map
+                            </a>
+                          </div>
                           <p className="text-xs font-bold uppercase leading-relaxed">
                             {s.address}<br />
                             {s.city}, {s.province}<br />
@@ -767,8 +881,20 @@ export default function OrderDetailPage(props: PageProps) {
                         </div>
                       ) : (
                         <>
-                          <div className="space-y-1">
-                            <p className="text-[9px] uppercase font-bold text-gray-400">Shipping Address</p>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[9px] uppercase font-bold text-gray-400">Shipping Address</p>
+                              {s && (
+                                <a 
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${s.address}, ${s.city}, ${s.province} ${s.postalCode}, ${s.country}`)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[9px] font-black uppercase text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                                >
+                                  <MapPin className="h-3 w-3" /> View Map
+                                </a>
+                              )}
+                            </div>
                             {s ? (
                               <p className="text-xs font-bold uppercase leading-relaxed">
                                 {s.address}<br />
@@ -938,6 +1064,86 @@ export default function OrderDetailPage(props: PageProps) {
                   </p>
                 </div>
               </div>
+
+              {otherOrders.length > 0 && (
+                <>
+                  <Separator />
+                  <div className="space-y-3 pt-2">
+                    <p className="text-[9px] uppercase font-bold text-gray-400 flex items-center gap-1.5 leading-none">
+                      <History className="h-3 w-3" /> Shopping History
+                    </p>
+                    <div className="space-y-2">
+                      {otherOrders.slice(0, 3).map((o: any) => (
+                        <Link 
+                          key={o.id} 
+                          href={`/admin/orders/${o.id}`}
+                          className="flex items-center justify-between p-2.5 border bg-white hover:border-black transition-all group"
+                        >
+                          <div className="space-y-0.5">
+                            <p className="text-[9px] font-bold uppercase tracking-tighter">Order #{o.id.substring(0, 6).toUpperCase()}</p>
+                            <p className="text-[8px] text-gray-400 font-bold uppercase">{formatDate(o.createdAt)}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-[9px] font-black font-mono">C${Number(o.total || 0).toFixed(2)}</span>
+                            {getStatusBadge(o.status)}
+                          </div>
+                        </Link>
+                      ))}
+                      {otherOrders.length > 3 && (
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-6 text-[8px] font-bold uppercase tracking-widest text-gray-400 hover:text-black" 
+                          onClick={() => setIsHistoryOpen(true)}
+                        >
+                          View all {otherOrders.length} previous orders
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Full Shopping History Sheet */}
+              <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+                <SheetContent className="sm:max-w-md w-full p-0 flex flex-col bg-white border-l rounded-none">
+                  <SheetHeader className="p-6 border-b bg-gray-50/50">
+                    <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Shopping History</SheetTitle>
+                    <SheetDescription className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Total Orders: {orderCount} • Customer: {order.email}
+                    </SheetDescription>
+                  </SheetHeader>
+                  <ScrollArea className="flex-1 px-6 py-4">
+                    <div className="space-y-4 pb-12">
+                      {otherOrders.map((o: any) => (
+                        <Link 
+                          key={o.id} 
+                          href={`/admin/orders/${o.id}`}
+                          onClick={() => setIsHistoryOpen(false)}
+                          className="flex flex-col gap-3 p-4 border bg-white hover:border-black transition-all group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Order #{o.id.substring(0, 8).toUpperCase()}</span>
+                            <span className="text-[9px] font-bold uppercase text-gray-400">{formatDate(o.createdAt)}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-sm font-black font-mono">C${Number(o.total || 0).toFixed(2)}</span>
+                              <div className="flex items-center gap-1.5 pt-1">
+                                {o.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3 text-gray-400" /> : <Package className="h-3 w-3 text-gray-400" />}
+                                <span className="text-[8px] font-bold uppercase text-gray-400">{o.deliveryMethod || 'STANDBY'}</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              {getStatusBadge(o.status)}
+                              {getPaymentStatusBadge(o.paymentStatus)}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </SheetContent>
+              </Sheet>
 
             </CardContent>
           </Card>

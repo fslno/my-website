@@ -274,7 +274,7 @@ export default function AdminReviewsPage() {
                   >
                     {newReview.imageUrl ? (
                       <div className="relative w-16 h-16 rounded-sm overflow-hidden border shadow-sm">
-                        <Image src={newReview.imageUrl} alt="Preview" fill className="object-cover" />
+                        <Image src={newReview.imageUrl} alt="Preview" fill sizes="80px" className="object-cover" />
                         <button onClick={(e) => { e.stopPropagation(); setNewReview({ ...newReview, imageUrl: '' }); }} className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                           <X className="h-4 w-4 text-white" />
                         </button>
@@ -377,7 +377,7 @@ export default function AdminReviewsPage() {
                       <div className="flex justify-center">
                         {review.imageUrl ? (
                           <div className="relative w-10 h-10 border rounded overflow-hidden shadow-sm">
-                            <Image src={review.imageUrl} alt="Review" fill className="object-cover" />
+                            <Image src={review.imageUrl} alt="Review" fill sizes="80px" className="object-cover" />
                           </div>
                         ) : (
                           <ImageIcon className="h-4 w-4 text-gray-200" />
@@ -442,7 +442,7 @@ export default function AdminReviewsPage() {
                 <div className="flex gap-4">
                   {review.imageUrl && (
                     <div className="w-16 h-20 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm">
-                      <Image src={review.imageUrl} alt="Reviewer photo" fill className="object-cover" />
+                      <Image src={review.imageUrl} alt="Reviewer photo" fill sizes="80px" className="object-cover" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">

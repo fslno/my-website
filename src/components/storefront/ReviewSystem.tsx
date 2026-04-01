@@ -278,7 +278,7 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
                         >
                           {imagePreview ? (
                             <div className="relative w-full h-full">
-                              <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                              <Image src={imagePreview} alt="Preview" fill sizes="96px" className="object-cover" />
                             </div>
                           ) : (
                             <>
@@ -346,7 +346,7 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
                       <div className="flex gap-6">
                         {review.imageUrl && (
                           <div className="w-20 h-28 relative bg-gray-100 rounded-sm border overflow-hidden shrink-0 shadow-sm">
-                            <Image src={review.imageUrl} alt="Review photo" fill className="object-cover" />
+                            <Image src={review.imageUrl} alt="Review photo" fill sizes="80px" className="object-cover" />
                           </div>
                         )}
                         <div className="space-y-3 flex-1">

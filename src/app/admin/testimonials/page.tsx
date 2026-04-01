@@ -148,7 +148,7 @@ export default function AdminTestimonialsPage() {
               <div className="space-y-1.5"><Label className="text-[9px] uppercase font-bold text-gray-500">Quote</Label><Textarea value={quote} onChange={(e) => setQuote(e.target.value)} className="min-h-[80px] resize-none text-[11px]" /></div>
               <div className="grid grid-cols-2 gap-4 items-end">
                 <div className="p-3 bg-gray-50 border rounded-none"><Label className="text-[9px] uppercase font-bold text-gray-500">Featured</Label><div className="flex items-center gap-2 mt-1"><Switch checked={isFeatured} onCheckedChange={setIsFeatured} className="scale-75" /><span className="text-[8px] font-bold uppercase">{isFeatured ? 'Live' : 'Draft'}</span></div></div>
-                <div className="space-y-1.5"><Label className="text-[9px] uppercase font-bold text-gray-500">Visual</Label><div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed rounded-none h-12 flex items-center justify-center gap-2 bg-gray-50 cursor-pointer">{customerImageUrl ? <div className="relative w-8 h-8 rounded-full overflow-hidden border"><Image src={customerImageUrl} alt="Preview" fill className="object-cover" /></div> : <Upload className="h-4 w-4 text-gray-400" />}</div><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} /></div>
+                <div className="space-y-1.5"><Label className="text-[9px] uppercase font-bold text-gray-500">Visual</Label><div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed rounded-none h-12 flex items-center justify-center gap-2 bg-gray-50 cursor-pointer">{customerImageUrl ? <div className="relative w-8 h-8 rounded-full overflow-hidden border"><Image src={customerImageUrl} alt="Preview" fill sizes="40px" className="object-cover" /></div> : <Upload className="h-4 w-4 text-gray-400" />}</div><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} /></div>
               </div>
             </div>
             <DialogFooter className="p-6 border-t"><Button onClick={handleSave} disabled={isSaving || !customerName || !quote} className="w-full bg-black text-white h-12 font-bold uppercase tracking-[0.2em] text-[10px]">{isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}{editingId ? 'Update' : 'Ingest'}</Button></DialogFooter>
@@ -167,7 +167,7 @@ export default function AdminTestimonialsPage() {
                 <TableRow><TableCell colSpan={6} className="text-center py-20 text-[10px] font-bold uppercase text-gray-400">No testimonials cataloged.</TableCell></TableRow>
               ) : testimonials.map((t) => (
                 <TableRow key={t.id} className="hover:bg-gray-50/30 cursor-pointer group border-b last:border-0" onClick={() => openEdit(t)}>
-                  <TableCell className="p-6"><div className="w-10 h-10 rounded-full border bg-gray-100 overflow-hidden relative shrink-0">{t.customerImageUrl && <Image src={t.customerImageUrl} alt={t.customerName} fill className="object-cover" />}</div></TableCell>
+                  <TableCell className="p-6"><div className="w-10 h-10 rounded-full border bg-gray-100 overflow-hidden relative shrink-0">{t.customerImageUrl && <Image src={t.customerImageUrl} alt={t.customerName} fill sizes="40px" className="object-cover" />}</div></TableCell>
                   <TableCell><p className="font-bold text-xs uppercase tracking-widest">{t.customerName}</p></TableCell>
                   <TableCell><p className="text-[11px] text-gray-500 line-clamp-2 italic">"{t.quote}"</p></TableCell>
                   <TableCell><div className="flex justify-center gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} className={cn("h-3 w-3", s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />)}</div></TableCell>
@@ -186,7 +186,7 @@ export default function AdminTestimonialsPage() {
           ) : testimonials.map((t) => (
             <div key={t.id} className="p-4 bg-white space-y-4 hover:bg-gray-50 transition-colors" onClick={() => openEdit(t)}>
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full border bg-gray-100 overflow-hidden relative shrink-0">{t.customerImageUrl && <Image src={t.customerImageUrl} alt={t.customerName} fill className="object-cover" />}</div><p className="font-bold text-xs uppercase tracking-widest">{t.customerName}</p></div>
+                <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full border bg-gray-100 overflow-hidden relative shrink-0">{t.customerImageUrl && <Image src={t.customerImageUrl} alt={t.customerName} fill sizes="40px" className="object-cover" />}</div><p className="font-bold text-xs uppercase tracking-widest">{t.customerName}</p></div>
                 <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} className={cn("h-2.5 w-2.5", s <= t.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200")} />)}</div>
               </div>
               <p className="text-[11px] text-gray-500 line-clamp-3 italic leading-relaxed">"{t.quote}"</p>

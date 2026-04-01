@@ -521,7 +521,7 @@ export default function CheckoutPage() {
           <div className="space-y-4">
             {cart.map((item) => (
               <div key={item.variantId} className="flex gap-4">
-                <div className="w-20 h-20 relative bg-gray-50 border shrink-0"><Image src={item.image} alt={item.name} fill className="object-cover" /></div>
+                <div className="w-20 h-20 relative bg-gray-50 border shrink-0"><Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" /></div>
                 <div className="flex-1 flex flex-col justify-between py-0.5">
                   <div className="space-y-1">
                     <div className="flex justify-between"><h3 className="text-[10px] font-bold uppercase tracking-tight text-primary">{item.name}</h3><p className="text-[11px] font-bold text-primary">{`C$${formatCurrency(item.price * item.quantity)}`}</p></div>
@@ -730,7 +730,7 @@ export default function CheckoutPage() {
                 {confirmedOrder?.items?.map((item: any) => (
                   <div key={item.variantId} className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-gray-50 border shrink-0 overflow-hidden relative">
-                      <Image src={item.image} alt={item.name} fill className="object-cover" />
+                      {item.image && <Image src={item.image} alt={item.name} fill sizes="56px" className="object-cover" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-black uppercase tracking-tight truncate">{item.name}</p>

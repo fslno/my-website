@@ -328,7 +328,7 @@ export default function StorefrontAdminPage() {
                             <div key={idx} className="relative rounded border overflow-hidden group shadow-sm bg-gray-50 flex items-center justify-center p-2"
                               style={{ aspectRatio: heroAspectRatio > 1 ? '16/9' : (heroAspectRatio === 1 ? '1/1' : '3/4') }}
                             >
-                              <Image src={url} alt={`Hero ${idx}`} fill className="object-contain" />
+                              <Image src={url} alt={`Hero ${idx}`} fill sizes="100vw" className="object-contain" />
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                                 <div className="flex gap-2">
                                   <Button
@@ -688,7 +688,7 @@ export default function StorefrontAdminPage() {
                 }}
               >
                 {heroImages.length > 0 ? (
-                  <Image src={heroImages[0]} alt="Hero Preview" fill className="object-cover opacity-20" />
+                  <Image src={heroImages[0]} alt="Hero Preview" fill sizes="100vw" className="object-cover opacity-20" />
                 ) : (
                   <div className="absolute inset-0 bg-white/5" />
                 )}

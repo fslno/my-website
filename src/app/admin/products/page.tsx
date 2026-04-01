@@ -1057,13 +1057,13 @@ export default function ProductsPage() {
                     </Button>
                   </div>
 
-                  <div className="grid gap-4">
+                  <div className="flex flex-col border rounded-xl bg-white divide-y overflow-hidden shadow-sm">
                     {variants.map((v, i) => (
-                      <div key={i} className="flex flex-wrap items-center gap-4 p-4 border rounded-xl bg-white shadow-sm hover:border-black transition-colors group relative">
-                        <div className="w-full sm:w-20"><Label className="text-[8px] uppercase font-bold text-gray-400">Size</Label><Input value={v.size} onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)} className="h-10 font-bold uppercase" /></div>
-                        <div className="flex-1 min-w-[150px]"><Label className="text-[8px] uppercase font-bold text-gray-400">SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-10 font-mono text-[10px]" /></div>
-                        <div className="w-full sm:w-32"><Label className="text-[8px] uppercase font-bold text-gray-400">In Stock</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-10 font-mono" /></div>
-                        <div className="w-full sm:w-24"><Label className="text-[8px] uppercase font-bold text-orange-400">Threshold</Label><Input type="number" value={v.lowStockThreshold} onChange={(e) => handleUpdateVariant(i, 'lowStockThreshold', parseInt(e.target.value) || 0)} className="h-10 font-mono" /></div>
+                      <div key={i} className="flex flex-wrap items-center gap-4 p-3 hover:bg-gray-50/50 transition-colors group relative bg-white">
+                        <div className="w-full sm:w-20"><Label className="text-[8px] uppercase font-bold text-gray-400">Size</Label><Input value={v.size} onChange={(e) => handleUpdateVariant(i, 'size', e.target.value)} className="h-9 font-bold uppercase transition-all duration-300" /></div>
+                        <div className="flex-1 min-w-[150px]"><Label className="text-[8px] uppercase font-bold text-gray-400">SKU</Label><Input value={v.sku} onChange={(e) => handleUpdateVariant(i, 'sku', e.target.value)} className="h-9 font-mono text-[9px] transition-all duration-300" /></div>
+                        <div className="w-full sm:w-32"><Label className="text-[8px] uppercase font-bold text-gray-400">In Stock</Label><Input type="number" value={v.stock} onChange={(e) => handleUpdateVariant(i, 'stock', parseInt(e.target.value) || 0)} className="h-9 font-mono transition-all duration-300" /></div>
+                        <div className="w-full sm:w-24"><Label className="text-[8px] uppercase font-bold text-orange-400">Threshold</Label><Input type="number" value={v.lowStockThreshold} onChange={(e) => handleUpdateVariant(i, 'lowStockThreshold', parseInt(e.target.value) || 0)} className="h-9 font-mono transition-all duration-300" /></div>
                         <div className="flex flex-col items-center gap-1.5 pt-2 px-2"><Label className="text-[7px] uppercase font-bold text-gray-400">Pre-order</Label><Switch checked={v.isPreorder ?? false} onCheckedChange={(checked) => handleUpdateVariant(i, 'isPreorder', checked)} className="scale-75"/></div>
                         <div className="flex items-end pb-1 ml-auto">
                           <Button variant="ghost" size="icon" onClick={() => handleRemoveVariant(i)} className="h-10 w-10 text-red-500 hover:bg-red-50">

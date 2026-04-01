@@ -135,7 +135,7 @@ export default function OrderDetailPage(props: PageProps) {
                   {order.items?.map((item: any, i: number) => (
                     <div key={i} className="flex gap-6 p-6">
                       <div className="w-24 h-32 bg-gray-100 relative overflow-hidden border shrink-0">
-                        {item.image && <Image src={item.image} alt="" fill className="object-cover" />}
+                        {item.image && <Image src={item.image} alt="" fill sizes="96px" className="object-cover" />}
                       </div>
                       <div className="flex-1 flex flex-col justify-between py-1">
                         <div className="space-y-2">

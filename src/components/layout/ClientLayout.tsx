@@ -80,12 +80,6 @@ function LayoutContent({
         window.history.scrollRestoration = 'manual';
       }
       
-      const cover = document.getElementById('fslno-opening-cover');
-      if (cover) {
-        cover.style.transition = 'opacity 0.2s ease-out';
-        cover.style.opacity = '0';
-        setTimeout(() => cover.style.display = 'none', 200);
-      }
     }
     setIsMounted(true);
 

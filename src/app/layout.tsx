@@ -200,21 +200,6 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-white text-foreground overflow-x-hidden" suppressHydrationWarning>
-        {/* Opening/Refresh Cover - Prevent Flashback */}
-        <div 
-          id="fslno-opening-cover" 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'white',
-            zIndex: 999999,
-            pointerEvents: 'none',
-            display: 'block'
-          }}
-        />
         <ClientLayout initialTheme={theme} initialStore={store}>
           {children}
         </ClientLayout>

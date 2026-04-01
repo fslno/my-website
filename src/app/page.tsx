@@ -55,7 +55,7 @@ export default function Home() {
         textAlign={theme?.heroTextAlign}
         verticalAlign={theme?.heroVerticalAlign}
         bannerEnabled={theme?.bannerEnabled}
-        heroAspectRatio={theme?.heroAspectRatio || 3.8}
+        heroAspectRatio={theme?.heroAspectRatio || 5.4}
       />
 
       <CategorySection />

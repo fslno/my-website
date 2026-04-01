@@ -2,8 +2,8 @@
 
 import React, { useMemo, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
-import { ProductCard } from '@/components/storefront/ProductCard';
+import { collection, query, orderBy, doc, limit as firestoreLimit, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { ProductCard } from './ProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getLivePath } from '@/lib/paths';
 
@@ -38,13 +38,71 @@ export function ProductGrid({
 }: ProductGridProps) {
   const db = useFirestore();
 
-  // 01. Get products from the database
-  const productsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, getLivePath('products')), orderBy('createdAt', 'desc'));
-  }, [db]);
+  // 01. State for Pagination
+  const [hasMounted, setHasMounted] = React.useState(false);
+  const [products, setProducts] = React.useState<any[]>(initialProducts || []);
+  const [lastDoc, setLastDoc] = React.useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = React.useState(true);
+  const [isLoadingMore, setIsLoadingMore] = React.useState(!initialProducts?.length);
+  const INITIAL_BATCH = 20;
 
-  const { data: rawProducts, isLoading: productsLoading } = useCollection(productsQuery);
+  // Hydration Stability: Force a consistent initial render
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Initial Fetch & Category Filtering
+  useEffect(() => {
+    async function fetchInitial() {
+      if (!db) return;
+      
+      setIsLoadingMore(true);
+      try {
+        let q = query(
+          collection(db, getLivePath('products')), 
+          orderBy('createdAt', 'desc'), 
+          firestoreLimit(INITIAL_BATCH)
+        );
+        
+        const snapshot = await getDocs(q);
+        const fetched = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        
+        setProducts(fetched);
+        setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null);
+        setHasMore(snapshot.docs.length === INITIAL_BATCH);
+      } catch (err) {
+        console.error("Failed to fetch initial products", err);
+      } finally {
+        setIsLoadingMore(false);
+      }
+    }
+    fetchInitial();
+  }, [db, categoryId]);
+
+  const loadMore = async () => {
+    if (!db || !lastDoc || isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
+    try {
+      let q = query(
+        collection(db, getLivePath('products')), 
+        orderBy('createdAt', 'desc'),
+        startAfter(lastDoc),
+        firestoreLimit(INITIAL_BATCH)
+      );
+      
+      const snapshot = await getDocs(q);
+      const fetched = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      
+      setProducts(prev => [...prev, ...fetched]);
+      setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null);
+      setHasMore(snapshot.docs.length === INITIAL_BATCH);
+    } catch (err) {
+      console.error("Failed to load more products", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   // 02. Get extra info like categories and reviews
   const categoriesQuery = useMemoFirebase(() => {
@@ -75,30 +133,22 @@ export function ProductGrid({
     return map;
   }, [allReviews]);
 
-  const [currentPage, setCurrentPage] = React.useState(1);
-
-  const products = useMemo(() => {
-    let p = rawProducts || [];
+  const filteredProducts = useMemo(() => {
+    let p = products || [];
     if (excludeId) p = p.filter(item => item.id !== excludeId);
     if (limit) p = p.slice(0, limit);
     return p;
-  }, [rawProducts, excludeId, limit]);
+  }, [products, excludeId, limit]);
 
-  const paginatedProducts = useMemo(() => {
-    if (!products) return [];
-    const start = (currentPage - 1) * itemsPerPage;
-    return products.slice(start, start + itemsPerPage);
-  }, [products, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
-
+  // Combined loading state with hydration guard
+  const isInitialLoading = !hasMounted || (!products.length && isLoadingMore);
   // Fixed layout classes for the grid: 2 columns on mobile, exactly 4 on desktop
   const gridClasses = "grid grid-cols-2 md:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16 max-w-[1095.6px] mx-auto";
 
   const reviewsEnabled = reviewConfig?.enabled !== false;
 
   useEffect(() => {
-    if (!productsLoading && products?.length) {
+    if (!isInitialLoading && products?.length) {
       if (typeof window !== 'undefined') {
         const lastId = sessionStorage.getItem('lastProductId');
         if (lastId) {
@@ -110,23 +160,22 @@ export function ProductGrid({
               sessionStorage.removeItem('lastProductId');
             }
           }, 200);
-        } else if (currentPage > 1) {
-          // Auto-scroll to top of grid on page change
-          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
     }
-  }, [productsLoading, products, currentPage]);
+  }, [isInitialLoading, products]);
 
-  if (productsLoading) {
+  if (isInitialLoading) {
     return (
       <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
         <div className={gridClasses}>
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-2">
               <Skeleton className="w-full aspect-square rounded-sm" />
-              <Skeleton className="h-4 w-2/3" />
-              <Skeleton className="h-4 w-1/3" />
+              <div className="space-y-1.5 mt-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-1/3" />
+              </div>
             </div>
           ))}
         </div>
@@ -137,7 +186,7 @@ export function ProductGrid({
   return (
     <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
       <div className={gridClasses}>
-        {paginatedProducts.map((product: any, idx: number) => {
+        {filteredProducts.map((product: any, idx: number) => {
           const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
           const ratingInfo = productRatings[product.id];
           const avgRating = reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0;
@@ -171,41 +220,25 @@ export function ProductGrid({
         })}
       </div>
 
-      {/* Simple Pagination */}
-      {totalPages > 1 && (
+      {/* Infinite Scroll Load More */}
+      {hasMore && (
         <div className="mt-24 border-t border-gray-100 pt-12 flex flex-col items-center gap-8">
-          <div className="flex items-center gap-12">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="text-[10px] font-bold uppercase tracking-[0.3em] disabled:opacity-20 transition-all hover:tracking-[0.4em] active:scale-95"
-            >
-              Previous
-            </button>
-            <div className="flex items-center gap-6">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={cn(
-                    "text-[10px] font-bold transition-all transition-colors",
-                    currentPage === page ? "text-black" : "text-gray-300 hover:text-black"
-                  )}
-                >
-                  {page.toString().padStart(2, '0')}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="text-[10px] font-bold uppercase tracking-[0.3em] disabled:opacity-20 transition-all hover:tracking-[0.4em] active:scale-95"
-            >
-              Next
-            </button>
-          </div>
+          <button
+            onClick={loadMore}
+            disabled={isLoadingMore}
+            className="text-[10px] font-bold uppercase tracking-[0.3em] disabled:opacity-20 transition-all hover:tracking-[0.4em] active:scale-95 bg-black text-white px-10 py-5 rounded-none shadow-xl hover:shadow-2xl flex items-center gap-4"
+          >
+            {isLoadingMore ? (
+              <>
+                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                LOADING...
+              </>
+            ) : (
+              'LOAD MORE PRODUCTS'
+            )}
+          </button>
           <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">
-            Page {currentPage} of {totalPages}
+            Showing {products.length} Products
           </p>
         </div>
       )}

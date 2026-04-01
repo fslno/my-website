@@ -30,10 +30,10 @@ interface ProductCardProps {
  * This is the main card used to show a product.
  * Optimized to look good on phones.
  */
-export function ProductCard({
+export const ProductCard = React.memo(({
   id, name, price, comparedPrice, image, hoverImage, category,
   sku, rating, reviewCount, isSoldOut, priority = false, brand
-}: ProductCardProps) {
+}: ProductCardProps) => {
   const { promoConfig } = useCart();
   const db = useFirestore();
   const themeRef = useMemoFirebase(() => 
@@ -64,22 +64,24 @@ export function ProductCard({
         className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}
       >
         <div className="relative h-full w-full overflow-hidden">
-          <Image
-            src={image}
-            alt={name}
-            fill
-            className={cn(
-              "object-cover transition-all duration-700 ease-out group-hover:scale-110",
-              hoverImage ? "group-hover:opacity-0" : ""
-            )}
-            priority={priority}
-            data-ai-hint="fashion product"
-          />
+            <Image
+              src={image}
+              alt={name}
+              fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              className={cn(
+                "object-cover transition-all duration-700 ease-out group-hover:scale-110",
+                hoverImage ? "group-hover:opacity-0" : ""
+              )}
+              priority={priority}
+              data-ai-hint="fashion product"
+            />
           {hoverImage && (
             <Image
               src={hoverImage}
               alt={`${name} alternative view`}
               fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               className="object-cover absolute inset-0 opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-110"
               data-ai-hint="fashion variant"
             />
@@ -159,4 +161,5 @@ export function ProductCard({
       </div>
     </div>
   );
-}
+});
+ProductCard.displayName = 'ProductCard';

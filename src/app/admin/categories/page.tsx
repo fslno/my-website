@@ -25,7 +25,6 @@ import {
   Save,
   ArrowUp,
   ArrowDown,
-  RefreshCw,
   Globe,
   Search,
   MinusCircle,
@@ -147,43 +146,6 @@ export default function CategoriesPage() {
     setPendingCropFile(null);
     setIsCropperOpen(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleRestoreDefaults = async () => {
-    if (!db || !categories) return;
-    setIsSaving(true);
-    
-    const defaults: any[] = [];
-
-    const batch = writeBatch(db);
-    let addedCount = 0;
-
-    defaults.forEach(def => {
-      const exists = categories.some(c => c.name.toLowerCase() === def.name.toLowerCase());
-      if (!exists) {
-        const newRef = doc(collection(db, 'categories'));
-        batch.set(newRef, {
-          ...def,
-          imageUrl: '',
-          seoTitle: def.name,
-          seoDescription: def.description,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-        addedCount++;
-      }
-    });
-
-    if (addedCount === 0) {
-      toast({ title: "Up to Date", description: "Default category already exists." });
-      setIsSaving(false);
-      return;
-    }
-
-    await batch.commit()
-      .then(() => toast({ title: "Restored", description: `${addedCount} category manifested.` }))
-      .catch(() => toast({ variant: "destructive", title: "Error", description: "Restore protocol failed." }))
-      .finally(() => setIsSaving(false));
   };
 
   const handleSave = async () => {
@@ -347,14 +309,6 @@ export default function CategoriesPage() {
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Group products and manage SEO.</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button 
-            variant="outline" 
-            onClick={handleRestoreDefaults} 
-            disabled={isSaving}
-            className="h-10 border-black font-bold uppercase tracking-widest text-[10px] bg-white gap-2 flex-1 sm:flex-none"
-          >
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Restore Defaults
-          </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
               <Button className="flex-1 sm:flex-none bg-black text-white font-bold h-10 gap-2 uppercase tracking-widest text-[10px]">
