@@ -150,6 +150,7 @@ export default function ProductsPage() {
   const [customizationFee, setCustomizationFee] = useState('10');
 
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [inventory, setInventory] = useState('0');
   const [isSoldOut, setIsSoldOut] = useState(false);
   const [lowStockThreshold, setLowStockThreshold] = useState('10');
   
@@ -640,8 +641,11 @@ export default function ProductsPage() {
   }, [sku]);
 
   const totalInventory = useMemo(() => {
-    return variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
-  }, [variants]);
+    if (variants && variants.length > 0) {
+      return variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
+    }
+    return Number(inventory) || 0;
+  }, [variants, inventory]);
 
   const handleAddVariant = () => {
     setVariants([...variants, { size: '', stock: 0, sku: sku ? `${sku}-NEW` : '', isPreorder: preorderEnabled, lowStockThreshold: 5 }]);
@@ -894,6 +898,7 @@ export default function ProductsPage() {
     setCustomizationEnabled(true); setCustomizationFee('10'); setPreorderEnabled(false); setIsSoldOut(false);
     setLowStockThreshold('10');
     setVariants([]);
+    setInventory('0');
     setMedia([]); setFeatures(''); setSeoTitle(''); setSeoDescription(''); setSeoHandle(''); setWeight(''); setLength(''); setWidth(''); setHeight(''); setActiveTab('general');
     setEditingId(null);
   };
@@ -914,6 +919,7 @@ export default function ProductsPage() {
     setPreorderEnabled(product.preorderEnabled ?? false);
     setLowStockThreshold(String(product.lowStockThreshold ?? '10'));
     setVariants(product.variants || []);
+    setInventory(String(product.inventory || '0'));
     setMedia(product.media || []);
     setFeatures(product.features?.join(', ') || '');
     setSeoTitle(product.seo?.title || '');
@@ -1244,8 +1250,25 @@ export default function ProductsPage() {
                       </div>
                     ))}
                     {variants.length === 0 && (
-                      <div className="py-12 text-center border-2 border-dashed rounded-xl bg-gray-50/50">
-                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">No sizes defined.</p>
+                      <div className="py-12 text-center border-2 border-dashed rounded-xl bg-gray-50/50 space-y-4 px-6 transition-all duration-300">
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">No sizes defined.</p>
+                          <p className="text-[8px] uppercase font-bold text-gray-400/80">Stock will be managed at the product level.</p>
+                        </div>
+                        <div className="max-w-[200px] mx-auto space-y-2 pt-2">
+                          <Label className="text-[9px] uppercase font-bold text-gray-500">Manual Inventory</Label>
+                          <div className="relative group">
+                            <Input 
+                              type="number" 
+                              value={inventory} 
+                              onChange={(e) => setInventory(e.target.value)} 
+                              className="h-12 text-center font-headline text-2xl bg-white border-2 border-dashed border-gray-200 group-hover:border-black transition-all" 
+                            />
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="text-[10px] font-bold text-gray-400">PCS</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>

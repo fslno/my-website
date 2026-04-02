@@ -112,7 +112,7 @@ export default function UtilityPolicyPage(props: PageProps) {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center p-6 pt-40 pb-20 bg-white">
+    <div className="flex-1 flex items-center justify-center p-6 pt-32 pb-20 bg-white">
       <div className="max-w-md w-full border-l border-black pl-6 py-2 space-y-4">
         <div className="space-y-1">
           {displayLines.map((line, idx) => (

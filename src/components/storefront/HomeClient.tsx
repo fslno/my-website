@@ -73,9 +73,9 @@ export default function HomeClient({
       <CategorySection initialCategories={initialCategories} />
 
       <div className="bg-white">
-        <div className="max-w-[1440px] mx-auto px-4 pt-12">
+        <div className="max-w-[1440px] mx-auto px-4 pt-8">
           <div className={cn(
-            "mb-6 md:mb-12 archive-text-align",
+            "mb-4 md:mb-8 archive-text-align",
             activeTheme?.archiveTextAlign === 'center' ? 'mx-auto items-center text-center' :
               activeTheme?.archiveTextAlign === 'right' ? 'ml-auto items-end text-right' : 'items-start text-left'
           )}>

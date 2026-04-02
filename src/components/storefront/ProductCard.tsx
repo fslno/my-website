@@ -70,7 +70,7 @@ export const ProductCard = React.memo(({
   const discountPercent = isFlashActive ? promoConfig.flashValue : (hasDiscount ? Math.round(((comparedPrice! - currentPriceNum) / comparedPrice!) * 100) : 0);
 
   return (
-    <div id={`product-${id}`} className="group flex flex-col gap-1 product-text-align">
+    <div id={`product-${id}`} className="group flex flex-col gap-1.5 product-text-align">
       <Link
         href={`/products/${id}`}
         onClick={() => {
@@ -134,75 +134,80 @@ export const ProductCard = React.memo(({
         )}
       </Link>
 
-      <div className="flex flex-col py-1 product-flex-align">
-        {/* Price Slot - Stable Height */}
-        <div className="h-5 sm:h-6 flex items-center gap-2 overflow-hidden">
-          <p className={cn("product-price-size font-bold leading-none shrink-0", isFlashActive ? "text-orange-600" : "product-price-color")}>
+      <div className="flex flex-col product-flex-align gap-2.5 mt-2 mb-2">
+        {/* Price Slot */}
+        <div className="flex items-center gap-2 overflow-hidden leading-tight">
+          <p className={cn("product-price-size font-bold shrink-0 leading-none", isFlashActive ? "text-orange-600" : "product-price-color")}>
             C${finalPrice.toFixed(2)}
           </p>
           {hasDiscount && (
-            <p className="text-[8px] sm:text-[10px] text-muted-foreground line-through decoration-muted-foreground/50 font-medium truncate">
+            <p className="text-[8px] sm:text-[10px] text-muted-foreground line-through decoration-muted-foreground/50 font-medium truncate leading-none">
               C${displayComparedPrice.toFixed(2)}
             </p>
           )}
         </div>
 
-        {/* Title Slot - Reserves 2 lines */}
-        <div className="h-[2.4rem] sm:h-[2.8rem] flex flex-col justify-start overflow-hidden mt-0.5">
-          <Link
-            href={`/products/${id}`}
-            onClick={() => {
-              if (typeof window !== 'undefined') sessionStorage.setItem('fslno_last_product_id', id);
-            }}
-            className="product-title-size product-title-color font-medium line-clamp-2 group-hover:underline leading-tight tracking-tight"
-          >
-            {name}
-          </Link>
-        </div>
-
-        {/* Brand / SKU Slot - Stable Height */}
-        <div className="h-4 flex items-center overflow-hidden mt-0.5">
+        {/* Details Group */}
+        <div className="flex flex-col product-flex-align gap-1.5 w-full">
+          {/* Title Slot */}
+          <div className="flex flex-col justify-start overflow-hidden leading-tight">
+            <Link
+              href={`/products/${id}`}
+              onClick={() => {
+                if (typeof window !== 'undefined') sessionStorage.setItem('fslno_last_product_id', id);
+              }}
+              className="product-title-size product-title-color font-bold line-clamp-2 group-hover:underline leading-tight tracking-tight px-1"
+            >
+              {name}
+            </Link>
+          </div>
+  
+          {/* Brand / SKU Slot */}
           {(showBrand && brand || showSku && sku) && (
-            <p className="uppercase tracking-[0.2em] sm:tracking-[0.25em] font-bold leading-none truncate card-sku-style">
-              {showBrand && brand ? brand : ''}
-              {showBrand && brand && showSku && sku ? ' • ' : ''}
-              {showSku && sku ? sku : ''}
-            </p>
-          )}
-        </div>
-
-        {/* Stock Status Slot - Stable Height */}
-        <div className="h-4 flex items-center mt-1">
-          {inventory !== undefined && inventory <= 0 ? (
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.2 h-1.2 rounded-full bg-[#ff4d4d] shadow-[0_0_4px_rgba(255,77,77,0.4)]" />
-              <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-[#ff4d4d]">Out of Stock</span>
-            </div>
-          ) : showLowStockAlert && inventory !== undefined && inventory <= globalThreshold && (
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.2 h-1.2 rounded-full bg-orange-500 shadow-[0_0_4px_rgba(249,115,22,0.4)] animate-pulse" />
-              <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-orange-500">Low Stock</span>
+            <div className="flex items-center overflow-hidden leading-none">
+              <p className="card-sku-style uppercase tracking-[0.2em] sm:tracking-[0.25em] font-bold truncate leading-none">
+                {showBrand && brand ? brand : ''}
+                {showBrand && brand && showSku && sku ? ' • ' : ''}
+                {showSku && sku ? `SKU ${sku}` : ''}
+              </p>
             </div>
           )}
-        </div>
-
-        {/* Reviews Slot - Stable Height */}
-        <div className="h-4 flex items-center mt-1">
+  
+          {/* Stock Status Slot */}
+          {(inventory !== undefined && (inventory <= 0 || (showLowStockAlert && inventory <= globalThreshold))) && (
+            <div className="flex items-center leading-none">
+              {inventory <= 0 ? (
+                <div className="flex items-center gap-1.5 leading-none">
+                  <div className="w-1.2 h-1.2 rounded-full bg-[#ff4d4d] shadow-[0_0_4px_rgba(255,77,77,0.4)]" />
+                  <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-[#ff4d4d] leading-none">Out of Stock</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 leading-none">
+                  <div className="w-1.2 h-1.2 rounded-full bg-orange-500 shadow-[0_0_4px_rgba(249,115,22,0.4)] animate-pulse" />
+                  <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-orange-500 leading-none">Low Stock</span>
+                </div>
+              )}
+            </div>
+          )}
+  
+          {/* Reviews Slot */}
           {(reviewCount || 0) > 0 && (
-            <div className="flex items-center gap-1">
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    style={s <= Math.round(rating || 0) ? { fill: '#facc15', color: '#facc15' } : {}}
-                    className={cn(
-                      "h-2 sm:h-2.5 w-2 sm:w-2.5 transition-all duration-300",
-                      s <= Math.round(rating || 0) ? "" : "text-gray-200"
-                    )}
-                  />
-                ))}
+            <div className="flex items-center leading-none">
+              <div className="flex items-center gap-1 leading-none">
+                <div className="flex gap-0.5 leading-none">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      style={s <= Math.round(rating || 0) ? { fill: '#facc15', color: '#facc15' } : {}}
+                      className={cn(
+                        "h-2 sm:h-2.5 w-2 sm:w-2.5 transition-all duration-300",
+                        s <= Math.round(rating || 0) ? "" : "text-gray-200"
+                      )}
+                    />
+                  ))}
+                </div>
+                <span className="text-[8px] sm:text-[9px] font-bold text-black uppercase tracking-widest ml-1 leading-none">({reviewCount})</span>
               </div>
-              <span className="text-[8px] sm:text-[9px] font-bold text-black uppercase tracking-widest ml-1">({reviewCount})</span>
             </div>
           )}
         </div>

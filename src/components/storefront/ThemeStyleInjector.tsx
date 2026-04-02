@@ -70,6 +70,45 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
 
     const headlineFont = theme.headlineFont || 'Playfair Display';
     const bodyFont = theme.bodyFont || 'Inter';
+
+    // Robust Google Fonts injection
+    const injectFonts = () => {
+      const fonts = Array.from(new Set([
+        headlineFont, 
+        bodyFont, 
+        'Inter', 
+        'Playfair Display', 
+        'Anton', 
+        'Bebas Neue', 
+        'Oswald', 
+        'Montserrat'
+      ])).filter(Boolean);
+
+      const fontParams = fonts.map(font => {
+        const encoded = font.replace(/ /g, '+');
+        if (['Inter', 'Montserrat', 'Playfair Display', 'Open Sans', 'Roboto'].includes(font)) {
+          return `family=${encoded}:ital,wght@0,400;0,700;1,400`;
+        }
+        return `family=${encoded}:wght@400;700`;
+      }).join('&');
+
+      const fontHref = `https://fonts.googleapis.com/css2?${fontParams}&display=swap`;
+      let linkTag = document.getElementById('dynamic-google-fonts') as HTMLLinkElement;
+      
+      if (!linkTag) {
+        linkTag = document.createElement('link');
+        linkTag.id = 'dynamic-google-fonts';
+        linkTag.rel = 'stylesheet';
+        document.head.appendChild(linkTag);
+      }
+      
+      if (linkTag.href !== fontHref) {
+        linkTag.href = fontHref;
+      }
+    };
+
+    injectFonts();
+
     const bannerFont = theme.bannerFont || 'Inter';
     const bannerFontSize = theme.bannerFontSize || 10;
 

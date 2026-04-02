@@ -126,7 +126,7 @@ function LayoutContent({
         setIsPageLoading(true);
         const timer = setTimeout(() => {
           setIsPageLoading(false);
-        }, 400); // Short duration to cover render/shift
+        }, 200); // Short duration to cover render/shift
         return () => clearTimeout(timer);
       }
     }

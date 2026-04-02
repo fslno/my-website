@@ -1,20 +1,17 @@
 import React from 'react';
 import './globals.css';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { getCachedTheme, getCachedStore, getCachedDomain } from '@/lib/firebase-admin';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { Metadata } from 'next';
-import { serializeData } from '@/lib/utils';
+
+export const revalidate = 300; // 5 minutes cache for all pages (ISR)
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const adminDb = getAdminDb();
-    const [themeDoc, domainDoc] = await Promise.all([
-      adminDb.doc('config/theme').get(),
-      adminDb.doc('config/domain').get()
+    const [theme, domain] = await Promise.all([
+      getCachedTheme(),
+      getCachedDomain()
     ]);
-
-    const theme = themeDoc?.data() || {};
-    const domain = domainDoc?.data() || {};
 
     const title = theme?.homepageSeo?.title || "Feiselino (FSLNO) | Sport Jerseys";
     const description = theme?.homepageSeo?.description || "Official Feiselino (FSLNO) Sport Website. High-quality jerseys and apparel.";
@@ -99,19 +96,12 @@ export default async function RootLayout({
   let store: any = {};
   
   try {
-    const adminDb = getAdminDb();
-    const [themeDoc, storeDoc] = await Promise.all([
-      adminDb.doc('config/theme').get().catch((e: Error) => { 
-        console.warn("[ADMIN_THEME_FETCH_FAIL]", e.message); 
-        return null; 
-      }),
-      adminDb.doc('config/store').get().catch((e: Error) => { 
-        console.warn("[ADMIN_STORE_FETCH_FAIL]", e.message); 
-        return null; 
-      })
+    const [themeConfig, storeConfig] = await Promise.all([
+      getCachedTheme(),
+      getCachedStore()
     ]);
-    theme = serializeData(themeDoc?.data()) || {};
-    store = serializeData(storeDoc?.data()) || {};
+    theme = themeConfig || {};
+    store = storeConfig || {};
   } catch (err) {
     console.error("[SSR_DATA_FETCH_CRITICAL_FAILURE]", err);
   }
@@ -139,8 +129,39 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Enhanced font library: Athletic, E-commerce, Modern, and Luxury collections */}
-        <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Oswald:wght@400;700&family=Teko:wght@400;700&family=Kanit:wght@400;700&family=Archivo+Black&family=Russo+One&family=Black+Ops+One&family=Squada+One&family=Racing+Sans+One&family=Staatliches&family=Big+Shoulders+Display:wght@400;700&family=Saira+Stencil+One&family=Chakra+Petch:wght@400;700&family=Rajdhani:wght@400;700&family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;700&family=Outfit:wght@400;700&family=Urbanist:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=Public+Sans:wght@400;700&family=Lexend:wght@400;700&family=Space+Grotesk:wght@400;700&family=DM+Sans:wght@400;700&family=Host+Grotesk:wght@400;700&family=Bricolage+Grotesque:wght@400;700&family=Work+Sans:wght@400;700&family=Jost:wght@400;700&family=Syncopate:wght@400;700&family=Michroma&family=Syne:wght@400;700&family=Unbounded:wght@400;700&family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;700&family=Tenor+Sans&family=Italiana&family=Fraunces:ital,wght@0,400;0,700;1,400&family=Belleza&family=Space+Mono&family=Orbitron:wght@400;700&family=Righteous&family=Stardos+Stencil&family=Titillium+Web:wght@400;700&family=Exo+2:wght@400;700&display=swap" rel="stylesheet" />
+        
+        {/* Dynamic Font Loading: Only load the fonts currently selected in the theme + fallback defaults */}
+        {(() => {
+          const fonts = Array.from(new Set([
+            headlineFont, 
+            bodyFont, 
+            'Inter', 
+            'Playfair Display', 
+            'Anton', 
+            'Bebas Neue', 
+            'Oswald', 
+            'Montserrat'
+          ])).filter(Boolean);
+          
+          // Request fonts more safely to avoid 400 errors if italics/weights are missing
+          const fontParams = fonts.map(font => {
+            const encoded = font.replace(/ /g, '+');
+            // Advanced fonts with full weight/italic support
+            if (['Inter', 'Montserrat', 'Playfair Display', 'Open Sans', 'Roboto'].includes(font)) {
+              return `family=${encoded}:ital,wght@0,400;0,700;1,400`;
+            }
+            // Standard/Display fonts
+            return `family=${encoded}:wght@400;700`;
+          }).join('&');
+            
+          return <link href={`https://fonts.googleapis.com/css2?${fontParams}&display=swap`} rel="stylesheet" />;
+        })()}
+
+        {/* Critical Asset Preloading for Instant feel */}
+        <link rel="preload" as="image" href="https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png" />
+        {theme?.heroImages?.[0] && (
+          <link rel="preload" as="image" href={theme.heroImages[0]} fetchPriority="high" />
+        )}
         
         {/* Critical CSS Injection for instant theme application */}
         <style id="ssr-theme-style" dangerouslySetInnerHTML={{ __html: `

@@ -84,25 +84,31 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                 if (productSnap.exists()) {
                   const productData = productSnap.data();
                   const variants = productData.variants || [];
-                  const variant = variants.find((v: any) => v.size === item.size);
+                  let currentStock = 0;
                   
-                  if (!variant) {
-                    toast({
-                      variant: "destructive",
-                      title: "Inventory Error",
-                      description: `Size ${item.size} of ${item.name} no longer available.`
-                    });
-                    throw new Error("Product size not found");
+                  if (variants.length > 0) {
+                    const variant = variants.find((v: any) => v.size === item.size);
+                    if (!variant) {
+                      toast({
+                        variant: "destructive",
+                        title: "Inventory Error",
+                        description: `Size ${item.size} of ${item.name} no longer available.`
+                      });
+                      throw new Error("Product size not found");
+                    }
+                    currentStock = Number(variant.stock) || 0;
+                  } else {
+                    // Fallback to root inventory for non-variant products
+                    currentStock = Number(productData.inventory) || 0;
                   }
 
-                  const currentStock = Number(variant.stock) || 0;
                   const requestedQty = Number(item.quantity) || 1;
 
                   if (currentStock < requestedQty) {
                     toast({
                       variant: "destructive",
                       title: "Inventory Shortage",
-                      description: `${item.name} (${item.size}) is out of stock or insufficient. Available: ${currentStock}`
+                      description: `${item.name}${item.size ? ` (${item.size})` : ""} is out of stock or insufficient. Available: ${currentStock}`
                     });
                     throw new Error("Out of stock");
                   }
@@ -175,23 +181,33 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                     if (productSnap.exists()) {
                       const productData = productSnap.data();
                       const variants = productData.variants || [];
-                      const updatedVariants = variants.map((v: any) => {
-                        if (v.size === item.size) {
-                          const currentStock = Number(v.stock) || 0;
-                          const deductQty = Number(item.quantity) || 1;
-                          return { ...v, stock: Math.max(0, currentStock - deductQty) };
-                        }
-                        return v;
-                      });
-
-                      // Calculate new total inventory
-                      const newTotalInventory = updatedVariants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0);
-
-                      await updateDoc(productRef, {
-                        variants: updatedVariants,
-                        inventory: newTotalInventory,
+                      const deductQty = Number(item.quantity) || 1;
+                      
+                      let updatePayload: any = {
                         updatedAt: serverTimestamp()
-                      });
+                      };
+
+                      if (variants.length > 0) {
+                        const updatedVariants = variants.map((v: any) => {
+                          if (v.size === item.size) {
+                            const currentStock = Number(v.stock) || 0;
+                            return { ...v, stock: Math.max(0, currentStock - deductQty) };
+                          }
+                          return v;
+                        });
+
+                        // Calculate new total inventory
+                        const newTotalInventory = updatedVariants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0);
+                        
+                        updatePayload.variants = updatedVariants;
+                        updatePayload.inventory = newTotalInventory;
+                      } else {
+                        // Direct inventory deduction
+                        const currentInventory = Number(productData.inventory) || 0;
+                        updatePayload.inventory = Math.max(0, currentInventory - deductQty);
+                      }
+
+                      await updateDoc(productRef, updatePayload);
                     }
                   }
                 } catch (invErr) {

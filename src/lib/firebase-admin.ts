@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { getApps, initializeApp, getApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -15,6 +16,25 @@ let cachedApp: any = null;
 let cachedDb: any = null;
 let cachedAuth: any = null;
 let cachedMessaging: any = null;
+
+// TTL Memory Cache (5 minutes)
+const MEMORY_CACHE: Record<string, { data: any, expires: number }> = {};
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+function getFromMemory(key: string) {
+  const cached = MEMORY_CACHE[key];
+  if (cached && cached.expires > Date.now()) {
+    return cached.data;
+  }
+  return null;
+}
+
+function setToMemory(key: string, data: any) {
+  MEMORY_CACHE[key] = {
+    data,
+    expires: Date.now() + CACHE_TTL_MS
+  };
+}
 
 /**
  * Returns the environment-appropriate Project ID.
@@ -177,4 +197,50 @@ export function getAdminFieldValue() {
     };
   }
   return FieldValue;
+}
+
+/**
+ * Memoized & Cached fetchers for core configuration.
+ * Uses React cache() for request memoization and MEMORY_CACHE for cross-request TTL.
+ */
+export const getCachedTheme = cache(async () => {
+  const cacheKey = 'theme_config';
+  const mem = getFromMemory(cacheKey);
+  if (mem) return mem;
+
+  const db = getAdminDb();
+  const doc = await db.doc('config/theme').get();
+  const data = doc.exists ? JSON.parse(JSON.stringify(themeDocNormalization(doc.data()))) : {};
+  setToMemory(cacheKey, data);
+  return data;
+});
+
+export const getCachedStore = cache(async () => {
+  const cacheKey = 'store_config';
+  const mem = getFromMemory(cacheKey);
+  if (mem) return mem;
+
+  const db = getAdminDb();
+  const doc = await db.doc('config/store').get();
+  const data = doc.exists ? JSON.parse(JSON.stringify(doc.data())) : {};
+  setToMemory(cacheKey, data);
+  return data;
+});
+
+export const getCachedDomain = cache(async () => {
+  const cacheKey = 'domain_config';
+  const mem = getFromMemory(cacheKey);
+  if (mem) return mem;
+
+  const db = getAdminDb();
+  const doc = await db.doc('config/domain').get();
+  const data = doc.exists ? JSON.parse(JSON.stringify(doc.data())) : {};
+  setToMemory(cacheKey, data);
+  return data;
+});
+
+function themeDocNormalization(data: any) {
+  if (!data) return {};
+  // Ensure we don't have non-serializable Firestore timestamps if any (JSON.stringify handles it anyway)
+  return data;
 }

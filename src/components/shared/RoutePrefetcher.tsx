@@ -14,15 +14,15 @@ import { useRouter } from 'next/navigation';
 const ROUTES_TO_PREFETCH = [
   '/',
   '/collections/all',
-  '/account',
-  '/account/orders',
-  '/privacy',
-  '/returns',
+  '/products',
+  '/search',
+  '/checkout',
   '/shipping',
+  '/returns',
+  '/privacy',
   '/terms',
   '/track',
-  '/products',
-  '/checkout',
+  '/account',
 ];
 
 export function RoutePrefetcher() {

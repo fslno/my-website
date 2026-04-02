@@ -73,10 +73,10 @@ export function CategorySection({ initialCategories }: { initialCategories?: any
     align === 'right' ? 'items-end text-right' : 'items-start text-left';
 
   return (
-    <section className="py-6 sm:py-12 bg-white border-b">
+    <section className="py-4 sm:py-8 bg-white border-b">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className={cn(
-          "flex flex-col md:flex-row justify-between gap-4 sm:gap-6 mb-6 sm:mb-12",
+          "flex flex-col md:flex-row justify-between gap-4 sm:gap-6 mb-4 sm:mb-8",
           theme?.categoryTextAlign === 'center' ? 'items-center text-center' : 
           theme?.categoryTextAlign === 'right' ? 'items-end text-right' : 'items-end text-left'
         )}>
@@ -94,7 +94,7 @@ export function CategorySection({ initialCategories }: { initialCategories?: any
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-2 md:gap-x-6 md:gap-y-12 max-w-[1143.6px] mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-2 md:gap-x-6 md:gap-y-6 max-w-[1143.6px] mx-auto">
           {categories.map((cat) => (
             <div key={cat.id} className="flex flex-col gap-2 sm:gap-4 group">
               <Link 

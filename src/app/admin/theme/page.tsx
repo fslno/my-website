@@ -65,11 +65,12 @@ const sportsFonts = [
   "Inter", "Montserrat", "Outfit", "Urbanist", "Plus Jakarta Sans", 
   "Public Sans", "Lexend", "Space Grotesk", "DM Sans", 
   "Host Grotesk", "Bricolage Grotesque", "Work Sans", "Jost",
+  "Rubik", "Karla", "Poppins", "Manrope", "Quicksand", "Heebo", "Mulish",
 
   // --- Luxury & High-End Design ---
   "Syncopate", "Michroma", "Syne", "Unbounded", "Bodoni Moda", 
   "Cormorant Garamond", "Playfair Display", "Cinzel", "Tenor Sans", 
-  "Italiana", "Fraunces", "Belleza",
+  "Italiana", "Fraunces", "Belleza", "Lora", "Marcellus", "Libre Baskerville",
 
   // --- Display & Technical ---
   "Space Mono", "Orbitron", "Righteous", "Stardos Stencil", 
@@ -248,6 +249,30 @@ export default function ThemeEnginePage() {
   const [adminSidebarItemColor, setAdminSidebarItemColor] = useState(DEFAULT_THEME.adminSidebarItemColor);
   const [adminSidebarActiveBg, setAdminSidebarActiveBg] = useState(DEFAULT_THEME.adminSidebarActiveBg);
   const [adminSidebarActiveText, setAdminSidebarActiveText] = useState(DEFAULT_THEME.adminSidebarActiveText);
+
+  // Robust Google Fonts injection for Admin Selection Preview
+  useEffect(() => {
+    const fontId = 'admin-selection-fonts';
+    let linkTag = document.getElementById(fontId) as HTMLLinkElement;
+    
+    const fontParams = sportsFonts.map(font => {
+      const encoded = font.replace(/ /g, '+');
+      return `family=${encoded}:wght@400;500;700`;
+    }).join('&');
+
+    const fontHref = `https://fonts.googleapis.com/css2?${fontParams}&display=swap`;
+
+    if (!linkTag) {
+      linkTag = document.createElement('link');
+      linkTag.id = fontId;
+      linkTag.rel = 'stylesheet';
+      document.head.appendChild(linkTag);
+    }
+    
+    if (linkTag.href !== fontHref) {
+      linkTag.href = fontHref;
+    }
+  }, []);
 
   useEffect(() => {
     if (themeData) {

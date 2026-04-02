@@ -76,6 +76,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [pendingAuthOpen, setPendingAuthOpen] = useState(false);
 
   // Make sure the side menu is closed before opening the login box
@@ -335,7 +336,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
           {/* Actions Section */}
           <div className="flex items-center gap-0.5 shrink-0">
             {/* Search (Mobile) */}
-            <Sheet>
+            <Sheet open={isMobileSearchOpen} onOpenChange={setIsMobileSearchOpen}>
               <SheetTrigger asChild>
                 <Button 
                   variant="ghost" 
@@ -380,7 +381,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                           ) : (
                             <div className="divide-y">
                               {filteredProducts.map((p: any) => (
-                                <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setSearchQuery(''); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
+                                <Link key={p.id} href={`/products/${p.id}`} onClick={() => { setSearchQuery(''); setIsMobileSearchOpen(false); }} className="flex gap-4 p-4 hover:bg-gray-50 transition-colors">
                                   <div className="w-12 h-12 relative bg-gray-100 border shrink-0">{p.media?.[0]?.url && <NextImage src={p.media[0].url} alt="" fill sizes="48px" className="object-cover" />}</div>
                                   <div className="flex-1 flex flex-col justify-start pt-0.5 min-w-0">
                                     <h3 className="text-[10px] text-black font-bold uppercase leading-tight">{p.name}</h3>

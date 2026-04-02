@@ -173,7 +173,7 @@ export function ProductGrid({
   }, [loadedCount, filteredProducts.length, isInitialLoading, popLoading, lockId]);
 
   // Fixed layout classes for the grid: 2 columns on mobile, exactly 4 on desktop
-  const gridClasses = "grid grid-cols-2 md:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-16 max-w-[1095.6px] mx-auto";
+  const gridClasses = "grid grid-cols-2 md:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-12 max-w-[1095.6px] mx-auto";
 
   const reviewsEnabled = reviewConfig?.enabled !== false;
 
@@ -204,11 +204,11 @@ export function ProductGrid({
       <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
         <div className={gridClasses}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-0 py-1">
+            <div key={i} className="flex flex-col gap-1.5 py-1">
               <div className="w-full aspect-square rounded-sm bg-gray-50 relative overflow-hidden border border-gray-100">
                 <LoadingCover logoSize={60} />
               </div>
-              <div className="flex flex-col py-1">
+              <div className="flex flex-col py-1 gap-1">
                 {/* Price Skeleton */}
                 <div className="h-5 sm:h-6 flex items-center">
                   <Skeleton className="h-3 w-16 bg-gray-100 rounded-none" />
@@ -239,7 +239,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
+    <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-12">
       <div className={gridClasses}>
         {filteredProducts.map((product: any, idx: number) => {
           const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
@@ -279,7 +279,7 @@ export function ProductGrid({
 
       {/* Infinite Scroll Load More */}
       {hasMore && !limit && (
-        <div className="mt-24 border-t border-gray-100 pt-12 flex flex-col items-center gap-8">
+        <div className="mt-12 border-t border-gray-100 pt-8 flex flex-col items-center gap-6">
           <button
             onClick={loadMore}
             disabled={isLoadingMore}
