@@ -29,8 +29,10 @@ import {
   Sparkles,
   Info,
   Truck,
-  RefreshCw
+  RefreshCw,
+  Mic
 } from 'lucide-react';
+import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, limit, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -80,6 +82,10 @@ export default function InvoiceMakerPage() {
   const [isSending, setIsSending] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  const { isListening, startVoiceSearch } = useVoiceSearch({
+    onResult: (transcript) => setSearchQuery(transcript)
+  });
   const [pendingProduct, setPendingProduct] = useState<any>(null);
   const [pendingSize, setPendingSize] = useState<string>('');
   const [senderAddress, setSenderAddress] = useState('');
@@ -481,8 +487,19 @@ export default function InvoiceMakerPage() {
                     value={searchQuery}
                     ref={searchInputRef}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white border-[#e1e3e5] h-11 pl-10 uppercase font-black text-[9px] tracking-widest focus-visible:ring-black/5"
+                    className="bg-white border-[#e1e3e5] h-11 pl-10 pr-12 uppercase font-black text-[9px] tracking-widest focus-visible:ring-black/5"
                   />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={startVoiceSearch}
+                    className={cn(
+                      "absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-[#8c9196] hover:text-black transition-colors rounded-none",
+                      isListening && "text-blue-500 bg-blue-50 animate-pulse"
+                    )}
+                  >
+                    <Mic className="h-4 w-4" />
+                  </Button>
                   {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />}
                   {(searchQuery || pendingProduct) && !isSearching && (
                     <button 

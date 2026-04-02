@@ -2,12 +2,10 @@
 
 import React, { useMemo, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc, limit as firestoreLimit, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, query, where, orderBy, doc, limit as firestoreLimit, startAfter, getDocs, QueryDocumentSnapshot, DocumentData, getCountFromServer } from 'firebase/firestore';
 import { ProductCard } from './ProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getLivePath } from '@/lib/paths';
-import { useLoading } from '@/context/LoadingContext';
-import { LoadingCover } from '@/components/ui/LoadingCover';
 
 import { cn } from '@/lib/utils';
 
@@ -39,50 +37,84 @@ export function ProductGrid({
   title
 }: ProductGridProps) {
   const db = useFirestore();
+  const gridRef = React.useRef<HTMLDivElement>(null);
 
   // 01. State for Pagination
   const [hasMounted, setHasMounted] = React.useState(false);
   const [products, setProducts] = React.useState<any[]>(initialProducts || []);
   const [lastDoc, setLastDoc] = React.useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [pageCursors, setPageCursors] = React.useState<Record<number, QueryDocumentSnapshot<DocumentData> | null>>({ 1: null });
+  const [totalCount, setTotalCount] = React.useState(0);
+  const [currentPage, setCurrentPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
   const [isLoadingMore, setIsLoadingMore] = React.useState(!initialProducts?.length);
-  const [loadedCount, setLoadedCount] = React.useState(0);
-  const { pushLoading, popLoading } = useLoading();
-  const lockId = React.useMemo(() => `grid-${categoryId || 'all'}-${Math.random().toString(36).substring(7)}`, [categoryId]);
-  const INITIAL_BATCH = 20;
+  const ITEMS_PER_PAGE = limit || itemsPerPage || 20;
 
   // Hydration Stability: Force a consistent initial render
   useEffect(() => {
     setHasMounted(true);
-    pushLoading(lockId);
-    
-    // Safety timeout to prevent the splash screen from hanging if images fail
-    const safetyTimer = setTimeout(() => popLoading(lockId), 5000);
-    return () => {
-      clearTimeout(safetyTimer);
-      popLoading(lockId);
-    };
-  }, [pushLoading, popLoading, lockId]);
+  }, []);
 
-  // Initial Fetch & Category Filtering
+  // Initial Fetch & Total Count
   useEffect(() => {
     async function fetchInitial() {
-      if (!db || initialProducts?.length) return;
+      if (!db) return;
       
+      // Fetch Total Count
+      try {
+        let qTotal = query(collection(db, getLivePath('products')));
+        if (categoryId && categoryId !== 'all') {
+          qTotal = query(qTotal, where('categoryId', '==', categoryId));
+        }
+        const snapshotTotal = await getCountFromServer(qTotal);
+        setTotalCount(snapshotTotal.data().count);
+      } catch (err) {
+        console.error("Failed to fetch total count", err);
+      }
+
+      // Reset pagination state when category changes
+      setCurrentPage(1);
+      setPageCursors({ 1: null });
+
+      // Sync state if initial products were provided via SSR
+      if (initialProducts && initialProducts.length > 0) {
+        setProducts(initialProducts);
+        // We catch up on the 'lastDoc' marker so pagination can resume
+        try {
+          const lastProduct = initialProducts[initialProducts.length - 1];
+          const docRef = query(collection(db, getLivePath('products')), where('__name__', '==', lastProduct.id));
+          const snap = await getDocs(docRef);
+          if (!snap.empty) {
+            const cursor = snap.docs[0];
+            setLastDoc(cursor);
+            setPageCursors(prev => ({ ...prev, 2: cursor }));
+          }
+          setHasMore(initialProducts.length >= ITEMS_PER_PAGE);
+        } catch (err) {
+          console.error("Failed to sync pagination cursor", err);
+        }
+        return;
+      }
+
       setIsLoadingMore(true);
       try {
         let q = query(
           collection(db, getLivePath('products')), 
-          orderBy('createdAt', 'desc'), 
-          firestoreLimit(INITIAL_BATCH)
+          orderBy('createdAt', 'desc')
         );
+        if (categoryId && categoryId !== 'all') {
+          q = query(q, where('categoryId', '==', categoryId));
+        }
+        q = query(q, firestoreLimit(ITEMS_PER_PAGE));
         
         const snapshot = await getDocs(q);
         const fetched = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
         
         setProducts(fetched);
-        setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null);
-        setHasMore(snapshot.docs.length === INITIAL_BATCH);
+        const cursor = snapshot.docs[snapshot.docs.length - 1] || null;
+        setLastDoc(cursor);
+        if (cursor) setPageCursors(prev => ({ ...prev, 2: cursor }));
+        setHasMore(snapshot.docs.length === ITEMS_PER_PAGE);
       } catch (err) {
         console.error("Failed to fetch initial products", err);
       } finally {
@@ -90,28 +122,56 @@ export function ProductGrid({
       }
     }
     fetchInitial();
-  }, [db, categoryId]);
+  }, [db, categoryId, initialProducts, ITEMS_PER_PAGE]);
 
-  const loadMore = async () => {
-    if (!db || !lastDoc || isLoadingMore || !hasMore) return;
+  const goToPage = async (page: number) => {
+    if (!db || isLoadingMore || page === currentPage) return;
     
     setIsLoadingMore(true);
+    // Scroll to top of grid instead of top of page for better UX
+    if (gridRef.current) {
+      const offset = 61; // Account for sticky header
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = gridRef.current.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+
     try {
       let q = query(
         collection(db, getLivePath('products')), 
-        orderBy('createdAt', 'desc'),
-        startAfter(lastDoc),
-        firestoreLimit(INITIAL_BATCH)
+        orderBy('createdAt', 'desc')
       );
+      if (categoryId && categoryId !== 'all') {
+        q = query(q, where('categoryId', '==', categoryId));
+      }
+
+      const cursor = pageCursors[page];
+      if (cursor) {
+        q = query(q, startAfter(cursor), firestoreLimit(ITEMS_PER_PAGE));
+      } else {
+        // This case shouldn't happen with normal 1,2,3 navigation but just in case
+        q = query(q, firestoreLimit(ITEMS_PER_PAGE));
+      }
       
       const snapshot = await getDocs(q);
       const fetched = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
       
-      setProducts(prev => [...prev, ...fetched]);
-      setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null);
-      setHasMore(snapshot.docs.length === INITIAL_BATCH);
+      setProducts(fetched);
+      setCurrentPage(page);
+      
+      const nextCursor = snapshot.docs[snapshot.docs.length - 1] || null;
+      if (nextCursor && !pageCursors[page + 1]) {
+        setPageCursors(prev => ({ ...prev, [page + 1]: nextCursor }));
+      }
+      setHasMore(snapshot.docs.length === ITEMS_PER_PAGE);
     } catch (err) {
-      console.error("Failed to load more products", err);
+      console.error("Failed to change page", err);
     } finally {
       setIsLoadingMore(false);
     }
@@ -159,45 +219,16 @@ export function ProductGrid({
     return p;
   }, [products, excludeId, limit]);
 
-  // Handle image load tracking to release the lock
-  const handleImageLoad = React.useCallback(() => {
-    setLoadedCount(prev => prev + 1);
-  }, []);
 
-  useEffect(() => {
-    // Release the splash screen only when data is fetched AND the first row (up to 4 images) is visible
-    const targetImages = Math.min(filteredProducts.length, 4);
-    if (!isInitialLoading && (loadedCount >= targetImages || filteredProducts.length === 0)) {
-      popLoading(lockId);
-    }
-  }, [loadedCount, filteredProducts.length, isInitialLoading, popLoading, lockId]);
+
+
 
   // Fixed layout classes for the grid: 2 columns on mobile, exactly 4 on desktop
   const gridClasses = "grid grid-cols-2 md:grid-cols-4 gap-x-2 md:gap-x-6 gap-y-4 md:gap-y-12 max-w-[1095.6px] mx-auto";
 
   const reviewsEnabled = reviewConfig?.enabled !== false;
 
-  useEffect(() => {
-    if (!isInitialLoading && products?.length) {
-      if (typeof window !== 'undefined') {
-        const lastId = sessionStorage.getItem('fslno_last_product_id');
-        const isReturning = sessionStorage.getItem('fslno_returning_to_product') === 'true';
-        
-        if (lastId && isReturning) {
-          // Perform instant scroll while covered by white overlay
-          setTimeout(() => {
-            const el = document.getElementById(`product-${lastId}`);
-            if (el) {
-              const y = el.getBoundingClientRect().top + window.scrollY - 150;
-              window.scrollTo({ top: y, behavior: 'instant' });
-              // Clear product ID but keep returning flag for the overlay to finish its fade
-              sessionStorage.removeItem('fslno_last_product_id');
-            }
-          }, 50); // Faster trigger
-        }
-      }
-    }
-  }, [isInitialLoading, products]);
+  // Position restoration removed per user request: always start from top on navigation and pagination
 
   if (isInitialLoading) {
     return (
@@ -206,7 +237,7 @@ export function ProductGrid({
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-1.5 py-1">
               <div className="w-full aspect-square rounded-sm bg-gray-50 relative overflow-hidden border border-gray-100">
-                <LoadingCover logoSize={60} />
+                <Skeleton className="w-full h-full rounded-none" />
               </div>
               <div className="flex flex-col py-1 gap-1">
                 {/* Price Skeleton */}
@@ -239,7 +270,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-12">
+    <div ref={gridRef} className="max-w-[1440px] mx-auto px-4 pt-0 pb-12">
       <div className={gridClasses}>
         {filteredProducts.map((product: any, idx: number) => {
           const productCategory = categories?.find(c => c.id === product.categoryId)?.name || 'Archive';
@@ -271,32 +302,78 @@ export function ProductGrid({
               isSoldOut={isSoldOut}
               inventory={totalStock}
               priority={idx < 4}
-              onImageLoad={handleImageLoad}
+              preorderEnabled={product.preorderEnabled}
             />
           );
         })}
       </div>
 
-      {/* Infinite Scroll Load More */}
-      {hasMore && !limit && (
-        <div className="mt-12 border-t border-gray-100 pt-8 flex flex-col items-center gap-6">
-          <button
-            onClick={loadMore}
-            disabled={isLoadingMore}
-            className="text-[10px] font-bold uppercase tracking-[0.3em] disabled:opacity-20 transition-all hover:tracking-[0.4em] active:scale-95 bg-black text-white px-10 py-5 rounded-none shadow-xl hover:shadow-2xl flex items-center gap-4"
-          >
-            {isLoadingMore ? (
-              <>
-                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                LOADING...
-              </>
-            ) : (
-              'LOAD MORE PRODUCTS'
-            )}
-          </button>
-          <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">
-            Showing {products.length} Products
-          </p>
+      {/* Pagination Controls */}
+      {!limit && totalCount > ITEMS_PER_PAGE && (
+        <div className="mt-20 border-t border-gray-100 pt-12 flex flex-col items-center gap-8">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Previous Page */}
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1 || isLoadingMore}
+              className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border border-gray-200 hover:border-black disabled:opacity-30 disabled:border-gray-100 transition-all active:scale-95 text-xs font-bold"
+            >
+              ←
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center gap-1 sm:gap-2">
+              {Array.from({ length: Math.ceil(totalCount / ITEMS_PER_PAGE) }).map((_, i) => {
+                const page = i + 1;
+                // Show 1, current-1, current, current+1, last
+                const isFirst = page === 1;
+                const isLast = page === Math.ceil(totalCount / ITEMS_PER_PAGE);
+                const isNear = Math.abs(page - currentPage) <= 1;
+
+                if (!isFirst && !isLast && !isNear) {
+                  // Show ellipsis if there's a gap
+                  if (page === 2 || page === Math.ceil(totalCount / ITEMS_PER_PAGE) - 1) {
+                    return <span key={page} className="px-2 text-gray-300">...</span>;
+                  }
+                  return null;
+                }
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page)}
+                    disabled={isLoadingMore}
+                    className={cn(
+                      "w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xs font-black transition-all active:scale-95",
+                      currentPage === page 
+                        ? "bg-black text-white" 
+                        : "bg-transparent text-gray-400 hover:text-black hover:bg-gray-50"
+                    )}
+                  >
+                    {String(page).padStart(2, '0')}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next Page */}
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === Math.ceil(totalCount / ITEMS_PER_PAGE) || isLoadingMore}
+              className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border border-gray-200 hover:border-black disabled:opacity-30 disabled:border-gray-100 transition-all active:scale-95 text-xs font-bold"
+            >
+              →
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-black">
+              Page {currentPage} of {Math.ceil(totalCount / ITEMS_PER_PAGE)}
+            </p>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">
+              Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, totalCount)} – {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of {totalCount} Products
+            </p>
+          </div>
         </div>
       )}
     </div>

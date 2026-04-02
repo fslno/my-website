@@ -91,35 +91,42 @@ function LayoutContent({
       
     }
     setIsMounted(true);
-    setIsAppReady(true); // Instant ready to avoid flashback
+    
+    // DELAY app readiness to cover all flickering of initial mount/fonts/layout
+    const timer = setTimeout(() => {
+      setIsAppReady(true);
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
-    // Register PWA Service Worker
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  // Service Worker Management
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    if (process.env.NODE_ENV === 'development') {
+      // FORCE UNREGISTER in development to prevent "Module factory not available" errors
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister().then((success) => {
+            if (success) console.log('Successfully unregistered stale Service Worker');
+          });
+        }
+      });
+    } else {
+      // Standard Production Registration
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then((registration) => {
-          console.log('SW registered: ', registration);
-        }).catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError);
+        navigator.serviceWorker.register('/sw.js').catch((_err) => {
+          // Fail silently
         });
       });
     }
-
-    return;
   }, []);
 
   // Global Scroll Management & Transition Trigger
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      if (pathname === '/') {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-        
-        // Secondary scroll for confidence during hydration shifts
-        const timer = setTimeout(() => {
-          window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-        }, 50);
-        
-        return () => clearTimeout(timer);
-      }
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
 
       // Trigger brief transition overlay on route change
       if (isMounted) {
@@ -184,12 +191,26 @@ function LayoutContent({
         </div>
       </div>
 
-      {/* Main layout — always rendered, stable DOM, never swapped out */}
-      {!isAdmin && <Header initialTheme={theme || initialTheme} initialStore={initialStore} />}
-      <main className={cn('flex-grow', !isAdmin && 'pt-0')}>
+      {/* Main layout — with entrance animation directly on semantic elements (Fixes Hydration Mismatch) */}
+      {!isAdmin && (
+        <div className={cn("transition-opacity duration-700 ease-out", isAppReady ? "opacity-100" : "opacity-0")}>
+          <Header initialTheme={theme || initialTheme} initialStore={initialStore} />
+        </div>
+      )}
+      
+      <main className={cn(
+        'flex-grow transition-opacity duration-700 ease-out', 
+        !isAdmin && 'pt-0',
+        isAppReady ? "opacity-100" : "opacity-0"
+      )}>
         {children}
       </main>
-      {!isAdmin && <Footer initialTheme={theme || initialTheme} />}
+      
+      {!isAdmin && (
+        <div className={cn("transition-opacity duration-700 ease-out", isAppReady ? "opacity-100" : "opacity-0")}>
+          <Footer initialTheme={theme || initialTheme} />
+        </div>
+      )}
     </div>
   );
 }

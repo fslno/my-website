@@ -404,9 +404,43 @@ export default function DomainPage() {
                   Add verification tags for Google, Pinterest, etc. These will be Authoritatively injected into the storefront header.
                 </CardDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={addMetaTag} className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white w-full sm:w-auto">
-                <Plus className="h-3.5 w-3.5" /> Add Tag
-              </Button>
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-9 gap-2 font-bold uppercase tracking-widest text-[9px] text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                      <Zap className="h-3.5 w-3.5" /> Suggested Presets
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md bg-white rounded-none border-none shadow-2xl">
+                    <DialogHeader className="pt-6">
+                      <DialogTitle className="text-xl font-bold uppercase tracking-tight">SEO Presets</DialogTitle>
+                      <DialogDescription className="text-xs font-bold uppercase text-gray-400 mt-1">Quickly add common site verification tags.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-2 py-4">
+                      {[
+                        { name: 'google-site-verification', label: 'Google Search Console', icon: <Globe className="h-4 w-4" /> },
+                        { name: 'p:domain_verify', label: 'Pinterest Verification', icon: <Plus className="h-4 w-4" /> },
+                        { name: 'msvalidate.01', label: 'Bing Webmaster Tools', icon: <Search className="h-4 w-4" /> }
+                      ].map((preset) => (
+                        <Button 
+                          key={preset.name}
+                          variant="outline" 
+                          className="justify-start h-12 gap-3 font-bold uppercase tracking-widest text-[10px] rounded-none border-gray-100 hover:border-black transition-all"
+                          onClick={() => {
+                            setMetaTags([...metaTags, { id: Math.random().toString(36).substr(2, 9), name: preset.name, content: '' }]);
+                            toast({ title: "Preset Added", description: `Added ${preset.label} tag. Please provide your unique content code.` });
+                          }}
+                        >
+                          {preset.icon} {preset.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <Button variant="outline" size="sm" onClick={addMetaTag} className="h-9 gap-2 font-bold uppercase tracking-widest text-[10px] border-black bg-white flex-1 sm:flex-none">
+                  <Plus className="h-3.5 w-3.5" /> Custom Tag
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
               <div className="space-y-4">
@@ -479,9 +513,12 @@ export default function DomainPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
-              <p className="text-[10px] sm:text-[11px] text-[#5c5f62] uppercase font-medium leading-relaxed tracking-tight">
-                Your sitemap is generated automatically to help Google find your pages.
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] sm:text-[11px] text-[#5c5f62] uppercase font-medium leading-relaxed tracking-tight">
+                  Your sitemap is generated automatically.
+                </p>
+                <Badge variant="outline" className="text-[8px] font-bold uppercase bg-green-50 text-green-700 border-none px-2 h-5">Live & Dynamic</Badge>
+              </div>
               <div className="flex items-center justify-between p-3 bg-[#f6f6f7] rounded-sm border gap-3 min-w-0">
                 <span className="text-[9px] sm:text-[10px] font-mono font-bold truncate flex-1">https://{domain}/sitemap.xml</span>
                 <div className="flex items-center gap-2 shrink-0">

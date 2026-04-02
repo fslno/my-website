@@ -21,7 +21,7 @@ export function SplashScreen({ isVisible, onComplete }: SplashScreenProps) {
     if (typeof window !== 'undefined') {
       const initialSplash = document.getElementById('initial-splash-screen');
       if (initialSplash) {
-        initialSplash.style.display = 'none';
+        initialSplash.classList.add('hidden');
       }
     }
 
@@ -31,7 +31,7 @@ export function SplashScreen({ isVisible, onComplete }: SplashScreenProps) {
       const timer = setTimeout(() => {
         setShouldRender(false);
         if (onComplete) onComplete();
-      }, 500); // Duration matches transition-opacity class
+      }, 300); // Faster fade
       return () => clearTimeout(timer);
     } else {
       // Re-enable rendering if it becomes visible again (e.g. route change)
@@ -45,7 +45,7 @@ export function SplashScreen({ isVisible, onComplete }: SplashScreenProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[100000] flex items-center justify-center bg-white transition-opacity duration-500 ease-in-out",
+        "fixed inset-0 z-[100000] flex items-center justify-center bg-white transition-opacity duration-300 ease-in-out",
         isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
       )}
     >

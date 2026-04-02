@@ -63,6 +63,7 @@ const config = {
 // 05. Turbopack config — suppress noisy warnings
 // @ts-ignore
 config.turbopack = {
+  root: ".",
   ignoreIssue: [
     {
       path: "**/node_modules/@google-cloud/firestore/**",

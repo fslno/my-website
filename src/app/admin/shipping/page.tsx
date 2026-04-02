@@ -72,9 +72,19 @@ export default function ShippingPage() {
   const [isAddCarrierOpen, setIsAddCarrierOpen] = useState(false);
   const [editingCarrierIdx, setEditingCarrierIdx] = useState<number | null>(null);
   const [newCarrierName, setNewCarrierName] = useState('');
+  const [newCarrierType, setNewCarrierType] = useState<'API' | 'SFTP'>('API');
   const [newCarrierApiKey, setNewCarrierApiKey] = useState('');
+  const [newCarrierSftp, setNewCarrierSftp] = useState({
+    host: '',
+    username: '',
+    password: '',
+    hostKey: '',
+    uploadDir: '/upload',
+    downloadDir: '/download'
+  });
   const [showApiKey, setShowApiKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isTestingSftp, setIsTestingSftp] = useState(false);
 
   const [pickupAddress, setPickupAddress] = useState('');
   const [pickupHours, setPickupHours] = useState('');
@@ -187,6 +197,41 @@ export default function ShippingPage() {
         requestResourceData: updates
       }));
     });
+  };
+
+  const handleTestSftp = async () => {
+    if (!newCarrierSftp.host || !newCarrierSftp.username) {
+      toast({ 
+        title: "Configuration Missing", 
+        description: "SFTP Host and Username are required for testing.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsTestingSftp(true);
+    try {
+      const response = await fetch('/api/shipping/clickship/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCarrierSftp)
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        toast({ title: "Handshake Successful", description: "Secure SFTP connection established." });
+      } else {
+        toast({ 
+          title: "Handshake Failed", 
+          description: result.error || "Verify credentials and host keys.",
+          variant: "destructive"
+        });
+      }
+    } catch (e) {
+      toast({ title: "Network Error", description: "Failed to communicate with synchronization service.", variant: "destructive" });
+    } finally {
+      setIsTestingSftp(false);
+    }
   };
 
   const handleSaveRates = () => {
@@ -375,7 +420,9 @@ export default function ShippingPage() {
       currentCarriers[editingCarrierIdx] = {
         ...existing,
         name: newCarrierName,
-        apiKey: newCarrierApiKey || existing.apiKey || 'pending'
+        type: newCarrierType,
+        apiKey: newCarrierType === 'API' ? (newCarrierApiKey || existing.apiKey || 'pending') : undefined,
+        sftp: newCarrierType === 'SFTP' ? newCarrierSftp : undefined
       };
       handleUpdate({ carriers: currentCarriers });
       toast({ title: "Carrier Updated", description: `${newCarrierName} protocol synchronized.` });
@@ -391,7 +438,13 @@ export default function ShippingPage() {
 
       const updatedCarriers = [
         ...currentCarriers,
-        { name: newCarrierName, active: true, apiKey: newCarrierApiKey || 'pending' }
+        { 
+          name: newCarrierName, 
+          active: true, 
+          type: newCarrierType,
+          apiKey: newCarrierType === 'API' ? (newCarrierApiKey || 'pending') : undefined,
+          sftp: newCarrierType === 'SFTP' ? newCarrierSftp : undefined
+        }
       ];
       handleUpdate({ carriers: updatedCarriers });
       toast({ title: "Success", description: `${newCarrierName} has been added.` });
@@ -399,6 +452,15 @@ export default function ShippingPage() {
 
     setNewCarrierName('');
     setNewCarrierApiKey('');
+    setNewCarrierType('API');
+    setNewCarrierSftp({
+      host: '',
+      username: '',
+      password: '',
+      hostKey: '',
+      uploadDir: '/upload',
+      downloadDir: '/download'
+    });
     setEditingCarrierIdx(null);
     setIsAddCarrierOpen(false);
     setShowApiKey(false);
@@ -406,9 +468,15 @@ export default function ShippingPage() {
 
   const handleOpenEdit = (carrier: any, idx: number) => {
     const name = typeof carrier === 'string' ? carrier : carrier.name;
+    const type = typeof carrier === 'string' ? 'API' : (carrier.type || 'API');
     const apiKey = typeof carrier === 'string' ? '' : (carrier.apiKey || '');
+    
     setNewCarrierName(name);
+    setNewCarrierType(type);
     setNewCarrierApiKey(apiKey === 'pending' ? '' : apiKey);
+    if (carrier.sftp) {
+      setNewCarrierSftp(carrier.sftp);
+    }
     setEditingCarrierIdx(idx);
     setIsAddCarrierOpen(true);
     setShowApiKey(false);
@@ -847,36 +915,137 @@ export default function ShippingPage() {
                       {editingCarrierIdx !== null ? 'Update carrier credentials.' : 'Connect a new carrier to your store.'}
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-6 py-6">
+                  <div className="grid gap-6 py-6 max-h-[60vh] overflow-y-auto px-1">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500">Carrier Name</Label>
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Integration Architecture</Label>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant={newCarrierType === 'API' ? 'default' : 'outline'}
+                          onClick={() => setNewCarrierType('API')}
+                          className="flex-1 h-11 text-[9px] font-bold uppercase tracking-widest transition-all"
+                        >
+                          API Protocol
+                        </Button>
+                        <Button 
+                          variant={newCarrierType === 'SFTP' ? 'default' : 'outline'}
+                          onClick={() => setNewCarrierType('SFTP')}
+                          className="flex-1 h-11 text-[9px] font-bold uppercase tracking-widest transition-all"
+                        >
+                          SFTP / XML (Clicksip)
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-gray-500">Carrier Label</Label>
                       <Input
-                        placeholder="e.g. STALLION EXPRESS"
+                        placeholder="e.g. CLICKSIP GLOBAL"
                         value={newCarrierName}
                         onChange={(e) => setNewCarrierName(e.target.value.toUpperCase())}
                         className="h-12 uppercase font-bold"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500">API Token</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          type={showApiKey ? "text" : "password"}
-                          placeholder={editingCarrierIdx !== null ? "••••••••••••••••" : "ENTER API TOKEN"}
-                          value={newCarrierApiKey}
-                          onChange={(e) => setNewCarrierApiKey(e.target.value)}
-                          className="pl-10 pr-10 h-12 font-mono text-xs"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowApiKey(!showApiKey)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
-                        >
-                          {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
+                    
+                    {newCarrierType === 'API' ? (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Authoritative API Token</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            type={showApiKey ? "text" : "password"}
+                            placeholder={editingCarrierIdx !== null ? "••••••••••••••••" : "ENTER API TOKEN"}
+                            value={newCarrierApiKey}
+                            onChange={(e) => setNewCarrierApiKey(e.target.value)}
+                            className="pl-10 pr-10 h-12 font-mono text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowApiKey(!showApiKey)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                          >
+                            {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-6 animate-in fade-in slide-in-from-top-4">
+                        <div className="p-4 bg-blue-50 border border-blue-100/50 space-y-4">
+                          <div className="flex items-center gap-2">
+                            <Terminal className="h-4 w-4 text-blue-600" />
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-800">Secure Remote Configuration</p>
+                          </div>
+                          <div className="grid gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase font-bold text-blue-700">SFTP Server Host / IP</Label>
+                              <Input 
+                                placeholder="sftp.clickship.com" 
+                                value={newCarrierSftp.host}
+                                onChange={(e) => setNewCarrierSftp({...newCarrierSftp, host: e.target.value})}
+                                className="h-11 bg-white border-blue-100" 
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-[9px] uppercase font-bold text-blue-700">Username</Label>
+                                <Input 
+                                  placeholder="admin_fslno" 
+                                  value={newCarrierSftp.username}
+                                  onChange={(e) => setNewCarrierSftp({...newCarrierSftp, username: e.target.value})}
+                                  className="h-11 bg-white border-blue-100" 
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-[9px] uppercase font-bold text-blue-700">Password</Label>
+                                <Input 
+                                  type="password"
+                                  placeholder="••••••••" 
+                                  value={newCarrierSftp.password}
+                                  onChange={(e) => setNewCarrierSftp({...newCarrierSftp, password: e.target.value})}
+                                  className="h-11 bg-white border-blue-100" 
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] uppercase font-bold text-blue-700">Server Host Key</Label>
+                              <Input 
+                                placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5..." 
+                                value={newCarrierSftp.hostKey}
+                                onChange={(e) => setNewCarrierSftp({...newCarrierSftp, hostKey: e.target.value})}
+                                className="h-11 bg-white border-blue-100 font-mono text-[10px]" 
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-[9px] uppercase font-bold text-blue-700">Remote Upload Dir</Label>
+                                <Input 
+                                  placeholder="/upload" 
+                                  value={newCarrierSftp.uploadDir}
+                                  onChange={(e) => setNewCarrierSftp({...newCarrierSftp, uploadDir: e.target.value})}
+                                  className="h-11 bg-white border-blue-100" 
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-[9px] uppercase font-bold text-blue-700">Remote Download Dir</Label>
+                                <Input 
+                                  placeholder="/download" 
+                                  value={newCarrierSftp.downloadDir}
+                                  onChange={(e) => setNewCarrierSftp({...newCarrierSftp, downloadDir: e.target.value})}
+                                  className="h-11 bg-white border-blue-100" 
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          onClick={handleTestSftp}
+                          disabled={isTestingSftp}
+                          className="w-full h-12 border-dashed border-2 border-blue-200 text-blue-600 font-bold uppercase tracking-widest text-[9px] hover:bg-blue-50"
+                        >
+                          {isTestingSftp ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                          Perform SFTP Handshake Test
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <Button onClick={handleSaveCarrier} disabled={!newCarrierName} className="w-full bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px]">

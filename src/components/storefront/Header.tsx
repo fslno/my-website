@@ -14,8 +14,10 @@ import {
   LogOut,
   Package,
   CircleUser,
-  Zap
+  Zap,
+  Mic
 } from 'lucide-react';
+import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter, SheetClose, SheetDescription } from '@/components/ui/sheet';
@@ -114,6 +116,16 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
   const isAdmin = useIsAdmin();
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const { isListening, startVoiceSearch } = useVoiceSearch({
+    onResult: (transcript) => {
+      setSearchQuery(transcript);
+      setIsSearching(true);
+      if (isMobileSearchOpen) {
+        // Additional mobile-specific logic if needed
+      }
+    }
+  });
+
   useEffect(() => {
     if (pathname !== '/') {
       setIsScrolled(true);
@@ -199,12 +211,12 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white border-r p-0 flex flex-col" hideClose>
-                <SheetHeader className="p-8 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                <SheetHeader className="px-8 pt-20 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       {t('nav.menu')}
                     </SheetTitle>
-                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 mt-2 -mr-1">
+                    <SheetClose className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all shrink-0 mt-2 -mr-1">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
                     </SheetClose>
@@ -296,7 +308,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 onChange={(e) => { setSearchQuery(e.target.value); setIsSearching(true); }}
                 onFocus={() => setIsSearching(true)}
               />
-              {isSearching && searchQuery.length > 0 && (
+              {isSearching && searchQuery.length > 0 ? (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -304,6 +316,18 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                   onClick={() => { setSearchQuery(''); setIsSearching(false); }}
                 >
                   <X className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 transition-colors duration-300",
+                    isListening ? "text-blue-500 bg-blue-50/50 animate-pulse" : isTransparent ? "text-white/40 hover:text-white" : "text-gray-400 hover:text-black"
+                  )}
+                  onClick={startVoiceSearch}
+                >
+                  <Mic className="h-4 w-4" />
                 </Button>
               )}
               {isSearching && searchQuery.length >= 2 && (
@@ -350,13 +374,13 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 </Button>
               </SheetTrigger>
               <SheetContent side="top" className="h-[100dvh] bg-white border-none p-0 flex flex-col" hideClose>
-                <SheetHeader className="p-6 pb-4 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                <SheetHeader className="px-6 pt-20 pb-4 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       SEARCH
                     </SheetTitle>
                     <SheetDescription className="sr-only">Search for products by name or SKU.</SheetDescription>
-                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 mt-2 mr-2">
+                    <SheetClose className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all shrink-0 mt-2 mr-2">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
                     </SheetClose>
@@ -372,6 +396,30 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                    
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      {searchQuery.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-black"
+                          onClick={() => setSearchQuery('')}
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-9 w-9 rounded-full transition-all duration-300",
+                          isListening ? "text-blue-500 bg-blue-50 animate-pulse scale-110" : "text-gray-400 hover:text-black"
+                        )}
+                        onClick={startVoiceSearch}
+                      >
+                        <Mic className="h-5 w-5" />
+                      </Button>
+                    </div>
                     
                     {searchQuery.length >= 2 && (
                       <div className="absolute top-[calc(100%+8px)] left-0 right-0 w-full bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-[999] overflow-hidden rounded-lg animate-in fade-in zoom-in-95 duration-200">
@@ -459,13 +507,13 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 )}
                 hideClose
               >
-                <SheetHeader className="p-8 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                <SheetHeader className="px-8 pt-20 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
-                      WISHLIST {wishlistCount > 0 && <span className="text-red-600 text-sm sm:text-lg font-black bg-red-50 px-2 py-0.5 rounded-full">({wishlistCount})</span>}
+                      WISHLIST {wishlistCount > 0 && <span className="text-black text-sm sm:text-lg font-black bg-gray-100 px-2 py-0.5 rounded-full">({wishlistCount})</span>}
                     </SheetTitle>
                     <SheetDescription className="sr-only">Your saved items.</SheetDescription>
-                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
+                    <SheetClose className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
                     </SheetClose>
@@ -566,13 +614,13 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 )}
                 hideClose
               >
-                <SheetHeader className="p-8 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                <SheetHeader className="px-8 pt-20 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
-                      CART {cartCount > 0 && <span className="text-red-600 text-sm sm:text-lg font-black bg-red-50 px-2 py-0.5 rounded-full">({cartCount})</span>}
+                      CART {cartCount > 0 && <span className="text-black text-sm sm:text-lg font-black bg-gray-100 px-2 py-0.5 rounded-full">({cartCount})</span>}
                     </SheetTitle>
                     <SheetDescription className="sr-only">Your cart and total.</SheetDescription>
-                    <SheetClose className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
+                    <SheetClose className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all shrink-0 -mt-1 -mr-1">
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
                     </SheetClose>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,9 +32,9 @@ import {
   PlusCircle,
   X
 } from 'lucide-react';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useStorage } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useStorage, useCollection } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, query, where, Timestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -62,6 +62,18 @@ export default function StorefrontAdminPage() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // REAL-TIME PRESENCE QUERY
+  const activeThreshold = useMemo(() => new Date(Date.now() - 120000), []);
+  const presenceQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(
+      collection(db, 'analytics_presence'),
+      where('lastActive', '>=', Timestamp.fromDate(activeThreshold))
+    );
+  }, [db, activeThreshold]);
+  const { data: activePresence } = useCollection(presenceQuery);
+
   const [activeTab, setActiveTab] = useState('general');
 
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
@@ -724,8 +736,11 @@ export default function StorefrontAdminPage() {
                 </div>
                 <div className="p-3 bg-white/5 border border-white/10 rounded-sm space-y-2">
                   <Eye className="h-3.5 w-3.5 text-zinc-500" />
-                  <p className="text-[8px] font-bold uppercase text-zinc-400">Live Traffic</p>
-                  <Progress value={42} className="h-1 bg-zinc-800 rounded-none" />
+                  <div className="flex items-center justify-between">
+                    <p className="text-[8px] font-bold uppercase text-zinc-400">Live Traffic</p>
+                    <span className="text-[9px] font-mono font-bold text-white">{activePresence?.length || 0}</span>
+                  </div>
+                  <Progress value={Math.min((activePresence?.length || 0) * 10, 100)} className="h-1 bg-zinc-800 rounded-none shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
                 </div>
               </div>
 

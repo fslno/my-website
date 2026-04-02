@@ -1,22 +1,30 @@
 import React from 'react';
 import './globals.css';
-import { getCachedTheme, getCachedStore, getCachedDomain } from '@/lib/firebase-admin';
+import { getCachedTheme, getCachedStore, getCachedDomain, getCachedCategories } from '@/lib/firebase-admin';
 import { ClientLayout } from '@/components/layout/ClientLayout';
-import { Metadata } from 'next';
+import { Metadata } from "next";
+import Script from "next/script";
+import { RealTimeTracker } from '@/components/shared/RealTimeTracker';
 
 export const revalidate = 300; // 5 minutes cache for all pages (ISR)
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const [theme, domain] = await Promise.all([
+    const [theme, domain, categories] = await Promise.all([
       getCachedTheme(),
-      getCachedDomain()
+      getCachedDomain(),
+      getCachedCategories()
     ]);
 
     const title = theme?.homepageSeo?.title || "Feiselino (FSLNO) | Sport Jerseys";
     const description = theme?.homepageSeo?.description || "Official Feiselino (FSLNO) Sport Website. High-quality jerseys and apparel.";
-    const primaryDomain = domain?.primaryDomain || "fslno.ca";
+    const primaryDomain = (domain?.primaryDomain || "fslno.ca").trim();
+    const baseUrl = `https://${primaryDomain}`;
     const logoUrl = "https://i.ibb.co/PGbDVWTg/fslno-icon-192-x-192.png";
+
+    // Dynamic keywords from categories
+    const categoryKeywords = categories?.map((c: any) => c.name).join(', ') || "";
+    const keywords = `jerseys, soccer jerseys, custom jerseys, sport apparel, FSLNO, Feiselino, ${categoryKeywords}`;
 
     const metadata: Metadata = {
       title: {
@@ -24,20 +32,22 @@ export async function generateMetadata(): Promise<Metadata> {
         template: `%s | ${theme?.businessName || 'FSLNO'}`
       },
       description,
-      metadataBase: primaryDomain ? new URL(`https://${primaryDomain.trim()}`) : null,
+      keywords,
+      metadataBase: new URL(baseUrl),
       alternates: {
         canonical: '/',
       },
       openGraph: {
         title,
         description,
-        url: `https://${primaryDomain}`,
+        url: baseUrl,
         siteName: theme?.businessName || 'FSLNO',
         images: [
           {
             url: logoUrl,
-            width: 800,
-            height: 600,
+            width: 512,
+            height: 512,
+            alt: theme?.businessName || 'FSLNO Logo',
           },
         ],
         locale: 'en_US',
@@ -52,16 +62,27 @@ export async function generateMetadata(): Promise<Metadata> {
       robots: {
         index: domain?.searchIndexingEnabled !== false,
         follow: domain?.searchIndexingEnabled !== false,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
       },
       manifest: '/manifest.webmanifest',
       icons: {
         icon: '/icon.png',
         apple: '/icon.png',
+        shortcut: '/icon.png',
       },
       appleWebApp: {
         capable: true,
-        statusBarStyle: 'default',
-        title: 'FSLNO',
+        statusBarStyle: 'black-translucent',
+        title: theme?.businessName || 'FSLNO',
+      },
+      formatDetection: {
+        telephone: false,
       },
     };
 
@@ -180,6 +201,19 @@ export default async function RootLayout({
             --archive-title-color: ${theme.archiveTitleColor || primaryColor};
             --product-title-size: ${theme.productTitleSize || 14}px;
             --product-price-size: ${theme.productPriceSize || 14}px;
+
+            /* Button Theme Engine Variables */
+            --btn-scale: ${theme.buttonStyles?.scale || 1.0};
+            --btn-radius: ${theme.buttonStyles?.borderRadius ?? 4}px;
+            --btn-primary: ${theme.buttonStyles?.primaryColor || '#000000'};
+            --btn-primary-foreground: ${getContrastColor(theme.buttonStyles?.primaryColor || '#000000')};
+            --btn-hover: ${theme.buttonStyles?.hoverColor || '#D3D3D3'};
+            --btn-hover-foreground: ${getContrastColor(theme.buttonStyles?.hoverColor || '#D3D3D3')};
+            --btn-font-weight: ${theme.buttonStyles?.fontWeight || 500};
+            --btn-text-transform: ${theme.buttonStyles?.textTransform || 'none'};
+            --btn-border-width: ${theme.buttonStyles?.borderWidth ?? 0}px;
+            --btn-padding-x: ${theme.buttonStyles?.paddingX ?? 16}px;
+            --btn-padding-y: ${theme.buttonStyles?.paddingY ?? 8}px;
           }
           @media (max-width: 640px) {
             :root {
@@ -189,7 +223,7 @@ export default async function RootLayout({
           body { font-family: var(--font-body) !important; background-color: var(--background) !important; }
           h1, h2, h3, h4, h5, h6, .font-headline { font-family: var(--font-headline) !important; }
 
-          /* Static Splash Screen Styles - Instant Load */
+          /* Static Splash Screen Styles - Instant Load and Zero Flicker */
           #initial-splash-screen {
             position: fixed;
             inset: 0;
@@ -197,27 +231,42 @@ export default async function RootLayout({
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 100000;
+            z-index: 100001; /* Very high */
             opacity: 1;
+            transition: opacity 0.4s ease-in-out;
           }
-          #initial-splash-screen.fade-out {
+          #initial-splash-screen.hidden {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.5s ease-in-out;
           }
           #initial-splash-screen img {
             width: 120px;
             height: 120px;
             max-width: 50vw;
-            animation: splash-pulse 2s infinite ease-in-out;
+            animation: splash-pulse 2.2s infinite ease-in-out;
           }
           @keyframes splash-pulse {
             0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
+            50% { transform: scale(1.04); opacity: 0.85; }
           }
         `}} />
 
-        <script
+        <Script
+          id="unregister-sw-dev"
+          dangerouslySetInnerHTML={{ __html: `
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for(let registration of registrations) {
+                    registration.unregister();
+                  }
+                });
+              }
+            }
+          `}}
+        />
+        <Script
+          id="json-ld-org"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify([
@@ -257,6 +306,7 @@ export default async function RootLayout({
           />
         </div>
         <ClientLayout initialTheme={theme} initialStore={store}>
+          <RealTimeTracker />
           {children}
         </ClientLayout>
       </body>

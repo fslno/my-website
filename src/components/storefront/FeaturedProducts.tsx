@@ -139,6 +139,8 @@ export function FeaturedProducts() {
                 reviewCount={reviewCount}
                 isSoldOut={isSoldOut}
                 inventory={totalStock}
+                isCustomizable={product.customizable}
+                preorderEnabled={product.preorderEnabled}
               />
             );
           })}

@@ -37,6 +37,8 @@ import {
   DialogDescription 
 } from '@/components/ui/dialog';
 import { 
+  Bell,
+  BellRing,
   Building2, 
   MapPin, 
   Phone, 
@@ -98,6 +100,8 @@ import {
   EmailAuthProvider,
   getAuth
 } from 'firebase/auth';
+import { getMessagingInstance } from '@/firebase';
+import { getToken } from 'firebase/messaging';
 
 interface ContactItem {
   label: string;
@@ -129,10 +133,12 @@ export default function SettingsPage() {
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const staffQuery = useMemoFirebase(() => db ? collection(db, 'staff') : null, [db]);
   const themeRef = useMemoFirebase(() => db ? doc(db, 'config', 'theme') : null, [db]);
+  const notificationsRef = useMemoFirebase(() => db ? doc(db, 'config', 'notifications') : null, [db]);
 
   const { data: storeConfig, isLoading: storeLoading } = useDoc(storeConfigRef);
   const { data: staffMembers, isLoading: staffLoading } = useCollection(staffQuery);
   const { data: themeData, isLoading: themeLoading } = useDoc(themeRef);
+  const { data: notificationData } = useDoc(notificationsRef);
 
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('store');
@@ -166,6 +172,13 @@ export default function SettingsPage() {
   const [taxNexus, setTaxNexus] = useState<TaxNexus[]>([]);
   const [primaryLanguage, setPrimaryLanguage] = useState('English');
   const [multiLanguageEnabled, setMultiLanguageEnabled] = useState(false);
+  
+  // Notification States
+  const [adminNotificationEmail, setAdminNotificationEmail] = useState('');
+  const [orderNotificationsEnabled, setOrderNotificationsEnabled] = useState(true);
+  const [isPushSupported, setIsPushSupported] = useState(false);
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
+  
   const [newRegion, setNewRegion] = useState('');
   const [newRate, setNewRate] = useState('');
   const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState('10');
@@ -187,6 +200,17 @@ export default function SettingsPage() {
   const [chatbotDuration, setChatbotDuration] = useState('3');
   const [chatbotGapBottom, setChatbotGapBottom] = useState('32');
   const [chatbotGapSide, setChatbotGapSide] = useState('32');
+
+  // Button Theme Engine
+  const [btnScale, setBtnScale] = useState('1.0');
+  const [btnRadius, setBtnRadius] = useState('4');
+  const [btnPrimaryColor, setBtnPrimaryColor] = useState('#000000');
+  const [btnHoverColor, setBtnHoverColor] = useState('#D3D3D3');
+  const [btnFontWeight, setBtnFontWeight] = useState('500');
+  const [btnTextTransform, setBtnTextTransform] = useState('none');
+  const [btnBorderWidth, setBtnBorderWidth] = useState('0');
+  const [btnPaddingX, setBtnPaddingX] = useState('16');
+  const [btnPaddingY, setBtnPaddingY] = useState('8');
 
   // Security State
   const { user } = useUser();
@@ -244,11 +268,33 @@ export default function SettingsPage() {
       setChatbotDuration(themeData.chatbotDuration?.toString() || '3');
       setChatbotGapBottom(themeData.chatbotGapBottom?.toString() || '32');
       setChatbotGapSide(themeData.chatbotGapSide?.toString() || '32');
+      
+      // Button Theme Population
+      setBtnScale(themeData.buttonStyles?.scale?.toString() || '1.0');
+      setBtnRadius(themeData.buttonStyles?.borderRadius?.toString() || '4');
+      setBtnPrimaryColor(themeData.buttonStyles?.primaryColor || '#000000');
+      setBtnHoverColor(themeData.buttonStyles?.hoverColor || '#D3D3D3');
+      setBtnFontWeight(themeData.buttonStyles?.fontWeight || '500');
+      setBtnTextTransform(themeData.buttonStyles?.textTransform || 'none');
+      setBtnBorderWidth(themeData.buttonStyles?.borderWidth?.toString() || '0');
+      setBtnPaddingX(themeData.buttonStyles?.paddingX?.toString() || '16');
+      setBtnPaddingY(themeData.buttonStyles?.paddingY?.toString() || '8');
+
       setShowBrand(themeData.showBrand !== false);
       setMaintenanceMode(themeData.maintenanceMode ?? false);
       setMaintenanceMessage(themeData.maintenanceMessage || 'Store Maintenance. We are currently updating the store. We will be back online shortly.');
     }
-  }, [storeConfig, themeData]);
+    if (notificationData) {
+      setAdminNotificationEmail(notificationData.adminEmail || '');
+      setOrderNotificationsEnabled(notificationData.orderNotificationsEnabled !== false);
+    }
+    
+    // Check Push Support
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setIsPushSupported(true);
+      setIsPushEnabled(Notification.permission === 'granted');
+    }
+  }, [storeConfig, themeData, notificationData]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'storefront' | 'admin') => {
     const file = e.target.files?.[0];
@@ -376,6 +422,29 @@ export default function SettingsPage() {
       .finally(() => setIsSaving(false));
   };
 
+  const handleSaveButtonStyles = async () => {
+    if (!themeRef) return;
+    setIsSaving(true);
+    const updates = { 
+      buttonStyles: {
+        scale: parseFloat(btnScale) || 1.0,
+        borderRadius: parseInt(btnRadius) || 0,
+        primaryColor: btnPrimaryColor,
+        hoverColor: btnHoverColor,
+        fontWeight: btnFontWeight,
+        textTransform: btnTextTransform,
+        borderWidth: parseInt(btnBorderWidth) || 0,
+        paddingX: parseInt(btnPaddingX) || 16,
+        paddingY: parseInt(btnPaddingY) || 8,
+      },
+      updatedAt: serverTimestamp() 
+    };
+    setDoc(themeRef, updates, { merge: true })
+      .then(() => toast({ title: "Aesthetics Updated", description: "Storefront button themes have been synchronized." }))
+      .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
+      .finally(() => setIsSaving(false));
+  };
+
   const handleUpdatePassword = async () => {
     if (!auth?.currentUser || !newPassword) return;
     if (newPassword !== confirmPassword) {
@@ -429,6 +498,57 @@ export default function SettingsPage() {
       toast({ title: "Sent", description: `Password reset email dispatched to ${user.email}.` });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    if (!notificationsRef) return;
+    setIsSaving(true);
+    const updates = { 
+      adminEmail: adminNotificationEmail,
+      orderNotificationsEnabled,
+      updatedAt: serverTimestamp() 
+    };
+    setDoc(notificationsRef, updates, { merge: true })
+      .then(() => toast({ title: "Notifications Saved", description: "Your alert preferences have been updated." }))
+      .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: notificationsRef.path, operation: 'write', requestResourceData: updates })))
+      .finally(() => setIsSaving(false));
+  };
+
+  const handleEnablePush = async () => {
+    if (!isPushSupported) return;
+    setIsSaving(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Permission not granted');
+      }
+
+      const { firebaseApp } = await import('@/firebase').then(m => m.initializeFirebase());
+      const messaging = await getMessagingInstance(firebaseApp);
+      if (!messaging) throw new Error('Messaging not supported in this browser');
+
+      const token = await getToken(messaging, { 
+        vapidKey: 'BC8lRTo6hYq_k7p9kXq6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX6pX' // Placeholder
+      });
+      
+      if (token) {
+        const res = await fetch('/api/admin/notifications/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        
+        if (!res.ok) throw new Error('Failed to subscribe to topic');
+        
+        setIsPushEnabled(true);
+        toast({ title: "Banners Enabled", description: "This device will now receive order alerts." });
+      }
+    } catch (error: any) {
+      console.error('Push registration failed:', error);
+      toast({ title: "Registration Failed", description: error.message || "Could not enable notifications.", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -492,6 +612,15 @@ export default function SettingsPage() {
     setEditingStaffId(null);
   };
 
+  const handleSaveActive = () => {
+    if (activeTab === 'store') handleSaveStore();
+    else if (activeTab === 'notifications') handleSaveNotifications();
+    else if (activeTab === 'support') handleSaveChatbot();
+    else if (activeTab === 'security') handleUpdatePassword();
+    else if (activeTab === 'maintenance') handleSaveMaintenance();
+    else if (activeTab === 'theme') handleSaveButtonStyles();
+  };
+
   const addPhoneNumber = () => setPhoneNumbers([...phoneNumbers, { label: 'Phone', value: '' }]);
   const updatePhoneNumber = (idx: number, field: keyof ContactItem, val: string) => {
     const updated = [...phoneNumbers];
@@ -547,6 +676,12 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="compliance" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
             <Scale className="h-3.5 w-3.5" /> Compliance & Language
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
+            <Bell className="h-3.5 w-3.5" /> Notifications
+          </TabsTrigger>
+          <TabsTrigger value="theme" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
+            <Palette className="h-3.5 w-3.5" /> Theme Engine
           </TabsTrigger>
         </TabsList>
 
@@ -1492,7 +1627,347 @@ export default function SettingsPage() {
             </Button>
           </div>
         </TabsContent>
+        <TabsContent value="notifications" className="space-y-12 animate-in fade-in duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+              <CardHeader className="border-b bg-gray-50/30">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Email Alerts</CardTitle>
+                </div>
+                <CardDescription className="text-xs font-bold uppercase tracking-tight">Recieve an email for every new order.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-6 bg-blue-50 border border-blue-100 rounded-none">
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-bold uppercase tracking-tight flex items-center gap-2 text-blue-900">
+                        Enable Order Emails
+                      </p>
+                      <p className="text-[9px] text-blue-700 uppercase leading-tight font-medium">
+                        Send alerts to your staff email.
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={orderNotificationsEnabled} 
+                      onCheckedChange={setOrderNotificationsEnabled}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Admin Notification Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input 
+                        placeholder="goal@feiselinosportjerseys.ca" 
+                        value={adminNotificationEmail} 
+                        onChange={(e) => setAdminNotificationEmail(e.target.value)} 
+                        className="pl-10 h-11 font-bold" 
+                      />
+                    </div>
+                    <p className="text-[8px] text-gray-400 font-bold uppercase mt-2">This is where order notifications will be sent.</p>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end pt-4">
+                  <Button onClick={handleSaveNotifications} disabled={isSaving} className="w-full sm:w-auto bg-black text-white h-12 px-12 font-bold uppercase tracking-widest text-[10px]">
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                    Save Email Preferences
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+              <CardHeader className="border-b bg-gray-50/30">
+                <div className="flex items-center gap-2">
+                  <BellRing className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Push Banners</CardTitle>
+                </div>
+                <CardDescription className="text-xs font-bold uppercase tracking-tight">Recieve pop-up banners on this device.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-8 p-4 sm:p-8 space-y-8">
+                <div className="space-y-6">
+                  {!isPushSupported ? (
+                    <div className="p-6 bg-red-50 border border-red-100 rounded-none flex items-center gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                      <div>
+                        <p className="text-[10px] font-bold text-red-800 uppercase tracking-widest">Not Supported</p>
+                        <p className="text-[9px] text-red-700 uppercase font-medium mt-1">Your browser does not support push notifications.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-none flex flex-col gap-6">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("w-3 h-3 rounded-full animate-pulse", isPushEnabled ? "bg-emerald-500" : "bg-gray-300")} />
+                        <div>
+                          <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest">
+                            {isPushEnabled ? "Notifications ACTIVE" : "Notifications INACTIVE"}
+                          </p>
+                          <p className="text-[9px] text-emerald-700 uppercase font-medium mt-1">
+                            {isPushEnabled 
+                              ? "This device is registered for real-time order banners." 
+                              : "Enable push to receive alerts even when the tab is closed."}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <Button 
+                        onClick={handleEnablePush} 
+                        disabled={isSaving || isPushEnabled}
+                        className={cn(
+                          "h-12 w-full font-bold uppercase tracking-widest text-[10px]",
+                          isPushEnabled ? "bg-emerald-100 text-emerald-700 cursor-default" : "bg-black text-white hover:bg-gray-800"
+                        )}
+                      >
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Bell className="h-4 w-4 mr-2" />}
+                        {isPushEnabled ? "Device Registered" : "Enable Banners on this Device"}
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="p-4 bg-gray-50 border border-dashed rounded-none">
+                    <p className="text-[8px] text-gray-500 font-bold uppercase leading-relaxed">
+                      REGISTERING THIS DEVICE WILL ALLOW THE BROWSER TO SHOW A NOTIFICATION BANNER WHENEVER A CUSTOMER PLACES A NEW ORDER.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        <TabsContent value="theme" className="space-y-12 animate-in fade-in duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Card className="lg:col-span-2 border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
+              <CardHeader className="border-b bg-gray-50/30">
+                <div className="flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Button Theme Engine</CardTitle>
+                </div>
+                <CardDescription className="text-xs font-bold uppercase tracking-tight">Master the aesthetic delivery of storefront interactive elements.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-8 p-4 sm:p-8 space-y-10">
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Global Scale</Label>
+                        <span className="text-[10px] font-mono font-bold text-primary">{btnScale}X</span>
+                      </div>
+                      <input 
+                        type="range" min="0.7" max="1.5" step="0.05" value={btnScale} 
+                        onChange={(e) => setBtnScale(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Corner Radius</Label>
+                        <span className="text-[10px] font-mono font-bold text-primary">{btnRadius}PX</span>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 mb-2">
+                        {[0, 4, 8, 16, 99].map(r => (
+                          <button 
+                            key={r}
+                            onClick={() => setBtnRadius(r.toString())}
+                            className={cn(
+                              "h-8 border text-[8px] font-bold uppercase tracking-tighter transition-all",
+                              btnRadius === r.toString() ? "bg-black text-white border-black" : "bg-white text-gray-400 border-gray-100 hover:border-gray-300"
+                            )}
+                          >
+                            {r === 0 ? 'None' : r === 99 ? 'Pill' : `${r}px`}
+                          </button>
+                        ))}
+                      </div>
+                      <input 
+                        type="range" min="0" max="40" step="1" value={btnRadius === '99' ? '40' : btnRadius} 
+                        onChange={(e) => setBtnRadius(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Font Weight</Label>
+                        <Select value={btnFontWeight} onValueChange={setBtnFontWeight}>
+                          <SelectTrigger className="h-11 font-bold">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="300" className="font-light">300 Light</SelectItem>
+                            <SelectItem value="400" className="font-normal">400 Normal</SelectItem>
+                            <SelectItem value="500" className="font-medium">500 Medium</SelectItem>
+                            <SelectItem value="600" className="font-semibold">600 Semibold</SelectItem>
+                            <SelectItem value="700" className="font-bold">700 Bold</SelectItem>
+                            <SelectItem value="800" className="font-extrabold">800 Black</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Case</Label>
+                        <Select value={btnTextTransform} onValueChange={setBtnTextTransform}>
+                          <SelectTrigger className="h-11 font-bold uppercase text-[10px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Normal Case</SelectItem>
+                            <SelectItem value="uppercase">UPPERCASE</SelectItem>
+                            <SelectItem value="lowercase">lowercase</SelectItem>
+                            <SelectItem value="capitalize">Capitalize</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Brand Primary (Background)</Label>
+                      <div className="flex gap-2">
+                        <div className="w-11 h-11 rounded-sm border p-1 bg-white shadow-sm overflow-hidden shrink-0"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={btnPrimaryColor} onChange={(e) => setBtnPrimaryColor(e.target.value)} /></div>
+                        <Input value={btnPrimaryColor} onChange={(e) => setBtnPrimaryColor(e.target.value)} className="h-11 font-mono text-xs uppercase" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Hover State Color</Label>
+                      <div className="flex gap-2">
+                        <div className="w-11 h-11 rounded-sm border p-1 bg-white shadow-sm overflow-hidden shrink-0"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={btnHoverColor} onChange={(e) => setBtnHoverColor(e.target.value)} /></div>
+                        <Input value={btnHoverColor} onChange={(e) => setBtnHoverColor(e.target.value)} className="h-11 font-mono text-xs uppercase" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Padding X</Label>
+                        <Input type="number" value={btnPaddingX} onChange={(e) => setBtnPaddingX(e.target.value)} className="h-11 font-bold" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Padding Y</Label>
+                        <Input type="number" value={btnPaddingY} onChange={(e) => setBtnPaddingY(e.target.value)} className="h-11 font-bold" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Border Width</Label>
+                      <input 
+                        type="range" min="0" max="5" step="1" value={btnBorderWidth} 
+                        onChange={(e) => setBtnBorderWidth(e.target.value)} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-[#e1e3e5] shadow-none rounded-none bg-gray-50/50">
+              <CardHeader className="border-b">
+                <div className="flex items-center gap-2">
+                  <Maximize2 className="h-4 w-4 text-gray-400" />
+                  <CardTitle className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Engine Preview</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center justify-center min-h-[300px] p-8 gap-8">
+                <p className="text-[8px] font-bold uppercase text-gray-400 tracking-widest mb-4">Storefront Add-to-Cart Preview</p>
+                
+                <div className="flex flex-col items-center gap-6">
+                  <button 
+                    style={{
+                      transform: `scale(${btnScale})`,
+                      borderRadius: `${btnRadius}px`,
+                      backgroundColor: btnPrimaryColor,
+                      color: '#FFFFFF', // Assuming high contrast for now
+                      fontWeight: btnFontWeight,
+                      textTransform: btnTextTransform as any,
+                      border: `${btnBorderWidth}px solid rgba(0,0,0,0.1)`,
+                      padding: `${btnPaddingY}px ${btnPaddingX}px`,
+                      transition: 'all 0.3s ease'
+                    }}
+                    className="whitespace-nowrap shadow-xl"
+                  >
+                    Add to Cart
+                  </button>
+
+                  <button 
+                    style={{
+                      transform: `scale(${btnScale})`,
+                      borderRadius: `${btnRadius}px`,
+                      backgroundColor: btnHoverColor,
+                      color: '#333333',
+                      fontWeight: btnFontWeight,
+                      textTransform: btnTextTransform as any,
+                      border: `${btnBorderWidth}px solid rgba(0,0,0,0.1)`,
+                      padding: `${btnPaddingY}px ${btnPaddingX}px`,
+                      transition: 'all 0.3s ease'
+                    }}
+                    className="whitespace-nowrap shadow-sm opacity-90"
+                  >
+                    Hover State
+                  </button>
+                </div>
+
+                <div className="mt-12 p-4 border border-dashed border-gray-200 w-full rounded-sm">
+                  <p className="text-[7px] font-bold uppercase text-gray-400 mb-2">Technical Token</p>
+                  <code className="text-[8px] font-mono text-primary block break-all">
+                    --btn-scale: {btnScale};<br/>
+                    --btn-radius: {btnRadius}px;<br/>
+                    --btn-primary: {btnPrimaryColor};
+                  </code>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="bg-black text-white p-6 sm:p-8 rounded-none space-y-6 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-yellow-400" />
+              <div>
+                <h3 className="text-sm font-headline font-bold uppercase tracking-tight">Synchronize Theme Engine</h3>
+                <p className="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Updates will apply site-wide to all storefront components.</p>
+              </div>
+            </div>
+            <Separator className="bg-white/10" />
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-2 text-green-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[9px] font-bold uppercase tracking-widest">Aesthetics Verified</span>
+              </div>
+              <Button onClick={handleSaveButtonStyles} disabled={isSaving} className="w-full sm:w-auto bg-white text-black h-12 px-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-emerald-500 hover:text-white transition-all">
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Propagate Theme
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      {/* Sticky Save Footer */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-black/90 backdrop-blur-xl border border-white/10 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-2">
+          <div className="flex-1 px-4">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">System Ready</p>
+            </div>
+            <p className="text-[8px] font-medium uppercase text-white/40 tracking-tight">Active: {activeTab} settings</p>
+          </div>
+          <Button 
+            onClick={handleSaveActive}
+            disabled={isSaving}
+            className="bg-white text-black hover:bg-gray-200 h-10 px-6 font-black uppercase tracking-widest text-[10px] transition-all active:scale-95"
+          >
+            {isSaving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+            ) : (
+              <Save className="h-3.5 w-3.5 mr-2" />
+            )}
+            Save Changes
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

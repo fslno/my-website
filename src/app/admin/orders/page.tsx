@@ -36,8 +36,12 @@ import {
   DollarSign,
   AlertCircle,
   LayoutList,
-  List
+  List,
+  Wand2,
+  Mic
 } from 'lucide-react';
+import { useVoiceSearch } from '@/hooks/use-voice-search';
+import { OrderListSkeleton } from '@/components/admin/AdminSkeletons';
 import {
   Select,
   SelectContent,
@@ -106,6 +110,10 @@ export default function OrdersPage() {
   const { user } = useUser();
   const { toast } = useToast();
   const isAdmin = useIsAdmin();
+
+  const { isListening, startVoiceSearch } = useVoiceSearch({
+    onResult: (transcript) => setSearchQuery(transcript)
+  });
 
   // 1. Data Fetching & State
   const [orders, setOrders] = useState<any[]>([]);
@@ -176,6 +184,7 @@ export default function OrdersPage() {
 
   // 2. UI State
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearch = React.useDeferredValue(searchQuery);
   const [statusFilter, setStatusFilter] = useState('all');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -192,19 +201,12 @@ export default function OrdersPage() {
     setHasMounted(true);
   }, []);
 
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setDebouncedSearch(searchQuery.toLowerCase());
-    }, 300);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
-
   // 3. Logic & Filtering
   const filteredOrders = useMemo(() => {
     if (!orders || orders.length === 0) return [];
 
+    const lowerSearch = deferredSearch.toLowerCase();
     return orders.filter((order: any) => {
-      const lowerSearch = debouncedSearch;
       const matchesSearch = !lowerSearch ||
                            order.id?.toLowerCase().includes(lowerSearch) ||
                            order.email?.toLowerCase().includes(lowerSearch) ||
@@ -215,7 +217,7 @@ export default function OrdersPage() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [orders, debouncedSearch, statusFilter]);
+  }, [orders, deferredSearch, statusFilter]);
 
   const stats = useMemo(() => {
     let total = 0;
@@ -449,10 +451,21 @@ export default function OrdersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
             <Input 
               placeholder="SEARCH BY ID, EMAIL, OR PARTICIPANT..." 
-              className="pl-10 h-12 bg-white border-[#e1e3e5] rounded-none font-bold uppercase text-[10px] tracking-widest focus-visible:ring-black/10"
+              className="pl-10 pr-12 h-12 bg-white border-[#e1e3e5] rounded-none font-bold uppercase text-[10px] tracking-widest focus-visible:ring-black/10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={startVoiceSearch}
+              className={cn(
+                "absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-[#8c9196] hover:text-black transition-colors rounded-none",
+                isListening && "text-blue-500 bg-blue-50 animate-pulse"
+              )}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -526,7 +539,13 @@ export default function OrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {!isQueryLoading && filteredOrders.length === 0 ? (
+                {isQueryLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="p-0">
+                      <OrderListSkeleton />
+                    </TableCell>
+                  </TableRow>
+                ) : filteredOrders.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="py-32 text-center">
                       <div className="flex flex-col items-center gap-2 opacity-30">
@@ -535,220 +554,236 @@ export default function OrdersPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : filteredOrders.map((order: any) => (
-                  <TableRow 
-                    key={order.id} 
-                    className={cn(
-                      "group border-[#e1e3e5] transition-all duration-200 cursor-pointer",
-                      selectedIds.includes(order.id) ? "bg-blue-50/30" : "hover:bg-gray-50/80"
-                    )}
-                    onClick={() => router.push(`/admin/orders/${order.id}`)}
-                  >
-                    <TableCell className="px-6" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox 
-                        checked={selectedIds.includes(order.id)} 
-                        onCheckedChange={(checked) => handleToggleSelect(order.id, !!checked)} 
-                      />
-                    </TableCell>
-                    <TableCell className="py-6 align-top">
-                      <div className="flex flex-col gap-6">
-                        {/* Customer Info */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-3">
-                            <p className="text-sm font-black uppercase tracking-tight text-black">
-                              {order.customer?.name || 'Guest Participant'}
-                            </p>
-                            {!order.viewed && (
-                              <Badge className="bg-red-600 text-white text-[7px] font-black tracking-tighter px-2 h-4 border-none rounded-none animate-pulse">NEW</Badge>
+                ) : (
+                  filteredOrders.map((order: any) => (
+                    <TableRow 
+                      key={order.id} 
+                      className={cn(
+                        "group border-[#e1e3e5] transition-all duration-200 cursor-pointer",
+                        selectedIds.includes(order.id) ? "bg-blue-50/30" : "hover:bg-gray-50/80"
+                      )}
+                      onClick={() => router.push(`/admin/orders/${order.id}`)}
+                    >
+                      <TableCell className="px-6" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox 
+                          checked={selectedIds.includes(order.id)} 
+                          onCheckedChange={(checked) => handleToggleSelect(order.id, !!checked)} 
+                        />
+                      </TableCell>
+                      <TableCell className="py-6 align-top">
+                        <div className="flex flex-col gap-6">
+                          {/* Customer Info */}
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-3">
+                              <p className="text-sm font-black uppercase tracking-tight text-black">
+                                {order.customer?.name || 'Guest Participant'}
+                              </p>
+                              {!order.viewed && (
+                                <Badge className="bg-red-600 text-white text-[7px] font-black tracking-tighter px-2 h-4 border-none rounded-none animate-pulse">NEW</Badge>
+                              )}
+                            </div>
+                            
+                            {viewMode === 'expanded' && (
+                              <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                                {order.customer?.phone && (
+                                  <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 drop-shadow-sm">
+                                    <Phone className="h-3 w-3 text-emerald-600" /> {order.customer.phone}
+                                  </p>
+                                )}
+                                {(() => {
+                                  const address = order.customer?.shipping || order.customer?.billing;
+                                  if (!address) return null;
+                                  return (
+                                    <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 leading-tight">
+                                      <MapPin className="h-3 w-3 text-blue-600" /> 
+                                      {address.address}, {address.city}, {address.postalCode}
+                                    </p>
+                                  );
+                                })()}
+                                {order.email && (
+                                  <p className="text-[9px] font-medium text-gray-400 lowercase flex items-center gap-1.5">
+                                    <Mail className="h-2.5 w-2.5" /> {order.email}
+                                  </p>
+                                )}
+                              </div>
                             )}
                           </div>
-                          
-                          {viewMode === 'expanded' && (
-                            <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                              {order.customer?.phone && (
-                                <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 drop-shadow-sm">
-                                  <Phone className="h-3 w-3 text-emerald-600" /> {order.customer.phone}
-                                </p>
-                              )}
-                              {(() => {
-                                const address = order.customer?.shipping || order.customer?.billing;
-                                if (!address) return null;
-                                return (
-                                  <p className="text-[10px] font-bold text-gray-800 flex items-center gap-1.5 leading-tight">
-                                    <MapPin className="h-3 w-3 text-blue-600" /> 
-                                    {address.address}, {address.city}, {address.postalCode}
-                                  </p>
-                                );
-                              })()}
-                              {order.email && (
-                                <p className="text-[9px] font-medium text-gray-400 lowercase flex items-center gap-1.5">
-                                  <Mail className="h-2.5 w-2.5" /> {order.email}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                          {/* Compact Items Summary - UPDATED */}
-                          {viewMode === 'compact' && (
-                            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-300">
-                              <div className="flex items-center gap-1.5 overflow-hidden p-1 bg-gray-50/50 border border-dashed border-gray-200">
-                                {(order.items || []).slice(0, 4).map((item: any, i: number) => (
-                                  <div 
-                                    key={i} 
-                                    className="w-12 h-12 rounded-none border border-white bg-white shrink-0 relative shadow-sm overflow-hidden group/thumb"
-                                  >
-                                    {item.image ? (
-                                      <Image 
-                                        src={item.image} 
-                                        alt={item.name} 
-                                        fill 
-                                        sizes="48px"
-                                        className="object-cover group-hover/thumb:scale-110 transition-transform duration-300" 
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                        <Package className="h-4 w-4 text-gray-300" />
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                                {(order.items || []).length > 4 && (
-                                  <div className="w-12 h-12 bg-gray-100 border border-white flex items-center justify-center z-0 shadow-sm">
-                                    <span className="text-[10px] font-black text-gray-400">+{(order.items || []).length - 4}</span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <Badge className="bg-black text-white border-none text-[9px] font-black uppercase tracking-tighter px-2 h-5 rounded-none w-fit">
-                                  {(order.items || []).length} {(order.items || []).length === 1 ? 'ITEM' : 'ITEMS'}
-                                </Badge>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Detailed Items List - Conditional */}
-                          {viewMode === 'expanded' && (
-                            <div className="space-y-3 bg-gray-50/50 p-3 border border-dashed border-gray-200 animate-in slide-in-from-top-2 duration-300">
-                              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 border-b border-gray-200 pb-1 flex justify-between items-center">
-                                <span>Order Items ({(order.items || []).length})</span>
-                                <Package className="h-2.5 w-2.5" />
-                              </p>
-                              {(order.items || []).map((item: any, i: number) => (
-                                <div key={i} className="flex gap-4 items-start group/item">
-                                  <div className="w-12 h-12 bg-white shrink-0 border border-gray-200 shadow-sm relative overflow-hidden">
-                                    {item.image && (
-                                      <Image 
-                                        src={item.image} 
-                                        alt={item.name} 
-                                        fill 
-                                        sizes="48px"
-                                        className="object-cover group-hover/item:scale-110 transition-transform duration-300" 
-                                      />
-                                    )}
-                                  </div>
-                                  <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
-                                    <p className="text-[11px] font-black uppercase text-black truncate leading-tight">{item.name}</p>
-                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                      <span className="text-[9px] font-black text-gray-500 uppercase bg-gray-100 px-1.5 py-0.5 rounded-sm">Size: {item.size || 'N/A'}</span>
-                                      {(item.customName || item.customNumber) && (
-                                        <span className="text-[9px] font-black text-blue-700 uppercase bg-blue-50 px-1.5 py-0.5 rounded-sm flex items-center gap-1">
-                                          <Sparkles className="h-2.5 w-2.5" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
-                                        </span>
-                                      )}
-                                      {item.quantity > 1 && (
-                                        <span className="text-[9px] font-black text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Qty: {item.quantity}</span>
+  
+                            {/* Compact Items Summary - UPDATED */}
+                            {viewMode === 'compact' && (
+                              <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                                <div className="flex items-center gap-1.5 overflow-hidden p-1 bg-gray-50/50 border border-dashed border-gray-200">
+                                  {(order.items || []).slice(0, 4).map((item: any, i: number) => (
+                                    <div 
+                                      key={i} 
+                                      className="w-12 h-12 rounded-none border border-white bg-white shrink-0 relative shadow-sm overflow-hidden group/thumb"
+                                    >
+                                      {item.image ? (
+                                        <Image 
+                                          src={item.image} 
+                                          alt={item.name} 
+                                          fill 
+                                          sizes="48px"
+                                          className="object-cover group-hover/thumb:scale-110 transition-transform duration-300" 
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                          <Package className="h-4 w-4 text-gray-300" />
+                                        </div>
                                       )}
                                     </div>
-                                  </div>
+                                  ))}
+                                  {(order.items || []).length > 4 && (
+                                    <div className="w-12 h-12 bg-gray-100 border border-white flex items-center justify-center z-0 shadow-sm">
+                                      <span className="text-[10px] font-black text-gray-400">+{(order.items || []).length - 4}</span>
+                                    </div>
+                                  )}
                                 </div>
+                                <div className="flex flex-col gap-1 min-w-0">
+                                  <Badge className="bg-black text-white border-none text-[9px] font-black uppercase tracking-tighter px-2 h-5 rounded-none w-fit">
+                                    {(order.items || []).length} {(order.items || []).length === 1 ? 'ITEM' : 'ITEMS'}
+                                  </Badge>
+                                  {(order.items || []).length > 0 && (
+                                    <div className="flex flex-col gap-0.5">
+                                      <p className="text-[10px] font-black uppercase text-black truncate max-w-[180px]">
+                                        {(order.items || [])[0].name}
+                                        {(order.items || []).length > 1 && <span className="text-gray-400 ml-1">+{(order.items || []).length - 1} MORE</span>}
+                                      </p>
+                                      {((order.items || [])[0].customName || (order.items || [])[0].customNumber) && (
+                                        <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                                          <Sparkles className="h-2.5 w-2.5" /> 
+                                          {(order.items || [])[0].customName} {(order.items || [])[0].customNumber && `#${(order.items || [])[0].customNumber}`}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+  
+                            {/* Detailed Items List - Conditional */}
+                            {viewMode === 'expanded' && (
+                              <div className="space-y-3 bg-gray-50/50 p-3 border border-dashed border-gray-200 animate-in slide-in-from-top-2 duration-300">
+                                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 border-b border-gray-200 pb-1 flex justify-between items-center">
+                                  <span>Order Items ({(order.items || []).length})</span>
+                                  <Package className="h-2.5 w-2.5" />
+                                </p>
+                                {(order.items || []).map((item: any, i: number) => (
+                                  <div key={i} className="flex gap-4 items-start group/item">
+                                    <div className="w-12 h-12 bg-white shrink-0 border border-gray-200 shadow-sm relative overflow-hidden">
+                                      {item.image && (
+                                        <Image 
+                                          src={item.image} 
+                                          alt={item.name} 
+                                          fill 
+                                          sizes="48px"
+                                          className="object-cover group-hover/item:scale-110 transition-transform duration-300" 
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
+                                      <p className="text-[11px] font-black uppercase text-black truncate leading-tight">{item.name}</p>
+                                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                        <span className="text-[9px] font-black text-gray-500 uppercase bg-gray-100 px-1.5 py-0.5 rounded-sm">Size: {item.size || 'N/A'}</span>
+                                        {(item.customName || item.customNumber) && (
+                                          <span className="text-[9px] font-black text-blue-700 uppercase bg-blue-50 px-1.5 py-0.5 rounded-sm flex items-center gap-1">
+                                            <Sparkles className="h-2.5 w-2.5" /> {item.customName} {item.customNumber && `#${item.customNumber}`}
+                                          </span>
+                                        )}
+                                        {item.quantity > 1 && (
+                                          <span className="text-[9px] font-black text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Qty: {item.quantity}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-mono font-bold text-black uppercase">#{order.id.slice(-8).toUpperCase()}</div>
+                          <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <Calendar className="h-2.5 w-2.5" /> {formatDate(order.createdAt)}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="space-y-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <div className="cursor-pointer hover:opacity-80 transition-opacity">
+                                {getStatusBadge(order.status)}
+                              </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="rounded-none border-[#e1e3e5] min-w-[180px]">
+                              <DropdownMenuLabel className="text-[9px] font-black uppercase text-gray-400 p-3">Update Status</DropdownMenuLabel>
+                              {[
+                                { label: 'Processing', value: 'processing' },
+                                { label: 'Shipped', value: 'shipped' },
+                                { label: 'Ready for Pickup', value: 'ready_for_pickup' },
+                                { label: 'Delivered', value: 'delivered' },
+                                { label: 'Cancelled', value: 'cancelled' },
+                              ].map((opt) => (
+                                <DropdownMenuItem 
+                                  key={opt.value}
+                                  className={cn(
+                                    "text-[10px] font-bold uppercase p-3 cursor-pointer",
+                                    order.status === opt.value && "bg-gray-50 text-black"
+                                  )}
+                                  onClick={() => updateOrderStatus(order.id, { status: opt.value, updatedAt: serverTimestamp() })}
+                                >
+                                  {opt.label}
+                                  {order.status === opt.value && <CheckCircle2 className="h-3 w-3 ml-auto text-emerald-500" />}
+                                </DropdownMenuItem>
                               ))}
-                            </div>
-                          )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-[10px] font-mono font-bold text-black uppercase">#{order.id.slice(-8).toUpperCase()}</div>
-                        <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                          <Calendar className="h-2.5 w-2.5" /> {formatDate(order.createdAt)}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <div className="flex items-center gap-1.5 opacity-50">
+                            {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
+                            <span className="text-[8px] font-black uppercase tracking-tighter">{order.deliveryMethod || 'STANDBY'}</span>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="space-y-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <div className="cursor-pointer hover:opacity-80 transition-opacity">
-                              {getStatusBadge(order.status)}
-                            </div>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="rounded-none border-[#e1e3e5] min-w-[180px]">
-                            <DropdownMenuLabel className="text-[9px] font-black uppercase text-gray-400 p-3">Update Status</DropdownMenuLabel>
-                            {[
-                              { label: 'Processing', value: 'processing' },
-                              { label: 'Shipped', value: 'shipped' },
-                              { label: 'Ready for Pickup', value: 'ready_for_pickup' },
-                              { label: 'Delivered', value: 'delivered' },
-                              { label: 'Cancelled', value: 'cancelled' },
-                            ].map((opt) => (
-                              <DropdownMenuItem 
-                                key={opt.value}
-                                className={cn(
-                                  "text-[10px] font-bold uppercase p-3 cursor-pointer",
-                                  order.status === opt.value && "bg-gray-50 text-black"
-                                )}
-                                onClick={() => updateOrderStatus(order.id, { status: opt.value, updatedAt: serverTimestamp() })}
-                              >
-                                {opt.label}
-                                {order.status === opt.value && <CheckCircle2 className="h-3 w-3 ml-auto text-emerald-500" />}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <div className="flex items-center gap-1.5 opacity-50">
-                          {order.deliveryMethod === 'shipping' ? <Truck className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
-                          <span className="text-[8px] font-black uppercase tracking-tighter">{order.deliveryMethod || 'STANDBY'}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                       <div className="space-y-1.5">
-                         <div className="text-sm font-black tracking-tighter text-black">C${Number(order.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                         <DropdownMenu>
-                           <DropdownMenuTrigger asChild>
-                             <div className="cursor-pointer hover:opacity-80 transition-opacity w-fit">
-                               {getPaymentStatusBadge(order.paymentStatus)}
-                             </div>
-                           </DropdownMenuTrigger>
-                           <DropdownMenuContent className="rounded-none border-[#e1e3e5] min-w-[150px] z-50">
-                             <DropdownMenuLabel className="text-[9px] font-black uppercase text-gray-400 p-3">Payment State</DropdownMenuLabel>
-                             <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'paid' })}>Mark as Paid</DropdownMenuItem>
-                             <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'awaiting_payment' })}>Awaiting Payment</DropdownMenuItem>
-                             <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'refunded' })}>Refunded</DropdownMenuItem>
-                           </DropdownMenuContent>
-                         </DropdownMenu>
-                       </div>
-                    </TableCell>
-                    <TableCell>
-                       <div className="flex items-center gap-2">
-                         <Button
-                           variant="ghost"
-                           size="icon"
-                           className="h-8 w-8 text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors rounded-none opacity-0 group-hover:opacity-100"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             setIdToDelete(order.id);
-                             setIsBulkDeleteOpen(true);
-                           }}
-                         >
-                           <Trash2 className="h-4 w-4" />
-                         </Button>
-                         <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />
-                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                         <div className="space-y-1.5">
+                           <div className="text-sm font-black tracking-tighter text-black">C${Number(order.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <div className="cursor-pointer hover:opacity-80 transition-opacity w-fit">
+                                 {getPaymentStatusBadge(order.paymentStatus)}
+                               </div>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent className="rounded-none border-[#e1e3e5] min-w-[150px] z-50">
+                               <DropdownMenuLabel className="text-[9px] font-black uppercase text-gray-400 p-3">Payment State</DropdownMenuLabel>
+                               <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'paid' })}>Mark as Paid</DropdownMenuItem>
+                               <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'awaiting_payment' })}>Awaiting Payment</DropdownMenuItem>
+                               <DropdownMenuItem className="text-[10px] font-bold uppercase p-3 cursor-pointer" onClick={() => updateOrderStatus(order.id, { paymentStatus: 'refunded' })}>Refunded</DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         </div>
+                      </TableCell>
+                      <TableCell>
+                         <div className="flex items-center gap-2">
+                           <Button
+                             variant="ghost"
+                             size="icon"
+                             className="h-8 w-8 text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors rounded-none opacity-0 group-hover:opacity-100"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setIdToDelete(order.id);
+                               setIsBulkDeleteOpen(true);
+                             }}
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </Button>
+                           <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />
+                         </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
             {hasMore && (
@@ -833,6 +868,23 @@ export default function OrdersPage() {
                      {viewMode === 'compact' && (
                         <div className="flex flex-col gap-3 bg-gray-50/80 p-3 border border-dashed border-gray-200 animate-in fade-in zoom-in-95 duration-200">
                           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                           {(order.items || []).slice(0, 5).map((item: any, i: number) => (
+                             <div key={i} className="w-12 h-12 bg-white shrink-0 border border-white shadow-sm relative overflow-hidden">
+                               {item.image ? (
+                                 <Image 
+                                   src={item.image} 
+                                   alt={item.name} 
+                                   fill 
+                                   sizes="48px"
+                                   className="object-cover" 
+                                 />
+                               ) : (
+                                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                   <Package className="h-4 w-4 text-gray-300" />
+                                 </div>
+                               )}
+                             </div>
+                           ))}
                            {(order.items || []).length > 5 && (
                              <div className="w-12 h-12 bg-gray-100 border border-white flex items-center justify-center text-[10px] font-black text-gray-400 shadow-sm shrink-0">
                                +{(order.items || []).length - 5}
@@ -840,9 +892,24 @@ export default function OrdersPage() {
                            )}
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="text-[9px] font-black uppercase text-gray-500 tracking-widest bg-white px-2 py-1 border border-gray-100 shadow-sm">
-                              {(order.items || []).length} ITEMS
+                            <p className="text-[9px] font-black uppercase text-gray-500 tracking-widest bg-white px-2 py-1 border border-gray-100 shadow-sm shrink-0">
+                              {(order.items || []).length} {(order.items || []).length === 1 ? 'ITEM' : 'ITEMS'}
                             </p>
+                            <div className="flex flex-col gap-1 min-w-0 ml-2">
+                              { (order.items || []).length > 0 && (
+                                <>
+                                  <p className="text-[10px] font-black uppercase text-black truncate">
+                                    {(order.items || [])[0].name}
+                                    {(order.items || []).length > 1 && ` +${(order.items || []).length - 1} MORE`}
+                                  </p>
+                                  {((order.items || [])[0].customName || (order.items || [])[0].customNumber) && (
+                                    <p className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                                      ✦ {(order.items || [])[0].customName} {(order.items || [])[0].customNumber && `#${(order.items || [])[0].customNumber}`}
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                      )}

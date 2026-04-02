@@ -348,6 +348,18 @@ export default function CheckoutPage() {
           },
           activeStaffEmails
         );
+
+        // 2. Trigger Admin Push Notification (Banner)
+        fetch('/api/admin/notifications/trigger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: firestoreId,
+            customerName: currentOrderData.customer.name,
+            total: `C$${finalTotal.toFixed(2)}`
+          })
+        }).catch(err => console.error("[CHECKOUT] Push trigger failed:", err));
+
       } catch (e) {
         console.error("[CHECKOUT] Notification error:", e);
       }

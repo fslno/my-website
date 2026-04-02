@@ -6,7 +6,9 @@
  * For path utilities, import from '@/lib/paths' instead.
  */
 
-export const LIVE_DOMAIN = 'fslno.ca';
+import { LIVE_DOMAIN } from './paths';
+
+export { LIVE_DOMAIN };
 
 /**
  * Determines if the current execution context is the primary live domain.

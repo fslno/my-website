@@ -47,8 +47,6 @@ export async function queueNotification(
   staffCopyEmails: string[] = []
 ) {
   try {
-    const PRIMARY_STAFF_EMAIL = 'goal@feiselinosportjerseys.ca';
-
     // 1. Fetch live configs (Store Identity + Notification Templates)
     const [notifSnap, storeSnap] = await Promise.all([
       getDoc(doc(db, 'config', 'notifications')),
@@ -56,6 +54,7 @@ export async function queueNotification(
     ]);
 
     const notifConfig = notifSnap.exists() ? notifSnap.data() : {};
+    const PRIMARY_STAFF_EMAIL = notifConfig.adminEmail || 'goal@feiselinosportjerseys.ca';
     const storeConfig = storeSnap.exists() ? storeSnap.data() : {};
     
     const template = notifConfig[type] || DEFAULT_TEMPLATES[type];
@@ -126,10 +125,12 @@ export async function queueNotification(
 
     // 6. Queue for Staff (if any)
     const finalStaffEmails = Array.from(new Set([...staffCopyEmails, PRIMARY_STAFF_EMAIL]));
-    
-    if (finalStaffEmails.length > 0) {
+    const isOrderType = type === 'orderConfirmation';
+    const staffAlertsEnabled = notifConfig.orderNotificationsEnabled !== false;
+
+    if (finalStaffEmails.length > 0 && (isOrderType ? staffAlertsEnabled : true)) {
       // Specialized Staff Layout for New Orders
-      let staffSubject = `[STAFF ALERT] ${subject}`;
+      let staffSubject = `[FSLNO SPORT] ${subject}`;
       let staffHtml = formattedHtml;
 
       if (type === 'orderConfirmation') {

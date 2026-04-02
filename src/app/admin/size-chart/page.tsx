@@ -18,8 +18,10 @@ import {
   Ruler, 
   X,
   Save,
-  Tag
+  Tag,
+  Shirt
 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Dialog, 
   DialogContent, 
@@ -75,6 +77,7 @@ export default function SizeChartPage() {
     { label: 'L', values: ['', '', ''] },
     { label: 'XL', values: ['', '', ''] }
   ]);
+  const [washingInstructions, setWashingInstructions] = useState('');
 
   const addColumn = () => { setColumns([...columns, '']); setRows(rows.map(row => ({ ...row, values: [...row.values, ''] }))); };
   const removeColumn = (index: number) => { if (columns.length <= 1) return; setColumns(columns.filter((_, i) => i !== index)); setRows(rows.map(row => ({ ...row, values: row.values.filter((_, i) => i !== index) }))); };
@@ -87,7 +90,7 @@ export default function SizeChartPage() {
   const handleSave = () => {
     if (!db || !name) return;
     setIsSaving(true);
-    const chartData = { name, unit, category, columns, rows, updatedAt: serverTimestamp() };
+    const chartData = { name, unit, category, columns, rows, washingInstructions, updatedAt: serverTimestamp() };
     
     if (editingId) {
       updateDoc(doc(db, 'sizeCharts', editingId), chartData)
@@ -151,6 +154,7 @@ export default function SizeChartPage() {
       { label: 'L', values: ['', '', ''] }, 
       { label: 'XL', values: ['', '', ''] }
     ]); 
+    setWashingInstructions('');
     setEditingId(null); 
   };
 
@@ -160,6 +164,7 @@ export default function SizeChartPage() {
     setCategory(chart.category || ''); 
     setColumns(chart.columns || []); 
     setRows(chart.rows || []); 
+    setWashingInstructions(chart.washingInstructions || '');
     setEditingId(chart.id); 
     setIsDialogOpen(true); 
   };
@@ -218,6 +223,19 @@ export default function SizeChartPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </section>
+
+              <section className="space-y-3 bg-gray-50 p-6 rounded-none border">
+                <div className="flex items-center gap-2">
+                  <Shirt className="h-4 w-4 text-gray-500" />
+                  <Label className="text-[10px] uppercase font-bold text-gray-500">Washing Instructions (Optional)</Label>
+                </div>
+                <Textarea 
+                  value={washingInstructions} 
+                  onChange={(e) => setWashingInstructions(e.target.value)} 
+                  placeholder="e.g. Machine wash cold with like colors. Tumble dry low. Do not bleach."
+                  className="min-h-[120px] bg-white rounded-none border-gray-200 text-xs font-medium leading-relaxed resize-none"
+                />
               </section>
 
               <section className="space-y-6">

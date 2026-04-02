@@ -29,7 +29,8 @@ import {
   Zap,
   ShieldCheck,
   Truck,
-  RotateCcw
+  RotateCcw,
+  Shirt
 } from 'lucide-react';
 import {
   Carousel,
@@ -65,7 +66,6 @@ import { useCart, parseFirestoreDate } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
 import { getLivePath } from '@/lib/paths';
-import { useLoading } from '@/context/LoadingContext';
 import { usePathname } from 'next/navigation';
 import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 import { ProductImageLightbox } from './ProductImageLightbox';
@@ -95,6 +95,19 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   const { data: product, isLoading: loading } = useDoc(productRef);
   const activeProduct = product || initialProduct;
 
+  // Authorities document title synchronization
+  useEffect(() => {
+    if (activeProduct?.name) {
+      const originalTitle = document.title;
+      // Format: PRODUCT NAME | BRAND (or specific title template)
+      document.title = `${activeProduct.name.toUpperCase()} | FSLNO`;
+      
+      return () => {
+        document.title = originalTitle;
+      };
+    }
+  }, [activeProduct?.name]);
+
   const themeRef = useMemoFirebase(() => 
     db ? doc(db, getLivePath('config/theme')) : null, 
     [db]
@@ -109,9 +122,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
 
   const showBrand = storeConfig?.showBrandStorefront !== false;
   const showSku = storeConfig?.showSkuStorefront !== false;
-  const showLowStockAlert = storeConfig?.showLowStockAlertStorefront !== false;
-  const globalThreshold = Number(storeConfig?.globalLowStockThreshold) || 10;
-  const globalVariantThreshold = Number(storeConfig?.globalVariantLowStockThreshold) || 5;
+
   
   const sizeChartsQuery = useMemoFirebase(() => {
     if (!db || !activeProduct?.categoryId) return null;
@@ -126,41 +137,10 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   const [customName, setCustomName] = useState('');
   const [customNumber, setCustomNumber] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
-  const { pushLoading, popLoading } = useLoading();
   const [primaryImageLoaded, setPrimaryImageLoaded] = useState(false);
   const pathname = usePathname();
 
   const media = activeProduct?.media || [];
-
-  // Manage loading lock
-  useEffect(() => {
-    const lockId = `product-${productId}`;
-    pushLoading(lockId);
-    
-    // Safety timeout to ensure splash doesn't get stuck forever
-    const timeout = setTimeout(() => {
-      popLoading(lockId);
-    }, 5000);
-
-    return () => {
-      popLoading(lockId);
-      clearTimeout(timeout);
-    };
-  }, [productId, pushLoading, popLoading]);
-
-  // Release lock when data and image are ready
-  const isDataReady = !loading || !!activeProduct;
-  const isVisualReady = media.length === 0 || primaryImageLoaded;
-
-  useEffect(() => {
-    if (hasMounted && isDataReady && isVisualReady) {
-      // Delay slightly for final layout settle
-      const timer = setTimeout(() => {
-        popLoading(`product-${productId}`);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [hasMounted, isDataReady, isVisualReady, productId, popLoading]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -204,12 +184,15 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   }, [cart, activeProduct, selectedSize]);
 
   const isOutOfStock = useMemo(() => {
+    // If pre-order is enabled, the product is never considered "out of stock" for purchase purposes
+    if (activeProduct?.preorderEnabled) return false;
+    
     const variants = activeProduct?.variants || [];
     if (variants.length > 0) {
       return selectedVariant && Number(selectedVariant.stock) <= 0;
     }
     return totalStock <= 0;
-  }, [activeProduct, selectedVariant, totalStock]);
+  }, [activeProduct, selectedVariant, totalStock, activeProduct?.preorderEnabled]);
 
   const hasReachedLimit = useMemo(() => {
     const variants = activeProduct?.variants || [];
@@ -219,20 +202,14 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
     return cartItemCount >= totalStock;
   }, [activeProduct, selectedVariant, cartItemCount, totalStock]);
 
-  const isLowStock = useMemo(() => {
-    if (!showLowStockAlert) return false;
-    if (selectedVariant) {
-      const stock = Number(selectedVariant.stock);
-      return stock > 0 && stock <= globalVariantThreshold;
-    }
-    return totalStock > 0 && totalStock <= globalThreshold;
-  }, [showLowStockAlert, selectedVariant, totalStock, globalVariantThreshold, globalThreshold]);
+
 
   const buttonText = useMemo(() => {
     const variants = activeProduct?.variants || [];
     if (variants.length > 0 && !selectedSize) return 'Select Size';
     if (isOutOfStock) return 'Out of Stock';
     if (hasReachedLimit) return 'Reached Limit';
+    if (activeProduct?.preorderEnabled) return 'Pre-order Now';
     return 'Add to Cart';
   }, [activeProduct, selectedSize, isOutOfStock, hasReachedLimit]);
 
@@ -350,7 +327,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
   };
 
   return (
-    <div className="mobile-wrapper bg-white pb-16 pt-12 sm:pt-24">
+    <article className="mobile-wrapper bg-white pb-16 pt-12 sm:pt-24" id={`product-article-${productId}`}>
       <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
         {/* Back Button & Global Rank */}
         <div className="flex items-center justify-between mb-4">
@@ -358,10 +335,6 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
             variant="ghost" 
             size="sm" 
             onClick={() => {
-              if (typeof window !== 'undefined') {
-                sessionStorage.setItem('fslno_returning_to_product', 'true');
-                sessionStorage.setItem('fslno_last_product_id', productId);
-              }
               router.back();
             }}
             className="h-9 px-0 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-transparent rounded-none gap-2"
@@ -404,14 +377,11 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                           >
                             <Image 
                               src={item.url} 
-                              alt={activeProduct.name} 
+                              alt={`${activeProduct.name} - View ${idx + 1}`} 
                               fill 
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px" 
-                              className="object-cover" 
+                              className="object-cover transition-opacity duration-300"
                               priority={idx === 0}
-                              onLoad={() => {
-                                if (idx === 0) setPrimaryImageLoaded(true);
-                              }}
                             />
                           </div>
                         </CarouselItem>
@@ -491,6 +461,17 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                   )}
                 </div>
 
+                {activeProduct.preorderEnabled && (
+                  <div className="flex items-center gap-2 mt-1 animate-in fade-in slide-in-from-left-2 duration-500">
+                    <Badge className="bg-orange-600 text-white border-none rounded-none text-[9px] font-black uppercase tracking-[0.2em] px-2 py-1 shadow-lg shadow-orange-100 italic">
+                      PRE-ORDER
+                    </Badge>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600">
+                      {activeProduct.preorderEstimate || 'EST. 2-4 WEEKS'}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-1 py-0.5">
                   <div className="flex items-center gap-4">
                     {showBrand && activeProduct.brand && (
@@ -510,12 +491,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                     )}
                   </div>
 
-                  {isLowStock && (
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)] animate-pulse" />
-                      <span className="text-[12px] font-black uppercase tracking-[0.2em] text-orange-500">Low Stock Alert</span>
-                    </div>
-                  )}
+
 
                   <div className="pt-1">
                     <ReviewSystem productId={activeProduct.id} variant="minimal" />
@@ -536,7 +512,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                       </button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
-                      <SheetHeader className="px-5 py-8 border-b">
+                      <SheetHeader className="px-5 pt-20 pb-8 border-b">
                         <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Sizing Guide</SheetTitle>
                       </SheetHeader>
                       <ScrollArea className="flex-1 px-4 py-6">
@@ -573,6 +549,38 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                     </SheetContent>
                   </Sheet>
                 )}
+
+                {categoryCharts && categoryCharts.some((chart: any) => chart.washingInstructions) && (
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <button className="flex items-center gap-2 text-[11px] font-bold uppercase hover:underline opacity-60 hover:opacity-100 transition-opacity">
+                        <Shirt className="h-4 w-4" /> Washing Guide
+                      </button>
+                    </SheetTrigger>
+                    <SheetContent className="w-full sm:max-w-xl bg-white p-0 flex flex-col border-none shadow-2xl h-full">
+                      <SheetHeader className="px-5 pt-20 pb-8 border-b">
+                        <SheetTitle className="text-xl font-headline font-bold uppercase tracking-tight">Care Instructions</SheetTitle>
+                      </SheetHeader>
+                      <ScrollArea className="flex-1 px-4 py-8">
+                        <div className="space-y-12">
+                          {categoryCharts.filter((chart: any) => chart.washingInstructions).map((chart: any) => (
+                            <div key={chart.id} className="space-y-4">
+                              <h3 className="text-[10px] font-bold uppercase tracking-widest border-b pb-2 text-primary/60">{chart.name} Care</h3>
+                              <div className="text-sm text-gray-600 leading-relaxed uppercase font-medium whitespace-pre-wrap">
+                                {chart.washingInstructions}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-12 p-6 bg-gray-50 border border-dashed border-gray-200">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 text-center">
+                            Following these instructions ensures the longevity and performance of your elite gear.
+                          </p>
+                        </div>
+                      </ScrollArea>
+                    </SheetContent>
+                  </Sheet>
+                )}
               </div>
               
               {activeProduct.variants && activeProduct.variants.length > 0 && (
@@ -583,11 +591,11 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                       <button
                         key={idx}
                         onClick={() => setSelectedSize(v.size)}
-                        disabled={stockNum === 0}
+                        disabled={stockNum === 0 && !activeProduct.preorderEnabled}
                         className={cn(
                           "relative h-9 border-2 text-[11px] font-bold uppercase tracking-widest transition-all",
                           selectedSize === v.size ? "bg-black text-white border-black shadow-lg scale-[1.02]" : "bg-white text-primary border-gray-200 hover:border-black",
-                          stockNum === 0 && "opacity-40 grayscale-[0.5] cursor-not-allowed"
+                          (stockNum === 0 && !activeProduct.preorderEnabled) && "opacity-40 grayscale-[0.5] cursor-not-allowed"
                         )}
                       >
                         {v.size}
@@ -734,6 +742,6 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
         images={media}
         initialIndex={lightboxIndex}
       />
-    </div>
+    </article>
   );
 }

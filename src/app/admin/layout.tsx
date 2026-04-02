@@ -32,9 +32,12 @@ import {
   Star,
   Zap,
   PanelBottom,
+  MessageSquareQuote,
+  RefreshCcw,
   Receipt,
   Package,
-  Megaphone
+  Megaphone,
+  User
 } from 'lucide-react';
 import {
   Sidebar,
@@ -192,18 +195,10 @@ const AppSidebar = React.memo(function AppSidebar({ storeConfig, storeLoading, u
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Reviews" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/reviews">
-                  <Star />
-                  <span>Reviews</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Testimonials" onClick={handleNavClick} className="font-admin-body">
-                <Link href="/admin/testimonials">
-                  <Star />
-                  <span>Testimonials</span>
+              <SidebarMenuButton size="sm" asChild tooltip="Feedback" onClick={handleNavClick} className="font-admin-body">
+                <Link href="/admin/feedback">
+                  <MessageSquareQuote />
+                  <span>Feedback</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -214,18 +209,18 @@ const AppSidebar = React.memo(function AppSidebar({ storeConfig, storeLoading, u
           <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-[9px] h-5 uppercase tracking-widest font-bold font-admin-headline px-6 opacity-30">Online Store</SidebarGroupLabel>
           <SidebarMenu className="gap-0">
             <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Styles" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Global Styles" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/theme">
                   <Palette />
-                  <span>Theme</span>
+                  <span>Styles</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton size="sm" asChild tooltip="Storefront" onClick={handleNavClick} className="font-admin-body">
+              <SidebarMenuButton size="sm" asChild tooltip="Homepage Content" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/storefront">
                   <Monitor />
-                  <span>Storefront</span>
+                  <span>Homepage</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -254,7 +249,7 @@ const AppSidebar = React.memo(function AppSidebar({ storeConfig, storeLoading, u
             <SidebarMenuItem>
               <SidebarMenuButton size="sm" asChild tooltip="Google Sync" onClick={handleNavClick} className="font-admin-body">
                 <Link href="/admin/sales-channels/google">
-                  <Globe />
+                  <RefreshCcw />
                   <span>Google Sync</span>
                 </Link>
               </SidebarMenuButton>
@@ -564,32 +559,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const adminLogo = storeConfig?.adminLogoUrl || storeConfig?.logoUrl;
   const adminName = storeConfig?.adminBusinessName || storeConfig?.businessName || "Feiselino (FSLNO)";
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <img src="/icon.png" alt="Loading" className="w-24 h-24 object-contain animate-pulse opacity-50" />
-      </div>
-    );
-  }
-
-  // Auth Guard
+  // Auth Guard & Redirects
   const isLoginPage = pathname === '/admin/login';
-  if (!user || !isAdmin) {
-    if (!isLoginPage) {
-      router.replace('/admin/login');
-      return (
-        <div className="flex items-center justify-center min-h-screen bg-white">
-          <img src="/icon.png" alt="Redirecting" className="w-16 h-16 object-contain animate-pulse opacity-30" />
-        </div>
-      );
+  
+  useEffect(() => {
+    if (loading) return;
+    
+    if (!user || !isAdmin) {
+      if (!isLoginPage) {
+        router.replace('/admin/login');
+      }
+    } else if (isLoginPage) {
+      router.replace('/admin');
     }
-    // If we are on the login page, just render children (which will be the login page content)
-    return <>{children}</>;
-  }
+  }, [user, isAdmin, loading, isLoginPage, router]);
 
-  // If we are logged in and on the login page, redirect to admin root
+  // Moved loading and auth checks inside the layout return to eliminate the "flashback" effect.
+
   if (isLoginPage) {
-    router.replace('/admin');
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
         <img src="/icon.png" alt="Redirecting" className="w-16 h-16 object-contain animate-pulse opacity-30" />
@@ -600,7 +587,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const adminThemeStyles = `
     :root {
       --admin-primary: ${theme?.adminPrimaryColor || '#000000'};
-      --admin-accent: ${theme?.adminAccentColor || '#f6f6f7'};
+      --admin-accent: ${theme?.adminAccentColor || '#FFFFFF'};
       --admin-text: ${theme?.adminTextColor || '#1a1c1e'};
       --admin-base-size: ${theme?.adminBaseFontSize || 14}px;
       --admin-header-h: ${theme?.adminHeaderHeight || 64}px;
@@ -734,13 +721,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
 
               <div className="w-8 h-8 rounded-full bg-gray-200 border border-[#e1e3e5] overflow-hidden relative group">
-                {user.photoURL && <NextImage src={user.photoURL} alt="Admin" fill className="object-cover" />}
+                {(user && user.photoURL) ? <NextImage src={user.photoURL} alt="Admin" fill className="object-cover" /> : <div className="w-full h-full bg-gray-100 flex items-center justify-center"><User className="w-4 h-4 text-gray-400" /></div>}
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-5 w-full font-admin-body bg-white scrollbar-hide">
-            <div className="max-w-7xl mx-auto w-full min-w-0">
-              {children}
+
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-5 w-full font-admin-body bg-white scrollbar-hide min-h-0">
+            <div className="max-w-7xl mx-auto w-full min-w-0 h-full">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="w-8 h-8 animate-spin text-black opacity-20" />
+                </div>
+              ) : (!user || !isAdmin) ? (
+                <div className="flex flex-col items-center justify-center h-full gap-4">
+                   <img src="/icon.png" alt="Redirecting" className="w-16 h-16 object-contain animate-pulse opacity-30" />
+                   <p className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Verifying Authority...</p>
+                </div>
+              ) : (
+                children
+              )}
             </div>
           </div>
         </main>

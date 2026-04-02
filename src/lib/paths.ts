@@ -9,3 +9,8 @@
  * Direct mapping to root collections ensures edits manifest immediately.
  */
 export const getLivePath = (path: string) => path;
+
+/**
+ * Primary domain for the platform.
+ */
+export const LIVE_DOMAIN = 'fslno.ca';

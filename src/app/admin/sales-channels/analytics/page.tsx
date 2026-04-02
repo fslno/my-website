@@ -30,14 +30,26 @@ import {
   DialogTrigger,
   DialogDescription 
 } from '@/components/ui/dialog';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { 
+  doc, 
+  updateDoc, 
+  setDoc, 
+  serverTimestamp, 
+  collection, 
+  query, 
+  where, 
+  Timestamp,
+  orderBy,
+  limit
+} from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useMemo } from 'react';
 
 export default function AnalyticsPage() {
   const db = useFirestore();
@@ -48,6 +60,39 @@ export default function AnalyticsPage() {
   const [isResetting, setIsResetting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isFunnelOpen, setIsFunnelOpen] = useState(false);
+
+  // REAL-TIME DATA QUERIES
+  const today = new Date().toISOString().split('T')[0];
+  
+  // 1. Active Users (Presence) - Active in last 2 minutes
+  const activeThreshold = useMemo(() => {
+    return new Date(Date.now() - 120000);
+  }, []);
+
+  const presenceQuery = useMemoFirebase(() => db ? query(
+    collection(db, 'analytics_presence'),
+    where('lastActive', '>=', Timestamp.fromDate(activeThreshold))
+  ) : null, [db, activeThreshold]);
+  const { data: activePresence } = useCollection(presenceQuery);
+
+  // 2. Daily Metrics (Impressions/Sessions)
+  const dailyMetricsRef = useMemoFirebase(() => db ? doc(db, 'analytics', 'counters', 'daily', today) : null, [db, today]);
+  const { data: dailyMetrics } = useDoc(dailyMetricsRef);
+
+  // 3. Today's Orders (for Engagement/Conversion calculation)
+  const ordersQuery = useMemoFirebase(() => db ? query(
+    collection(db, 'orders'),
+    where('createdAt', '>=', Timestamp.fromDate(new Date(new Date().setHours(0,0,0,0)))),
+    orderBy('createdAt', 'desc')
+  ) : null, [db]);
+  const { data: todaysOrders } = useCollection(ordersQuery);
+
+  // Derived Metrics
+  const realTimeUsers = activePresence?.length || 0;
+  const impressions = dailyMetrics?.impressions || 0;
+  const sessions = dailyMetrics?.sessions || 1; // Avoid div by zero
+  const orderCount = todaysOrders?.length || 0;
+  const engagementRate = sessions > 0 ? ((orderCount / sessions) * 100).toFixed(1) : "0.0";
 
   const handleInitialize = () => {
     if (!configRef) return;
@@ -100,6 +145,30 @@ export default function AnalyticsPage() {
     }, 800);
   };
 
+  const handleResetDailyMetrics = async () => {
+    if (!dailyMetricsRef) return;
+    setIsResetting(true);
+    try {
+      await setDoc(dailyMetricsRef, { 
+        sessions: 0, 
+        impressions: 0, 
+        updatedAt: serverTimestamp() 
+      }, { merge: true });
+      toast({ 
+        title: "Stats Purified", 
+        description: "All transient daily metrics have been authoritatively zeroed." 
+      });
+    } catch (err) {
+      toast({ 
+        title: "Reset Failed", 
+        description: "Firestore protocols denied the purification request.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
@@ -136,6 +205,15 @@ export default function AnalyticsPage() {
             {isResetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Reset Streams
           </Button>
+          <Button 
+            variant="outline" 
+            className="flex-1 sm:flex-none h-10 gap-2 border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase tracking-widest text-[10px]" 
+            onClick={handleResetDailyMetrics}
+            disabled={isResetting}
+          >
+            {isResetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4 text-red-500" />}
+            Reset Stats
+          </Button>
         </div>
       </div>
 
@@ -152,7 +230,7 @@ export default function AnalyticsPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
               </span>
-              42
+              {realTimeUsers}
             </div>
             <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Currently active on FSLNO.ca</p>
           </CardContent>
@@ -164,7 +242,7 @@ export default function AnalyticsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1a1c1e]">3.8%</div>
+            <div className="text-2xl font-bold text-[#1a1c1e]">{engagementRate}%</div>
             <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Conversion velocity</p>
           </CardContent>
         </Card>
@@ -175,7 +253,7 @@ export default function AnalyticsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">1,204</div>
+            <div className="text-2xl font-bold text-blue-600">{impressions.toLocaleString()}</div>
             <p className="text-[9px] uppercase font-bold text-[#8c9196] mt-1">Total selection views</p>
           </CardContent>
         </Card>
@@ -232,31 +310,26 @@ export default function AnalyticsPage() {
                       <div className="py-8 space-y-10">
                         <div className="space-y-4">
                           <div className="flex justify-between items-end mb-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">01. View Product</span>
-                            <span className="text-[10px] font-mono font-bold text-primary">100% (14,204 Users)</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">01. Sessions</span>
+                            <span className="text-[10px] font-mono font-bold text-primary">100% ({sessions.toLocaleString()} Users)</span>
                           </div>
                           <Progress value={100} className="h-3 bg-gray-100 rounded-none" />
                         </div>
                         <div className="space-y-4">
                           <div className="flex justify-between items-end mb-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">02. Add to Cart</span>
-                            <span className="text-[10px] font-mono font-bold text-primary">42% (5,965 Users)</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">02. View Catalog</span>
+                            <span className="text-[10px] font-mono font-bold text-primary">
+                              {sessions > 0 ? ((impressions / sessions) * 100).toFixed(1) : 0}% ({impressions.toLocaleString()} Hits)
+                            </span>
                           </div>
-                          <Progress value={42} className="h-3 bg-gray-100 rounded-none" />
+                          <Progress value={sessions > 0 ? (impressions / sessions) * 100 : 0} className="h-3 bg-gray-100 rounded-none" />
                         </div>
                         <div className="space-y-4">
                           <div className="flex justify-between items-end mb-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">03. Begin Checkout</span>
-                            <span className="text-[10px] font-mono font-bold text-primary">18% (2,556 Users)</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">03. Purchase Success</span>
+                            <span className="text-[10px] font-mono font-bold text-emerald-600">{engagementRate}% ({orderCount} Orders)</span>
                           </div>
-                          <Progress value={18} className="h-3 bg-gray-100 rounded-none" />
-                        </div>
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-end mb-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">04. Purchase Success</span>
-                            <span className="text-[10px] font-mono font-bold text-emerald-600">3.8% (540 Orders)</span>
-                          </div>
-                          <Progress value={3.8} className="h-3 bg-emerald-50 rounded-none" />
+                          <Progress value={Number(engagementRate)} className="h-3 bg-emerald-50 rounded-none" />
                         </div>
                       </div>
                       <div className="flex justify-end pt-6 border-t">

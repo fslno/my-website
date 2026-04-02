@@ -239,6 +239,40 @@ export const getCachedDomain = cache(async () => {
   return data;
 });
 
+/**
+ * Fetch a single product with memory caching.
+ */
+export const getCachedProduct = cache(async (productId: string) => {
+  if (!productId) return null;
+  const cacheKey = `product_${productId}`;
+  const mem = getFromMemory(cacheKey);
+  if (mem) return mem;
+
+  const db = getAdminDb();
+  const doc = await db.doc(`products/${productId}`).get();
+  if (!doc.exists) return null;
+
+  const data = JSON.parse(JSON.stringify({ id: doc.id, ...doc.data() }));
+  setToMemory(cacheKey, data);
+  return data;
+});
+
+/**
+ * Fetch all categories with memory caching.
+ */
+export const getCachedCategories = cache(async () => {
+  const cacheKey = 'categories_all';
+  const mem = getFromMemory(cacheKey);
+  if (mem) return mem;
+
+  const db = getAdminDb();
+  const snapshot = await db.collection('categories').orderBy('order', 'asc').get();
+  const data = snapshot.docs.map((doc: any) => JSON.parse(JSON.stringify({ id: doc.id, ...doc.data() })));
+  
+  setToMemory(cacheKey, data);
+  return data;
+});
+
 function themeDocNormalization(data: any) {
   if (!data) return {};
   // Ensure we don't have non-serializable Firestore timestamps if any (JSON.stringify handles it anyway)

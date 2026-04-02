@@ -69,31 +69,31 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-black px-4 py-12 selection:bg-white/20 selection:text-white">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-4 py-12 selection:bg-black/10 selection:text-black">
       {/* Background Aesthetic Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-white/5 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-white/5 blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] rounded-full bg-white/[0.02] blur-[150px]" />
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-black/[0.03] blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-black/[0.03] blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] rounded-full bg-black/[0.01] blur-[150px]" />
       </div>
 
       <div className="w-full max-w-[400px] space-y-12 relative z-10 transition-all duration-700 animate-in fade-in slide-in-from-bottom-8">
         {/* Branding */}
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="group relative">
-            <div className="absolute -inset-2 bg-white rounded-sm blur opacity-10 group-hover:opacity-30 transition duration-1000 group-hover:duration-200" />
-            <div className="relative w-24 h-24 bg-white flex items-center justify-center p-5 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
+            <div className="absolute -inset-2 bg-black rounded-sm blur opacity-[0.03] group-hover:opacity-[0.08] transition duration-1000 group-hover:duration-200" />
+            <div className="relative w-24 h-24 bg-white flex items-center justify-center p-5 shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-black/[0.03]">
               <img src="/icon.png" alt="FSLNO" className="w-full h-full object-contain" />
             </div>
           </div>
           <div className="space-y-1">
-            <h1 className="text-4xl font-black uppercase tracking-tighter text-white font-headline drop-shadow-sm">
+            <h1 className="text-4xl font-black uppercase tracking-tighter text-black font-headline drop-shadow-sm">
               Admin Portal
             </h1>
             <div className="flex items-center justify-center gap-2">
-              <div className="h-[1px] w-8 bg-white/10" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30">Secure Access</p>
-              <div className="h-[1px] w-8 bg-white/10" />
+              <div className="h-[1px] w-8 bg-black/10" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-black/30">Secure Access</p>
+              <div className="h-[1px] w-8 bg-black/10" />
             </div>
           </div>
         </div>
@@ -122,12 +122,12 @@ export default function AdminLoginPage() {
               <div className="space-y-2 group">
                 <Label 
                   htmlFor="email" 
-                  className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-focus-within:text-white transition-colors"
+                  className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 group-focus-within:text-black transition-colors"
                 >
                   Email Address
                 </Label>
                 <div className="relative">
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-10 flex items-center justify-center text-white/10 group-focus-within:text-white transition-colors">
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-10 flex items-center justify-center text-black/10 group-focus-within:text-black transition-colors">
                     <Mail className="h-4 w-4" />
                   </div>
                   <Input 
@@ -137,7 +137,7 @@ export default function AdminLoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-14 pl-10 border-0 border-b-2 border-white/5 bg-transparent rounded-none focus-visible:ring-0 focus-visible:border-white transition-all text-sm font-medium text-white placeholder:text-white/20"
+                    className="h-14 pl-10 border-0 border-b-2 border-black/5 bg-transparent rounded-none focus-visible:ring-0 focus-visible:border-black transition-all text-sm font-medium text-black placeholder:text-black/10"
                   />
                 </div>
               </div>
@@ -145,12 +145,12 @@ export default function AdminLoginPage() {
               <div className="space-y-2 group">
                 <Label 
                   htmlFor="password" 
-                  className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-focus-within:text-white transition-colors"
+                  className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 group-focus-within:text-black transition-colors"
                 >
                   Access Key
                 </Label>
                 <div className="relative">
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-10 flex items-center justify-center text-white/10 group-focus-within:text-white transition-colors">
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-10 flex items-center justify-center text-black/10 group-focus-within:text-black transition-colors">
                     <Lock className="h-4 w-4" />
                   </div>
                   <Input 
@@ -160,7 +160,7 @@ export default function AdminLoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-14 pl-10 border-0 border-b-2 border-white/5 bg-transparent rounded-none focus-visible:ring-0 focus-visible:border-white transition-all text-sm font-medium text-white placeholder:text-white/20"
+                    className="h-14 pl-10 border-0 border-b-2 border-black/5 bg-transparent rounded-none focus-visible:ring-0 focus-visible:border-black transition-all text-sm font-medium text-black placeholder:text-black/10"
                   />
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function AdminLoginPage() {
             <Button 
               type="submit" 
               disabled={isLoggingIn}
-              className="w-full h-14 bg-white text-black font-black uppercase tracking-[0.3em] text-[11px] rounded-none hover:bg-neutral-200 transition-all flex items-center justify-center group"
+              className="w-full h-14 bg-black text-white font-black uppercase tracking-[0.3em] text-[11px] rounded-none hover:bg-neutral-800 transition-all flex items-center justify-center group"
             >
               {isLoggingIn ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -184,8 +184,8 @@ export default function AdminLoginPage() {
         )}
 
         {/* Footer */}
-        <div className="pt-12 text-center border-t border-white/5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-white/10">
+        <div className="pt-12 text-center border-t border-black/5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-black/10">
             &copy; {new Date().getFullYear()} Feiselino Sport Inc.
           </p>
         </div>

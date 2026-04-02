@@ -26,6 +26,8 @@ interface ProductCardProps {
   priority?: boolean;
   brand?: string;
   inventory?: number;
+  isCustomizable?: boolean;
+  preorderEnabled?: boolean;
   onImageLoad?: () => void;
 }
 
@@ -36,7 +38,7 @@ interface ProductCardProps {
 export const ProductCard = React.memo(({
   id, name, price, comparedPrice, image, hoverImage, category,
   sku, rating, reviewCount, isSoldOut, priority = false, brand, inventory,
-  onImageLoad
+  isCustomizable, preorderEnabled, onImageLoad
 }: ProductCardProps) => {
   const { promoConfig } = useCart();
   const db = useFirestore();
@@ -55,8 +57,7 @@ export const ProductCard = React.memo(({
 
   const showBrand = storeConfig?.showBrandStorefront !== false;
   const showSku = storeConfig?.showSkuStorefront !== false;
-  const showLowStockAlert = storeConfig?.showLowStockAlertStorefront !== false;
-  const globalThreshold = Number(storeConfig?.globalLowStockThreshold) || 10;
+
 
   const currentPriceNum = parseFloat(price.replace(/[^0-9.]/g, ''));
   
@@ -73,17 +74,15 @@ export const ProductCard = React.memo(({
     <div id={`product-${id}`} className="group flex flex-col gap-1.5 product-text-align">
       <Link
         href={`/products/${id}`}
-        onClick={() => {
-          if (typeof window !== 'undefined') sessionStorage.setItem('fslno_last_product_id', id);
-        }}
-        className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm" style={{ borderRadius: 'var(--radius)' }}
+        aria-label={`View details for ${name}`}
+        className="relative block overflow-hidden bg-gray-50 aspect-square rounded-sm border shadow-sm transition-all duration-500 ease-out hover:shadow-xl hover:-translate-y-1" style={{ borderRadius: 'var(--radius)' }}
       >
         <div className="relative h-full w-full overflow-hidden">
             <Image
               src={image}
-              alt={name}
+              alt={`${name} - Product Image`}
               fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className={cn(
                 "object-cover transition-all duration-700 ease-out group-hover:scale-110",
                 hoverImage ? "group-hover:opacity-0" : ""
@@ -93,17 +92,15 @@ export const ProductCard = React.memo(({
                 setIsLoaded(true);
                 if (onImageLoad) onImageLoad();
               }}
-              data-ai-hint="fashion product"
             />
-          {!isLoaded && <LoadingCover logoSize={40} />}
+          {!isLoaded && <div className="absolute inset-0 bg-gray-100 animate-pulse" />}
           {hoverImage && (
             <Image
               src={hoverImage}
-              alt={`${name} alternative view`}
+              alt={`${name} - Alternative View`}
               fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover absolute inset-0 opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-110"
-              data-ai-hint="fashion variant"
             />
           )}
         </div>
@@ -124,14 +121,14 @@ export const ProductCard = React.memo(({
             </span>
           </div>
         )}
-
-        {!isSoldOut && hasDiscount && !isFlashActive && (
+        {!isSoldOut && hasDiscount && !isFlashActive && !preorderEnabled && (
           <div className="absolute top-2 left-2 z-10 pointer-events-none">
             <span className="bg-white/90 backdrop-blur-sm text-black text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm">
               {discountPercent}% OFF
             </span>
           </div>
         )}
+
       </Link>
 
       <div className="flex flex-col product-flex-align gap-2.5 mt-2 mb-2">
@@ -153,9 +150,6 @@ export const ProductCard = React.memo(({
           <div className="flex flex-col justify-start overflow-hidden leading-tight">
             <Link
               href={`/products/${id}`}
-              onClick={() => {
-                if (typeof window !== 'undefined') sessionStorage.setItem('fslno_last_product_id', id);
-              }}
               className="product-title-size product-title-color font-bold line-clamp-2 group-hover:underline leading-tight tracking-tight px-1"
             >
               {name}
@@ -174,19 +168,21 @@ export const ProductCard = React.memo(({
           )}
   
           {/* Stock Status Slot */}
-          {(inventory !== undefined && (inventory <= 0 || (showLowStockAlert && inventory <= globalThreshold))) && (
+          {inventory !== undefined && inventory <= 0 && (
             <div className="flex items-center leading-none">
-              {inventory <= 0 ? (
-                <div className="flex items-center gap-1.5 leading-none">
-                  <div className="w-1.2 h-1.2 rounded-full bg-[#ff4d4d] shadow-[0_0_4px_rgba(255,77,77,0.4)]" />
-                  <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-[#ff4d4d] leading-none">Out of Stock</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 leading-none">
-                  <div className="w-1.2 h-1.2 rounded-full bg-orange-500 shadow-[0_0_4px_rgba(249,115,22,0.4)] animate-pulse" />
-                  <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-orange-500 leading-none">Low Stock</span>
-                </div>
-              )}
+              <div className="flex items-center gap-1.5 leading-none">
+                <div className="w-1.2 h-1.2 rounded-full bg-[#ff4d4d] shadow-[0_0_4px_rgba(255,77,77,0.4)]" />
+                <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-[#ff4d4d] leading-none">Out of Stock</span>
+              </div>
+            </div>
+          )}
+  
+          {/* Customization Badge */}
+          {isCustomizable && (
+            <div className="flex items-center gap-1.2 bg-blue-50/50 border border-blue-100/50 px-1.5 py-0.5 w-fit rounded-none animate-in fade-in slide-in-from-left-1 duration-500">
+              <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] text-blue-700 flex items-center gap-1 leading-tight">
+                <Zap className="h-2 w-2 fill-current" /> Customizable
+              </span>
             </div>
           )}
   

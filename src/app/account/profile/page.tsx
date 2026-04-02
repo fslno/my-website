@@ -111,7 +111,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pb-24">
       <header className="space-y-2">
         <h2 className="text-3xl font-headline font-bold uppercase tracking-tight">Profile & Address</h2>
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Update your personal details and default shipping address.</p>
@@ -229,7 +229,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-start">
+        <div className="flex justify-start mb-12">
           <Button 
             type="submit" 
             disabled={isSaving}

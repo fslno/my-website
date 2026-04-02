@@ -1,13 +1,23 @@
 import { MetadataRoute } from 'next';
-import { LIVE_DOMAIN } from '@/lib/deployment';
+import { LIVE_DOMAIN } from '@/lib/paths';
+import { getAdminDb } from '@/lib/firebase-admin';
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const adminDb = getAdminDb();
+  const domainDoc = await adminDb.collection('config').doc('domain').get();
+  const domainConfig = domainDoc.data();
+  
+  const domain = domainConfig?.primaryDomain || LIVE_DOMAIN;
+  const isIndexingEnabled = domainConfig?.searchIndexingEnabled !== false;
+
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
-      disallow: ['/admin/', '/checkout/success/', '/account/'],
+      allow: isIndexingEnabled ? '/' : '',
+      disallow: isIndexingEnabled 
+        ? ['/admin/', '/checkout/success/', '/account/', '/api/'] 
+        : '/',
     },
-    sitemap: `https://${LIVE_DOMAIN}/sitemap.xml`,
+    sitemap: `https://${domain}/sitemap.xml`,
   };
 }

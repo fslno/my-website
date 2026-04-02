@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { UserCircle, Mail, Calendar as CalendarIcon, ArrowRight, Loader2, Clock, Search, Filter, ShoppingBag } from "lucide-react";
+import { UserCircle, Mail, Calendar as CalendarIcon, ArrowRight, Loader2, Clock, Search, Filter, ShoppingBag, Mic } from "lucide-react";
+import { useVoiceSearch } from '@/hooks/use-voice-search';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -73,6 +74,10 @@ export default function CustomersPage() {
   const [filterTier, setFilterTier] = useState<'all' | 'registered' | 'guest' | 'abandoned'>('all');
   const isAdmin = useIsAdmin();
   const { toast } = useToast();
+
+  const { isListening, startVoiceSearch } = useVoiceSearch({
+    onResult: (transcript) => setSearchQuery(transcript)
+  });
 
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -308,7 +313,23 @@ export default function CustomersPage() {
           <div className="flex flex-col md:flex-row items-center gap-4 w-full lg:max-w-3xl">
             <div className="relative w-full md:flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
-              <Input placeholder="Search..." className="pl-10 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold w-full rounded-none" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              <Input 
+                placeholder="Search..." 
+                className="pl-10 pr-12 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold w-full rounded-none" 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={startVoiceSearch}
+                className={cn(
+                  "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-[#8c9196] hover:text-black transition-colors rounded-none",
+                  isListening && "text-blue-500 bg-blue-50 animate-pulse"
+                )}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
             </div>
             <div className="flex w-full md:w-auto border rounded-none p-1 bg-white shadow-sm overflow-x-auto scrollbar-hide">
               {(['all', 'registered', 'guest', 'abandoned'] as const).map((tier) => (
@@ -372,6 +393,7 @@ export default function CustomersPage() {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className={cn("uppercase text-[9px] font-bold border-none px-3", 
                           customer.isHighIntent ? "bg-orange-100 text-orange-700 animate-pulse" :
@@ -386,6 +408,7 @@ export default function CustomersPage() {
                           </div>
                         )}
                       </div>
+                    </TableCell>
                     <TableCell className="pr-6">
                       <Button 
                         variant="ghost" 

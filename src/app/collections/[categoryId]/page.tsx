@@ -1,5 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
+import Script from 'next/script';
 import { getAdminDb } from '@/lib/firebase-admin';
 import { getLivePath } from '@/lib/paths';
 import { CollectionPageContent } from './CollectionPageContent';
@@ -107,7 +108,8 @@ export default async function Page(props: PageProps) {
 
   return (
     <>
-      <script
+      <Script
+        id="collection-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />

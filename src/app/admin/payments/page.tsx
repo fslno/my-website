@@ -308,41 +308,41 @@ export default function PaymentsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 space-y-6">
           <Tabs defaultValue="stripe" className="w-full">
-            <div className="overflow-hidden">
-              <TabsList className="bg-white border w-full h-auto flex-wrap xl:flex-nowrap justify-start p-1 gap-2 rounded-none mb-6">
+            <div className="overflow-hidden mb-6">
+              <TabsList className="bg-white border w-full h-auto grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 p-1 gap-1 rounded-none">
                 {!config.stripeDeleted && (
-                  <TabsTrigger value="stripe" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-black data-[state=active]:text-white">
-                    <Zap className="h-3.5 w-3.5" /> Stripe
+                  <TabsTrigger value="stripe" className="flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] h-11 px-2 data-[state=active]:bg-black data-[state=active]:text-white border border-transparent data-[state=active]:border-black transition-all">
+                    <Zap className="h-3 w-3" /> <span className="truncate">Stripe</span>
                   </TabsTrigger>
                 )}
                 {!config.paypalDeleted && (
-                  <TabsTrigger value="paypal" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#0070BA] data-[state=active]:text-white">
-                    <Globe className="h-3.5 w-3.5" /> PayPal
+                  <TabsTrigger value="paypal" className="flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] h-11 px-2 data-[state=active]:bg-[#0070BA] data-[state=active]:text-white border border-transparent data-[state=active]:border-[#0070BA] transition-all">
+                    <Globe className="h-3 w-3" /> <span className="truncate">PayPal</span>
                   </TabsTrigger>
                 )}
                 {!config.klarnaDeleted && (
-                  <TabsTrigger value="klarna" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#FFB3C7] data-[state=active]:text-black">
-                    <Coins className="h-3.5 w-3.5" /> Klarna
+                  <TabsTrigger value="klarna" className="flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] h-11 px-2 data-[state=active]:bg-[#FFB3C7] data-[state=active]:text-black border border-transparent data-[state=active]:border-[#FFB3C7] transition-all">
+                    <Coins className="h-3 w-3" /> <span className="truncate">Klarna</span>
                   </TabsTrigger>
                 )}
                 {!config.afterpayDeleted && (
-                  <TabsTrigger value="afterpay" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#B2FCE4] data-[state=active]:text-black">
-                    <History className="h-3.5 w-3.5" /> Afterpay
+                  <TabsTrigger value="afterpay" className="flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] h-11 px-2 data-[state=active]:bg-[#B2FCE4] data-[state=active]:text-black border border-transparent data-[state=active]:border-[#B2FCE4] transition-all">
+                    <History className="h-3 w-3" /> <span className="truncate">Afterpay</span>
                   </TabsTrigger>
                 )}
                 {!config.adyenDeleted && (
-                  <TabsTrigger value="adyen" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-[#00FF66] data-[state=active]:text-black">
-                    <Banknote className="h-3.5 w-3.5" /> Adyen
+                  <TabsTrigger value="adyen" className="flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] h-11 px-2 data-[state=active]:bg-[#00FF66] data-[state=active]:text-black border border-transparent data-[state=active]:border-[#00FF66] transition-all">
+                    <Banknote className="h-3 w-3" /> <span className="truncate">Adyen</span>
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="vault" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
-                  <Shield className="h-3.5 w-3.5" /> Keys
+                <TabsTrigger value="vault" className="flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] h-11 px-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white border border-transparent data-[state=active]:border-zinc-800 transition-all">
+                  <Shield className="h-3 w-3" /> <span className="truncate">Keys</span>
                 </TabsTrigger>
-                <TabsTrigger value="scope" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-primary data-[state=white]">
-                  <Globe className="h-3.5 w-3.5" /> Global Scope
+                <TabsTrigger value="scope" className="flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] h-11 px-2 data-[state=active]:bg-primary data-[state=active]:text-white border border-transparent data-[state=active]:border-primary transition-all">
+                  <Globe className="h-3 w-3" /> <span className="truncate text-center">Global Scope</span>
                 </TabsTrigger>
-                <TabsTrigger value="express" className="flex-1 xl:flex-none gap-2 font-bold uppercase tracking-widest text-[10px] h-10 px-4 data-[state=active]:bg-black data-[state=active]:text-white">
-                  <Smartphone className="h-3.5 w-3.5" /> Express
+                <TabsTrigger value="express" className="flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] h-11 px-2 data-[state=active]:bg-black data-[state=active]:text-white border border-transparent data-[state=active]:border-black transition-all">
+                  <Smartphone className="h-3 w-3" /> <span className="truncate">Express</span>
                 </TabsTrigger>
               </TabsList>
             </div>

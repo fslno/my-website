@@ -7,8 +7,7 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { getLivePath } from '@/lib/paths';
-import { useLoading } from '@/context/LoadingContext';
-import { LoadingCover } from '@/components/ui/LoadingCover';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 /**
@@ -26,25 +25,8 @@ export function CategorySection({ initialCategories }: { initialCategories?: any
   }, [db]);
 
   const { data: categories, isLoading } = useCollection(categoriesQuery, { initialData: initialCategories });
-  const { pushLoading, popLoading } = useLoading();
-  const [loadedCount, setLoadedCount] = React.useState(0);
-  const lockId = React.useMemo(() => `cat-section-${Math.random().toString(36).substring(7)}`, []);
 
-  React.useEffect(() => {
-    pushLoading(lockId);
-    const timer = setTimeout(() => popLoading(lockId), 5000);
-    return () => {
-      clearTimeout(timer);
-      popLoading(lockId);
-    };
-  }, [pushLoading, popLoading, lockId]);
 
-  React.useEffect(() => {
-    const target = Math.min(categories?.length || 0, 4);
-    if (!isLoading && (loadedCount >= target || !categories?.length)) {
-      popLoading(lockId);
-    }
-  }, [loadedCount, categories?.length, isLoading, popLoading, lockId]);
 
   if (isLoading) {
     return (
@@ -55,7 +37,7 @@ export function CategorySection({ initialCategories }: { initialCategories?: any
             {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-4">
                 <div className="aspect-square bg-white relative overflow-hidden border border-gray-100 rounded-sm">
-                  <LoadingCover logoSize={60} />
+                  <Skeleton className="w-full h-full rounded-none" />
                 </div>
                 <div className="h-4 w-24 bg-gray-50 animate-pulse" />
               </div>
@@ -108,7 +90,6 @@ export function CategorySection({ initialCategories }: { initialCategories?: any
                     fill 
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-110" 
-                    onLoad={() => setLoadedCount(prev => prev + 1)}
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-gray-300">

@@ -1,19 +1,27 @@
 import { MetadataRoute } from 'next';
 import { getAdminDb } from '@/lib/firebase-admin';
-import { LIVE_DOMAIN } from '@/lib/deployment';
+import { LIVE_DOMAIN } from '@/lib/paths';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = `https://${LIVE_DOMAIN}`;
   const adminDb = getAdminDb();
+  
+  // 0. Fetch Domain Config
+  const domainDoc = await adminDb.collection('config').doc('domain').get();
+  const domainConfig = domainDoc.data();
+  const domain = domainConfig?.primaryDomain || LIVE_DOMAIN;
+  const baseUrl = `https://${domain}`;
 
   // 1. Fetch Products
   const productsSnapshot = await adminDb.collection('products').where('status', '==', 'active').get();
-  const productEntries = productsSnapshot.docs.map((doc: any) => ({
-    url: `${baseUrl}/products/${doc.id}`,
-    lastModified: doc.updateTime?.toDate() || new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
+  const productEntries = productsSnapshot.docs.map((doc: any) => {
+    const data = doc.data();
+    return {
+      url: `${baseUrl}/products/${doc.id}`,
+      lastModified: data.updatedAt?.toDate?.() || new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    };
+  });
 
   // 2. Fetch Categories
   const categoriesSnapshot = await adminDb.collection('categories').get();

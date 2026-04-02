@@ -16,8 +16,6 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useLanguage } from '@/context/LanguageContext';
-import { useLoading } from '@/context/LoadingContext';
-import { LoadingCover } from '@/components/ui/LoadingCover';
 
 interface BentoHeroProps {
   isLoading: boolean;
@@ -51,33 +49,12 @@ export function BentoHero({
   const [api, setApi] = useState<CarouselApi>();
   const [mounted, setMounted] = useState(false);
   const { t } = useLanguage();
-  const { pushLoading, popLoading } = useLoading();
-  const lockId = React.useMemo(() => `hero-static-${Math.random().toString(36).substring(7)}`, []);
-  const [firstImageLoaded, setFirstImageLoaded] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    pushLoading(lockId);
-    
-    // Safety timeout
-    const timer = setTimeout(() => popLoading(lockId), 5000);
-    return () => {
-      clearTimeout(timer);
-      popLoading(lockId);
-    };
-  }, [pushLoading, popLoading, lockId]);
+  }, []);
 
-  useEffect(() => {
-    // Release the splash screen only when:
-    // 1. Data is completely fetched (!isLoading)
-    // 2. AND either an image is ready OR there are no images to load
-    const imagesToLoad = heroImages.length > 0 ? heroImages : (fallbackImageUrl ? [fallbackImageUrl] : []);
-    if (!isLoading) {
-      if (firstImageLoaded || imagesToLoad.length === 0) {
-        popLoading(lockId);
-      }
-    }
-  }, [firstImageLoaded, isLoading, heroImages, fallbackImageUrl, popLoading, lockId]);
+
 
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false })
@@ -106,7 +83,9 @@ export function BentoHero({
             '--hero-aspect-ratio': (heroAspectRatio || 7.2) * 2.04
           } as React.CSSProperties}
         >
-          <LoadingCover logoSize={180} />
+          <div className="w-full h-full bg-gray-50 flex items-center justify-center animate-pulse">
+            <div className="w-24 h-24 rounded-full bg-gray-100" />
+          </div>
         </div>
       </section>
     );
@@ -121,7 +100,7 @@ export function BentoHero({
     )}>
       <div 
         className={cn(
-          "w-full bg-black group shadow-2xl relative overflow-hidden",
+          "w-full bg-white group shadow-2xl relative overflow-hidden",
           "aspect-square sm:aspect-[var(--hero-aspect-ratio,7.2)]"
         )}
         style={{
@@ -146,7 +125,6 @@ export function BentoHero({
                   sizes="100vw"
                   className="object-cover"
                   priority={idx === 0}
-                  onLoad={idx === 0 ? () => setFirstImageLoaded(true) : undefined}
                   {...(idx === 0 ? { fetchPriority: "high" } : {})}
                 />
               </CarouselItem>
@@ -182,7 +160,7 @@ export function BentoHero({
               <Link
                 href="/products"
                 className={cn(
-                  "hero-button px-8 sm:px-12 h-12 sm:h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-90 transition-all duration-300 ease-in-out shadow-xl active:scale-95 w-fit pointer-events-auto",
+                  "hero-button px-8 sm:px-12 h-12 sm:h-14 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] hover:opacity-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) active:scale-95 w-fit pointer-events-auto",
                   textAlign === 'left' ? 'ml-0 mr-auto' : textAlign === 'right' ? 'ml-auto mr-0' : 'mx-auto'
                 )}
               >

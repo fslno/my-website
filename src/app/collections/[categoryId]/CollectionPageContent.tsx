@@ -139,6 +139,7 @@ export function CollectionPageContent({ categoryId }: CollectionPageContentProps
                     rating={reviewsEnabled && ratingInfo ? ratingInfo.sum / ratingInfo.count : 0}
                     reviewCount={reviewsEnabled && ratingInfo ? ratingInfo.count : 0}
                     isSoldOut={(Number(product.inventory) || 0) <= 0}
+                    isCustomizable={product.customizable}
                   />
                 );
               })}

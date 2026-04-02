@@ -28,8 +28,10 @@ import {
   Globe,
   Search,
   MinusCircle,
-  Crop
+  Crop,
+  Mic
 } from 'lucide-react';
+import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { ImageCropper } from '@/components/admin/ImageCropper';
 import { 
   Dialog, 
@@ -92,12 +94,21 @@ export default function CategoriesPage() {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
 
-  // Cropping state
-  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const { isListening: isMainListening, startVoiceSearch: startMainVoiceSearch } = useVoiceSearch({
+    onResult: (transcript) => setSearchQuery(transcript)
+  });
 
   // Product Assignment State
   const [productSearchQuery, setProductSearchQuery] = useState('');
+
+  const { isListening, startVoiceSearch: startProductVoiceSearch } = useVoiceSearch({
+    onResult: (transcript) => setProductSearchQuery(transcript)
+  });
 
   // Fetch products assigned to this category
   const assignedProductsQuery = useMemoFirebase(() => 
@@ -120,6 +131,14 @@ export default function CategoriesPage() {
       p.name.toLowerCase().includes(productSearchQuery.toLowerCase())
     ).slice(0, 5);
   }, [allProducts, editingId, productSearchQuery]);
+
+  const filteredCategories = useMemo(() => {
+    if (!categories) return [];
+    return categories.filter(c => 
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [categories, searchQuery]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -309,9 +328,29 @@ export default function CategoriesPage() {
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Group products and manage SEO.</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:min-w-[300px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
+            <Input 
+              placeholder="SEARCH CATEGORIES..." 
+              className="pl-10 pr-12 h-10 bg-white border-[#e1e3e5] rounded-none font-bold uppercase text-[10px] tracking-widest focus-visible:ring-black/10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={startMainVoiceSearch}
+              className={cn(
+                "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-[#8c9196] hover:text-black transition-colors rounded-none",
+                isMainListening && "text-blue-500 bg-blue-50 animate-pulse"
+              )}
+            >
+              <Mic className="h-3.5 w-3.5" />
+            </Button>
+          </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="flex-1 sm:flex-none bg-black text-white font-bold h-10 gap-2 uppercase tracking-widest text-[10px]">
+              <Button className="flex-1 sm:flex-none bg-black text-white font-bold h-10 px-6 gap-2 uppercase tracking-widest text-[10px]">
                 <Plus className="h-4 w-4" /> Add Category
               </Button>
             </DialogTrigger>
@@ -407,8 +446,19 @@ export default function CategoriesPage() {
                               placeholder="SEARCH ALL INVENTORY..." 
                               value={productSearchQuery}
                               onChange={(e) => setProductSearchQuery(e.target.value)}
-                              className="h-12 pl-4 pr-10 uppercase text-[10px] font-bold border-black/10 focus-visible:ring-black"
+                              className="h-12 pl-4 pr-12 uppercase text-[10px] font-bold border-black/10 focus-visible:ring-black"
                             />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={startProductVoiceSearch}
+                              className={cn(
+                                "absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-[#8c9196] hover:text-black transition-colors rounded-none",
+                                isListening && "text-blue-500 bg-blue-50 animate-pulse"
+                              )}
+                            >
+                              <Mic className="h-4 w-4" />
+                            </Button>
                           </div>
                           
                           {productSearchQuery.length >= 2 && (
@@ -539,7 +589,7 @@ export default function CategoriesPage() {
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" />
                   </TableCell>
                 </TableRow>
-              ) : categories?.map((category: any, idx: number) => (
+              ) : filteredCategories?.map((category: any, idx: number) => (
                 <TableRow key={category.id} className="hover:bg-gray-50/50 cursor-pointer border-black/5 group" onClick={() => openEdit(category)}>
                   <TableCell>
                     <div className="w-14 h-14 bg-gray-100 relative overflow-hidden border shadow-sm">
@@ -583,7 +633,7 @@ export default function CategoriesPage() {
         <div className="lg:hidden divide-y">
           {categoriesLoading ? (
             <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-300" /></div>
-          ) : categories?.map((category: any, idx: number) => (
+          ) : filteredCategories?.map((category: any, idx: number) => (
             <div key={category.id} onClick={() => openEdit(category)} className="p-4 bg-white space-y-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">

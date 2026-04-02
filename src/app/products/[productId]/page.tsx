@@ -1,7 +1,7 @@
-import React from 'react';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { getCachedProduct, getCachedTheme, getCachedDomain, getCachedCategories } from '@/lib/firebase-admin';
 import { ProductDetail } from '@/components/storefront/ProductDetail';
 import { Metadata } from 'next';
+import Script from 'next/script';
 
 interface PageProps {
   params: Promise<{ productId: string }>;
@@ -13,33 +13,35 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { productId } = resolvedParams;
 
   try {
-    const adminDb = getAdminDb();
-    const [productDoc, themeDoc] = await Promise.all([
-      adminDb.doc(`products/${productId}`).get(),
-      adminDb.doc('config/theme').get()
+    const [product, domain] = await Promise.all([
+      getCachedProduct(productId),
+      getCachedDomain()
     ]);
-
-    const product = productDoc.data();
-    const theme = themeDoc.data();
 
     if (!product) {
       return {
-        title: "Product Not Found",
+        title: "Product Details",
       };
     }
 
     const title = product.name || "Product Details";
-    const description = product.description?.substring(0, 160) || `Buy ${product.name} at our store. High-quality jerseys and apparel.`;
+    const description = product.description?.substring(0, 160) || `Buy ${product.name} at FSLNO. High-quality jerseys and apparel.`;
     const image = product.media?.[0]?.url || "";
+    const primaryDomain = (domain?.primaryDomain || "fslno.ca").trim();
+    const baseUrl = `https://${primaryDomain}`;
 
     return {
       title,
       description,
+      alternates: {
+        canonical: `/products/${productId}`,
+      },
       openGraph: {
         title,
         description,
-        images: image ? [{ url: image }] : [],
-        type: 'article',
+        url: `${baseUrl}/products/${productId}`,
+        images: image ? [{ url: image, alt: title }] : [],
+        type: 'website', // Article is also fine, but breadcrumbs handle the rest
       },
       twitter: {
         card: 'summary_large_image',
@@ -76,20 +78,23 @@ export default async function ProductDetailPage(props: PageProps) {
   const resolvedParams = await props.params;
   const { productId } = resolvedParams;
 
-  let product: Product | null = null;
-  let reviewsData = { sum: 0, count: 0 };
+  let product: any = null;
   let categoryName = "Jerseys";
+  let domain: any = null;
+  let reviewsData = { sum: 0, count: 0 };
 
   try {
-    const adminDb = getAdminDb();
-    const productDoc = await adminDb.doc(`products/${productId}`).get();
-    
-    if (productDoc.exists) {
-      const rawData = productDoc.data() || {};
-      const data = JSON.parse(JSON.stringify(rawData));
-      product = { id: productDoc.id, ...data } as Product;
+    const [productData, domainData, categories] = await Promise.all([
+      getCachedProduct(productId),
+      getCachedDomain(),
+      getCachedCategories()
+    ]);
 
-      // Fetch aggregate ratings (using 'published' as the flag)
+    product = productData;
+    domain = domainData;
+
+    if (product) {
+      const adminDb = (await import('@/lib/firebase-admin')).getAdminDb();
       const reviewsSnapshot = await adminDb.collection('reviews')
         .where('productId', '==', productId)
         .where('published', '==', true)
@@ -100,19 +105,19 @@ export default async function ProductDetailPage(props: PageProps) {
         reviewsData.count += 1;
       });
 
-      // Try to get category name
       if (product.categoryId) {
-        const catDoc = await adminDb.doc(`categories/${product.categoryId}`).get();
-        if (catDoc.exists) {
-          categoryName = catDoc.data()?.name || categoryName;
+        const cat = categories.find((c: any) => c.id === product.categoryId);
+        if (cat) {
+          categoryName = cat.name;
         }
       }
     }
   } catch (error: any) {
-    console.warn("[PRODUCT_PAGE_DATA_ERROR] Error fetching product details:", error?.message || error);
+    console.warn("[PRODUCT_PAGE_DATA_ERROR]", error?.message || error);
   }
 
-  const siteUrl = "https://fslno.ca";
+  const primaryDomain = (domain?.primaryDomain || "fslno.ca").trim();
+  const siteUrl = `https://${primaryDomain}`;
   const breadcrumbs = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -160,12 +165,14 @@ export default async function ProductDetailPage(props: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <script
+      <Script
+        id="product-breadcrumbs"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
       {productSchema && (
-        <script
+        <Script
+          id="product-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
         />

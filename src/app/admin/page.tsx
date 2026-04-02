@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,16 +17,8 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react';
-import { 
-  Area, 
-  AreaChart, 
-  ResponsiveContainer, 
-  Tooltip, 
-  XAxis, 
-  YAxis 
-} from 'recharts';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useIsAdmin } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where, Timestamp } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { 
@@ -48,6 +40,19 @@ import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { type DateRange } from "react-day-picker";
+import dynamic from 'next/dynamic';
+import { DashboardSkeleton } from '@/components/admin/AdminSkeletons';
+
+// Consolidated dynamic imports for charts to solve typing issues and optimize performance
+const DashboardMainChart = dynamic(() => import('@/components/admin/DashboardCharts').then(mod => mod.DashboardMainChart), { 
+  ssr: false,
+  loading: () => <div className="h-[250px] sm:h-[300px] w-full bg-gray-50/50 animate-pulse rounded-none border border-dashed border-gray-200" />
+});
+
+const StatsTrendChart = dynamic(() => import('@/components/admin/DashboardCharts').then(mod => mod.StatsTrendChart), { 
+  ssr: false,
+  loading: () => <div className="h-[35px] w-full mt-2 bg-gray-50/50 animate-pulse" />
+});
 
 export default function AdminDashboard() {
   const db = useFirestore();
@@ -64,9 +69,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     setHasMounted(true);
-  }, []);
-
-  useEffect(() => {
+    // Move localStorage load here to avoid SSR mismatch and hydration lag
     const savedRange = localStorage.getItem('fslno_admin_timerange');
     const savedDate = localStorage.getItem('fslno_admin_daterange');
     
@@ -83,17 +86,17 @@ export default function AdminDashboard() {
         }
       } catch (e) {
         console.error("Failed to load saved date range", e);
-        // Go back to the default date if loading fails
       }
     }
   }, []);
 
   useEffect(() => {
+    if (!hasMounted) return;
     localStorage.setItem('fslno_admin_timerange', timeRange);
     if (date) {
       localStorage.setItem('fslno_admin_daterange', JSON.stringify(date));
     }
-  }, [timeRange, date]);
+  }, [timeRange, date, hasMounted]);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
@@ -109,24 +112,37 @@ export default function AdminDashboard() {
   const { data: orders, isLoading: ordersLoading } = useCollection(ordersQuery);
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
 
+  // REAL-TIME PRESENCE QUERY
+  const activeThreshold = useMemo(() => new Date(Date.now() - 120000), []);
+  const presenceQuery = useMemoFirebase(() => {
+    if (!db || !isAdmin) return null;
+    return query(
+      collection(db, 'analytics_presence'),
+      where('lastActive', '>=', Timestamp.fromDate(activeThreshold))
+    );
+  }, [db, isAdmin, activeThreshold]);
+  const { data: activePresence } = useCollection(presenceQuery);
+
   const filteredData = useMemo(() => {
     if (!orders || !users) return { orders: [], users: [] };
 
     const now = new Date();
     const filterByRange = (items: any[]) => {
+      // Pre-calculate filter boundaries to avoid repeated new Date calls in the filter loop
+      let from: Date | null = null;
+      let to: Date | null = null;
+      
+      if (timeRange === 'custom' && date?.from) {
+        from = startOfDay(date.from);
+        to = date.to ? endOfDay(date.to) : endOfDay(date.from);
+      }
+
       return items.filter(item => {
         const itemDate = item.createdAt?.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
-        
         if (timeRange === 'lifetime') return true;
-        
-        if (timeRange === 'custom' && date?.from) {
-          const from = startOfDay(date.from);
-          const to = date.to ? endOfDay(date.to) : endOfDay(date.from);
-          return itemDate >= from && itemDate <= to;
-        }
+        if (from && to) return itemDate >= from && itemDate <= to;
 
         const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 60 * 60 * 24);
-        
         switch (timeRange) {
           case '1d': return diffDays <= 1;
           case '7d': return diffDays <= 7;
@@ -147,22 +163,22 @@ export default function AdminDashboard() {
 
   const stats = useMemo(() => {
     const { orders: fOrders, users: fUsers } = filteredData;
+    let rev = 0, tax = 0, fees = 0;
     
-    const totalRevenue = fOrders.reduce((acc, order) => acc + (Number(order.total) || 0), 0);
-    const totalTax = fOrders.reduce((acc, order) => acc + (Number(order.tax) || 0), 0);
-    const totalFees = fOrders.reduce((acc, order) => {
-      const total = Number(order.total) || 0;
-      return acc + (total * 0.029 + 0.30);
-    }, 0);
-    const totalOrders = fOrders.length;
-    const totalMembers = fUsers.length;
+    // Use a single loop for multiple stats to improve O(n) performance
+    for (const order of fOrders) {
+      const t = Number(order.total) || 0;
+      rev += t;
+      tax += (Number(order.tax) || 0);
+      fees += (t * 0.029 + 0.30);
+    }
 
     return {
-      revenue: totalRevenue,
-      tax: totalTax,
-      fees: totalFees,
-      orders: totalOrders,
-      members: totalMembers
+      revenue: rev,
+      tax: tax,
+      fees: fees,
+      orders: fOrders.length,
+      members: fUsers.length
     };
   }, [filteredData]);
 
@@ -217,7 +233,6 @@ export default function AdminDashboard() {
       }
     }).reverse();
 
-    // Optimize with a Map for O(1) lookup during data point aggregation
     const dataMap = new Map();
     dataPoints.forEach(p => {
       if (unit === 'hour') dataMap.set(`${new Date(p.time!).getDate()}-${new Date(p.time!).getHours()}`, p);
@@ -292,7 +307,6 @@ export default function AdminDashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    
     const dateRangeStr = timeRange === 'custom' && date?.from
       ? `${format(date.from, 'yyyy-MM-dd')}_to_${date.to ? format(date.to, 'yyyy-MM-dd') : format(date.from, 'yyyy-MM-dd')}`
       : timeRange.toUpperCase();
@@ -301,11 +315,7 @@ export default function AdminDashboard() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    toast({
-      title: "Export Success",
-      description: "Your order report has been downloaded."
-    });
+    toast({ title: "Export Success", description: "Your order report has been downloaded." });
   };
 
   const formatCurrency = (val: number) => {
@@ -328,18 +338,14 @@ export default function AdminDashboard() {
     }
   };
 
-  if (!hasMounted) return null;
+  if (!hasMounted) return <DashboardSkeleton />;
 
   if (ordersLoading || usersLoading) {
-    return (
-      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
-        <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="w-full lg:w-auto">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1c1e]">Dashboard</h1>
@@ -417,12 +423,12 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8">
         <StatsCard 
           title="Total Sales" 
           value={`C$${formatCurrency(stats.revenue)}`} 
           trend="Confirmed" 
-          icon={<DollarSign className="h-4 w-4 text-green-600" />}
+          icon={<DollarSign className="h-4 w-4 lg:h-8 lg:w-8 text-green-600" />}
           data={chartData.map(d => ({ value: d.sales }))}
           color="#16a34a"
         />
@@ -430,7 +436,7 @@ export default function AdminDashboard() {
           title="Total Tax" 
           value={`C$${formatCurrency(stats.tax)}`} 
           trend="Detailed" 
-          icon={<Receipt className="h-4 w-4 text-blue-600" />} 
+          icon={<Receipt className="h-4 w-4 lg:h-8 lg:w-8 text-blue-600" />} 
           data={chartData.map(d => ({ value: d.tax }))}
           color="#2563eb"
         />
@@ -438,7 +444,7 @@ export default function AdminDashboard() {
           title="Processing Fees" 
           value={`C$${formatCurrency(stats.fees)}`} 
           trend="Expected" 
-          icon={<CreditCard className="h-4 w-4 text-red-600" />} 
+          icon={<CreditCard className="h-4 w-4 lg:h-8 lg:w-8 text-red-600" />} 
           data={chartData.map(d => ({ value: d.fees }))}
           color="#dc2626"
         />
@@ -446,7 +452,7 @@ export default function AdminDashboard() {
           title="Total Orders" 
           value={stats.orders.toString()} 
           trend="Confirmed" 
-          icon={<ShoppingCart className="h-4 w-4 text-blue-600" />} 
+          icon={<ShoppingCart className="h-4 w-4 lg:h-8 lg:w-8 text-blue-600" />} 
           data={chartData.map(d => ({ value: d.orders }))}
           color="#2563eb"
         />
@@ -454,17 +460,18 @@ export default function AdminDashboard() {
           title="Total Customers" 
           value={stats.members.toString()} 
           trend="Signed Up" 
-          icon={<UserPlus className="h-4 w-4 text-purple-600" />} 
+          icon={<UserPlus className="h-4 w-4 lg:h-8 lg:w-8 text-purple-600" />} 
           data={chartData.map(d => ({ value: d.members }))}
           color="#9333ea"
         />
         <StatsCard 
           title="Active Sessions" 
-          value="42" 
+          value={(activePresence?.length || 0).toString()} 
           trend="Live" 
-          icon={<TrendingUp className="h-4 w-4 text-orange-600" />} 
-          data={Array.from({ length: 7 }, () => ({ value: Math.floor(Math.random() * 20) + 30 }))}
+          icon={<TrendingUp className="h-4 w-4 lg:h-8 lg:w-8 text-orange-600" />} 
+          data={activePresence?.slice(0, 7).map((p, i) => ({ value: i + 1 })) || []}
           color="#ea580c"
+          isPresence
         />
       </div>
 
@@ -477,25 +484,7 @@ export default function AdminDashboard() {
             </button>
           </CardHeader>
           <CardContent className="pt-6 px-2 sm:px-6">
-            <div className="h-[250px] sm:h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#000" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#000" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" stroke="#8c9196" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#8c9196" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'white', borderRadius: '4px', border: '1px solid #e1e3e5', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
-                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Sales']}
-                  />
-                  <Area type="monotone" dataKey="sales" stroke="#000" fillOpacity={1} fill="url(#colorSales)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            <DashboardMainChart chartData={chartData} />
           </CardContent>
         </Card>
 
@@ -538,48 +527,43 @@ export default function AdminDashboard() {
   );
 }
 
-function StatsCard({ title, value, trend, icon, data, color = "#000" }: { 
+function StatsCard({ title, value, trend, icon, data, color = "#000", isPresence }: { 
   title: string, 
   value: string, 
   trend: string, 
   icon: React.ReactNode,
   data?: any[],
-  color?: string 
+  color?: string, 
+  isPresence?: boolean
 }) {
   return (
-    <Card className="border-[#e1e3e5] shadow-none hover:border-black transition-all duration-300 rounded-none group">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-primary transition-colors">
+    <Card className="border-[#e1e3e5] shadow-none hover:border-black transition-all duration-300 rounded-none group overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 lg:pb-6 lg:pt-8">
+        <CardTitle className="text-[10px] lg:text-[14px] font-bold text-gray-400 uppercase tracking-[0.2em] group-hover:text-primary transition-colors">
           {title}
         </CardTitle>
         <div className="group-hover:scale-110 transition-transform">{icon}</div>
       </CardHeader>
-      <CardContent>
-        <div className="text-xl sm:text-2xl font-bold text-[#1a1c1e] tracking-tight">{value}</div>
-        <div className="flex items-center mt-1">
-          <span className="text-[9px] font-bold text-blue-600 flex items-center gap-1 uppercase tracking-widest">
-            <ArrowUpRight className="h-2.5 w-2.5" /> {trend}
+      <CardContent className="lg:pb-10">
+        <div className="text-xl sm:text-2xl lg:text-6xl font-bold text-[#1a1c1e] tracking-tighter flex items-baseline gap-2 lg:gap-4 transition-all">
+          {value}
+          {isPresence && (
+            <span className="relative flex h-2 w-2 lg:h-4 lg:w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 lg:h-4 lg:w-4 bg-green-500"></span>
+            </span>
+          )}
+        </div>
+        <div className="flex items-center mt-1 lg:mt-4">
+          <span className="text-[9px] lg:text-[12px] font-bold text-blue-600 flex items-center gap-1 uppercase tracking-widest">
+            <ArrowUpRight className="h-2.5 w-2.5 lg:h-4 lg:w-4" /> {trend}
           </span>
-          <span className="text-[9px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight truncate">Confirmed</span>
+          <span className="text-[9px] lg:text-[12px] text-[#8c9196] ml-2 font-bold uppercase tracking-tight truncate">{isPresence ? 'Confirmed' : 'Aggregated'}</span>
         </div>
         
-        {data && (
-          <div className="h-[35px] w-full mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke={color} 
-                  fill={color} 
-                  fillOpacity={0.1} 
-                  strokeWidth={2}
-                  isAnimationActive={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        <div className="mt-4 lg:mt-8">
+          <StatsTrendChart data={data || []} color={color} />
+        </div>
       </CardContent>
     </Card>
   );

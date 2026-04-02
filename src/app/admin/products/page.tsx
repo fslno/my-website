@@ -45,8 +45,11 @@ import {
   Mic,
   ScanLine,
   AlertTriangle,
-  Volume2
+  Volume2,
+  Wand2,
+  DollarSign
 } from 'lucide-react';
+import { ProductListSkeleton } from '@/components/admin/AdminSkeletons';
 import { BarcodeScanner } from '@/components/admin/BarcodeScanner';
 import { ImageCropper } from '@/components/admin/ImageCropper';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -59,6 +62,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { VoiceSearch } from '@/components/ui/VoiceSearch';
+import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
@@ -108,7 +113,7 @@ export default function ProductsPage() {
   const { data: categories, isLoading: categoriesLoading } = useCollection(categoriesRef);
   const { data: storeConfig } = useDoc(storeConfigRef);
   const { data: shippingConfig } = useDoc(shippingConfigRef);
-
+  
   const globalThreshold = Number(storeConfig?.globalLowStockThreshold) || 10;
   const globalVariantThreshold = Number(storeConfig?.globalVariantLowStockThreshold) || 5;
   
@@ -132,6 +137,8 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
 
+  const deferredSearch = React.useDeferredValue(searchQuery);
+
   const [bulkCategoryId, setBulkCategoryId] = useState<string>('');
   const [bulkStatus, setBulkStatus] = useState<string>('');
 
@@ -145,6 +152,7 @@ export default function ProductsPage() {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [preorderEnabled, setPreorderEnabled] = useState(false);
+  const [preorderEstimate, setPreorderEstimate] = useState('EST. 2-4 WEEKS');
   
   const [customizationEnabled, setCustomizationEnabled] = useState(true);
   const [customizationFee, setCustomizationFee] = useState('10');
@@ -165,7 +173,6 @@ export default function ProductsPage() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [features, setFeatures] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState('10');
   const [globalVariantLowStockThreshold, setGlobalVariantLowStockThreshold] = useState('5');
 
@@ -179,8 +186,17 @@ export default function ProductsPage() {
   const [hasMounted, setHasMounted] = useState(false);
   
   const [showBrand, setShowBrand] = useState(true);
+  
+  // Bulk Pricing State
+  const [isBulkPriceOpen, setIsBulkPriceOpen] = useState(false);
+  const [bulkPriceAction, setBulkPriceAction] = useState<'set' | 'increase_fixed' | 'increase_percent' | 'decrease_fixed' | 'decrease_percent'>('set');
+  const [bulkPriceValue, setBulkPriceValue] = useState('');
+
+  const { isListening, startVoiceSearch } = useVoiceSearch({
+    onResult: (transcript) => setSearchQuery(transcript)
+  });
   const [showSku, setShowSku] = useState(true);
-  const [showLowStockAlert, setShowLowStockAlert] = useState(true);
+
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -193,7 +209,7 @@ export default function ProductsPage() {
       setGlobalVariantLowStockThreshold((storeConfig.globalVariantLowStockThreshold ?? 5).toString());
       setShowBrand(storeConfig.showBrandStorefront !== false);
       setShowSku(storeConfig.showSkuStorefront !== false);
-      setShowLowStockAlert(storeConfig.showLowStockAlertStorefront !== false);
+
     }
   }, [storeConfig]);
 
@@ -207,7 +223,7 @@ export default function ProductsPage() {
     return () => clearTimeout(timeout);
   }, [globalLowStockThreshold, globalVariantLowStockThreshold, hasMounted, isDirty]);
 
-  const updateDisplayOptions = async (field: 'showBrandStorefront' | 'showSkuStorefront' | 'showLowStockAlertStorefront', value: boolean) => {
+  const updateDisplayOptions = async (field: 'showBrandStorefront' | 'showSkuStorefront', value: boolean) => {
     if (!db) return;
     try {
       await updateDoc(doc(db, 'config', 'store'), {
@@ -325,8 +341,8 @@ export default function ProductsPage() {
     };
 
     let result = products.filter(p => {
-      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesSearch = p.name.toLowerCase().includes(deferredSearch.toLowerCase()) || 
+                           (p.sku && p.sku.toLowerCase().includes(deferredSearch.toLowerCase()));
       const matchesCategory = categoryFilter === 'all' || p.categoryId === categoryFilter;
       
       const totalStock = calculateTotalStock(p.variants, p.inventory);
@@ -359,18 +375,18 @@ export default function ProductsPage() {
         case 'price-high':
           return (Number(b.price) || 0) - (Number(a.price) || 0);
         case 'price-low':
-          return (Number(a.price) || 0) - (Number(b.price) || 0);
+          return (Number(a.price) || 0) - (Number(a.price) || 0);
         case 'stock-high':
           return (Number(b.inventory) || 0) - (Number(a.inventory) || 0);
         case 'stock-low':
-          return (Number(a.inventory) || 0) - (Number(b.inventory) || 0);
+          return (Number(a.inventory) || 0) - (Number(a.inventory) || 0);
         default:
           return 0;
       }
     });
 
     return result;
-  }, [products, searchQuery, categoryFilter, sortBy]);
+  }, [products, deferredSearch, categoryFilter, sortBy, stockFilter, globalThreshold, globalVariantThreshold]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -469,37 +485,42 @@ export default function ProductsPage() {
     if (!db || selectedIds.length === 0) return;
     setIsSaving(true);
 
-    const batch = writeBatch(db);
     const updates: any = {};
-    if (bulkCategoryId) updates.categoryId = bulkCategoryId;
-    if (bulkStatus) updates.status = bulkStatus;
+    if (bulkCategoryId && bulkCategoryId !== 'keep') updates.categoryId = bulkCategoryId;
+    if (bulkStatus && bulkStatus !== 'keep') updates.status = bulkStatus;
     
-    if (Object.keys(updates).length === 0) {
+    if (Object.keys(updates).length === 0 && !bulkPriceValue) {
       setIsBulkEditDialogOpen(false);
       setIsSaving(false);
       return;
     }
 
+    const updateTasks: Promise<void>[] = [];
+    
     selectedIds.forEach(id => {
-      batch.update(doc(db, 'products', id), {
-        ...updates,
-        updatedAt: serverTimestamp()
-      });
+      const docRef = doc(db, 'products', id);
+      const docUpdates: any = { ...updates, updatedAt: serverTimestamp() };
+      
+      // Handle bulk price specifically if provided
+      if (bulkPriceValue) {
+        docUpdates.price = parseFloat(bulkPriceValue).toFixed(2);
+      }
+      
+      updateTasks.push(updateDoc(docRef, docUpdates));
     });
 
-    batch.commit()
+    Promise.all(updateTasks)
       .then(() => {
         setSelectedIds([]);
         setIsBulkEditDialogOpen(false);
         setBulkCategoryId('');
         setBulkStatus('');
+        setBulkPriceValue('');
         toast({ title: "Success", description: `Updated ${selectedIds.length} products successfully.` });
       })
       .catch((error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'products',
-          operation: 'update'
-        }));
+        console.error("Bulk update error:", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to update all products." });
       })
       .finally(() => setIsSaving(false));
   };
@@ -524,9 +545,65 @@ export default function ProductsPage() {
     });
 
     batch.commit().then(() => {
+      toast({ 
+        title: "Bulk Duplicate Successful", 
+        description: `${selectedIds.length} copies added to your archive.` 
+      });
       setSelectedIds([]);
-      toast({ title: "Success", description: `${selectedIds.length} copies added to your products.` });
     });
+  };
+
+  const handleBulkPriceUpdate = async () => {
+    if (!db || selectedIds.length === 0 || !bulkPriceValue) return;
+    setIsSaving(true);
+    try {
+      const batch = writeBatch(db);
+      const val = parseFloat(bulkPriceValue);
+      
+      selectedIds.forEach(id => {
+        const product = products?.find(p => p.id === id);
+        if (!product) return;
+        
+        let newPrice = parseFloat(product.price || '0');
+        
+        switch (bulkPriceAction) {
+          case 'set':
+            newPrice = val;
+            break;
+          case 'increase_fixed':
+            newPrice += val;
+            break;
+          case 'increase_percent':
+            newPrice *= (1 + val / 100);
+            break;
+          case 'decrease_fixed':
+            newPrice -= val;
+            break;
+          case 'decrease_percent':
+            newPrice *= (1 - val / 100);
+            break;
+        }
+        
+        batch.update(doc(db, 'products', id), { 
+          price: newPrice.toFixed(2),
+          updatedAt: serverTimestamp() 
+        });
+      });
+      
+      await batch.commit();
+      toast({ 
+        title: "Bulk Price Update", 
+        description: `Successfully updated prices for ${selectedIds.length} products.` 
+      });
+      setIsBulkPriceOpen(false);
+      setBulkPriceValue('');
+      setSelectedIds([]);
+    } catch (error) {
+      console.error("Bulk Price Error:", error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to update prices." });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleExportCSV = () => {
@@ -579,37 +656,6 @@ export default function ProductsPage() {
       });
     };
     reader.readAsText(file);
-  };
-
-  const startVoiceSearch = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      toast({ 
-        variant: "destructive", 
-        title: "Not Supported", 
-        description: "Your browser does not support Voice Search." 
-      });
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setSearchQuery(transcript);
-      toast({ title: "Voice Search", description: `Searching for: "${transcript}"` });
-    };
-    recognition.onerror = (event: any) => {
-      console.error("Speech Recognition Error:", event.error);
-      setIsListening(false);
-    };
-
-    recognition.start();
   };
 
   const handleBarcodeScan = (code: string) => {
@@ -837,6 +883,7 @@ export default function ProductsPage() {
       inventory: totalInventory,
       lowStockThreshold: sanitizeNum(lowStockThreshold, 10),
       preorderEnabled,
+      preorderEstimate: preorderEstimate.trim() || 'EST. 2-4 WEEKS',
       variants: variants.map(v => ({
         ...v,
         stock: isNaN(v.stock) ? 0 : v.stock,
@@ -895,7 +942,7 @@ export default function ProductsPage() {
 
   const resetForm = () => {
     setName(''); setPrice(''); setComparedPrice(''); setBrand(''); setSku(''); setSizeFit(''); setBadge('none'); setDescription(''); setCategoryId('');
-    setCustomizationEnabled(true); setCustomizationFee('10'); setPreorderEnabled(false); setIsSoldOut(false);
+    setCustomizationEnabled(true); setCustomizationFee('10'); setPreorderEnabled(false); setPreorderEstimate('EST. 2-4 WEEKS'); setIsSoldOut(false);
     setLowStockThreshold('10');
     setVariants([]);
     setInventory('0');
@@ -917,6 +964,7 @@ export default function ProductsPage() {
     setCustomizationEnabled(product.customizationEnabled ?? true);
     setCustomizationFee(String(product.customizationFee ?? '10'));
     setPreorderEnabled(product.preorderEnabled ?? false);
+    setPreorderEstimate(product.preorderEstimate || 'EST. 2-4 WEEKS');
     setLowStockThreshold(String(product.lowStockThreshold ?? '10'));
     setVariants(product.variants || []);
     setInventory(String(product.inventory || '0'));
@@ -943,19 +991,13 @@ export default function ProductsPage() {
     if (currentIndex < filteredProducts.length - 1) openEdit(filteredProducts[currentIndex + 1]);
   };
 
-  if (!hasMounted) {
-    return (
-      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-black" />
-      </div>
-    );
-  }
+  if (!hasMounted) return null;
 
   return (
     <>
       {(productsLoading || categoriesLoading) && (
-        <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
-          <img src="/icon.png" alt="Loading" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-pulse" />
+        <div className="h-48 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-black opacity-20" />
         </div>
       )}
       <div className="space-y-6 min-w-0">
@@ -1225,7 +1267,30 @@ export default function ProductsPage() {
                       <div className="w-full sm:w-[200px] text-center sm:text-right"><Label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Master SKU</Label><Input value={sku} onChange={(e) => setSku(e.target.value)} className="bg-white/10 border-white/20 text-white font-mono mt-1 text-center sm:text-right h-11" /></div>
                     </div>
                   </div>
-                  <div className="p-6 bg-orange-50 border border-orange-100 rounded-xl flex items-center justify-between"><div className="space-y-1"><div className="flex items-center gap-2"><Clock className="h-4 w-4 text-orange-600" /><h3 className="text-xs font-bold uppercase tracking-widest text-orange-900">Pre-order</h3></div><p className="text-[9px] uppercase font-bold text-orange-700 tracking-tight">Enable pre-orders for this product.</p></div><Switch checked={preorderEnabled} onCheckedChange={handleToggleGlobalPreorder} className="data-[state=checked]:bg-orange-600"/></div>
+                  <div className="p-6 bg-orange-50 border border-orange-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-orange-600" />
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-orange-900">Pre-order</h3>
+                      </div>
+                      <p className="text-[9px] uppercase font-bold text-orange-700 tracking-tight">Enable pre-orders for this product.</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      {preorderEnabled && (
+                        <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                          <Label className="text-[8px] uppercase font-bold text-orange-400 mb-1 block">Shipping Estimate</Label>
+                          <Input 
+                            value={preorderEstimate} 
+                            onChange={(e) => setPreorderEstimate(e.target.value.toUpperCase())} 
+                            className="h-9 w-40 bg-white border-orange-200 text-[10px] font-bold uppercase tracking-widest"
+                            placeholder="E.G. EST. 2-4 WEEKS"
+                          />
+                        </div>
+                      )}
+                      <Switch checked={preorderEnabled} onCheckedChange={handleToggleGlobalPreorder} className="data-[state=checked]:bg-orange-600"/>
+                    </div>
+                  </div>
                   
                   <div className="flex items-center justify-between">
                     <h3 className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Size Variants</h3>
@@ -1312,7 +1377,7 @@ export default function ProductsPage() {
                   </div>
                 </TabsContent>
               </div>
-              <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50/50 shrink-0 flex flex-col sm:flex-row justify-end items-center gap-4">
+              <DialogFooter className="sticky bottom-0 p-4 sm:p-6 border-t bg-white/95 backdrop-blur-md z-50 shrink-0 flex flex-col sm:flex-row justify-end items-center gap-4 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]">
                 <Button onClick={handleSaveProduct} disabled={isSaving || !name || !price || !categoryId} className="w-full sm:w-auto h-12 px-12 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-black/90 transition-all">
                   {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-3" /> : <Save className="h-4 w-4 mr-3" />}{editingId ? 'Save Changes' : 'Add Product'}
                 </Button>
@@ -1376,15 +1441,85 @@ export default function ProductsPage() {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Set Price ($)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="Leave empty to keep current prices"
+                          value={bulkPriceValue} 
+                          onChange={(e) => setBulkPriceValue(e.target.value)} 
+                          className="h-12 font-mono"
+                        />
+                      </div>
                     </div>
                     <DialogFooter>
                       <Button 
                         onClick={handleBulkUpdate} 
-                        disabled={isSaving || (!bulkCategoryId && !bulkStatus)} 
+                        disabled={isSaving || (!bulkCategoryId && !bulkStatus && !bulkPriceValue)} 
                         className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest text-[10px]"
                       >
                         {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                         Update {selectedIds.length} Products
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                 <Dialog open={isBulkPriceOpen} onOpenChange={setIsBulkPriceOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-9 border-emerald-200 text-emerald-700 font-bold uppercase tracking-widest text-[9px] gap-2 bg-white hover:bg-emerald-50"
+                    >
+                      <DollarSign className="h-3.5 w-3.5" /> Edit Prices
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md rounded-none border-t-4 border-t-emerald-500">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-headline font-black uppercase tracking-tight">Bulk Price Editor</DialogTitle>
+                      <DialogDescription className="text-[10px] uppercase font-bold text-gray-400">Apply changes to {selectedIds.length} products.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6 py-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Action</Label>
+                        <Select value={bulkPriceAction} onValueChange={(v: any) => setBulkPriceAction(v)}>
+                          <SelectTrigger className="h-12 rounded-none border-gray-200">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-none">
+                            <SelectItem value="set" className="text-[10px] font-bold uppercase">Set to fixed amount</SelectItem>
+                            <SelectItem value="increase_fixed" className="text-[10px] font-bold uppercase">Increase by fixed amount ($)</SelectItem>
+                            <SelectItem value="increase_percent" className="text-[10px] font-bold uppercase">Increase by percentage (%)</SelectItem>
+                            <SelectItem value="decrease_fixed" className="text-[10px] font-bold uppercase">Decrease by fixed amount ($)</SelectItem>
+                            <SelectItem value="decrease_percent" className="text-[10px] font-bold uppercase">Decrease by percentage (%)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-gray-500">Value</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-mono text-xs">
+                            {bulkPriceAction.includes('percent') ? '%' : '$'}
+                          </span>
+                          <Input 
+                            type="number" 
+                            placeholder="0.00"
+                            value={bulkPriceValue} 
+                            onChange={(e) => setBulkPriceValue(e.target.value)} 
+                            className="h-12 pl-8 font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button 
+                        onClick={handleBulkPriceUpdate} 
+                        disabled={isSaving || !bulkPriceValue} 
+                        className="w-full bg-emerald-600 text-white h-14 font-bold uppercase tracking-widest text-[10px] hover:bg-emerald-700"
+                      >
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        Update Prices
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -1521,13 +1656,23 @@ export default function ProductsPage() {
         <div className="hidden lg:block">
           <Table>
             <TableHeader className="bg-[#f6f6f7]">
-              <TableRow className="hover:bg-transparent border-[#e1e3e5]"><TableHead className="w-[40px] px-4"><Checkbox checked={isAllFilteredSelected ? true : isSomeFilteredSelected ? "indeterminate" : false} onCheckedChange={handleSelectAll} /></TableHead><TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Image</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Product</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Category</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Stock</TableHead><TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Price</TableHead></TableRow>
+              <TableRow className="hover:bg-transparent border-[#e1e3e5]">
+                <TableHead className="w-[40px] px-4">
+                  <Checkbox checked={isAllFilteredSelected ? true : isSomeFilteredSelected ? "indeterminate" : false} onCheckedChange={handleSelectAll} />
+                </TableHead>
+                <TableHead className="w-[80px] text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Image</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Product</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Category</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Custom</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Stock</TableHead>
+                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-[#5c5f62]">Price</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {productsLoading || categoriesLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-300" />
+                  <TableCell colSpan={7} className="p-0">
+                    <ProductListSkeleton />
                   </TableCell>
                 </TableRow>
               ) : filteredProducts.length === 0 ? (
@@ -1554,6 +1699,15 @@ export default function ProductsPage() {
                       <TableCell><div className="w-16 h-16 bg-gray-100 relative overflow-hidden rounded border border-gray-100 flex items-center justify-center">{product.media?.[0]?.url ? (product.media[0].type === 'video' ? <video src={product.media[0].url} className="object-cover w-full h-full" /> : <NextImage src={product.media[0].url} alt={product.name} fill className="object-cover" />) : <Layers className="h-4 w-4 text-gray-300" />}</div></TableCell>
                       <TableCell><div className="flex flex-col"><span className="font-bold text-sm uppercase">{product.name}</span><div className="flex flex-wrap gap-2 items-center">{showBrand && product.brand && <span className="text-[9px] uppercase tracking-widest text-blue-600 font-bold bg-blue-50 px-1 rounded-sm">{product.brand}</span>}{showSku && <span className="text-[9px] uppercase tracking-widest text-[#8c9196] font-mono">{product.sku || 'No SKU'}</span>}</div></div></TableCell>
                       <TableCell><div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase"><Tag className="h-3 w-3" /> {category?.name || 'None'}</div></TableCell>
+                      <TableCell>
+                        {product.customizationEnabled ? (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 text-[8px] font-bold uppercase px-1.5 py-0.5 flex items-center gap-1 w-fit">
+                            <Wand2 className="h-2.5 w-2.5" /> YES
+                          </Badge>
+                        ) : (
+                          <span className="text-[8px] font-bold text-gray-300 uppercase">No</span>
+                        )}
+                      </TableCell>
                       <TableCell className="py-4">
                         {(() => {
                           const totalStock = product.variants && product.variants.length > 0 
@@ -1580,6 +1734,9 @@ export default function ProductsPage() {
                                 >
                                   {totalStock} PCS
                                 </Badge>
+                                {product.preorderEnabled && (
+                                  <Badge variant="outline" className="text-[8px] h-5 font-bold uppercase bg-orange-100 text-orange-700 border-orange-200">PRE-ORDER</Badge>
+                                )}
                                 {outVariants?.length > 0 && (
                                   <Badge variant="outline" className="text-[8px] h-5 font-bold uppercase bg-red-50 text-red-600 border-red-100">
                                     {outVariants.length} Sizes Empty
@@ -1829,28 +1986,7 @@ export default function ProductsPage() {
                 <Label className="text-[12px] uppercase tracking-[0.25em] font-heavy text-orange-500">Inventory Alert Levels</Label>
               </div>
               <div className="p-12 bg-white border-2 border-dashed border-orange-100 rounded-[2.5rem] space-y-10 shadow-sm/10 flex flex-col">
-                <div className="flex items-center gap-6 pb-6 border-b border-orange-50">
-                  <button 
-                    onClick={() => {
-                      const newVal = !showLowStockAlert;
-                      setShowLowStockAlert(newVal);
-                      updateDisplayOptions('showLowStockAlertStorefront', newVal);
-                    }}
-                    className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
-                      showLowStockAlert ? "bg-black" : "bg-gray-100"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-5 h-5 rounded-full bg-white transition-all duration-300",
-                      showLowStockAlert ? "opacity-100 scale-100" : "opacity-30 scale-75"
-                    )} />
-                  </button>
-                  <div className="flex flex-col">
-                    <span className="text-[12px] uppercase font-heavy tracking-[0.2em] text-black">Low Stock Alert</span>
-                    <span className="text-[9px] uppercase font-bold tracking-[0.1em] text-orange-400 mt-0.5">Toggle customer-facing alerts</span>
-                  </div>
-                </div>
+
 
                 <div className="grid grid-cols-2 gap-12">
                   <div className="space-y-5">
