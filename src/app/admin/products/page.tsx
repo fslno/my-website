@@ -1584,25 +1584,38 @@ export default function ProductsPage() {
         </div>
 
         <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row items-center justify-between gap-4">
-          <div className="relative w-full lg:flex-1 lg:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
+          <div className="relative w-full lg:flex-1 lg:max-w-md group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196] z-10" />
             <Input 
               placeholder="Search products..." 
-              className="pl-10 pr-24 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none" 
+              className="pl-10 pr-20 h-10 border-[#babfc3] focus:ring-black bg-white uppercase text-[10px] font-bold rounded-none relative z-0" 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
             />
-            <div className="absolute right-0 top-0 h-full flex items-center pr-1 gap-1">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+              {searchQuery && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setSearchQuery("")}
+                  className="h-8 w-8 rounded-none text-gray-400 hover:text-black hover:bg-gray-100"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={startVoiceSearch}
                 className={cn(
-                  "h-8 w-8 rounded-none transition-colors",
-                  isListening ? "text-blue-500 bg-blue-50" : "text-gray-400 hover:text-black hover:bg-gray-100"
+                  "h-8 w-8 rounded-none transition-all duration-300",
+                  isListening 
+                    ? "text-blue-500 bg-blue-50 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" 
+                    : "text-gray-400 hover:text-black hover:bg-gray-100"
                 )}
+                title="Voice Search"
               >
-                <Mic className={cn("h-4 w-4", isListening && "animate-pulse")} />
+                <Mic className={cn("h-4 w-4", isListening && "animate-bounce")} />
               </Button>
               <Button 
                 variant="ghost" 

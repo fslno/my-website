@@ -290,9 +290,10 @@ export function Footer({ initialTheme }: { initialTheme?: any }) {
                     type="submit" 
                     disabled={isSubmitting || isSubscribed}
                     className={cn(
-                      "h-14 w-full rounded-none font-bold uppercase tracking-[0.3em] text-[10px] transition-all active:scale-[0.98] shadow-lg",
+                      "h-14 w-full font-bold uppercase tracking-[0.3em] text-[10px] transition-all active:scale-[0.98] shadow-lg",
                       textColorClass === 'text-black' ? 'bg-black text-white hover:bg-zinc-800' : 'bg-white text-black hover:bg-zinc-100'
                     )}
+                    style={{ borderRadius: 'var(--btn-radius)' }}
                   >
                     {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : isSubscribed ? <CheckCircle2 className="h-4 w-4" /> : "Subscribe"}
                   </button>

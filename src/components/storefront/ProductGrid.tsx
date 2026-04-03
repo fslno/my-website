@@ -232,36 +232,11 @@ export function ProductGrid({
 
   if (isInitialLoading) {
     return (
-      <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24">
+      <div className="max-w-[1440px] mx-auto px-4 pt-0 pb-24 min-h-[100vh]">
         <div className={gridClasses}>
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-1.5 py-1">
-              <div className="w-full aspect-square rounded-sm bg-gray-50 relative overflow-hidden border border-gray-100">
-                <Skeleton className="w-full h-full rounded-none" />
-              </div>
-              <div className="flex flex-col py-1 gap-1">
-                {/* Price Skeleton */}
-                <div className="h-5 sm:h-6 flex items-center">
-                  <Skeleton className="h-3 w-16 bg-gray-100 rounded-none" />
-                </div>
-                {/* Title Skeleton */}
-                <div className="h-[2.4rem] sm:h-[2.8rem] flex flex-col justify-start mt-0.5">
-                  <Skeleton className="h-3 w-full bg-gray-50 rounded-none mt-1" />
-                  <Skeleton className="h-3 w-2/3 bg-gray-50 rounded-none mt-1.5" />
-                </div>
-                {/* Brand/SKU Skeleton */}
-                <div className="h-4 flex items-center mt-0.5">
-                  <Skeleton className="h-2 w-24 bg-gray-100 rounded-none" />
-                </div>
-                {/* Stock Skeleton */}
-                <div className="h-4 flex items-center mt-1">
-                  <Skeleton className="h-2 w-12 bg-gray-50 rounded-none" />
-                </div>
-                {/* Reviews Skeleton */}
-                <div className="h-4 flex items-center mt-1">
-                  <Skeleton className="h-2 w-20 bg-gray-50 rounded-none" />
-                </div>
-              </div>
+              <div className="w-full aspect-square bg-white relative overflow-hidden" />
             </div>
           ))}
         </div>
@@ -317,6 +292,7 @@ export function ProductGrid({
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage === 1 || isLoadingMore}
               className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border border-gray-200 hover:border-black disabled:opacity-30 disabled:border-gray-100 transition-all active:scale-95 text-xs font-bold"
+              style={{ borderRadius: 'var(--btn-radius)' }}
             >
               ←
             </button>
@@ -346,9 +322,10 @@ export function ProductGrid({
                     className={cn(
                       "w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xs font-black transition-all active:scale-95",
                       currentPage === page 
-                        ? "bg-black text-white" 
+                        ? "btn-theme" 
                         : "bg-transparent text-gray-400 hover:text-black hover:bg-gray-50"
                     )}
+                    style={{ borderRadius: 'var(--btn-radius)' }}
                   >
                     {String(page).padStart(2, '0')}
                   </button>
@@ -361,6 +338,7 @@ export function ProductGrid({
               onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage === Math.ceil(totalCount / ITEMS_PER_PAGE) || isLoadingMore}
               className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border border-gray-200 hover:border-black disabled:opacity-30 disabled:border-gray-100 transition-all active:scale-95 text-xs font-bold"
+              style={{ borderRadius: 'var(--btn-radius)' }}
             >
               →
             </button>

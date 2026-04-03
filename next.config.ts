@@ -22,7 +22,7 @@ const config = {
   },
 
   // 03. Server-side packages
-  serverExternalPackages: ['@google-cloud/firestore', 'firebase-admin'],
+  serverExternalPackages: ['@google-cloud/firestore', 'firebase-admin', 'ssh2-sftp-client', 'ssh2'],
 
   experimental: {
     authInterrupts: true,

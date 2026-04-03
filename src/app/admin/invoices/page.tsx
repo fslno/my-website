@@ -30,7 +30,8 @@ import {
   Info,
   Truck,
   RefreshCw,
-  Mic
+  Mic,
+  X
 } from 'lucide-react';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
@@ -277,8 +278,8 @@ export default function InvoiceMakerPage() {
         payment_method: paymentMethod?.toUpperCase() || 'MANUAL',
         product_list: formatProductList(items),
         product_manifest: formatProductListHtml(items),
-        business_address: senderAddress || 'Feiselino (FSLNO) Sport Jerseys',
-        business_name: 'Feiselino (FSLNO) Sport Jerseys'
+        business_address: senderAddress || 'Feiselino (FSLNO) Teams',
+        business_name: 'Feiselino (FSLNO) Teams'
       });
 
       toast({ 
@@ -480,39 +481,49 @@ export default function InvoiceMakerPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
+                <div className="relative group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 z-10" />
                   <Input 
                     placeholder="SCAN BY NAME OR SKU..." 
                     value={searchQuery}
                     ref={searchInputRef}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white border-[#e1e3e5] h-11 pl-10 pr-12 uppercase font-black text-[9px] tracking-widest focus-visible:ring-black/5"
+                    className="bg-white border-[#e1e3e5] h-11 pl-10 pr-20 uppercase font-black text-[9px] tracking-widest focus-visible:ring-black/5 relative z-0"
                   />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={startVoiceSearch}
-                    className={cn(
-                      "absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-[#8c9196] hover:text-black transition-colors rounded-none",
-                      isListening && "text-blue-500 bg-blue-50 animate-pulse"
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                    {isSearching ? (
+                      <div className="h-8 w-8 flex items-center justify-center">
+                        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                      </div>
+                    ) : (searchQuery || pendingProduct) && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => {
+                          setSearchQuery("");
+                          setSearchResults([]);
+                          setPendingProduct(null);
+                        }}
+                        className="h-8 w-8 rounded-none text-gray-400 hover:text-black hover:bg-gray-100"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     )}
-                  >
-                    <Mic className="h-4 w-4" />
-                  </Button>
-                  {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />}
-                  {(searchQuery || pendingProduct) && !isSearching && (
-                    <button 
-                      onClick={() => {
-                        setSearchQuery('');
-                        setSearchResults([]);
-                        setPendingProduct(null);
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={startVoiceSearch}
+                      className={cn(
+                        "h-8 w-8 rounded-none transition-all duration-300",
+                        isListening 
+                          ? "text-blue-500 bg-blue-50 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" 
+                          : "text-gray-400 hover:text-black hover:bg-gray-100"
+                      )}
+                      title="Voice Search"
                     >
-                      <Plus className="h-4 w-4 rotate-45" />
-                    </button>
-                  )}
+                      <Mic className={cn("h-4 w-4", isListening && "animate-bounce")} />
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Backdrop and HUD Local Selection Dropdown */}

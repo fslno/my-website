@@ -30,16 +30,12 @@ export function CategorySection({ initialCategories }: { initialCategories?: any
 
   if (isLoading) {
     return (
-      <section className="py-6 sm:py-12 bg-white border-b">
+      <section className="py-6 sm:py-12 bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="h-20 w-48 bg-muted animate-pulse mb-12" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-2 md:gap-x-6 md:gap-y-12 max-w-[1143.6px] mx-auto">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-4">
-                <div className="aspect-square bg-white relative overflow-hidden border border-gray-100 rounded-sm">
-                  <Skeleton className="w-full h-full rounded-none" />
-                </div>
-                <div className="h-4 w-24 bg-gray-50 animate-pulse" />
+                <div className="aspect-square bg-white relative overflow-hidden" />
               </div>
             ))}
           </div>

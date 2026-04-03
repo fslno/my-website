@@ -48,14 +48,6 @@ export function SplashScreen({ isVisible, onComplete }: SplashScreenProps) {
         "fixed inset-0 z-[100000] flex items-center justify-center bg-white transition-opacity duration-300 ease-in-out",
         isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
       )}
-    >
-      <div className="flex items-center justify-center">
-        <img
-          src="https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png"
-          alt="FSLNO Logo"
-          className="w-[120px] h-[120px] max-w-[50vw] object-contain animate-pulse duration-[2000ms]"
-        />
-      </div>
-    </div>
+    />
   );
 }

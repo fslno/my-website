@@ -28,11 +28,28 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
   const { toast } = useToast();
 
   const activeClientId = clientId || ENV_CLIENT_ID;
+  const [buttonShape, setButtonShape] = React.useState<'rect' | 'pill'>('rect');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const rootStyles = getComputedStyle(document.documentElement);
+      const radius = rootStyles.getPropertyValue('--btn-radius').trim();
+      const radiusValue = parseInt(radius, 10);
+      if (radiusValue > 16 || radius.includes('%')) {
+        setButtonShape('pill');
+      } else {
+        setButtonShape('rect');
+      }
+    }
+  }, []);
 
   // Wait for security keys to load
   if (!activeClientId || activeClientId === 'pending' || activeClientId === 'fslno_sample_key') {
     return (
-      <div className="p-8 border-2 border-dashed border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-3">
+      <div 
+        className="p-8 border-2 border-dashed border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-3"
+        style={{ borderRadius: 'var(--btn-radius)' }}
+      >
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Checking security keys...</p>
       </div>
     );
@@ -52,7 +69,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
         <PayPalButtons
           style={{ 
             layout: 'vertical', 
-            shape: 'rect',
+            shape: buttonShape,
             color: 'gold',
             label: 'paypal',
             height: 50

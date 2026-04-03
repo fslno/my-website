@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface UseVoiceSearchProps {
@@ -9,6 +9,16 @@ interface UseVoiceSearchProps {
 export function useVoiceSearch({ onResult, lang = 'en-US' }: UseVoiceSearchProps) {
   const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
+  const recognitionRef = useRef<any>(null);
+
+  // Cleanup on unmount to prevent leaks and "aborted" errors
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
 
   const startVoiceSearch = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -22,7 +32,16 @@ export function useVoiceSearch({ onResult, lang = 'en-US' }: UseVoiceSearchProps
       return;
     }
 
+    // Toggle behavior: if already listening, stop it.
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      return;
+    }
+
+    // Initialize only if not exists or to ensure clean state
     const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    
     recognition.lang = lang;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
@@ -40,6 +59,13 @@ export function useVoiceSearch({ onResult, lang = 'en-US' }: UseVoiceSearchProps
     };
 
     recognition.onerror = (event: any) => {
+      // "aborted" is a common error when the service is disconnected intentionally or via tab switch
+      if (event.error === 'aborted') {
+        console.warn("Speech Recognition aborted.");
+        setIsListening(false);
+        return;
+      }
+
       console.error("Speech Recognition Error:", event.error);
       setIsListening(false);
       
@@ -53,7 +79,7 @@ export function useVoiceSearch({ onResult, lang = 'en-US' }: UseVoiceSearchProps
         toast({
           variant: "destructive",
           title: "Voice Search Error",
-          description: "Could not process your voice command. Please try again."
+          description: `Could not process your voice command (${event.error}). Please try again.`
         });
       }
     };
@@ -64,7 +90,7 @@ export function useVoiceSearch({ onResult, lang = 'en-US' }: UseVoiceSearchProps
       console.error("Speech Recognition Start Error:", e);
       setIsListening(false);
     }
-  }, [onResult, lang, toast]);
+  }, [onResult, lang, toast, isListening]);
 
   return {
     isListening,

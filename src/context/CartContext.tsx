@@ -48,6 +48,8 @@ export interface CartItem {
   specialNote?: string;
   productId?: string;
   isPromo?: boolean;
+  isLoyaltyReward?: boolean;
+  description?: string;
   createdAt?: any;
   customizationEnabled?: boolean;
   logistics?: {
@@ -81,6 +83,10 @@ interface CartContextType {
   thresholdProgress: number;
   THRESHOLD_VALUE: number;
   promoConfig: any;
+  shippingConfig: any;
+  isFreeShippingEligible: boolean;
+  FREE_SHIPPING_THRESHOLD: number;
+  shippingProgress: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -122,8 +128,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return doc(db, 'config', 'promotions');
   }, [db]);
 
+  const shippingConfigRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'config', 'shipping');
+  }, [db]);
+
   const { data: dbItems, isLoading: isSyncing } = useCollection(cartQuery);
   const { data: promoConfig } = useDoc(promoConfigRef);
+  const { data: shippingConfig } = useDoc(shippingConfigRef);
 
   const cartData = user 
     ? (dbItems || []).map(item => ({
@@ -160,13 +172,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Prepend reward to keep "New" items at the top
       return [{
         id: 'promo-reward',
-        variantId: 'promo-reward-free',
-        name: bogoItemName || 'Special Reward',
+        variantId: 'promo-reward',
+        name: promoConfig?.bogoItemName || 'WOO HOO! YOU GOT A FREE KIT!',
         price: 0,
         quantity: 1,
-        image: 'https://placehold.co/400x400?text=ARCHIVE+REWARD',
+        image: '/images/promo-gift.png',
         size: 'OS',
         isPromo: true,
+        isLoyaltyReward: true,
+        description: 'A special thank you for being a loyal FSLNO customer!',
         createdAt: Date.now()
       }, ...cartData];
     }
@@ -217,6 +231,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Progress tracking for UI
   const effectiveThreshold = promoConfig?.thresholdEnabled ? (promoConfig.thresholdValue || 1000) : 1000;
   const thresholdProgress = Math.min(100, (cartSubtotal / effectiveThreshold) * 100);
+
+  // Free Shipping Logic (Centralized)
+  const isFreeShippingEnabled = shippingConfig?.freeShippingEnabled ?? false;
+  const freeShippingThreshold = Number(shippingConfig?.freeShippingThreshold) || 500;
+  const isFreeShippingEligible = isFreeShippingEnabled && cartSubtotal >= freeShippingThreshold;
+  const shippingProgress = Math.min(100, (cartSubtotal / freeShippingThreshold) * 100);
 
   const addToCart = (newItem: CartItem) => {
     if (user && db) {
@@ -313,7 +333,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       cartCount, cartSubtotal, discountTotal, totalBeforeTax, 
       isSyncing, appliedCoupon, applyCoupon: setAppliedCoupon,
       thresholdProgress, THRESHOLD_VALUE: effectiveThreshold,
-      promoConfig
+      promoConfig,
+      shippingConfig,
+      isFreeShippingEligible,
+      FREE_SHIPPING_THRESHOLD: freeShippingThreshold,
+      shippingProgress
     }}>
       {children}
     </CartContext.Provider>

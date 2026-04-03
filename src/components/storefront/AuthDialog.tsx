@@ -128,7 +128,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               type="button" 
               variant="outline" 
               onClick={handleGoogleSignIn}
-              className="w-full h-12 border-black font-bold uppercase tracking-widest text-[10px] rounded-none flex items-center justify-center gap-2 hover:bg-gray-50"
+              className="w-full h-12 btn-theme-outline border-none font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -185,7 +185,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                   <Button 
                     type="submit" 
                     disabled={isLoading}
-                    className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all"
+                    className="w-full h-14 btn-theme text-[10px] tracking-[0.2em]"
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
                   </Button>
@@ -237,7 +237,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                   <Button 
                     type="submit" 
                     disabled={isLoading}
-                    className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all"
+                    className="w-full h-14 btn-theme text-[10px] tracking-[0.2em]"
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Join"}
                   </Button>

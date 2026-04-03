@@ -191,6 +191,7 @@ export default function SettingsPage() {
   const [staffPhone, setStaffPhone] = useState('');
   const [staffTimezone, setStaffTimezone] = useState('(UTC-05:00) Eastern Time');
   const [staffStatus, setStaffStatus] = useState<'Active' | 'Inactive'>('Active');
+  const [staffRole, setStaffRole] = useState<'Admin' | 'Staff'>('Staff');
 
   const [chatbotEnabled, setChatbotEnabled] = useState(true);
   const [chatbotPosition, setChatbotPosition] = useState<'left' | 'right'>('right');
@@ -201,16 +202,7 @@ export default function SettingsPage() {
   const [chatbotGapBottom, setChatbotGapBottom] = useState('32');
   const [chatbotGapSide, setChatbotGapSide] = useState('32');
 
-  // Button Theme Engine
-  const [btnScale, setBtnScale] = useState('1.0');
-  const [btnRadius, setBtnRadius] = useState('4');
-  const [btnPrimaryColor, setBtnPrimaryColor] = useState('#000000');
-  const [btnHoverColor, setBtnHoverColor] = useState('#D3D3D3');
-  const [btnFontWeight, setBtnFontWeight] = useState('500');
-  const [btnTextTransform, setBtnTextTransform] = useState('none');
-  const [btnBorderWidth, setBtnBorderWidth] = useState('0');
-  const [btnPaddingX, setBtnPaddingX] = useState('16');
-  const [btnPaddingY, setBtnPaddingY] = useState('8');
+
 
   // Security State
   const { user } = useUser();
@@ -269,16 +261,7 @@ export default function SettingsPage() {
       setChatbotGapBottom(themeData.chatbotGapBottom?.toString() || '32');
       setChatbotGapSide(themeData.chatbotGapSide?.toString() || '32');
       
-      // Button Theme Population
-      setBtnScale(themeData.buttonStyles?.scale?.toString() || '1.0');
-      setBtnRadius(themeData.buttonStyles?.borderRadius?.toString() || '4');
-      setBtnPrimaryColor(themeData.buttonStyles?.primaryColor || '#000000');
-      setBtnHoverColor(themeData.buttonStyles?.hoverColor || '#D3D3D3');
-      setBtnFontWeight(themeData.buttonStyles?.fontWeight || '500');
-      setBtnTextTransform(themeData.buttonStyles?.textTransform || 'none');
-      setBtnBorderWidth(themeData.buttonStyles?.borderWidth?.toString() || '0');
-      setBtnPaddingX(themeData.buttonStyles?.paddingX?.toString() || '16');
-      setBtnPaddingY(themeData.buttonStyles?.paddingY?.toString() || '8');
+
 
       setShowBrand(themeData.showBrand !== false);
       setMaintenanceMode(themeData.maintenanceMode ?? false);
@@ -422,28 +405,7 @@ export default function SettingsPage() {
       .finally(() => setIsSaving(false));
   };
 
-  const handleSaveButtonStyles = async () => {
-    if (!themeRef) return;
-    setIsSaving(true);
-    const updates = { 
-      buttonStyles: {
-        scale: parseFloat(btnScale) || 1.0,
-        borderRadius: parseInt(btnRadius) || 0,
-        primaryColor: btnPrimaryColor,
-        hoverColor: btnHoverColor,
-        fontWeight: btnFontWeight,
-        textTransform: btnTextTransform,
-        borderWidth: parseInt(btnBorderWidth) || 0,
-        paddingX: parseInt(btnPaddingX) || 16,
-        paddingY: parseInt(btnPaddingY) || 8,
-      },
-      updatedAt: serverTimestamp() 
-    };
-    setDoc(themeRef, updates, { merge: true })
-      .then(() => toast({ title: "Aesthetics Updated", description: "Storefront button themes have been synchronized." }))
-      .catch((error) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: themeRef.path, operation: 'write', requestResourceData: updates })))
-      .finally(() => setIsSaving(false));
-  };
+
 
   const handleUpdatePassword = async () => {
     if (!auth?.currentUser || !newPassword) return;
@@ -564,6 +526,7 @@ export default function SettingsPage() {
       phone: staffPhone,
       timezone: staffTimezone,
       status: staffStatus,
+      role: staffRole,
       updatedAt: serverTimestamp()
     };
 
@@ -599,6 +562,7 @@ export default function SettingsPage() {
     setStaffPhone(staff.phone || '');
     setStaffTimezone(staff.timezone || '(UTC-05:00) Eastern Time');
     setStaffStatus(staff.status || 'Active');
+    setStaffRole(staff.role || 'Staff');
     setEditingStaffId(staff.id);
     setIsStaffDialogOpen(true);
   };
@@ -609,6 +573,7 @@ export default function SettingsPage() {
     setStaffPhone('');
     setStaffTimezone('(UTC-05:00) Eastern Time');
     setStaffStatus('Active');
+    setStaffRole('Staff');
     setEditingStaffId(null);
   };
 
@@ -618,7 +583,6 @@ export default function SettingsPage() {
     else if (activeTab === 'support') handleSaveChatbot();
     else if (activeTab === 'security') handleUpdatePassword();
     else if (activeTab === 'maintenance') handleSaveMaintenance();
-    else if (activeTab === 'theme') handleSaveButtonStyles();
   };
 
   const addPhoneNumber = () => setPhoneNumbers([...phoneNumbers, { label: 'Phone', value: '' }]);
@@ -680,9 +644,7 @@ export default function SettingsPage() {
           <TabsTrigger value="notifications" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
             <Bell className="h-3.5 w-3.5" /> Notifications
           </TabsTrigger>
-          <TabsTrigger value="theme" className="flex-grow sm:flex-grow-0 gap-2 px-4 sm:px-6 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] data-[state=active]:bg-black data-[state=active]:text-white h-10 transition-all">
-            <Palette className="h-3.5 w-3.5" /> Theme Engine
-          </TabsTrigger>
+
         </TabsList>
 
         <TabsContent value="store" className="space-y-12 animate-in fade-in duration-300">
@@ -993,7 +955,7 @@ export default function SettingsPage() {
                       <div className="space-y-2">
                         <Label className="text-[9px] uppercase font-bold text-gray-500">Status</Label>
                         <Select value={staffStatus} onValueChange={(v: any) => setStaffStatus(v)}>
-                          <SelectTrigger className="h-12">
+                          <SelectTrigger className="h-12 uppercase font-bold text-[10px]">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -1002,6 +964,18 @@ export default function SettingsPage() {
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+                    <div className="space-y-2">
+                       <Label className="text-[9px] uppercase font-bold text-gray-500">Access Level / Role</Label>
+                       <Select value={staffRole} onValueChange={(v: any) => setStaffRole(v)}>
+                          <SelectTrigger className="h-12 uppercase font-bold text-[10px] border-black/10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Admin" className="text-[10px] font-bold uppercase">Administrator (Full Access)</SelectItem>
+                            <SelectItem value="Staff" className="text-[10px] font-bold uppercase">Store Staff (Standard)</SelectItem>
+                          </SelectContent>
+                        </Select>
                     </div>
                   </div>
                   <DialogFooter>
@@ -1038,7 +1012,12 @@ export default function SettingsPage() {
                               <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center font-bold text-[10px] border shadow-sm uppercase shrink-0">
                                 {staff.fullName?.substring(0, 2)}
                               </div>
-                              <span className="font-bold text-xs uppercase tracking-tight">{staff.fullName}</span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="font-bold text-xs uppercase tracking-tight">{staff.fullName}</span>
+                                {staff.role === 'Admin' && (
+                                  <span className="text-[7px] bg-black text-white px-1.5 py-0.5 font-bold uppercase tracking-[0.2em] w-fit">Admin</span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -1056,11 +1035,11 @@ export default function SettingsPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="pr-6">
-                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black hover:text-white" onClick={() => openStaffEdit(staff)}>
+                            <div className="flex justify-end gap-2 transition-opacity">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black hover:text-white border border-black/5" onClick={() => openStaffEdit(staff)}>
                                 <Settings2 className="h-3.5 w-3.5" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-50" onClick={() => deleteStaff(staff.id)}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-50 border border-black/5" onClick={() => deleteStaff(staff.id)}>
                                 <Trash2 className="h-3.5 w-3.5 text-red-500" />
                               </Button>
                             </div>
@@ -1086,10 +1065,13 @@ export default function SettingsPage() {
                             {staff.fullName?.substring(0, 2)}
                           </div>
                           <div className="space-y-0.5">
-                            <p className="font-bold text-sm uppercase tracking-tight">{staff.fullName}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-sm uppercase tracking-tight">{staff.fullName}</p>
+                              {staff.role === 'Admin' && <Badge className="bg-black text-white text-[7px] h-4 rounded-none uppercase tracking-widest font-bold border-none">Admin</Badge>}
+                            </div>
                             <Badge variant="outline" className={cn("text-[7px] font-bold uppercase tracking-widest border-none h-4 px-1.5", staff.status === 'Active' ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")}>
-                              {staff.status}
-                            </Badge>
+                               {staff.status}
+                             </Badge>
                           </div>
                         </div>
                         <div className="flex gap-1">
@@ -1734,212 +1716,6 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
-        <TabsContent value="theme" className="space-y-12 animate-in fade-in duration-300">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className="lg:col-span-2 border-[#e1e3e5] shadow-none rounded-none overflow-hidden">
-              <CardHeader className="border-b bg-gray-50/30">
-                <div className="flex items-center gap-2">
-                  <Palette className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg font-headline uppercase tracking-tight">Button Theme Engine</CardTitle>
-                </div>
-                <CardDescription className="text-xs font-bold uppercase tracking-tight">Master the aesthetic delivery of storefront interactive elements.</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-8 p-4 sm:p-8 space-y-10">
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="space-y-6">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Global Scale</Label>
-                        <span className="text-[10px] font-mono font-bold text-primary">{btnScale}X</span>
-                      </div>
-                      <input 
-                        type="range" min="0.7" max="1.5" step="0.05" value={btnScale} 
-                        onChange={(e) => setBtnScale(e.target.value)} 
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Corner Radius</Label>
-                        <span className="text-[10px] font-mono font-bold text-primary">{btnRadius}PX</span>
-                      </div>
-                      <div className="grid grid-cols-5 gap-2 mb-2">
-                        {[0, 4, 8, 16, 99].map(r => (
-                          <button 
-                            key={r}
-                            onClick={() => setBtnRadius(r.toString())}
-                            className={cn(
-                              "h-8 border text-[8px] font-bold uppercase tracking-tighter transition-all",
-                              btnRadius === r.toString() ? "bg-black text-white border-black" : "bg-white text-gray-400 border-gray-100 hover:border-gray-300"
-                            )}
-                          >
-                            {r === 0 ? 'None' : r === 99 ? 'Pill' : `${r}px`}
-                          </button>
-                        ))}
-                      </div>
-                      <input 
-                        type="range" min="0" max="40" step="1" value={btnRadius === '99' ? '40' : btnRadius} 
-                        onChange={(e) => setBtnRadius(e.target.value)} 
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Font Weight</Label>
-                        <Select value={btnFontWeight} onValueChange={setBtnFontWeight}>
-                          <SelectTrigger className="h-11 font-bold">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="300" className="font-light">300 Light</SelectItem>
-                            <SelectItem value="400" className="font-normal">400 Normal</SelectItem>
-                            <SelectItem value="500" className="font-medium">500 Medium</SelectItem>
-                            <SelectItem value="600" className="font-semibold">600 Semibold</SelectItem>
-                            <SelectItem value="700" className="font-bold">700 Bold</SelectItem>
-                            <SelectItem value="800" className="font-extrabold">800 Black</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Case</Label>
-                        <Select value={btnTextTransform} onValueChange={setBtnTextTransform}>
-                          <SelectTrigger className="h-11 font-bold uppercase text-[10px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Normal Case</SelectItem>
-                            <SelectItem value="uppercase">UPPERCASE</SelectItem>
-                            <SelectItem value="lowercase">lowercase</SelectItem>
-                            <SelectItem value="capitalize">Capitalize</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Brand Primary (Background)</Label>
-                      <div className="flex gap-2">
-                        <div className="w-11 h-11 rounded-sm border p-1 bg-white shadow-sm overflow-hidden shrink-0"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={btnPrimaryColor} onChange={(e) => setBtnPrimaryColor(e.target.value)} /></div>
-                        <Input value={btnPrimaryColor} onChange={(e) => setBtnPrimaryColor(e.target.value)} className="h-11 font-mono text-xs uppercase" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Hover State Color</Label>
-                      <div className="flex gap-2">
-                        <div className="w-11 h-11 rounded-sm border p-1 bg-white shadow-sm overflow-hidden shrink-0"><Input type="color" className="w-[150%] h-[150%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" value={btnHoverColor} onChange={(e) => setBtnHoverColor(e.target.value)} /></div>
-                        <Input value={btnHoverColor} onChange={(e) => setBtnHoverColor(e.target.value)} className="h-11 font-mono text-xs uppercase" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Padding X</Label>
-                        <Input type="number" value={btnPaddingX} onChange={(e) => setBtnPaddingX(e.target.value)} className="h-11 font-bold" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Padding Y</Label>
-                        <Input type="number" value={btnPaddingY} onChange={(e) => setBtnPaddingY(e.target.value)} className="h-11 font-bold" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Border Width</Label>
-                      <input 
-                        type="range" min="0" max="5" step="1" value={btnBorderWidth} 
-                        onChange={(e) => setBtnBorderWidth(e.target.value)} 
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" 
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-[#e1e3e5] shadow-none rounded-none bg-gray-50/50">
-              <CardHeader className="border-b">
-                <div className="flex items-center gap-2">
-                  <Maximize2 className="h-4 w-4 text-gray-400" />
-                  <CardTitle className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Engine Preview</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center min-h-[300px] p-8 gap-8">
-                <p className="text-[8px] font-bold uppercase text-gray-400 tracking-widest mb-4">Storefront Add-to-Cart Preview</p>
-                
-                <div className="flex flex-col items-center gap-6">
-                  <button 
-                    style={{
-                      transform: `scale(${btnScale})`,
-                      borderRadius: `${btnRadius}px`,
-                      backgroundColor: btnPrimaryColor,
-                      color: '#FFFFFF', // Assuming high contrast for now
-                      fontWeight: btnFontWeight,
-                      textTransform: btnTextTransform as any,
-                      border: `${btnBorderWidth}px solid rgba(0,0,0,0.1)`,
-                      padding: `${btnPaddingY}px ${btnPaddingX}px`,
-                      transition: 'all 0.3s ease'
-                    }}
-                    className="whitespace-nowrap shadow-xl"
-                  >
-                    Add to Cart
-                  </button>
-
-                  <button 
-                    style={{
-                      transform: `scale(${btnScale})`,
-                      borderRadius: `${btnRadius}px`,
-                      backgroundColor: btnHoverColor,
-                      color: '#333333',
-                      fontWeight: btnFontWeight,
-                      textTransform: btnTextTransform as any,
-                      border: `${btnBorderWidth}px solid rgba(0,0,0,0.1)`,
-                      padding: `${btnPaddingY}px ${btnPaddingX}px`,
-                      transition: 'all 0.3s ease'
-                    }}
-                    className="whitespace-nowrap shadow-sm opacity-90"
-                  >
-                    Hover State
-                  </button>
-                </div>
-
-                <div className="mt-12 p-4 border border-dashed border-gray-200 w-full rounded-sm">
-                  <p className="text-[7px] font-bold uppercase text-gray-400 mb-2">Technical Token</p>
-                  <code className="text-[8px] font-mono text-primary block break-all">
-                    --btn-scale: {btnScale};<br/>
-                    --btn-radius: {btnRadius}px;<br/>
-                    --btn-primary: {btnPrimaryColor};
-                  </code>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="bg-black text-white p-6 sm:p-8 rounded-none space-y-6 shadow-2xl">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-6 w-6 text-yellow-400" />
-              <div>
-                <h3 className="text-sm font-headline font-bold uppercase tracking-tight">Synchronize Theme Engine</h3>
-                <p className="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Updates will apply site-wide to all storefront components.</p>
-              </div>
-            </div>
-            <Separator className="bg-white/10" />
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
-              <div className="flex items-center gap-2 text-green-400">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[9px] font-bold uppercase tracking-widest">Aesthetics Verified</span>
-              </div>
-              <Button onClick={handleSaveButtonStyles} disabled={isSaving} className="w-full sm:w-auto bg-white text-black h-12 px-12 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-emerald-500 hover:text-white transition-all">
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Propagate Theme
-              </Button>
-            </div>
           </div>
         </TabsContent>
       </Tabs>

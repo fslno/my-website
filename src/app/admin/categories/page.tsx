@@ -328,25 +328,40 @@ export default function CategoriesPage() {
           <p className="text-[#5c5f62] mt-1 text-[10px] sm:text-sm uppercase font-medium tracking-tight">Group products and manage SEO.</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:min-w-[300px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
+          <div className="relative flex-1 sm:min-w-[300px] group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196] z-10" />
             <Input 
               placeholder="SEARCH CATEGORIES..." 
-              className="pl-10 pr-12 h-10 bg-white border-[#e1e3e5] rounded-none font-bold uppercase text-[10px] tracking-widest focus-visible:ring-black/10"
+              className="pl-10 pr-20 h-10 bg-white border-[#e1e3e5] rounded-none font-bold uppercase text-[10px] tracking-widest focus-visible:ring-black/10 relative z-0"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={startMainVoiceSearch}
-              className={cn(
-                "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-[#8c9196] hover:text-black transition-colors rounded-none",
-                isMainListening && "text-blue-500 bg-blue-50 animate-pulse"
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+              {searchQuery && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setSearchQuery("")}
+                  className="h-8 w-8 rounded-none text-gray-400 hover:text-black hover:bg-gray-100"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
               )}
-            >
-              <Mic className="h-3.5 w-3.5" />
-            </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={startMainVoiceSearch}
+                className={cn(
+                  "h-8 w-8 rounded-none transition-all duration-300",
+                  isMainListening 
+                    ? "text-blue-500 bg-blue-50 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" 
+                    : "text-gray-400 hover:text-black hover:bg-gray-100"
+                )}
+                title="Voice Search"
+              >
+                <Mic className={cn("h-3.5 w-3.5", isMainListening && "animate-bounce")} />
+              </Button>
+            </div>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
@@ -446,19 +461,33 @@ export default function CategoriesPage() {
                               placeholder="SEARCH ALL INVENTORY..." 
                               value={productSearchQuery}
                               onChange={(e) => setProductSearchQuery(e.target.value)}
-                              className="h-12 pl-4 pr-12 uppercase text-[10px] font-bold border-black/10 focus-visible:ring-black"
+                              className="h-12 pl-4 pr-20 uppercase text-[10px] font-bold border-black/10 focus-visible:ring-black"
                             />
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={startProductVoiceSearch}
-                              className={cn(
-                                "absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-[#8c9196] hover:text-black transition-colors rounded-none",
-                                isListening && "text-blue-500 bg-blue-50 animate-pulse"
+                            <div className="absolute right-0 top-0 h-full flex items-center pr-1.5 gap-1">
+                              {productSearchQuery && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => setProductSearchQuery("")}
+                                  className="h-8 w-8 rounded-none text-gray-400 hover:text-black hover:bg-gray-100"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
                               )}
-                            >
-                              <Mic className="h-4 w-4" />
-                            </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={startProductVoiceSearch}
+                                className={cn(
+                                  "h-8 w-8 rounded-none transition-all duration-300",
+                                  isListening 
+                                    ? "text-blue-500 bg-blue-50 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" 
+                                    : "text-gray-400 hover:text-black hover:bg-gray-100"
+                                )}
+                              >
+                                <Mic className={cn("h-4 w-4", isListening && "animate-bounce")} />
+                              </Button>
+                            </div>
                           </div>
                           
                           {productSearchQuery.length >= 2 && (

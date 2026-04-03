@@ -59,7 +59,7 @@ export async function queueNotificationServer(
 
     // 2. Prepare Global Identity Variables
     const businessIdentity = {
-      business_name: storeConfig.businessName || 'Feiselino (FSLNO) Sport Jerseys',
+      business_name: storeConfig.businessName || 'Feiselino (FSLNO) Teams',
       business_email: storeConfig.email || PRIMARY_STAFF_EMAIL,
       business_phone: storeConfig.phone || '',
       business_address: storeConfig.address || 'Guelph, ON',
@@ -80,7 +80,7 @@ export async function queueNotificationServer(
 
     // 4. Prepare common fields
     const senderEmail = notifConfig.senderEmail || storeConfig.email || PRIMARY_STAFF_EMAIL;
-    const senderName = notifConfig.senderName || storeConfig.businessName || 'Feiselino (FSLNO) Sport Jerseys';
+    const senderName = notifConfig.senderName || storeConfig.businessName || 'Feiselino (FSLNO) Teams';
     
     const formattedHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f1f5f9; border-radius: 8px; color: #1a1c1e;">
@@ -89,7 +89,7 @@ export async function queueNotificationServer(
           ${body.replace(/\n/g, '<br/>')}
         </div>
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; line-height: 1.8;">
-          Feiselino (FSLNO) Sport Jerseys Team &bull; ${businessIdentity.business_address}<br/>
+          Feiselino (FSLNO) Teams Team &bull; ${businessIdentity.business_address}<br/>
           ${businessIdentity.business_phone ? `Phone: ${businessIdentity.business_phone} &bull; ` : ''}
           ${businessIdentity.business_email ? `Email: ${businessIdentity.business_email}` : ''}<br/>
           &copy; ${new Date().getFullYear()} ${businessIdentity.business_name}. All Rights Reserved.

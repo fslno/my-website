@@ -272,36 +272,36 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
       <div className="min-h-[100vh] flex flex-col bg-white">
         <div className="flex-grow mobile-wrapper pt-20 sm:pt-32 pb-32">
           <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-            <Skeleton className="h-6 w-24 mb-6" />
+            <div className="h-6 w-24 mb-6 bg-white" />
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
               <div className="md:col-span-6 lg:col-span-6 space-y-8">
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
                     {Array.from({ length: 4 }).map((_, i) => (
-                      <Skeleton key={i} className="aspect-square w-full rounded-sm" />
+                      <div key={i} className="aspect-square w-full rounded-sm bg-white" />
                     ))}
                   </div>
                   <div className="flex-1 relative">
-                    <Skeleton className="w-full aspect-square rounded-sm" />
+                    <div className="w-full aspect-square rounded-sm bg-white" />
                   </div>
                 </div>
               </div>
               <div className="md:col-span-5 lg:col-span-4 space-y-8">
                 <div className="space-y-4">
-                  <Skeleton className="h-12 w-3/4" />
-                  <Skeleton className="h-6 w-1/3" />
+                  <div className="h-12 w-3/4 bg-white" />
+                  <div className="h-6 w-1/3 bg-white" />
                 </div>
                 <div className="space-y-4 pt-4">
-                  <Skeleton className="h-4 w-1/4" />
+                  <div className="h-4 w-1/4 bg-white" />
                   <div className="grid grid-cols-4 gap-2">
                     {Array.from({ length: 4 }).map((_, i) => (
-                      <Skeleton key={i} className="h-12 w-full rounded-none" />
+                      <div key={i} className="h-12 w-full rounded-none bg-white" />
                     ))}
                   </div>
                 </div>
                 <div className="space-y-4 pt-6">
-                  <Skeleton className="h-14 w-full rounded-none" />
-                  <Skeleton className="h-12 w-full rounded-none" />
+                  <div className="h-14 w-full rounded-none bg-white" />
+                  <div className="h-12 w-full rounded-none bg-white" />
                 </div>
               </div>
             </div>
@@ -493,7 +493,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
 
 
 
-                  <div className="pt-1">
+                  <div className="pt-1 flex justify-start">
                     <ReviewSystem productId={activeProduct.id} variant="minimal" />
                   </div>
                 </div>
@@ -643,7 +643,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                       onClick={() => setWantsCustomization(false)}
                       className={cn(
                         "h-8 px-6 text-[11px] font-bold uppercase tracking-widest rounded-none transition-all",
-                        !wantsCustomization ? "bg-white text-black shadow-sm" : "bg-transparent text-gray-400 hover:text-black"
+                        !wantsCustomization ? "bg-red-600 text-white shadow-sm" : "bg-transparent text-gray-400 hover:text-red-600"
                       )}
                     >
                       No
@@ -654,7 +654,7 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
                       onClick={() => setWantsCustomization(true)}
                       className={cn(
                         "h-8 px-6 text-[11px] font-bold uppercase tracking-widest rounded-none transition-all",
-                        wantsCustomization ? "bg-white text-black shadow-sm" : "bg-transparent text-gray-400 hover:text-black"
+                        wantsCustomization ? "bg-black text-white shadow-sm" : "bg-transparent text-gray-400 hover:text-black"
                       )}
                     >
                       Yes
@@ -682,21 +682,32 @@ export function ProductDetail({ productId, initialProduct }: ProductDetailProps)
               <Button 
                 onClick={handleAddToCart} 
                 disabled={isButtonDisabled}
-                className="w-full h-14 bg-black text-white border border-black font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-gray-900 transition-all shadow-xl disabled:opacity-50 disabled:grayscale transition-all duration-500"
+                className="w-full btn-theme text-sm h-14"
               >
                 {buttonText}
               </Button>
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" onClick={() => toggleWishlist({ id: activeProduct.id, name: activeProduct.name, price: Number(activeProduct.price), image: activeProduct.media?.[0]?.url || '' })} className={cn("h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[10px] gap-2", isInWishlist(activeProduct.id) && "bg-red-50 border-red-100 text-red-600")}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => toggleWishlist({ id: activeProduct.id, name: activeProduct.name, price: Number(activeProduct.price), image: activeProduct.media?.[0]?.url || '' })} 
+                  className={cn(
+                    "btn-theme-outline border-none text-[10px] gap-2 h-12 w-full", 
+                    isInWishlist(activeProduct.id) && "bg-red-50 text-red-600 border-red-50"
+                  )}
+                >
                   <Heart className={cn("h-4 w-4", isInWishlist(activeProduct.id) && "fill-current")} /> {isInWishlist(activeProduct.id) ? 'Saved' : 'Add to Wishlist'}
                 </Button>
-                <Button variant="outline" onClick={() => { navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : ''); toast({ title: "Link Copied" }); }} className="h-12 border-gray-100 rounded-none font-bold uppercase tracking-widest text-[10px] gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => { navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : ''); toast({ title: "Link Copied" }); }} 
+                  className="btn-theme-outline border-none text-[10px] gap-2 h-12 w-full"
+                >
                   <Share2 className="h-4 w-4" /> Share
                 </Button>
               </div>
 
               <div className="pt-8 space-y-4">
-                <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-8">
+                <div className="grid grid-cols-3 gap-2 border-t-2 border-gray-200 pt-8">
                   <div className="flex flex-col items-center text-center gap-2">
                     <Truck className="h-4 w-4 text-neutral-400" />
                     <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-500">Fast Local Delivery</span>

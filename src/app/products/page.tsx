@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   
   return {
     title: "Shop All Products",
-    description: "Browse our complete collection of high-quality sport jerseys and apparel. Feiselino (FSLNO) Official Store.",
+    description: "Browse our complete collection of high-quality Teams and apparel. Feiselino (FSLNO) Official Store.",
     alternates: {
       canonical: `https://${primaryDomain}/products`,
     },

@@ -25,7 +25,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     const primaryDomain = domain?.primaryDomain || "fslno.ca";
 
     const title = categoryId === 'all' ? "Shop All Products" : (category.name || "Collection");
-    const description = category.description || `Explore our high-quality ${title} at Feiselino (FSLNO). Official sport jerseys and apparel.`;
+    const description = category.description || `Explore our high-quality ${title} at Feiselino (FSLNO). Official Teams and apparel.`;
     const canonical = `https://${primaryDomain}/collections/${categoryId}`;
 
     return {

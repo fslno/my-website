@@ -95,6 +95,8 @@ export default function StorefrontAdminPage() {
   const [heroVerticalAlign, setHeroVerticalAlign] = useState('center');
   const [heroButtonBgColor, setHeroButtonBgColor] = useState('#FFFFFF');
   const [heroButtonTextColor, setHeroButtonTextColor] = useState('#000000');
+  const [heroButtonScale, setHeroButtonScale] = useState('1.0');
+  const [heroButtonRadius, setHeroButtonRadius] = useState('0');
 
   // SEO State
   const [seoTitle, setSeoTitle] = useState('');
@@ -135,6 +137,8 @@ export default function StorefrontAdminPage() {
       setHeroVerticalAlign(theme.heroVerticalAlign || 'center');
       setHeroButtonBgColor(theme.heroButtonBgColor || '#FFFFFF');
       setHeroButtonTextColor(theme.heroButtonTextColor || '#000000');
+      setHeroButtonScale(theme.heroButtonScale?.toString() || '1.0');
+      setHeroButtonRadius(theme.heroButtonRadius?.toString() || '0');
       if (theme.heroAspectRatio) {
         setHeroAspectRatio(Number(theme.heroAspectRatio));
       }
@@ -231,8 +235,10 @@ export default function StorefrontAdminPage() {
       heroSubheadlineSize: Number(heroSubheadlineSize),
       heroTextAlign,
       heroVerticalAlign,
-      heroButtonBgColor,
+       heroButtonBgColor,
       heroButtonTextColor,
+      heroButtonScale: Number(heroButtonScale),
+      heroButtonRadius: Number(heroButtonRadius),
       heroAspectRatio: Number(heroAspectRatio),
       updatedAt: serverTimestamp()
     };
@@ -540,6 +546,30 @@ export default function StorefrontAdminPage() {
                           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
                         />
                       </div>
+
+                      <div className="space-y-4 pt-4 border-t border-dashed">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Button Scale (Padding)</Label>
+                          <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroButtonScale}X</Badge>
+                        </div>
+                        <input
+                          type="range" min="0.5" max="2.0" step="0.1" value={heroButtonScale}
+                          onChange={(e) => setHeroButtonScale(e.target.value)}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
+                        />
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t border-dashed">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Button Shape (Radius)</Label>
+                          <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroButtonRadius}PX</Badge>
+                        </div>
+                        <input
+                          type="range" min="0" max="40" step="1" value={heroButtonRadius}
+                          onChange={(e) => setHeroButtonRadius(e.target.value)}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -715,12 +745,17 @@ export default function StorefrontAdminPage() {
                     {heroHeadline || 'THE ARCHIVE SELECTION'}
                   </h3>
                   <div
-                    className="w-24 h-7 flex items-center justify-center text-[7px] font-bold uppercase tracking-widest mt-4"
+                    className="flex items-center justify-center font-bold uppercase tracking-widest mt-4 transition-all duration-300"
                     style={{
                       backgroundColor: heroButtonBgColor,
                       color: heroButtonTextColor,
                       marginLeft: heroTextAlign === 'left' ? '0' : heroTextAlign === 'right' ? 'auto' : 'auto',
                       marginRight: heroTextAlign === 'right' ? '0' : heroTextAlign === 'left' ? 'auto' : 'auto',
+                      padding: `${8 * Number(heroButtonScale)}px ${24 * Number(heroButtonScale)}px`,
+                      borderRadius: `${heroButtonRadius}px`,
+                      fontSize: `${Math.max(6, 7 * Number(heroButtonScale))}px`,
+                      height: 'auto',
+                      minHeight: `${24 * Number(heroButtonScale)}px`
                     }}
                   >
                     {heroButtonText || 'SHOP NOW'}

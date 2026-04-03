@@ -93,14 +93,14 @@ const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
     description: "Sent after purchase. Confirms order and begins prep.",
     enabled: true,
     subject: "Order Confirmed: #{{order_id}}",
-    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} from Feiselino (FSLNO) Sport Jerseys is confirmed. We're getting your items ready.\n\nYOUR SELECTION:\n{{product_list}}\n\nPayment Method: {{payment_method}}\nTotal: {{order_total}}\n\nSTUDIO:\n{{business_address}}\n{{business_phone}}\n\nWe'll let you know when it ships!"
+    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} from Feiselino (FSLNO) Teams is confirmed. We're getting your items ready.\n\nYOUR SELECTION:\n{{product_list}}\n\nPayment Method: {{payment_method}}\nTotal: {{order_total}}\n\nSTUDIO:\n{{business_address}}\n{{business_phone}}\n\nWe'll let you know when it ships!"
   },
   statusChanged: {
     label: "Status Update",
     description: "Sent when order status changes (e.g. Processing, Packed).",
     enabled: true,
     subject: "Update: Order #{{order_id}} is {{status}}",
-    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} has been updated.\n\nNEW STATUS: {{status}}\n\nRegards,\nFeiselino (FSLNO) Sport Jerseys"
+    body: "Hi {{customer_name}},\n\nYour order #{{order_id}} has been updated.\n\nNEW STATUS: {{status}}\n\nRegards,\nFeiselino (FSLNO) Teams"
   },
   shipped: {
     label: "Order Shipped",
@@ -127,8 +127,8 @@ const DEFAULT_NOTIFICATIONS: Record<string, NotificationConfig> = {
     label: "Invoice Delivery",
     description: "Sent when an invoice is manually triggered from Invoice Maker.",
     enabled: true,
-    subject: "{{invoice_number}} - Your Invoice from Feiselino (FSLNO) Sport Jerseys",
-    body: "Hi {{customer_name}},\n\nPlease find your invoice {{invoice_number}} for {{order_total}} below.\n\nItems:\n{{product_list}}\n\nPayment Method: {{payment_method}}\nTotal: {{order_total}}\n\nRegards,\nFeiselino (FSLNO) Sport Jerseys"
+    subject: "{{invoice_number}} - Your Invoice from Feiselino (FSLNO) Teams",
+    body: "Hi {{customer_name}},\n\nPlease find your invoice {{invoice_number}} for {{order_total}} below.\n\nItems:\n{{product_list}}\n\nPayment Method: {{payment_method}}\nTotal: {{order_total}}\n\nRegards,\nFeiselino (FSLNO) Teams"
   }
 };
 
@@ -137,8 +137,8 @@ const DEFAULT_MARKETING: Record<string, NotificationConfig> = {
     label: "Welcome Email",
     description: "Sent immediately after someone joins the group.",
     enabled: true,
-    subject: "Welcome to Feiselino (FSLNO) Sport Jerseys",
-    body: "Hi {{customer_name}},\n\nYou've joined Feiselino (FSLNO) Sport Jerseys. You'll be the first to see new arrivals and exclusive drops.\n\nRegards,\nFeiselino (FSLNO) Sport Jerseys"
+    subject: "Welcome to Feiselino (FSLNO) Teams",
+    body: "Hi {{customer_name}},\n\nYou've joined Feiselino (FSLNO) Teams. You'll be the first to see new arrivals and exclusive drops.\n\nRegards,\nFeiselino (FSLNO) Teams"
   },
   cartRecovery: {
     label: "Abandoned Cart",
@@ -235,6 +235,7 @@ function NotificationsContent() {
 
   const ringtoneReviewInputRef = useRef<HTMLInputElement>(null);
   const testReviewAudioRef = useRef<HTMLAudioElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'general');
@@ -340,6 +341,33 @@ function NotificationsContent() {
       }
     } catch (error: any) {
       toast({ variant: "destructive", title: "Failed to send", description: error.message });
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !storage) return;
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const storageRef = ref(storage, `branding/logo_${Date.now()}.${fileExt}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      setLogoUrl(downloadURL);
+      toast({
+        title: "Logo uploaded",
+        description: "Your brand logo has been updated. Don't forget to Apply Branding.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: error.message,
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -486,12 +514,12 @@ function NotificationsContent() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start bg-transparent border-b rounded-none h-14 p-0 mb-8 overflow-x-auto scrollbar-hide">
-          <TabsTrigger value="general" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Order Emails</TabsTrigger>
-          <TabsTrigger value="marketing" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Marketing</TabsTrigger>
-          <TabsTrigger value="sender" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Sender Details</TabsTrigger>
-          <TabsTrigger value="branding" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Branding</TabsTrigger>
-          <TabsTrigger value="alarms" className="rounded-none border-b-2 border-transparent data:[state=active]:border-black data-[state=active]:bg-transparent h-14 px-4 sm:px-8 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap">Alarms</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-3 sm:flex sm:justify-start bg-transparent border-b rounded-none h-auto sm:h-14 p-0 mb-8 overflow-visible">
+          <TabsTrigger value="general" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-12 sm:h-14 px-2 sm:px-8 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] whitespace-normal sm:whitespace-nowrap text-center">Order Emails</TabsTrigger>
+          <TabsTrigger value="marketing" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-12 sm:h-14 px-2 sm:px-8 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] whitespace-normal sm:whitespace-nowrap text-center">Marketing</TabsTrigger>
+          <TabsTrigger value="sender" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-12 sm:h-14 px-2 sm:px-8 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] whitespace-normal sm:whitespace-nowrap text-center">Sender Details</TabsTrigger>
+          <TabsTrigger value="branding" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-12 sm:h-14 px-2 sm:px-8 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] whitespace-normal sm:whitespace-nowrap text-center">Branding</TabsTrigger>
+          <TabsTrigger value="alarms" className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent h-12 sm:h-14 px-2 sm:px-8 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] whitespace-normal sm:whitespace-nowrap text-center">Alarms</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="mt-0">
@@ -712,8 +740,27 @@ function NotificationsContent() {
                 <CardContent className="p-6 space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Brand Logo URL</Label>
-                      <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://" className="h-12 rounded-none border-black font-mono text-[10px]" />
+                      <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Brand Logo</Label>
+                      <div className="flex gap-2">
+                        <div className="relative group flex-1">
+                          <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://" className="h-12 rounded-none border-black font-mono text-[10px]" />
+                        </div>
+                        <input type="file" ref={logoInputRef} onChange={handleLogoUpload} accept="image/*" className="hidden" />
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-12 w-12 border-black rounded-none hover:bg-black hover:text-white transition-colors" 
+                          onClick={() => logoInputRef.current?.click()}
+                          disabled={isUploading}
+                        >
+                          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+                        </Button>
+                      </div>
+                      {logoUrl && (
+                        <div className="mt-2 p-2 border border-dashed border-gray-200 bg-gray-50 flex items-center justify-center">
+                          <img src={logoUrl} alt="Logo Preview" className="max-h-12 object-contain" />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-3">
                       <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Accent Identity</Label>

@@ -47,7 +47,7 @@ export async function generateProductFeed(platform: 'google' | 'facebook' | 'pin
   <channel>
     <title>${xmlEscape(feedTitles[platform] || feedTitles.google)}</title>
     <link>${xmlEscape(baseUrl)}</link>
-    <description>${xmlEscape('Official archival product feed for FSLNO Sport Jerseys and Accessories.')}</description>
+    <description>${xmlEscape('Official archival product feed for FSLNO Teams and Accessories.')}</description>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`;
 
   products.forEach(product => {

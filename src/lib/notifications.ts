@@ -30,12 +30,12 @@ const DEFAULT_TEMPLATES: Record<string, NotificationConfig> = {
   invoice: {
     enabled: true,
     subject: "{{invoice_number}} - Official Transmission / Transmission Officielle",
-    body: "Hi {{customer_name}},\n\nPlease find your invoice {{invoice_number}} for {{order_total}} below.\n\nItems:\n{{product_manifest}}\n\n<div style=\"background-color: #f8fafc; padding: 25px; border: 1px solid #f1f5f9; margin-top: 30px;\">\n  <div style=\"font-size: 10px; color: #94a3b8; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; letter-spacing: 0.1em;\">Payment Breakdown / Récapitulatif</div>\n  <div style=\"display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700; color: #475569;\">\n    <div style=\"display: flex; justify-content: space-between;\"><span>Subtotal / Sous-total:</span> <span>{{subtotal}}</span></div>\n    <div style=\"display: flex; justify-content: space-between;\"><span>Shipping / Expédition:</span> <span>{{shipping_fee}}</span></div>\n    <div style=\"display: flex; justify-content: space-between;\"><span>Tax / Taxe:</span> <span>{{tax}}</span></div>\n    <div style=\"display: flex; justify-content: space-between;\"><span>Processing / Frais:</span> <span>{{processing_fee}}</span></div>\n    <div style=\"display: flex; justify-content: space-between; font-size: 14px; color: #000; font-weight: 900; border-top: 1px solid #e2e8f0; margin-top: 8px; padding-top: 8px;\"><span>TOTAL:</span> <span>{{order_total}}</span></div>\n  </div>\n  <div style=\"margin-top: 15px; font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase;\">Method / Méthode: {{payment_method}}</div>\n</div>\n\nRegards,\nFeiselino (FSLNO) Sport Jerseys\n\n---\n\nBonjour {{customer_name}},\n\nVeuillez trouver ci-dessous votre facture {{invoice_number}} d'un montant de {{order_total}}.\n\nCordialement,\nFeiselino (FSLNO) Sport Jerseys"
+    body: "Hi {{customer_name}},\n\nPlease find your invoice {{invoice_number}} for {{order_total}} below.\n\nItems:\n{{product_manifest}}\n\n<div style=\"background-color: #f8fafc; padding: 25px; border: 1px solid #f1f5f9; margin-top: 30px;\">\n  <div style=\"font-size: 10px; color: #94a3b8; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; letter-spacing: 0.1em;\">Payment Breakdown / Récapitulatif</div>\n  <div style=\"display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700; color: #475569;\">\n    <div style=\"display: flex; justify-content: space-between;\"><span>Subtotal / Sous-total:</span> <span>{{subtotal}}</span></div>\n    <div style=\"display: flex; justify-content: space-between;\"><span>Shipping / Expédition:</span> <span>{{shipping_fee}}</span></div>\n    <div style=\"display: flex; justify-content: space-between;\"><span>Tax / Taxe:</span> <span>{{tax}}</span></div>\n    <div style=\"display: flex; justify-content: space-between;\"><span>Processing / Frais:</span> <span>{{processing_fee}}</span></div>\n    <div style=\"display: flex; justify-content: space-between; font-size: 14px; color: #000; font-weight: 900; border-top: 1px solid #e2e8f0; margin-top: 8px; padding-top: 8px;\"><span>TOTAL:</span> <span>{{order_total}}</span></div>\n  </div>\n  <div style=\"margin-top: 15px; font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase;\">Method / Méthode: {{payment_method}}</div>\n</div>\n\nRegards,\nFeiselino (FSLNO) Teams\n\n---\n\nBonjour {{customer_name}},\n\nVeuillez trouver ci-dessous votre facture {{invoice_number}} d'un montant de {{order_total}}.\n\nCordialement,\nFeiselino (FSLNO) Teams"
   },
   newsletterWelcome: {
     enabled: true,
-    subject: "Welcome / Bienvenue - Feiselino (FSLNO) Sport Jerseys",
-    body: "Hi {{customer_name}},\n\nYou are now part of our community. You'll be the first to receive updates on new drops, exclusive collections, and archival releases.\n\nRegards,\nFeiselino (FSLNO) Sport Jerseys Team\n\n---\n\nBonjour {{customer_name}},\n\nVous faites maintenant partie de notre communauté. Vous serez les premiers à recevoir des nouvelles sur les nouveaux lancements, les collections exclusives et les sorties d'archives.\n\nCordialement,\nL'équipe Feiselino (FSLNO) Sport Jerseys"
+    subject: "Welcome / Bienvenue - Feiselino (FSLNO) Teams",
+    body: "Hi {{customer_name}},\n\nYou are now part of our community. You'll be the first to receive updates on new drops, exclusive collections, and archival releases.\n\nRegards,\nFeiselino (FSLNO) Teams Team\n\n---\n\nBonjour {{customer_name}},\n\nVous faites maintenant partie de notre communauté. Vous serez les premiers à recevoir des nouvelles sur les nouveaux lancements, les collections exclusives et les sorties d'archives.\n\nCordialement,\nL'équipe Feiselino (FSLNO) Teams"
   }
 };
 
@@ -66,7 +66,7 @@ export async function queueNotification(
 
     // 2. Prepare Global Identity Variables
     const businessIdentity = {
-      business_name: storeConfig.businessName || 'Feiselino (FSLNO) Sport Jerseys',
+      business_name: storeConfig.businessName || 'Feiselino (FSLNO) Teams',
       business_email: storeConfig.email || PRIMARY_STAFF_EMAIL,
       business_phone: storeConfig.phone || '',
       business_address: storeConfig.address || 'Guelph, ON',
@@ -88,7 +88,7 @@ export async function queueNotification(
 
     // 4. Prepare common fields
     const senderEmail = notifConfig.senderEmail || storeConfig.email || PRIMARY_STAFF_EMAIL;
-    const senderName = notifConfig.senderName || storeConfig.businessName || 'Feiselino (FSLNO) Sport Jerseys';
+    const senderName = notifConfig.senderName || storeConfig.businessName || 'Feiselino (FSLNO) Teams';
     
     // Wraps the body in a branded layout
     const formattedHtml = `
@@ -98,7 +98,7 @@ export async function queueNotification(
           ${body.replace(/\n/g, '<br/>')}
         </div>
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; line-height: 1.8;">
-          Feiselino (FSLNO) Sport Jerseys Team &bull; ${businessIdentity.business_address}<br/>
+          Feiselino (FSLNO) Teams Team &bull; ${businessIdentity.business_address}<br/>
           ${businessIdentity.business_phone ? `Phone: ${businessIdentity.business_phone} &bull; ` : ''}
           ${businessIdentity.business_email ? `Email: ${businessIdentity.business_email}` : ''}<br/>
           &copy; ${new Date().getFullYear()} ${businessIdentity.business_name}. All Rights Reserved.

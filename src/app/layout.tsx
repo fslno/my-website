@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
       getCachedCategories()
     ]);
 
-    const title = theme?.homepageSeo?.title || "Feiselino (FSLNO) | Sport Jerseys";
+    const title = theme?.homepageSeo?.title || "Feiselino (FSLNO) | Teams";
     const description = theme?.homepageSeo?.description || "Official Feiselino (FSLNO) Sport Website. High-quality jerseys and apparel.";
     const primaryDomain = (domain?.primaryDomain || "fslno.ca").trim();
     const baseUrl = `https://${primaryDomain}`;
@@ -239,16 +239,6 @@ export default async function RootLayout({
             opacity: 0;
             pointer-events: none;
           }
-          #initial-splash-screen img {
-            width: 120px;
-            height: 120px;
-            max-width: 50vw;
-            animation: splash-pulse 2.2s infinite ease-in-out;
-          }
-          @keyframes splash-pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.04); opacity: 0.85; }
-          }
         `}} />
 
         <Script
@@ -299,12 +289,7 @@ export default async function RootLayout({
       </head>
       <body className="font-body antialiased m-0 p-0 min-h-screen bg-white text-foreground overflow-x-hidden" suppressHydrationWarning>
         {/* Static SplashScreen - Present in raw HTML for instant render */}
-        <div id="initial-splash-screen">
-          <img 
-            src="https://i.ibb.co/Ld5KV35V/fslno-icon-512-x-512.png" 
-            alt="FSLNO Loading"
-          />
-        </div>
+        <div id="initial-splash-screen" />
         <ClientLayout initialTheme={theme} initialStore={store}>
           <RealTimeTracker />
           {children}

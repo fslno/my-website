@@ -128,7 +128,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
   if (!isStallionEnabled && !(manualRates && manualRates.length > 0)) {
     return (
-      <div className="p-8 border-2 border-dashed rounded-none text-center bg-gray-50/30">
+      <div 
+        className="p-8 border-2 border-dashed text-center bg-gray-50/30"
+        style={{ borderRadius: 'var(--btn-radius)' }}
+      >
         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Shipping rates not available.</p>
       </div>
     );
@@ -136,7 +139,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
   if (loading) {
     return (
-      <div className="p-8 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-4 bg-gray-50/50">
+      <div 
+        className="p-8 border-2 border-dashed flex flex-col items-center justify-center gap-4 bg-gray-50/50"
+        style={{ borderRadius: 'var(--btn-radius)' }}
+      >
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Finding shipping rates...</p>
       </div>
@@ -147,7 +153,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
 
   if (isAddressIncomplete) {
     return (
-      <div className="p-8 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-3 bg-gray-50/30">
+      <div 
+        className="p-8 border-2 border-dashed flex flex-col items-center justify-center gap-3 bg-gray-50/30"
+        style={{ borderRadius: 'var(--btn-radius)' }}
+      >
         <MapPin className="h-5 w-5 text-gray-300" />
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Enter province for shipping rates.</p>
       </div>
@@ -157,7 +166,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
       {useFallback && rates.some(r => r.id === 'fallback-std') && (
-        <div className="p-3 bg-amber-50 border border-amber-100 text-[9px] font-bold uppercase text-amber-700 flex items-center gap-2">
+        <div 
+          className="p-3 bg-amber-50 border border-amber-100 text-[9px] font-bold uppercase text-amber-700 flex items-center gap-2"
+          style={{ borderRadius: 'var(--btn-radius)' }}
+        >
           <Zap className="h-3 w-3" /> Server delay. Using backup shipping rates.
         </div>
       )}
@@ -175,9 +187,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
             <Label
               key={rate.id}
               className={cn(
-                "flex items-center justify-between p-4 border-2 transition-all cursor-pointer rounded-none bg-white",
+                "flex items-center justify-between p-4 border-2 transition-all cursor-pointer bg-white",
                 selectedRateId === rate.id ? "border-black shadow-md" : "border-[#f1f5f9] hover:border-gray-200"
               )}
+              style={{ borderRadius: 'var(--btn-radius)' }}
             >
               <div className="flex items-center space-x-3">
                 <RadioGroupItem value={rate.id} id={rate.id} className="sr-only" />
@@ -203,7 +216,10 @@ export function StallionRates({ address, cartItems, onRateSelect, selectedRateId
           ))}
         </RadioGroup>
       ) : (
-        <div className="p-8 border-2 border-dashed rounded-none text-center bg-gray-50/30">
+        <div 
+          className="p-8 border-2 border-dashed text-center bg-gray-50/30"
+          style={{ borderRadius: 'var(--btn-radius)' }}
+        >
           <AlertCircle className="h-5 w-5 text-gray-300 mx-auto mb-2" />
           <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">No services available for this region.</p>
         </div>

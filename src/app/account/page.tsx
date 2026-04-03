@@ -61,7 +61,10 @@ export default function AccountDashboard() {
         <Card className="rounded-none border shadow-none bg-gray-50/50">
           <CardContent className="p-8 space-y-6">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-black text-white rounded-none flex items-center justify-center text-2xl font-headline font-bold uppercase">
+              <div 
+                className="w-16 h-16 bg-black text-white flex items-center justify-center text-2xl font-headline font-bold uppercase"
+                style={{ borderRadius: 'var(--btn-radius)' }}
+              >
                 {user?.displayName?.[0] || user?.email?.[0] || 'U'}
               </div>
               <div>
@@ -111,16 +114,22 @@ export default function AccountDashboard() {
         {ordersLoading ? (
             <AccountLoadingCover />
           ) : !recentOrders || recentOrders.length === 0 ? (
-            <div className="text-center py-20 bg-gray-50/50 border border-dashed rounded-none">
+            <div 
+              className="text-center py-20 bg-gray-50/50 border border-dashed"
+              style={{ borderRadius: 'var(--btn-radius)' }}
+            >
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">No recent orders found.</p>
-              <Link href="/" className="mt-8 inline-block bg-black text-white px-8 h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] w-fit mx-auto">
+              <Link 
+                href="/" 
+                className="mt-8 inline-block px-8 h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] w-fit mx-auto btn-theme"
+              >
                 Start Shopping
               </Link>
             </div>
           ) : (
             <div className="space-y-4">
               {recentOrders.map((order) => (
-                <Card key={order.id} className="rounded-none border shadow-none hover:border-black transition-all group overflow-hidden">
+                <Card key={order.id} className="border shadow-none hover:border-black transition-all group overflow-hidden" style={{ borderRadius: 'var(--btn-radius)' }}>
                   <Link href={`/account/orders/${order.id}`}>
                     <CardContent className="p-0">
                       <div className="flex items-stretch">

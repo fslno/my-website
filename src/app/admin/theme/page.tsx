@@ -125,7 +125,7 @@ const DEFAULT_THEME = {
   adminSidebarActiveText: '#FFFFFF',
   categorySectionTitle: 'Shop Jerseys',
   categorySectionSubtitle: 'Collections',
-  archiveSectionTitle: 'All Sport Jerseys',
+  archiveSectionTitle: 'All Teams',
   archiveSectionSubtitle: 'The Collection',
   showBrand: true,
   maintenanceMode: false,
@@ -150,7 +150,23 @@ const DEFAULT_THEME = {
   detailBrandSize: '9',
   detailBrandColor: '#000000',
   detailReviewScale: '1.0',
-  detailReviewColor: '#000000'
+  detailReviewColor: '#000000',
+  btnScale: '1.0',
+  btnRadius: '4',
+  btnBgColor: '#000000',
+  btnHoverColor: '#DF1111',
+  btnFontWeight: '500',
+  btnTextTransform: 'none',
+  btnBorderWidth: '0',
+  btnPaddingX: '16',
+  btnPaddingY: '8',
+  heroHeadlineSize: '72',
+  heroSubheadlineSize: '10',
+  heroButtonText: 'Shop Now',
+  heroButtonLink: '/products',
+  heroButtonScale: '1.0',
+  heroButtonRadius: '0',
+  heroAspectRatioDesktop: '2.54'
 };
 
 export default function ThemeEnginePage() {
@@ -233,6 +249,25 @@ export default function ThemeEnginePage() {
   const [detailBrandColor, setDetailBrandColor] = useState(DEFAULT_THEME.detailBrandColor);
   const [detailReviewScale, setDetailReviewScale] = useState(DEFAULT_THEME.detailReviewScale);
   const [detailReviewColor, setDetailReviewColor] = useState(DEFAULT_THEME.detailReviewColor);
+
+  // Button UI Controls
+  const [btnScale, setBtnScale] = useState(DEFAULT_THEME.btnScale);
+  const [btnRadius, setBtnRadius] = useState(DEFAULT_THEME.btnRadius);
+  const [btnBgColor, setBtnBgColor] = useState(DEFAULT_THEME.btnBgColor);
+  const [btnHoverColor, setBtnHoverColor] = useState(DEFAULT_THEME.btnHoverColor);
+  const [btnFontWeight, setBtnFontWeight] = useState(DEFAULT_THEME.btnFontWeight);
+  const [btnTextTransform, setBtnTextTransform] = useState(DEFAULT_THEME.btnTextTransform);
+  const [btnBorderWidth, setBtnBorderWidth] = useState(DEFAULT_THEME.btnBorderWidth);
+  const [btnPaddingX, setBtnPaddingX] = useState(DEFAULT_THEME.btnPaddingX);
+  const [btnPaddingY, setBtnPaddingY] = useState(DEFAULT_THEME.btnPaddingY);
+
+  const [heroHeadlineSize, setHeroHeadlineSize] = useState(DEFAULT_THEME.heroHeadlineSize);
+  const [heroSubheadlineSize, setHeroSubheadlineSize] = useState(DEFAULT_THEME.heroSubheadlineSize);
+  const [heroButtonText, setHeroButtonText] = useState(DEFAULT_THEME.heroButtonText);
+  const [heroButtonLink, setHeroButtonLink] = useState(DEFAULT_THEME.heroButtonLink);
+  const [heroButtonScale, setHeroButtonScale] = useState(DEFAULT_THEME.heroButtonScale);
+  const [heroButtonRadius, setHeroButtonRadius] = useState(DEFAULT_THEME.heroButtonRadius);
+  const [heroAspectRatioDesktop, setHeroAspectRatioDesktop] = useState(DEFAULT_THEME.heroAspectRatioDesktop);
 
   // Form State - Admin
   const [adminPrimaryColor, setAdminPrimaryColor] = useState(DEFAULT_THEME.adminPrimaryColor);
@@ -341,6 +376,25 @@ export default function ThemeEnginePage() {
       setDetailReviewScale(themeData.detailReviewScale?.toString() || DEFAULT_THEME.detailReviewScale);
       setDetailReviewColor(themeData.detailReviewColor || DEFAULT_THEME.detailReviewColor);
 
+      // Button UI Sync
+      setBtnScale(themeData.btnScale?.toString() || DEFAULT_THEME.btnScale);
+      setBtnRadius(themeData.btnRadius?.toString() || DEFAULT_THEME.btnRadius);
+      setBtnBgColor(themeData.btnBgColor || DEFAULT_THEME.btnBgColor);
+      setBtnHoverColor(themeData.btnHoverColor || DEFAULT_THEME.btnHoverColor);
+      setBtnFontWeight(themeData.btnFontWeight?.toString() || DEFAULT_THEME.btnFontWeight);
+      setBtnTextTransform(themeData.btnTextTransform || DEFAULT_THEME.btnTextTransform);
+      setBtnBorderWidth(themeData.btnBorderWidth?.toString() || DEFAULT_THEME.btnBorderWidth);
+      setBtnPaddingX(themeData.btnPaddingX?.toString() || DEFAULT_THEME.btnPaddingX);
+      setBtnPaddingY(themeData.btnPaddingY?.toString() || DEFAULT_THEME.btnPaddingY);
+
+      setHeroHeadlineSize(themeData.heroHeadlineSize?.toString() || DEFAULT_THEME.heroHeadlineSize);
+      setHeroSubheadlineSize(themeData.heroSubheadlineSize?.toString() || DEFAULT_THEME.heroSubheadlineSize);
+      setHeroButtonText(themeData.heroButtonText || DEFAULT_THEME.heroButtonText);
+      setHeroButtonLink(themeData.heroButtonLink || DEFAULT_THEME.heroButtonLink);
+      setHeroButtonScale(themeData.heroButtonScale?.toString() || DEFAULT_THEME.heroButtonScale);
+      setHeroButtonRadius(themeData.heroButtonRadius?.toString() || DEFAULT_THEME.heroButtonRadius);
+      setHeroAspectRatioDesktop(themeData.heroAspectRatioDesktop?.toString() || DEFAULT_THEME.heroAspectRatioDesktop);
+
       // Admin Sync
       setAdminPrimaryColor(themeData.adminPrimaryColor || DEFAULT_THEME.adminPrimaryColor);
       setAdminAccentColor(themeData.adminAccentColor || DEFAULT_THEME.adminAccentColor);
@@ -437,6 +491,22 @@ export default function ThemeEnginePage() {
       detailBrandColor,
       detailReviewScale: Number(detailReviewScale),
       detailReviewColor,
+      btnScale: Number(btnScale),
+      btnRadius: Number(btnRadius),
+      btnBgColor,
+      btnHoverColor,
+      btnFontWeight,
+      btnTextTransform,
+      btnBorderWidth: Number(btnBorderWidth),
+      btnPaddingX: Number(btnPaddingX),
+      btnPaddingY: Number(btnPaddingY),
+      heroHeadlineSize: Number(heroHeadlineSize),
+      heroSubheadlineSize: Number(heroSubheadlineSize),
+      heroButtonText,
+      heroButtonLink,
+      heroButtonScale: Number(heroButtonScale),
+      heroButtonRadius: Number(heroButtonRadius),
+      heroAspectRatioDesktop: Number(heroAspectRatioDesktop),
       updatedAt: serverTimestamp()
     };
 
@@ -506,6 +576,15 @@ export default function ThemeEnginePage() {
           --preview-detail-brand-color: ${detailBrandColor};
           --preview-detail-review-scale: ${detailReviewScale};
           --preview-detail-review-color: ${detailReviewColor};
+          --preview-btn-scale: ${btnScale};
+          --preview-btn-radius: ${btnRadius}px;
+          --preview-btn-bg: ${btnBgColor};
+          --preview-btn-hover: ${btnHoverColor};
+          --preview-btn-weight: ${btnFontWeight};
+          --preview-btn-transform: ${btnTextTransform};
+          --preview-btn-border: ${btnBorderWidth}px;
+          --preview-btn-px: ${btnPaddingX}px;
+          --preview-btn-py: ${btnPaddingY}px;
         }
         #theme-preview-root .font-headline { font-family: var(--preview-headline) !important; }
         #theme-preview-root .font-body { font-family: var(--preview-body) !important; }
@@ -524,6 +603,20 @@ export default function ThemeEnginePage() {
         #theme-preview-root .preview-detail-sku { font-size: var(--preview-detail-sku-size) !important; color: var(--preview-detail-sku-color) !important; }
         #theme-preview-root .preview-detail-brand { font-size: var(--preview-detail-brand-size) !important; color: var(--preview-detail-brand-color) !important; }
         #theme-preview-root .preview-detail-review { transform: scale(var(--preview-detail-review-scale)) !important; color: var(--preview-detail-review-color) !important; }
+        #theme-preview-root .preview-btn {
+          transform: scale(var(--preview-btn-scale)) !important;
+          border-radius: var(--preview-btn-radius) !important;
+        }
+        .hero-button {
+          background-color: var(--hero-button-bg) !important;
+          color: var(--hero-button-text) !important;
+          border-radius: var(--hero-btn-radius) !important;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        
+        .hero-button:hover {
+          opacity: 0.95;
+        }
       `}</style>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -538,18 +631,24 @@ export default function ThemeEnginePage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 xl:h-[calc(100vh-250px)] h-auto">
-        <div className="xl:col-span-4 xl:overflow-y-auto pr-0 xl:pr-4 space-y-6 scrollbar-hide h-full">
+        <div className="xl:col-span-5 xl:overflow-y-auto pr-0 xl:pr-4 space-y-6 scrollbar-hide h-full">
           <Tabs defaultValue="styles" className="w-full">
             {/* LAYER 01: PRIMARY SECTIONS */}
-            <TabsList className="w-full bg-white border h-auto xl:h-14 p-1 flex flex-wrap xl:flex-nowrap justify-start rounded-none mb-8 overflow-hidden">
+            <TabsList className="w-full bg-white border h-auto xl:h-14 p-1 grid grid-cols-3 sm:flex sm:flex-nowrap rounded-none mb-8 overflow-visible">
               {[
                 { id: 'styles', label: 'Styles', icon: Palette },
+                { id: 'buttons', label: 'Buttons', icon: MousePointer2 },
                 { id: 'catalog', label: 'Nav', icon: Layers },
                 { id: 'layout', label: 'Layout', icon: Layout },
                 { id: 'admin', label: 'Admin', icon: Settings2 },
               ].map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id} className="flex-grow basis-[30%] xl:basis-auto min-w-[80px] gap-1.5 font-bold uppercase tracking-widest text-[9px] px-2 h-12 rounded-none data-[state=active]:bg-black data-[state=active]:text-white">
-                  <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+                <TabsTrigger 
+                  key={tab.id} 
+                  value={tab.id} 
+                  className="flex-1 min-w-0 gap-1 sm:gap-2 font-bold uppercase tracking-[0.1em] sm:tracking-widest text-[7px] sm:text-[9px] h-12 rounded-none transition-all data-[state=active]:bg-black data-[state=active]:text-white hover:bg-gray-100 data-[state=active]:hover:bg-black px-0.5 sm:px-4"
+                >
+                  <tab.icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+                  <span className="truncate">{tab.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -557,12 +656,12 @@ export default function ThemeEnginePage() {
             {/* LAYER 02: STYLES SUB-TABS */}
             <TabsContent value="styles" className="m-0 space-y-6 animate-in fade-in duration-300">
               <Tabs defaultValue="identity" className="w-full">
-                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 sm:grid-cols-4 rounded-none mb-6">
-                  <TabsTrigger value="identity" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Identity</TabsTrigger>
-                  <TabsTrigger value="categories" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Category</TabsTrigger>
-                  <TabsTrigger value="products" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Product</TabsTrigger>
-                  <TabsTrigger value="reviews" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Reviews</TabsTrigger>
-                  <TabsTrigger value="archive" className="text-[8px] font-bold uppercase tracking-widest h-10 px-1 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Archive</TabsTrigger>
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 flex flex-nowrap rounded-none mb-6 overflow-hidden">
+                  <TabsTrigger value="identity" className="flex-1 min-w-0 text-[7px] sm:text-[8px] font-bold uppercase tracking-tight sm:tracking-widest h-10 px-0.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Identity</TabsTrigger>
+                  <TabsTrigger value="categories" className="flex-1 min-w-0 text-[7px] sm:text-[8px] font-bold uppercase tracking-tight sm:tracking-widest h-10 px-0.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Category</TabsTrigger>
+                  <TabsTrigger value="products" className="flex-1 min-w-0 text-[7px] sm:text-[8px] font-bold uppercase tracking-tight sm:tracking-widest h-10 px-0.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Product</TabsTrigger>
+                  <TabsTrigger value="reviews" className="flex-1 min-w-0 text-[7px] sm:text-[8px] font-bold uppercase tracking-tight sm:tracking-widest h-10 px-0.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Reviews</TabsTrigger>
+                  <TabsTrigger value="archive" className="flex-1 min-w-0 text-[7px] sm:text-[8px] font-bold uppercase tracking-tight sm:tracking-widest h-10 px-0.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-none">Archive</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="identity" className="space-y-6">
@@ -892,13 +991,249 @@ export default function ThemeEnginePage() {
                 </TabsContent>
               </Tabs>
             </TabsContent>
+            
+            {/* LAYER 01: BUTTON THEME ENGINE */}
+            <TabsContent value="buttons" className="mt-0 space-y-6 animate-in fade-in duration-500">
+              <div className="flex flex-col gap-8">
+                <Card className="border-[#e1e3e5] shadow-none rounded-none bg-white">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-3 mb-1">
+                      <MousePointer2 className="h-5 w-5 text-black" />
+                      <CardTitle className="text-lg font-bold uppercase tracking-widest text-[#1a1c1e]">Button Theme Engine</CardTitle>
+                    </div>
+                    <CardDescription className="text-[10px] uppercase font-bold tracking-tight text-gray-400">Master the aesthetic delivery of storefront interactive elements.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-10 pt-4">
+                    {/* Global Scale */}
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400">Button Scale (Padding)</Label>
+                        <span className="text-xs font-bold font-mono">{btnScale}X</span>
+                      </div>
+                      <input 
+                        type="range" min="0.5" max="1.5" step="0.05" 
+                        value={btnScale} 
+                        onChange={(e) => setBtnScale(e.target.value)} 
+                        className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
 
+                    {/* Corner Radius */}
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400">Corner Radius</Label>
+                        <span className="text-xs font-bold font-mono">{btnRadius}PX</span>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2">
+                        {[
+                          { label: 'NONE', value: '0' },
+                          { label: '4PX', value: '4' },
+                          { label: '8PX', value: '8' },
+                          { label: '16PX', value: '16' },
+                          { label: 'PILL', value: '99' }
+                        ].map((choice) => (
+                          <button
+                            key={choice.value}
+                            onClick={() => setBtnRadius(choice.value)}
+                            className={cn(
+                              "h-12 border text-[8px] font-bold tracking-widest transition-all",
+                              btnRadius === choice.value 
+                                ? "bg-black text-white border-black shadow-lg" 
+                                : "bg-white text-gray-400 hover:border-black/20"
+                            )}
+                          >
+                            {choice.label}
+                          </button>
+                        ))}
+                      </div>
+                      <input 
+                        type="range" min="0" max="40" 
+                        value={btnRadius} 
+                        onChange={(e) => setBtnRadius(e.target.value)} 
+                        className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black" 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                      {/* Primary background */}
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 block">Brand Primary (Background)</Label>
+                        <div className="flex items-center gap-3">
+                          <div className="w-14 h-14 border p-1 bg-white shadow-sm overflow-hidden flex-shrink-0">
+                            <input 
+                              type="color" 
+                              value={btnBgColor} 
+                              onChange={(e) => setBtnBgColor(e.target.value)} 
+                              className="w-[200%] h-[200%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
+                            />
+                          </div>
+                          <Input 
+                            value={btnBgColor} 
+                            onChange={(e) => setBtnBgColor(e.target.value)} 
+                            className="h-14 font-mono text-xs uppercase bg-gray-50/50 border-none rounded-none tracking-widest" 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Hover color */}
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 block">Hover State Color</Label>
+                        <div className="flex items-center gap-3">
+                          <div className="w-14 h-14 border p-1 bg-white shadow-sm overflow-hidden flex-shrink-0">
+                            <input 
+                              type="color" 
+                              value={btnHoverColor} 
+                              onChange={(e) => setBtnHoverColor(e.target.value)} 
+                              className="w-[200%] h-[200%] border-none p-0 cursor-pointer -translate-x-1/4 -translate-y-1/4" 
+                            />
+                          </div>
+                          <Input 
+                            value={btnHoverColor} 
+                            onChange={(e) => setBtnHoverColor(e.target.value)} 
+                            className="h-14 font-mono text-xs uppercase bg-gray-50/50 border-none rounded-none tracking-widest" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 block">Font Weight</Label>
+                        <Select value={btnFontWeight} onValueChange={setBtnFontWeight}>
+                          <SelectTrigger className="h-14 font-bold bg-gray-50/50 border-none rounded-none">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="300" className="font-light">300 Light</SelectItem>
+                            <SelectItem value="400" className="font-normal">400 Normal</SelectItem>
+                            <SelectItem value="500" className="font-medium">500 Medium</SelectItem>
+                            <SelectItem value="600" className="font-semibold">600 Semibold</SelectItem>
+                            <SelectItem value="700" className="font-bold">700 Bold</SelectItem>
+                            <SelectItem value="800" className="font-extrabold">800 Black</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 block">Text Case</Label>
+                        <Select value={btnTextTransform} onValueChange={setBtnTextTransform}>
+                          <SelectTrigger className="h-14 font-bold uppercase text-[10px] bg-gray-50/50 border-none rounded-none">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Normal Case</SelectItem>
+                            <SelectItem value="uppercase">UPPERCASE</SelectItem>
+                            <SelectItem value="lowercase">lowercase</SelectItem>
+                            <SelectItem value="capitalize">Capitalize</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 block">Border Width</Label>
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="range" min="0" max="5" step="1" 
+                            value={btnBorderWidth} 
+                            onChange={(e) => setBtnBorderWidth(e.target.value)} 
+                            className="flex-1 h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black" 
+                          />
+                          <span className="text-[10px] font-bold font-mono w-6">{btnBorderWidth}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 block">Padding X</Label>
+                        <Input type="number" value={btnPaddingX} onChange={(e) => setBtnPaddingX(e.target.value)} className="h-12 font-bold bg-gray-50/50 border-none rounded-none" />
+                      </div>
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 block">Padding Y</Label>
+                        <Input type="number" value={btnPaddingY} onChange={(e) => setBtnPaddingY(e.target.value)} className="h-12 font-bold bg-gray-50/50 border-none rounded-none" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-[#e1e3e5] shadow-none rounded-none flex flex-col items-center justify-end pb-12 bg-gray-50/30 border-dashed relative min-h-[400px]">
+                  <div className="absolute top-4 left-4 flex items-center gap-2 opacity-30">
+                    <Smartphone className="h-4 w-4" />
+                    <span className="text-[8px] font-bold uppercase tracking-widest">Engine Preview</span>
+                  </div>
+                  <div className="space-y-6 w-full max-w-[280px]">
+                    <div className="space-y-2">
+                       <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest text-center">Storefront Add-to-Cart Preview</p>
+                        <button 
+                          className="w-full font-bold shadow-xl transition-all duration-300"
+                          style={{ 
+                            backgroundColor: btnBgColor, 
+                            borderRadius: `${btnRadius}px`,
+                            transform: `scale(${btnScale})`,
+                            fontWeight: btnFontWeight,
+                            textTransform: btnTextTransform as any,
+                            borderWidth: `${btnBorderWidth}px`,
+                            borderColor: '#000000',
+                            borderStyle: btnBorderWidth !== '0' ? 'solid' : 'none',
+                            paddingLeft: `${btnPaddingX}px`,
+                            paddingRight: `${btnPaddingX}px`,
+                            paddingTop: `${btnPaddingY}px`,
+                            paddingBottom: `${btnPaddingY}px`,
+                            fontSize: '10px',
+                            letterSpacing: '0.2em',
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          ADD TO CART
+                        </button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                       <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest text-center">Active Hover Visual</p>
+                       <button 
+                          className="w-full font-bold shadow-xl transition-all duration-300"
+                          style={{ 
+                            backgroundColor: btnHoverColor, 
+                            borderRadius: `${btnRadius}px`,
+                            transform: `scale(${btnScale})`,
+                            fontWeight: btnFontWeight,
+                            textTransform: btnTextTransform as any,
+                            borderWidth: `${btnBorderWidth}px`,
+                            borderColor: '#000000',
+                            borderStyle: btnBorderWidth !== '0' ? 'solid' : 'none',
+                            paddingLeft: `${btnPaddingX}px`,
+                            paddingRight: `${btnPaddingX}px`,
+                            paddingTop: `${btnPaddingY}px`,
+                            paddingBottom: `${btnPaddingY}px`,
+                            fontSize: '10px',
+                            letterSpacing: '0.2em',
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          HOVER STATE
+                        </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-12 p-4 bg-white border border-dashed rounded-none w-full max-w-[320px]">
+                    <div className="flex gap-4 items-center">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center shrink-0">
+                         <MousePointer2 className="h-5 w-5 text-gray-300" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-[9px] font-bold uppercase tracking-widest">UX Integration</h4>
+                        <p className="text-[8px] text-gray-400 uppercase leading-tight">Changes apply globally to primary action buttons including checkout, cart, and product forms.</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </TabsContent>
+            
             {/* LAYER 02: NAV SUB-TABS */}
             <TabsContent value="catalog" className="mt-6 space-y-6 animate-in fade-in duration-300">
               <Tabs defaultValue="header" className="w-full">
-                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 rounded-none mb-6">
-                  <TabsTrigger value="header" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Header</TabsTrigger>
-                  <TabsTrigger value="banner" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Banner</TabsTrigger>
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 flex flex-nowrap rounded-none mb-6 overflow-hidden">
+                  <TabsTrigger value="header" className="flex-1 min-w-0 text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white data-[state=active]:text-black rounded-none transition-all">Header</TabsTrigger>
+                  <TabsTrigger value="banner" className="flex-1 min-w-0 text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white data-[state=active]:text-black rounded-none transition-all">Banner</TabsTrigger>
                 </TabsList>
                 <TabsContent value="header" className="space-y-6">
                   <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="flex flex-row items-center justify-between pb-4"><div className="space-y-1"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Header Interaction</CardTitle><CardDescription className="text-[9px] uppercase font-bold tracking-tight">Lock navigation to viewport.</CardDescription></div><Switch checked={stickyHeader} onCheckedChange={setStickyHeader} /></CardHeader></Card>
@@ -912,12 +1247,90 @@ export default function ThemeEnginePage() {
             {/* LAYER 02: LAYOUT SUB-TABS */}
             <TabsContent value="layout" className="mt-6 space-y-6 animate-in fade-in duration-300">
               <Tabs defaultValue="structure" className="w-full">
-                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 rounded-none mb-6">
-                  <TabsTrigger value="structure" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Structure</TabsTrigger>
-                  <TabsTrigger value="copy" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Copy Labels</TabsTrigger>
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 flex flex-nowrap rounded-none mb-6 overflow-hidden">
+                  <TabsTrigger value="structure" className="flex-1 min-w-0 text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white data-[state=active]:text-black rounded-none transition-all">Structure</TabsTrigger>
+                  <TabsTrigger value="hero" className="flex-1 min-w-0 text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white data-[state=active]:text-black rounded-none transition-all">Hero Banner</TabsTrigger>
+                  <TabsTrigger value="copy" className="flex-1 min-w-0 text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white data-[state=active]:text-black rounded-none transition-all">Copy Labels</TabsTrigger>
                 </TabsList>
                 <TabsContent value="structure" className="space-y-6">
                   <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="pb-4"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Architecture</CardTitle></CardHeader><CardContent className="space-y-4"><div className="grid grid-cols-2 gap-4"><button onClick={() => setHomepageLayout('bento')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'bento' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Bento Grid</span></button><button onClick={() => setHomepageLayout('classic')} className={cn("p-4 rounded-sm flex flex-col items-center gap-3 transition-all", homepageLayout === 'classic' ? "bg-black text-white shadow-xl" : "bg-gray-100/50 text-gray-400 hover:bg-gray-100")}><span className="text-[9px] font-bold uppercase tracking-widest">Classic Full</span></button></div></CardContent></Card>
+                </TabsContent>
+                <TabsContent value="hero" className="space-y-6">
+                  <Card className="border-[#e1e3e5] shadow-none rounded-none">
+                    <CardHeader className="pb-4 border-b bg-gray-50/30">
+                      <CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                        <Megaphone className="h-3.5 w-3.5" /> Hero Content & Geometry
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-8">
+                      {/* Headlines */}
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-primary" />
+                          <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Headline Geometry</h3>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Headline Scale</Label>
+                            <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroHeadlineSize}PX</Badge>
+                          </div>
+                          <input type="range" min="24" max="140" value={heroHeadlineSize} onChange={(e) => setHeroHeadlineSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Subheadline Scale</Label>
+                            <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroSubheadlineSize}PX</Badge>
+                          </div>
+                          <input type="range" min="8" max="40" value={heroSubheadlineSize} onChange={(e) => setHeroSubheadlineSize(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Desktop Height (Ratio)</Label>
+                            <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroAspectRatioDesktop}</Badge>
+                          </div>
+                          <input type="range" min="1.0" max="8.0" step="0.01" value={heroAspectRatioDesktop} onChange={(e) => setHeroAspectRatioDesktop(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          <p className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">Lower value = Taller banner. (e.g., 2.54 for current height).</p>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* CTA Button */}
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-primary" />
+                          <h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Call-To-Action Button</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Button Text</Label>
+                            <Input value={heroButtonText} onChange={(e) => setHeroButtonText(e.target.value)} className="h-11 font-bold uppercase text-[10px]" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[9px] uppercase font-bold text-gray-400">Target Link</Label>
+                            <Input value={heroButtonLink} onChange={(e) => setHeroButtonLink(e.target.value)} className="h-11 text-[10px]" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Button Scale (Padding)</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroButtonScale}X</Badge>
+                            </div>
+                            <input type="range" min="0.5" max="2.0" step="0.1" value={heroButtonScale} onChange={(e) => setHeroButtonScale(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[9px] uppercase font-bold text-gray-400">Corner Radius</Label>
+                              <Badge variant="outline" className="text-[10px] font-mono font-bold">{heroButtonRadius}PX</Badge>
+                            </div>
+                            <input type="range" min="0" max="100" step="1" value={heroButtonRadius} onChange={(e) => setHeroButtonRadius(e.target.value)} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black" />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
                 <TabsContent value="copy" className="space-y-6">
                   <Card className="border-[#e1e3e5] shadow-none rounded-none"><CardHeader className="pb-4 border-b bg-gray-50/30"><CardTitle className="text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><TypeIcon className="h-3.5 w-3.5" /> Content Labels</CardTitle></CardHeader><CardContent className="pt-6 space-y-8"><div className="space-y-6"><div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Category Section</h3></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Main Title</Label><Input value={categorySectionTitle} onChange={(e) => setCategorySectionTitle(e.target.value)} className="h-11 font-bold uppercase text-[10px]" /></div><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subtitle</Label><Input value={categorySectionSubtitle} onChange={(e) => setCategorySectionSubtitle(e.target.value)} className="h-11 uppercase text-[10px] tracking-widest" /></div></div></div><Separator /><div className="space-y-6"><div className="flex items-center gap-2"><div className="w-1 h-4 bg-primary" /><h3 className="text-[10px] uppercase tracking-widest font-bold text-primary">Global Archive</h3></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Main Title</Label><Input value={archiveSectionTitle} onChange={(e) => setArchiveSectionTitle(e.target.value)} className="h-11 font-bold uppercase text-[10px]" /></div><div className="space-y-2"><Label className="text-[9px] uppercase font-bold text-gray-400">Subtitle</Label><Input value={archiveSectionSubtitle} onChange={(e) => setArchiveSectionSubtitle(e.target.value)} className="h-11 uppercase text-[10px] tracking-widest" /></div></div></div></CardContent></Card>
@@ -928,9 +1341,9 @@ export default function ThemeEnginePage() {
             {/* LAYER 02: ADMIN SUB-TABS */}
             <TabsContent value="admin" className="mt-6 space-y-6 animate-in fade-in duration-300 pb-12">
               <Tabs defaultValue="system" className="w-full">
-                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 grid grid-cols-2 rounded-none mb-6">
-                  <TabsTrigger value="system" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">System</TabsTrigger>
-                  <TabsTrigger value="sidebar" className="text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white rounded-none">Sidebar</TabsTrigger>
+                <TabsList className="w-full bg-gray-100/50 border border-dashed h-auto p-1 flex flex-nowrap rounded-none mb-6 overflow-hidden">
+                  <TabsTrigger value="system" className="flex-1 min-w-0 text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white data-[state=active]:text-black rounded-none transition-all">System</TabsTrigger>
+                  <TabsTrigger value="sidebar" className="flex-1 min-w-0 text-[8px] font-bold uppercase tracking-widest h-10 data-[state=active]:bg-white data-[state=active]:text-black rounded-none transition-all">Sidebar</TabsTrigger>
                 </TabsList>
                 <TabsContent value="system" className="space-y-6">
                   <Card className="border-blue-100 bg-blue-50/10 shadow-none rounded-none">
@@ -979,18 +1392,44 @@ export default function ThemeEnginePage() {
           </Tabs>
         </div>
 
-        <div id="theme-preview-root" className="xl:col-span-8 bg-[#f6f6f7] rounded-none flex flex-col border border-[#e1e3e5] overflow-hidden xl:h-full h-[600px] min-w-0">
+        <div id="theme-preview-root" className="xl:col-span-7 bg-[#f6f6f7] rounded-none flex flex-col border border-[#e1e3e5] overflow-hidden xl:h-full h-[600px] min-w-0">
           <div className="h-14 bg-white border-b flex items-center justify-between px-4 sm:px-6 shrink-0">
             <div className="hidden sm:flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></div><div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-200"></div><div className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></div></div>
             <div className="flex gap-1 border bg-gray-50 p-1 rounded-sm"><button onClick={() => setDevice('desktop')} className={cn("p-2 rounded-sm transition-all", device === 'desktop' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}><Monitor className="h-4 w-4" /></button><button onClick={() => setDevice('mobile')} className={cn("p-2 rounded-sm transition-all", device === 'mobile' ? "bg-white shadow-sm text-black" : "text-[#8c9196]")}><Smartphone className="h-4 w-4" /></button></div>
             <div className="flex items-center gap-2 text-[9px] text-green-600 uppercase font-bold tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />Live Sync</div>
           </div>
           <div className="flex-1 overflow-y-auto p-4 sm:p-8 xl:p-12 flex justify-center bg-[radial-gradient(#e1e3e5_1px,transparent_1px)] [background-size:24px_24px]">
-            <div className={cn("bg-white transition-all duration-500 shadow-2xl overflow-hidden relative flex flex-col border border-black/5", device === 'desktop' ? "w-full max-w-4xl aspect-[16/10]" : "w-[320px] h-[568px] sm:w-[375px] sm:h-[667px]")}>
+            <div className={cn("bg-white transition-all duration-500 shadow-2xl overflow-hidden relative flex flex-col border border-black/5", device === 'desktop' ? "w-full max-w-3xl aspect-[16/10]" : "w-[320px] h-[568px] sm:w-[375px] sm:h-[667px]")}>
               {bannerEnabled && (<div className="preview-banner h-8 flex items-center justify-center uppercase tracking-[0.3em] font-bold text-white shrink-0 px-4 text-center" style={{ backgroundColor: bannerBgColor }}>{bannerText}</div>)}
                <div className="h-16 bg-white border-b flex items-center justify-between px-6 sm:px-8 shrink-0"><span className="font-bold text-lg sm:text-xl tracking-tighter font-headline" style={{ color: primaryColor }}>Feiselino</span><div className="flex items-center gap-3"><Search className="h-4 w-4 text-gray-200" /><ShoppingBag className="h-4 w-4 text-gray-200" /><div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border bg-gray-50 flex items-center justify-center"><MousePointer2 className="h-4 w-4 text-gray-200" /></div></div></div>
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-12 font-body">
-                <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: 'center', textAlign: 'center' }}><div className="relative z-10 w-full"><span className="text-[8px] sm:text-[10px] uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block">PREMIUM QUALITY</span><h2 className="font-bold uppercase tracking-tight leading-none font-headline text-3xl">NEW ARRIVALS</h2><div className="mt-6 sm:mt-8 flex justify-center"><div className="bg-black text-white px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[9px] sm:text-[10px] shadow-lg">SHOP NOW</div></div></div></div>
+                <div className="aspect-video bg-gray-50 flex flex-col p-6 sm:p-12 border shadow-sm relative overflow-hidden" style={{ borderRadius: `${borderRadius}px`, alignItems: 'center', textAlign: 'center' }}>
+                  <div className="relative z-10 w-full">
+                    <span 
+                      className="uppercase tracking-[0.5em] font-bold text-gray-400 mb-2 sm:mb-4 block"
+                      style={{ fontSize: `${Math.max(6, Number(heroSubheadlineSize) * 0.6)}px` }}
+                    >
+                      PREMIUM QUALITY
+                    </span>
+                    <h2 
+                      className="font-bold uppercase tracking-tight leading-none font-headline"
+                      style={{ fontSize: `${Math.max(16, Number(heroHeadlineSize) * 0.4)}px` }}
+                    >
+                      NEW ARRIVALS
+                    </h2>
+                    <div className="mt-6 sm:mt-8 flex justify-center">
+                      <div 
+                        className="bg-black text-white px-6 sm:px-8 h-10 sm:h-12 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg"
+                        style={{ 
+                          transform: `scale(${heroButtonScale})`,
+                          borderRadius: `${heroButtonRadius}px`,
+                        }}
+                      >
+                        {heroButtonText}
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div className="space-y-8">
                   <div className="space-y-1">
                     <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-gray-400">{categorySectionSubtitle}</p>

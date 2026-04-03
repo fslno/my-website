@@ -311,25 +311,40 @@ export default function CustomersPage() {
       <div className="bg-white border border-[#e1e3e5] rounded-none overflow-hidden shadow-sm">
         <div className="p-4 border-b bg-gray-50/50 flex flex-col lg:flex-row gap-4 items-center justify-between">
           <div className="flex flex-col md:flex-row items-center gap-4 w-full lg:max-w-3xl">
-            <div className="relative w-full md:flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196]" />
+            <div className="relative w-full md:flex-1 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c9196] z-10" />
               <Input 
                 placeholder="Search..." 
-                className="pl-10 pr-12 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold w-full rounded-none" 
+                className="pl-10 pr-20 h-10 border-[#e1e3e5] focus:ring-black bg-white uppercase text-[10px] font-bold w-full rounded-none relative z-0" 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
               />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={startVoiceSearch}
-                className={cn(
-                  "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-[#8c9196] hover:text-black transition-colors rounded-none",
-                  isListening && "text-blue-500 bg-blue-50 animate-pulse"
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                {searchQuery && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setSearchQuery("")}
+                    className="h-8 w-8 rounded-none text-gray-400 hover:text-black hover:bg-gray-100"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 )}
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={startVoiceSearch}
+                  className={cn(
+                    "h-8 w-8 rounded-none transition-all duration-300",
+                    isListening 
+                      ? "text-blue-500 bg-blue-50 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" 
+                      : "text-gray-400 hover:text-black hover:bg-gray-100"
+                  )}
+                  title="Voice Search"
+                >
+                  <Mic className={cn("h-4 w-4", isListening && "animate-bounce")} />
+                </Button>
+              </div>
             </div>
             <div className="flex w-full md:w-auto border rounded-none p-1 bg-white shadow-sm overflow-x-auto scrollbar-hide">
               {(['all', 'registered', 'guest', 'abandoned'] as const).map((tier) => (

@@ -67,7 +67,14 @@ export default function HomeClient({
         textAlign={activeTheme?.heroTextAlign}
         verticalAlign={activeTheme?.heroVerticalAlign}
         bannerEnabled={activeTheme?.bannerEnabled}
-        heroAspectRatio={activeTheme?.heroAspectRatio || 3.5}
+        heroAspectRatio={activeTheme?.heroAspectRatio || 2.96}
+        heroAspectRatioDesktop={activeTheme?.heroAspectRatioDesktop || 2.54}
+
+        heroButtonBgColor={activeTheme?.heroButtonBgColor}
+        heroButtonTextColor={activeTheme?.heroButtonTextColor}
+        heroButtonScale={activeTheme?.heroButtonScale}
+        heroButtonRadius={activeTheme?.heroButtonRadius}
+        buttonLink={activeTheme?.heroButtonLink}
       />
 
       <CategorySection initialCategories={initialCategories} />

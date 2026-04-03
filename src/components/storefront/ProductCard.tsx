@@ -93,7 +93,7 @@ export const ProductCard = React.memo(({
                 if (onImageLoad) onImageLoad();
               }}
             />
-          {!isLoaded && <div className="absolute inset-0 bg-gray-100 animate-pulse" />}
+          {!isLoaded && <div className="absolute inset-0 bg-white" />}
           {hoverImage && (
             <Image
               src={hoverImage}
@@ -107,7 +107,10 @@ export const ProductCard = React.memo(({
 
         {isSoldOut && (
           <div className="absolute top-2 left-2 z-10 pointer-events-none">
-            <span className="bg-black/80 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm">
+            <span 
+              className="bg-black/80 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1 shadow-sm"
+              style={{ borderRadius: 'var(--btn-radius)' }}
+            >
               Sold Out
             </span>
           </div>
@@ -115,7 +118,10 @@ export const ProductCard = React.memo(({
 
         {!isSoldOut && isFlashActive && (
           <div className="absolute top-2 left-2 z-10 pointer-events-none">
-            <span className="bg-orange-600 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm flex items-center gap-1">
+            <span 
+              className="bg-orange-600 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1 shadow-sm flex items-center gap-1"
+              style={{ borderRadius: 'var(--btn-radius)' }}
+            >
               <Zap className="h-2 w-2 fill-white" />
               {promoConfig.flashLabel || 'SALE'}
             </span>
@@ -123,7 +129,10 @@ export const ProductCard = React.memo(({
         )}
         {!isSoldOut && hasDiscount && !isFlashActive && !preorderEnabled && (
           <div className="absolute top-2 left-2 z-10 pointer-events-none">
-            <span className="bg-white/90 backdrop-blur-sm text-black text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm">
+            <span 
+              className="bg-white/90 backdrop-blur-sm text-black text-[9px] font-bold uppercase tracking-widest px-2 py-1 shadow-sm"
+              style={{ borderRadius: 'var(--btn-radius)' }}
+            >
               {discountPercent}% OFF
             </span>
           </div>

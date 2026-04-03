@@ -40,8 +40,12 @@ export default function TrackingPage(props: PageProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button asChild className="flex-1 bg-black text-white h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none"><Link href="/">Back to Home</Link></Button>
-          <Button asChild variant="outline" className="flex-1 border-black h-14 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none"><Link href="/account/orders">My Orders</Link></Button>
+          <Button asChild className="flex-1 h-14 font-bold uppercase tracking-[0.2em] text-[10px] btn-theme">
+            <Link href="/">Back to Home</Link>
+          </Button>
+          <Button asChild variant="outline" className="flex-1 h-14 font-bold uppercase tracking-[0.2em] text-[10px] btn-theme-outline">
+            <Link href="/account/orders">My Orders</Link>
+          </Button>
         </div>
       </div>
     </div>

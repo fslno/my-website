@@ -150,52 +150,36 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         {variant === 'minimal' ? (
-          <div className="flex items-center gap-1 cursor-pointer group detail-review-style">
+          <div 
+            className="flex items-center gap-2 py-1.5 px-3 border border-white/10 shadow-xl group transition-all duration-500 active:scale-95 cursor-pointer w-fit"
+            style={{ 
+              backgroundColor: 'var(--review-badge-color, #000000)',
+              transformOrigin: 'left',
+              transform: `scale(var(--review-badge-size, 1.0))`,
+              borderRadius: 'var(--btn-radius)'
+            }}
+          >
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star 
                   key={s} 
-                  style={s <= Math.round(displayStats.avg) ? { fill: '#facc15', color: '#facc15' } : {}}
                   className={cn(
                     "h-2.5 w-2.5 transition-all duration-300", 
-                    s <= Math.round(displayStats.avg) ? "" : "text-gray-200"
+                    s <= Math.round(displayStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-white/20"
                   )} 
                 />
               ))}
             </div>
-            <span className="text-[9px] font-bold text-black uppercase tracking-widest ml-1 group-hover:underline">({displayStats.count})</span>
-          </div>
-        ) : variant === 'global-badge' ? (
-          <div 
-            className="flex items-center gap-1 sm:gap-1.5 py-2 px-3 sm:py-2.5 sm:px-4 rounded-none border border-white/5 shadow-2xl group transition-all duration-500 active:scale-95 cursor-pointer"
-            style={{ 
-              backgroundColor: 'var(--review-badge-color, #000000)',
-              transform: `scale(var(--review-badge-size, 1.0))`
-            }}
-          >
-            <div className="text-2xl sm:text-3xl font-headline font-bold text-white tracking-tighter leading-none mb-1 pr-1 border-r border-white/10" style={{ color: 'var(--primary-foreground, #FFFFFF)' }}>
-              {displayStats.avg >= 4.9 ? '5' : displayStats.avg.toFixed(1)}
-            </div>
-            <div className="flex flex-col gap-0.5 sm:gap-1 justify-center pl-0.5">
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star 
-                    key={s} 
-                    className={cn(
-                      "h-2.5 w-2.5 sm:h-3 sm:w-3 transition-all duration-300", 
-                      s <= Math.round(displayStats.avg) ? "fill-yellow-400 text-yellow-400" : "text-zinc-800"
-                    )} 
-                  />
-                ))}
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-white uppercase tracking-[0.2em] whitespace-nowrap leading-none opacity-80" style={{ color: 'var(--primary-foreground, #FFFFFF)' }}>
-                {customLabel || `BASED ON ${displayStats.count} REVIEWS`}
-              </div>
+            <div className="text-[9px] font-black text-white uppercase tracking-[0.15em] whitespace-nowrap leading-none opacity-90" style={{ color: 'var(--primary-foreground, #FFFFFF)' }}>
+              {customLabel || `${displayStats.count} REVIEWS`}
             </div>
           </div>
         ) : (
           <div className="inline-block cursor-pointer group">
-            <div className="bg-black/80 backdrop-blur-xl text-white py-1.5 px-3 rounded-none shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-500 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/20 h-8 group-hover:bg-black group-hover:border-white/40">
+            <div 
+              className="bg-black/80 backdrop-blur-xl text-white py-1.5 px-3 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-500 hover:scale-105 active:scale-95 flex items-center gap-1.5 border border-white/20 h-8 group-hover:bg-black group-hover:border-white/40"
+              style={{ borderRadius: 'var(--btn-radius)' }}
+            >
               <div className="flex items-center gap-1 pr-2 border-r border-white/10">
                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                 <span className="text-[10px] font-black tracking-tight text-white">{displayStats.avg}</span>
@@ -274,7 +258,8 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
                       <div className="flex items-center gap-4">
                         <div 
                           onClick={() => document.getElementById('review-image-drawer')?.click()}
-                          className="w-24 h-24 border-2 border-dashed rounded-none flex flex-col items-center justify-center gap-2 bg-gray-50 cursor-pointer hover:border-black transition-all group"
+                          className="w-24 h-24 border-2 border-dashed flex flex-col items-center justify-center gap-2 bg-gray-50 cursor-pointer hover:border-black transition-all group"
+                          style={{ borderRadius: 'var(--btn-radius)' }}
                         >
                           {imagePreview ? (
                             <div className="relative w-full h-full">
@@ -297,7 +282,7 @@ export function ReviewSystem({ productId, variant = 'classic', customLabel }: Re
                     <Button 
                       type="submit" 
                       disabled={isSubmitting}
-                      className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl"
+                      className="w-full h-14 btn-theme text-[10px] tracking-[0.2em] shadow-xl"
                     >
                       {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Review"}
                     </Button>

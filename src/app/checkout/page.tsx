@@ -65,7 +65,7 @@ export default function CheckoutPage() {
   const db = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  const { cart, cartSubtotal, cartCount, clearCart, updateCartItem, discountTotal, totalBeforeTax, appliedCoupon, applyCoupon } = useCart();
+  const { cart, cartSubtotal, cartCount, clearCart, updateCartItem, discountTotal, totalBeforeTax, appliedCoupon, applyCoupon, isFreeShippingEligible, shippingConfig } = useCart();
   
   const [mounted, setMounted] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
@@ -77,8 +77,7 @@ export default function CheckoutPage() {
   const paymentConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'payments') : null, [db]);
   const { data: paymentConfig } = useDoc(paymentConfigRef);
 
-  const shippingConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'shipping') : null, [db]);
-  const { data: shippingConfig } = useDoc(shippingConfigRef);
+    // Shipping config is now provided by useCart()
 
   const storeConfigRef = useMemoFirebase(() => db ? doc(db, 'config', 'store') : null, [db]);
   const { data: storeConfig } = useDoc(storeConfigRef);
@@ -140,11 +139,7 @@ export default function CheckoutPage() {
     }
   }, [orderNote]);
 
-  const isFreeShippingEligible = useMemo(() => {
-    if (!shippingConfig?.freeShippingEnabled) return false;
-    const threshold = Number(shippingConfig.freeShippingThreshold) || 500;
-    return cartSubtotal >= threshold;
-  }, [shippingConfig, cartSubtotal]);
+  // Eligibility is now provided by useCart()
 
   const handleRateSelect = (rate: any) => {
     setSelectedRate(rate);
@@ -431,7 +426,8 @@ export default function CheckoutPage() {
     <div className="max-w-[1440px] mx-auto w-full flex-1 pt-28 sm:pt-40 pb-12 px-4">
       <button 
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit"
+        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-8 group w-fit btn-theme-ghost"
+        style={{ borderRadius: 'var(--btn-radius)' }}
       >
         <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
         Back
@@ -442,11 +438,25 @@ export default function CheckoutPage() {
           <section className="space-y-6">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">01. Shipping Method</h2>
             <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }} className={cn("p-4 border-2 text-left flex flex-col gap-3 transition-all duration-300", deliveryMethod === 'shipping' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}>
+              <button 
+                onClick={() => { setDeliveryMethod('shipping'); setShippingRate(0); setErrors({}); }} 
+                className={cn(
+                  "p-4 border-2 text-left flex flex-col gap-3 transition-all duration-300", 
+                  deliveryMethod === 'shipping' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50"
+                )}
+                style={{ borderRadius: 'var(--btn-radius)' }}
+              >
                 <Truck className={cn("h-6 w-6", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")} />
                 <div><p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'shipping' ? "text-primary" : "text-muted-foreground")}>Shipping</p><p className="text-[10px] text-muted-foreground mt-1">Deliver to my address</p></div>
               </button>
-              <button onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); setErrors({}); }} className={cn("p-4 border-2 text-left flex flex-col gap-3 transition-all duration-300", deliveryMethod === 'pickup' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50")}>
+              <button 
+                onClick={() => { setDeliveryMethod('pickup'); setShippingRate(0); setErrors({}); }} 
+                className={cn(
+                  "p-4 border-2 text-left flex flex-col gap-3 transition-all duration-300", 
+                  deliveryMethod === 'pickup' ? "border-primary bg-white shadow-lg" : "border-gray-200 bg-gray-50/50"
+                )}
+                style={{ borderRadius: 'var(--btn-radius)' }}
+              >
                 <Store className={cn("h-6 w-6", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")} />
                 <div><p className={cn("text-[11px] font-bold uppercase tracking-widest", deliveryMethod === 'pickup' ? "text-primary" : "text-muted-foreground")}>Pickup</p><p className="text-[10px] text-muted-foreground mt-1">Pick up in store</p></div>
               </button>
@@ -456,22 +466,22 @@ export default function CheckoutPage() {
           <section className="space-y-8 bg-white p-8 border shadow-sm rounded-none">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">02. Your Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2"><Label htmlFor="email" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email</Label><Input id="email" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} /></div>
-              <div className="space-y-2"><Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone</Label><Input id="tel" className="h-12 bg-[#F9F9F9] rounded-none" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} /></div>
-              <div className="md:col-span-2 space-y-2"><Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name</Label><Input id="name" className="h-12 bg-[#F9F9F9] uppercase rounded-none" value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor="email" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.email ? "text-destructive" : "text-muted-foreground")}>Email</Label><Input id="email" className="h-12 bg-[#F9F9F9] uppercase" style={{ borderRadius: 'var(--btn-radius)' }} value={formData.email} onChange={(e) => handleUppercaseInput('email', e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor="tel" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.phone ? "text-destructive" : "text-muted-foreground")}>Phone</Label><Input id="tel" className="h-12 bg-[#F9F9F9]" style={{ borderRadius: 'var(--btn-radius)' }} value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} /></div>
+              <div className="md:col-span-2 space-y-2"><Label htmlFor="name" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.name ? "text-destructive" : "text-muted-foreground")}>Full Name</Label><Input id="name" className="h-12 bg-[#F9F9F9] uppercase" style={{ borderRadius: 'var(--btn-radius)' }} value={formData.name} onChange={(e) => handleUppercaseInput('name', e.target.value)} /></div>
             </div>
 
             {deliveryMethod === 'shipping' ? (
               <div className="space-y-10 pt-4 border-t">
                 <div className="grid gap-4">
-                  <div className="space-y-2"><Label htmlFor="address" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Shipping Address</Label><Input id="address" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                  <div className="space-y-2"><Label htmlFor="address" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.address ? "text-destructive" : "text-muted-foreground")}>Shipping Address</Label><Input id="address" value={formData.address} onChange={(e) => handleUppercaseInput('address', e.target.value)} className="h-12 uppercase" style={{ borderRadius: 'var(--btn-radius)' }} /></div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label htmlFor="city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City</Label><Input id="city" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                    <div className="space-y-2"><Label htmlFor="postalCode" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input id="postalCode" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                    <div className="space-y-2"><Label htmlFor="city" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.city ? "text-destructive" : "text-muted-foreground")}>City</Label><Input id="city" value={formData.city} onChange={(e) => handleUppercaseInput('city', e.target.value)} className="h-12 uppercase" style={{ borderRadius: 'var(--btn-radius)' }} /></div>
+                    <div className="space-y-2"><Label htmlFor="postalCode" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.postalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input id="postalCode" value={formData.postalCode} onChange={(e) => handleUppercaseInput('postalCode', e.target.value)} className="h-12 uppercase" style={{ borderRadius: 'var(--btn-radius)' }} /></div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label htmlFor="province" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input id="province" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.country} onValueChange={(val) => handleInputChange('country', val)}><SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
+                    <div className="space-y-2"><Label htmlFor="province" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.province ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input id="province" value={formData.province} onChange={(e) => handleUppercaseInput('province', e.target.value)} className="h-12 uppercase" style={{ borderRadius: 'var(--btn-radius)' }} /></div>
+                    <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.country} onValueChange={(val) => handleInputChange('country', val)}><SelectTrigger className="h-12 bg-[#F9F9F9] uppercase font-bold text-[10px]" style={{ borderRadius: 'var(--btn-radius)' }}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
                   </div>
                 </div>
 
@@ -484,14 +494,14 @@ export default function CheckoutPage() {
                   <div className="space-y-6 pt-10 border-t mt-10 animate-in fade-in slide-in-from-top-2 duration-500">
                     <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><CreditCard className="h-3.5 w-3.5" /> Billing Address</h3>
                     <div className="grid gap-4">
-                      <div className="space-y-2"><Label htmlFor="billingAddress" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label><Input id="billingAddress" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                      <div className="space-y-2"><Label htmlFor="billingAddress" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingAddress ? "text-destructive" : "text-muted-foreground")}>Address</Label><Input id="billingAddress" value={formData.billingAddress} onChange={(e) => handleUppercaseInput('billingAddress', e.target.value)} className="h-12 uppercase" style={{ borderRadius: 'var(--btn-radius)' }} /></div>
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label htmlFor="billingCity" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City</Label><Input id="billingCity" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                        <div className="space-y-2"><Label htmlFor="billingPostalCode" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input id="billingPostalCode" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} className="h-12 uppercase rounded-none" /></div>
+                        <div className="space-y-2"><Label htmlFor="billingCity" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingCity ? "text-destructive" : "text-muted-foreground")}>City</Label><Input id="billingCity" value={formData.billingCity} onChange={(e) => handleUppercaseInput('billingCity', e.target.value)} className="h-12 uppercase" style={{ borderRadius: 'var(--btn-radius)' }} /></div>
+                        <div className="space-y-2"><Label htmlFor="billingPostalCode" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingPostalCode ? "text-destructive" : "text-muted-foreground")}>Postal Code</Label><Input id="billingPostalCode" value={formData.billingPostalCode} onChange={(e) => handleUppercaseInput('billingPostalCode', e.target.value)} className="h-12 uppercase" style={{ borderRadius: 'var(--btn-radius)' }} /></div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label htmlFor="billingProvince" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input id="billingProvince" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-12 uppercase rounded-none" /></div>
-                        <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}><SelectTrigger className="h-12 rounded-none bg-[#F9F9F9] uppercase font-bold text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
+                        <div className="space-y-2"><Label htmlFor="billingProvince" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.billingProvince ? "text-destructive" : "text-muted-foreground")}>Province</Label><Input id="billingProvince" value={formData.billingProvince} onChange={(e) => handleUppercaseInput('billingProvince', e.target.value)} className="h-12 uppercase" style={{ borderRadius: 'var(--btn-radius)' }} /></div>
+                        <div className="space-y-2"><Label className="text-[9px] uppercase tracking-widest font-bold">Country</Label><Select value={formData.billingCountry} onValueChange={(val) => handleInputChange('billingCountry', val)}><SelectTrigger className="h-12 bg-[#F9F9F9] uppercase font-bold text-[10px]" style={{ borderRadius: 'var(--btn-radius)' }}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Canada">Canada</SelectItem><SelectItem value="United States">United States</SelectItem></SelectContent></Select></div>
                       </div>
                     </div>
                   </div>
@@ -519,8 +529,8 @@ export default function CheckoutPage() {
                 <div className="space-y-6 pt-10 border-t">
                   <h3 className="text-[10px] uppercase font-bold text-primary tracking-widest flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Pickup Time</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label htmlFor="pickupDate" className={cn("text-[9px] uppercase font-bold", errors.pickupDate ? "text-destructive" : "")}>Date</Label><Input id="pickupDate" type="date" className="h-12 rounded-none" value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div>
-                    <div className="space-y-2"><Label htmlFor="pickupTime" className={cn("text-[9px] uppercase font-bold", errors.pickupTime ? "text-destructive" : "")}>Time</Label><Input id="pickupTime" type="time" className="h-12 rounded-none" value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div>
+                    <div className="space-y-2"><Label htmlFor="pickupDate" className={cn("text-[9px] uppercase font-bold", errors.pickupDate ? "text-destructive" : "")}>Date</Label><Input id="pickupDate" type="date" className="h-12" style={{ borderRadius: 'var(--btn-radius)' }} value={formData.pickupDate} onChange={(e) => handleInputChange('pickupDate', e.target.value)} /></div>
+                    <div className="space-y-2"><Label htmlFor="pickupTime" className={cn("text-[9px] uppercase font-bold", errors.pickupTime ? "text-destructive" : "")}>Time</Label><Input id="pickupTime" type="time" className="h-12" style={{ borderRadius: 'var(--btn-radius)' }} value={formData.pickupTime} onChange={(e) => handleInputChange('pickupTime', e.target.value)} /></div>
                   </div>
                 </div>
               </div>
@@ -536,7 +546,31 @@ export default function CheckoutPage() {
                 <div className="w-20 h-20 relative bg-gray-50 border shrink-0"><Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" /></div>
                 <div className="flex-1 flex flex-col justify-between py-0.5">
                   <div className="space-y-1">
-                    <div className="flex justify-between"><h3 className="text-[10px] font-bold uppercase tracking-tight text-primary">{item.name}</h3><p className="text-[11px] font-bold text-primary">{`C$${formatCurrency(item.price * item.quantity)}`}</p></div>
+                    <div className="flex justify-between items-start">
+                      <h3 className={cn(
+                        "text-[10px] font-bold uppercase tracking-tight",
+                        item.isLoyaltyReward ? "text-emerald-700" : "text-primary"
+                      )}>
+                        {item.name}
+                        {item.isLoyaltyReward && (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[7px] px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-sm font-black tracking-widest leading-none">PREMIUM REWARD</span>
+                            <span className="text-[7px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-sm font-black tracking-widest leading-none">LOYALTY GIFT</span>
+                          </div>
+                        )}
+                      </h3>
+                      <div className="text-right">
+                        <p className={cn(
+                          "text-[11px] font-bold",
+                          item.isLoyaltyReward ? "text-emerald-600" : "text-primary"
+                        )}>
+                          {item.isLoyaltyReward ? 'FREE' : `C$${formatCurrency(item.price * item.quantity)}`}
+                        </p>
+                        {item.isLoyaltyReward && (
+                          <p className="text-[7px] font-black line-through text-gray-300">C${formatCurrency(35)}</p>
+                        )}
+                      </div>
+                    </div>
                     <div className="text-[9px] text-muted-foreground font-bold uppercase">Size: {item.size} • Qty: {item.quantity}</div>
                     {(item.customName || item.customNumber || item.specialNote) && (
                       <div className="pt-1.5 space-y-0.5 border-t border-dashed border-gray-100 mt-1.5">
@@ -555,7 +589,7 @@ export default function CheckoutPage() {
             <div className="space-y-2">
               <Label htmlFor="referral" className={cn("text-[9px] uppercase tracking-widest font-bold", errors.referral ? "text-destructive" : "text-muted-foreground")}>Select an option</Label>
               <Select value={formData.referral} onValueChange={(val) => handleInputChange('referral', val)}>
-                <SelectTrigger id="referral" className="h-12 bg-gray-50 border-gray-200 uppercase font-bold text-[10px] rounded-none">
+                <SelectTrigger id="referral" className="h-12 bg-gray-50 border-gray-200 uppercase font-bold text-[10px]" style={{ borderRadius: 'var(--btn-radius)' }}>
                   <SelectValue placeholder="SELECT SOURCE" />
                 </SelectTrigger>
                 <SelectContent>
@@ -575,15 +609,16 @@ export default function CheckoutPage() {
               value={orderNote} 
               onChange={(e) => setOrderNote(e.target.value.toUpperCase())} 
               placeholder="ANY SPECIAL REQUESTS..." 
-              className="min-h-[40px] overflow-hidden resize-none uppercase text-xs rounded-none border-gray-200 py-2" 
+              className="min-h-[40px] overflow-hidden resize-none uppercase text-xs border-gray-200 py-2" 
+              style={{ borderRadius: 'var(--btn-radius)' }}
             />
           </div>
 
           <div className="space-y-3 pt-4 border-t">
             <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Discount Code</Label>
             <div className="flex gap-2">
-              <Input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} placeholder="COUPON" className="h-12 bg-gray-50 uppercase font-bold text-xs rounded-none border-gray-200" />
-              <Button onClick={handleValidateCoupon} disabled={!couponInput || isValidatingCoupon} variant="outline" className="h-12 px-6 border-black font-bold uppercase tracking-widest text-[10px] rounded-none">{isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}</Button>
+              <Input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} placeholder="COUPON" className="h-12 bg-gray-50 uppercase font-bold text-xs border-gray-200" style={{ borderRadius: 'var(--btn-radius)' }} />
+              <Button onClick={handleValidateCoupon} disabled={!couponInput || isValidatingCoupon} variant="outline" className="h-12 px-6 btn-theme">{isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}</Button>
             </div>
             {appliedCoupon && (
               <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-100 rounded-none animate-in fade-in slide-in-from-top-1"><span className="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-2"><Tag className="h-3 w-3" /> {appliedCoupon.code}</span><button onClick={() => applyCoupon(null)} className="text-emerald-700 hover:text-emerald-900"><X className="h-3.5 w-3.5" /></button></div>
@@ -621,7 +656,8 @@ export default function CheckoutPage() {
                   id="checkout-consent"
                   checked={consentChecked}
                   onCheckedChange={(v) => { setConsentChecked(!!v); if (!!v) setConsentError(false); }}
-                  className="mt-0.5 border-gray-400 data-[state=checked]:bg-black data-[state=checked]:border-black rounded-none"
+                  className="mt-0.5 border-gray-400 data-[state=checked]:bg-black data-[state=checked]:border-black"
+                  style={{ borderRadius: 'calc(var(--btn-radius) / 4)' }}
                 />
                 <label
                   htmlFor="checkout-consent"
@@ -809,7 +845,7 @@ export default function CheckoutPage() {
 
           {/* CTA */}
           <div className="px-8 py-6 shrink-0 bg-white border-t">
-            <Button asChild className="w-full h-14 bg-black text-white font-black uppercase tracking-[0.3em] text-[11px] rounded-none shadow-xl hover:bg-black/90">
+            <Button asChild className="w-full h-14 btn-theme">
               <Link href="/">Back to Home</Link>
             </Button>
           </div>

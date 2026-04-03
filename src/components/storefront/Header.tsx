@@ -45,7 +45,7 @@ import { ReviewSystem } from '@/components/storefront/ReviewSystem';
 
 export function Header({ initialTheme, initialStore }: { initialTheme?: any, initialStore?: any }) {
   const [mounted, setMounted] = useState(false);
-  const { cart, cartCount, cartSubtotal, addToCart, removeFromCart, discountTotal, totalBeforeTax, promoConfig, thresholdProgress, THRESHOLD_VALUE } = useCart();
+  const { cart, cartCount, cartSubtotal, addToCart, removeFromCart, discountTotal, totalBeforeTax, promoConfig, shippingProgress, FREE_SHIPPING_THRESHOLD, isFreeShippingEligible, shippingConfig } = useCart();
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
   const { t } = useLanguage();
   const { user } = useUser();
@@ -199,19 +199,19 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className={cn(
-                    "lg:hidden h-9 w-9 p-0 transition-colors duration-300",
-                    isTransparent ? "text-white" : "text-black"
-                  )}
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={cn(
+                      "lg:hidden btn-theme-ghost h-9 w-9 p-0 transition-colors duration-300",
+                      isTransparent ? "text-white" : "text-black"
+                    )}
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] bg-white border-r p-0 flex flex-col" hideClose>
-                <SheetHeader className="px-8 pt-20 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                <SheetHeader className="px-8 pt-10 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       {t('nav.menu')}
@@ -308,28 +308,31 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 onChange={(e) => { setSearchQuery(e.target.value); setIsSearching(true); }}
                 onFocus={() => setIsSearching(true)}
               />
-              {isSearching && searchQuery.length > 0 ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 text-black hover:bg-transparent"
-                  onClick={() => { setSearchQuery(''); setIsSearching(false); }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 transition-colors duration-300",
-                    isListening ? "text-blue-500 bg-blue-50/50 animate-pulse" : isTransparent ? "text-white/40 hover:text-white" : "text-gray-400 hover:text-black"
-                  )}
-                  onClick={startVoiceSearch}
-                >
-                  <Mic className="h-4 w-4" />
-                </Button>
-              )}
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                {isSearching && searchQuery.length > 0 ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="btn-theme-ghost h-9 w-9 text-black hover:bg-transparent"
+                    onClick={() => { setSearchQuery(''); setIsSearching(false); }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "btn-theme-ghost h-9 w-9 transition-colors duration-300",
+                      isListening ? "text-blue-500 bg-blue-50/50 animate-pulse" : isTransparent ? "text-white/40 hover:text-white" : "text-gray-400 hover:text-black"
+                    )}
+                    onClick={startVoiceSearch}
+                    title="Voice Search"
+                  >
+                    <Mic className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               {isSearching && searchQuery.length >= 2 && (
                 <div className="absolute top-[calc(100%+8px)] left-0 right-0 w-full bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-[999] overflow-hidden rounded-lg">
                   <ScrollArea className="h-[440px]">
@@ -374,7 +377,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 </Button>
               </SheetTrigger>
               <SheetContent side="top" className="h-[100dvh] bg-white border-none p-0 flex flex-col" hideClose>
-                <SheetHeader className="px-6 pt-20 pb-4 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                <SheetHeader className="px-6 pt-10 pb-4 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       SEARCH
@@ -392,17 +395,17 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                     <Input
                       autoFocus
                       placeholder="SEARCH PRODUCTS..."
-                      className="pl-12 h-14 w-full bg-gray-50 border-none text-black text-xs font-bold uppercase tracking-[0.2em] rounded-none focus-visible:ring-1 focus-visible:ring-black/20"
+                      className="pl-12 pr-24 h-14 w-full bg-gray-50 border-none text-black text-xs font-bold uppercase tracking-[0.2em] rounded-none focus-visible:ring-1 focus-visible:ring-black/20"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
                       {searchQuery.length > 0 && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-9 w-9 text-black"
+                          className="h-9 w-9 text-black hover:bg-black/5 rounded-none"
                           onClick={() => setSearchQuery('')}
                         >
                           <X className="h-5 w-5" />
@@ -412,10 +415,11 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                         variant="ghost"
                         size="icon"
                         className={cn(
-                          "h-9 w-9 rounded-full transition-all duration-300",
-                          isListening ? "text-blue-500 bg-blue-50 animate-pulse scale-110" : "text-gray-400 hover:text-black"
+                          "h-9 w-9 rounded-none transition-all duration-300",
+                          isListening ? "text-blue-500 bg-blue-50 animate-pulse scale-110" : "text-gray-400 hover:text-black hover:bg-black/5"
                         )}
                         onClick={startVoiceSearch}
+                        title="Voice Search"
                       >
                         <Mic className="h-5 w-5" />
                       </Button>
@@ -499,15 +503,10 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 </Button>
               </SheetTrigger>
               <SheetContent
-                className={cn(
-                  "w-full sm:max-w-md bg-white text-black p-0 flex flex-col border-none sm:border-l border-border shadow-none sm:shadow-2xl transition-all duration-500",
-                  theme?.bannerEnabled
-                    ? "top-0 sm:top-10 h-[100dvh] sm:h-[calc(100dvh-theme(spacing.10))]"
-                    : "h-[100dvh]"
-                )}
+                className="w-full sm:max-w-md bg-white text-black p-0 flex flex-col border-none sm:border-l border-border shadow-none sm:shadow-2xl transition-all duration-500 h-[100dvh] top-0"
                 hideClose
               >
-                <SheetHeader className="px-8 pt-20 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                <SheetHeader className="px-8 pt-10 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       WISHLIST {wishlistCount > 0 && <span className="text-black text-sm sm:text-lg font-black bg-gray-100 px-2 py-0.5 rounded-full">({wishlistCount})</span>}
@@ -582,7 +581,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                         setIsWishlistOpen(false);
                         setIsCartOpen(true);
                       }}
-                      className="w-full h-14 bg-black text-white hover:bg-black/90 font-bold uppercase tracking-[0.3em] text-[10px] rounded-none shadow-xl transition-all active:scale-[0.98]"
+                      className="w-full h-14 btn-theme"
                     >
                       Add All to Cart
                     </Button>
@@ -606,15 +605,10 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 </Button>
               </SheetTrigger>
               <SheetContent
-                className={cn(
-                  "w-full sm:max-w-md bg-white text-black p-0 flex flex-col border-none sm:border-l border-border shadow-none sm:shadow-2xl transition-all duration-500",
-                  theme?.bannerEnabled
-                    ? "top-0 sm:top-10 h-[100dvh] sm:h-[calc(100dvh-theme(spacing.10))]"
-                    : "h-[100dvh]"
-                )}
+                className="w-full sm:max-w-md bg-white text-black p-0 flex flex-col border-none sm:border-l border-border shadow-none sm:shadow-2xl transition-all duration-500 h-[100dvh] top-0"
                 hideClose
               >
-                <SheetHeader className="px-8 pt-20 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
+                <SheetHeader className="px-8 pt-10 pb-6 border-b border-border shrink-0 bg-white shadow-sm relative z-[100]">
                   <div className="flex items-center justify-between w-full mt-2">
                     <SheetTitle className="text-xl sm:text-2xl font-headline font-black uppercase tracking-tighter text-black flex items-center gap-3 shrink-0">
                       CART {cartCount > 0 && <span className="text-black text-sm sm:text-lg font-black bg-gray-100 px-2 py-0.5 rounded-full">({cartCount})</span>}
@@ -635,13 +629,60 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                     </div>
                   ) : (
                     <div className="space-y-6">
+                      {/* Free Shipping & Rewards Progress */}
+                      {shippingConfig?.freeShippingEnabled && (
+                        <div className="mb-8 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                          <div className="flex justify-between items-baseline">
+                            <span className={cn(
+                              "text-[9px] font-black uppercase tracking-[0.15em]",
+                              isFreeShippingEligible ? "text-emerald-600" : "text-black/40"
+                            )}>
+                              {isFreeShippingEligible ? (
+                                <span className="flex items-center gap-1.5">
+                                  <Sparkles className="h-3 w-3 animate-pulse" /> WOO HOO! YOU GOT FREE SHIPPING!
+                                </span>
+                              ) : (
+                                `ADD C$${formatCurrency(FREE_SHIPPING_THRESHOLD - cartSubtotal)} MORE FOR FREE SHIPPING`
+                              )}
+                            </span>
+                            <span className="text-[9px] font-black text-black">{Math.round(shippingProgress)}%</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-gray-100 rounded-none overflow-hidden border border-gray-100">
+                            <div 
+                              className={cn(
+                                "h-full transition-all duration-1000 ease-out",
+                                isFreeShippingEligible ? "bg-emerald-500" : "bg-black"
+                              )}
+                              style={{ width: `${shippingProgress}%` }}
+                            />
+                          </div>
+                          {cart.some(item => item.isPromo) && (
+                            <div className="bg-gradient-to-r from-emerald-50/80 via-emerald-50/40 to-emerald-50/80 border border-emerald-200/60 p-4 flex flex-col items-center justify-center gap-2 animate-in fade-in zoom-in duration-700 shadow-sm relative overflow-hidden">
+                               <div className="absolute top-0 right-0 p-1 opacity-20"><Sparkles className="h-8 w-8 text-emerald-500" /></div>
+                               <div className="flex items-center gap-2.5">
+                                 <Sparkles className="h-4 w-4 text-emerald-600 fill-emerald-600" />
+                                 <span className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-700">Woo hoo! You got a free kit! 🎁</span>
+                                 <Sparkles className="h-4 w-4 text-emerald-600 fill-emerald-600" />
+                               </div>
+                               <p className="text-[7.5px] font-bold uppercase tracking-widest text-emerald-600/70">A special thank you for your loyalty</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {cart.map((item) => (
                         <div key={item.variantId} className="flex gap-4">
                           <div className="w-20 h-20 relative bg-gray-50 border border-gray-100 shrink-0">{item.image && <NextImage src={item.image} alt="" fill sizes="80px" className="object-cover" />}</div>
                           <div className="flex-1 flex flex-col justify-between py-1">
                             <div>
                               <div className="flex justify-between items-start gap-2">
-                                <h3 className="text-[10px] font-bold uppercase leading-tight truncate max-w-[180px] text-black">{item.name}</h3>
+                                <h3 className={cn(
+                                  "text-[10px] font-bold uppercase leading-tight truncate max-w-[180px]",
+                                  item.isLoyaltyReward ? "text-emerald-700" : "text-black"
+                                )}>
+                                  {item.name}
+                                  {item.isLoyaltyReward && <span className="ml-1 text-[8px] px-1 bg-emerald-100 text-emerald-700 rounded-sm">REWARD</span>}
+                                </h3>
                                 <p className="text-[10px] font-bold whitespace-nowrap text-black">C${formatCurrency(item.price * item.quantity)}</p>
                               </div>
                               <div className="flex items-center gap-3 mt-1.5">
@@ -671,11 +712,14 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                 </ScrollArea>
                 {cart.length > 0 && (
                   <SheetFooter className="p-6 pb-20 sm:pb-6 border-t border-gray-100 bg-white flex flex-col gap-4 shrink-0 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-50">
-                    <div className="space-y-3">
+                    <div className="space-y-1.5">
                       <div className="flex justify-between items-end">
                         <span className="text-[10px] font-bold uppercase text-muted-foreground">Subtotal</span>
                         <span className="text-[11px] font-bold text-black">C${formatCurrency(cartSubtotal)}</span>
                       </div>
+                      <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-[0.1em] opacity-80">
+                        Shipping & taxes calculated at checkout
+                      </p>
                       {discountTotal > 0 && (
                         <div className="flex justify-between items-end text-emerald-600">
                           <span className="text-[10px] font-bold uppercase">Savings Applied</span>
@@ -683,7 +727,7 @@ export function Header({ initialTheme, initialStore }: { initialTheme?: any, ini
                         </div>
                       )}
                     </div>
-                    <Button asChild className="w-full h-14 bg-black text-white hover:bg-black/90 font-bold uppercase tracking-[0.3em] text-[10px] rounded-none shadow-xl transition-all active:scale-[0.98]">
+                    <Button asChild className="w-full h-14 btn-theme">
                       <Link href="/checkout" onClick={() => setIsCartOpen(false)}>Checkout</Link>
                     </Button>
                   </SheetFooter>

@@ -145,6 +145,8 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
 
     const heroButtonBg = theme.heroButtonBgColor || theme.accentColor || '#FFFFFF';
     const heroButtonText = theme.heroButtonTextColor || getContrastColor(heroButtonBg);
+    const heroButtonScale = theme.heroButtonScale || 1.0;
+    const heroButtonRadius = theme.heroButtonRadius || 0;
 
     const getFlexAlign = (align: string) => align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
     const getVerticalAlign = (align: string) => align === 'bottom' ? 'flex-end' : align === 'top' ? 'flex-start' : 'center';
@@ -211,6 +213,8 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
         --hero-subheadline-color: ${heroSubheadlineColor};
         --hero-button-bg: ${heroButtonBg};
         --hero-button-text: ${heroButtonText};
+        --hero-btn-scale: ${heroButtonScale};
+        --hero-btn-radius: ${heroButtonRadius}px;
 
         /* Review Badge Subsystem */
         --review-badge-size: ${theme.reviewBadgeSize || 1.0};
@@ -220,6 +224,19 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
         
         /* Responsive Offsets */
         --review-badge-top: ${theme.reviewBadgeTopDesktop || 80}px;
+
+        /* Button Theme Engine */
+        --btn-scale: ${theme.btnScale || 1.0};
+        --btn-radius: ${theme.btnRadius || 4}px;
+        --btn-bg: ${theme.btnBgColor || '#000000'};
+        --btn-foreground: ${getContrastColor(theme.btnBgColor || '#000000')};
+        --btn-hover: ${theme.btnHoverColor || '#DF1111'};
+        --btn-hover-foreground: ${getContrastColor(theme.btnHoverColor || '#DF1111')};
+        --btn-font-weight: ${theme.btnFontWeight || 500};
+        --btn-text-transform: ${theme.btnTextTransform || 'none'};
+        --btn-border-width: ${theme.btnBorderWidth || 0}px;
+        --btn-padding-x: ${theme.btnPaddingX || 16}px;
+        --btn-padding-y: ${theme.btnPaddingY || 8}px;
       }
 
       /* Global Selectors for Advanced Product Styling */
@@ -263,6 +280,11 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
         color: var(--detail-review-color) !important;
       }
 
+      @media (min-width: 1024px) {
+        .hero-headline-size {
+          font-size: clamp(32px, 6vw, var(--hero-headline-size)) !important;
+        }
+      }
       @media (max-width: 640px) {
         :root {
           --review-badge-top: ${theme.reviewBadgeTopMobile || 60}px;
@@ -311,17 +333,21 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
       
       /* AUTOMATIC SCALING */
       .hero-headline-size {
-        font-size: clamp(calc(var(--hero-headline-size) * 0.5), 8vw, var(--hero-headline-size)) !important;
+        font-size: clamp(28px, 8vw, var(--hero-headline-size)) !important;
         color: var(--hero-headline-color) !important;
+        line-height: 1.0 !important;
+        letter-spacing: -0.04em !important;
       }
       .hero-subheadline-size {
-        font-size: clamp(calc(var(--hero-subheadline-size) * 0.7), 3vw, var(--hero-subheadline-size)) !important;
+        font-size: clamp(9px, 2.5vw, var(--hero-subheadline-size)) !important;
+        letter-spacing: 0.5em !important;
+        font-weight: 800 !important;
       }
       .hero-subheadline-color {
         color: var(--hero-subheadline-color) !important;
       }
       .category-title-size {
-        font-size: clamp(calc(var(--category-title-size) * 0.6), 6vw, var(--category-title-size)) !important;
+        font-size: clamp(24px, 6vw, var(--category-title-size)) !important;
       }
       
       .category-card-content {
@@ -332,21 +358,21 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
         text-align: var(--category-card-text-align) !important;
       }
       .category-card-title {
-        font-size: clamp(calc(var(--category-card-title-size) * 0.6), 5vw, var(--category-card-title-size)) !important;
+        font-size: clamp(16px, 4vw, var(--category-card-title-size)) !important;
         color: var(--category-card-title-color) !important;
       }
 
       .archive-title-size {
-        font-size: clamp(calc(var(--archive-title-size) * 0.6), 6vw, var(--archive-title-size)) !important;
+        font-size: clamp(24px, 6vw, var(--archive-title-size)) !important;
       }
       .featured-title-size {
-        font-size: clamp(calc(var(--featured-title-size) * 0.6), 6vw, var(--featured-title-size)) !important;
+        font-size: clamp(24px, 6vw, var(--featured-title-size)) !important;
       }
       .product-title-size {
-        font-size: clamp(calc(var(--product-title-size) * 0.8), 4vw, var(--product-title-size)) !important;
+        font-size: clamp(12px, 3vw, var(--product-title-size)) !important;
       }
       .product-price-size {
-        font-size: clamp(calc(var(--product-price-size) * 0.8), 4vw, var(--product-price-size)) !important;
+        font-size: clamp(12px, 3vw, var(--product-price-size)) !important;
       }
 
       .category-text-align {
@@ -385,6 +411,68 @@ export function ThemeStyleInjector({ initialTheme }: { initialTheme?: any }) {
       .hero-button {
         background-color: var(--hero-button-bg) !important;
         color: var(--hero-button-text) !important;
+        border-radius: var(--hero-btn-radius) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+      
+      .hero-button:hover {
+        opacity: 0.95;
+      }
+
+      /* GLOBAL BUTTON THEME ENGINE */
+      .btn-theme, .btn-theme-outline, .btn-theme-ghost {
+        transform: none !important;
+        border-radius: var(--btn-radius) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: var(--btn-font-weight) !important;
+        text-transform: var(--btn-text-transform) !important;
+        padding-left: calc(var(--btn-padding-x) * var(--btn-scale)) !important;
+        padding-right: calc(var(--btn-padding-x) * var(--btn-scale)) !important;
+        padding-top: calc(var(--btn-padding-y) * var(--btn-scale)) !important;
+        padding-bottom: calc(var(--btn-padding-y) * var(--btn-scale)) !important;
+        cursor: pointer !important;
+      }
+
+      /* SOLID VARIANT */
+      .btn-theme {
+        background-color: var(--btn-bg) !important;
+        color: var(--btn-foreground) !important;
+        border: var(--btn-border-width) solid #000000 !important;
+      }
+      .btn-theme:hover {
+        background-color: var(--btn-hover) !important;
+        color: var(--btn-hover-foreground) !important;
+        opacity: 0.95;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+      }
+
+      /* OUTLINE VARIANT */
+      .btn-theme-outline {
+        background-color: transparent !important;
+        color: var(--btn-bg) !important;
+        border: max(1px, var(--btn-border-width)) solid var(--btn-bg) !important;
+      }
+      .btn-theme-outline:hover {
+        background-color: var(--btn-bg) !important;
+        color: var(--btn-foreground) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+      }
+
+      /* GHOST VARIANT */
+      .btn-theme-ghost {
+        background-color: transparent !important;
+        color: inherit !important;
+        border: none !important;
+      }
+      .btn-theme-ghost:hover {
+        background-color: rgba(0, 0, 0, 0.05) !important;
+      }
+
+      .btn-theme:active, .btn-theme-outline:active {
+        transform: scale(calc(var(--btn-scale) * 0.97)) !important;
       }
     `;
 

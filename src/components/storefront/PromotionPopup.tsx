@@ -51,7 +51,10 @@ export function PromotionPopup() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
-      <DialogContent className="sm:max-w-md bg-white border-none rounded-none p-0 overflow-hidden shadow-2xl">
+      <DialogContent 
+        className="sm:max-w-md bg-white border-none p-0 overflow-hidden shadow-2xl"
+        style={{ borderRadius: 'var(--btn-radius)' }}
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>Limited Offer Promotion</DialogTitle>
           <DialogDescription>Information about the current reward offer.</DialogDescription>
@@ -82,7 +85,7 @@ export function PromotionPopup() {
           <div className="pt-4">
             <Button 
               onClick={handleClose}
-              className="w-full h-14 bg-black text-white font-bold uppercase tracking-[0.3em] text-[10px] rounded-none hover:bg-black/90 transition-all shadow-xl group"
+              className="w-full h-14 btn-theme"
             >
               Start Shopping <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
