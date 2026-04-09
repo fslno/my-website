@@ -8,19 +8,22 @@ import { WishlistProvider } from '@/context/WishlistContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
 import { ThemeStyleInjector } from '@/components/storefront/ThemeStyleInjector';
-import { Chatbot } from '@/components/storefront/Chatbot';
-import { PromotionPopup } from '@/components/storefront/PromotionPopup';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { cn } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { doc } from 'firebase/firestore';
 import { getLivePath } from '@/lib/paths';
 import { AuthDialogProvider } from '@/context/AuthDialogContext';
-import { SocialPixels } from '@/components/shared/SocialPixels';
 import { RoutePrefetcher } from '@/components/shared/RoutePrefetcher';
 import { SplashScreen } from '@/components/layout/SplashScreen';
 import { ReturnTransition } from '@/components/storefront/ReturnTransition';
+import dynamic from 'next/dynamic';
+
+const Chatbot = dynamic(() => import('@/components/storefront/Chatbot').then(mod => mod.Chatbot), { ssr: false });
+const PromotionPopup = dynamic(() => import('@/components/storefront/PromotionPopup').then(mod => mod.PromotionPopup), { ssr: false });
+const SocialPixels = dynamic(() => import('@/components/shared/SocialPixels').then(mod => mod.SocialPixels), { ssr: false });
+
 
 export function ClientLayout({ 
   children,
@@ -41,11 +44,13 @@ export function ClientLayout({
             <ThemeStyleInjector initialTheme={initialTheme} />
             <WishlistProvider>
               <CartProvider>
-                <LayoutContent pathname={pathname} initialTheme={initialTheme} initialStore={initialStore}>
-                  <div className="mobile-wrapper">
-                    {children}
-                  </div>
-                </LayoutContent>
+                <React.Suspense fallback={null}>
+                  <LayoutContent pathname={pathname} initialTheme={initialTheme} initialStore={initialStore}>
+                    <div className="mobile-wrapper">
+                      {children}
+                    </div>
+                  </LayoutContent>
+                </React.Suspense>
                 <ReturnTransition />
                 <Toaster />
                 <Chatbot />
@@ -72,10 +77,10 @@ function LayoutContent({
   initialTheme?: any,
   initialStore?: any
 }) {
+  const searchParams = useSearchParams();
   const isAdmin = pathname?.startsWith('/admin');
   const [isMounted, setIsMounted] = useState(false);
-  const [isAppReady, setIsAppReady] = useState(false);
-  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const { isLoading: isGlobalLoading } = useLoading();
 
   const db = useFirestore();
@@ -91,12 +96,12 @@ function LayoutContent({
       
     }
     setIsMounted(true);
-    
-    // DELAY app readiness to cover all flickering of initial mount/fonts/layout
+
+    // Initial load/Refresh: Hide the splash screen after the app is ready and fully hydrated
     const timer = setTimeout(() => {
-      setIsAppReady(true);
-    }, 800);
-    
+      setIsPageLoading(false);
+    }, 1000); // 1s duration for premium brand feel on land/refresh
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -126,25 +131,20 @@ function LayoutContent({
   // Global Scroll Management & Transition Trigger
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-
-      // Trigger brief transition overlay on route change
+      // Manual scroll restoration is handled here
       if (isMounted) {
-        setIsPageLoading(true);
-        const timer = setTimeout(() => {
-          setIsPageLoading(false);
-        }, 200); // Short duration to cover render/shift
-        return () => clearTimeout(timer);
+        // We no longer trigger a full-page loading screen on every navigate
+        // as per the user's request to "only open the website with the white background"
       }
     }
-  }, [pathname, isMounted]);
+  }, [pathname, searchParams, isMounted]);
 
   const showMaintenance = isMounted && !!theme?.maintenanceMode && !isAdmin;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Global Splash Screen — covers everything until app is ready, root navigation finishes, or custom components are loading */}
-      <SplashScreen isVisible={!isAdmin && (!isAppReady || isPageLoading || isGlobalLoading)} />
+      <SplashScreen isVisible={!isAdmin && (isPageLoading || isGlobalLoading)} />
 
       {/* Maintenance overlay — always rendered but hidden via CSS when not active */}
       <div
@@ -191,23 +191,22 @@ function LayoutContent({
         </div>
       </div>
 
-      {/* Main layout — with entrance animation directly on semantic elements (Fixes Hydration Mismatch) */}
+      {/* Main layout */}
       {!isAdmin && (
-        <div className={cn("transition-opacity duration-700 ease-out", isAppReady ? "opacity-100" : "opacity-0")}>
+        <div>
           <Header initialTheme={theme || initialTheme} initialStore={initialStore} />
         </div>
       )}
       
       <main className={cn(
-        'flex-grow transition-opacity duration-700 ease-out', 
-        !isAdmin && 'pt-0',
-        isAppReady ? "opacity-100" : "opacity-0"
+        'flex-grow flex flex-col', 
+        !isAdmin && 'pt-0'
       )}>
         {children}
       </main>
       
       {!isAdmin && (
-        <div className={cn("transition-opacity duration-700 ease-out", isAppReady ? "opacity-100" : "opacity-0")}>
+        <div>
           <Footer initialTheme={theme || initialTheme} />
         </div>
       )}

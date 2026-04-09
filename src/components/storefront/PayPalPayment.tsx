@@ -7,6 +7,7 @@ import { collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'fir
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { getLivePath } from '@/lib/paths';
+import { validateStockLevels, decrementStockLevels } from '@/lib/inventory-controller';
 
 interface PayPalPaymentProps {
   amount: number;
@@ -14,6 +15,7 @@ interface PayPalPaymentProps {
   onSuccess: (orderId: string) => void;
   validate: () => boolean;
   clientId?: string;
+  existingOrderId?: string | null;
 }
 
 const ENV_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
@@ -23,7 +25,7 @@ const ENV_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
  * Shows payment buttons and saves order details.
  * Uses isolated stacking context to stay behind fixed UI elements.
  */
-export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId }: PayPalPaymentProps) {
+export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId, existingOrderId }: PayPalPaymentProps) {
   const db = useFirestore();
   const { toast } = useToast();
 
@@ -42,6 +44,11 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
       }
     }
   }, []);
+
+  const callbacks = React.useRef({ onSuccess, validate, orderData });
+  React.useEffect(() => {
+    callbacks.current = { onSuccess, validate, orderData };
+  }, [onSuccess, validate, orderData]);
 
   // Wait for security keys to load
   if (!activeClientId || activeClientId === 'pending' || activeClientId === 'fslno_sample_key') {
@@ -77,7 +84,7 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
           disabled={false}
           forceReRender={[amount, activeClientId]}
           onClick={(data, actions) => {
-            if (!validate()) {
+            if (!callbacks.current.validate()) {
               toast({
                 variant: "destructive",
                 title: "Incomplete Form",
@@ -91,67 +98,22 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
             if (!db) throw new Error("Database not initialized");
             
             try {
+              const currentOrderData = callbacks.current.orderData;
               // 0. Check Stock Levels
-              // Make sure items are in stock before payment starts
-              const items = orderData.items || [];
-              for (const item of items) {
-                const productRef = doc(db, getLivePath(`products/${item.id}`));
-                const productSnap = await getDoc(productRef);
-                
-                if (productSnap.exists()) {
-                  const productData = productSnap.data();
-                  const variants = productData.variants || [];
-                  let currentStock = 0;
-                  
-                  if (variants.length > 0) {
-                    const variant = variants.find((v: any) => v.size === item.size);
-                    if (!variant) {
-                      toast({
-                        variant: "destructive",
-                        title: "Inventory Error",
-                        description: `Size ${item.size} of ${item.name} no longer available.`
-                      });
-                      throw new Error("Product size not found");
-                    }
-                    currentStock = Number(variant.stock) || 0;
-                  } else {
-                    // Fallback to root inventory for non-variant products
-                    currentStock = Number(productData.inventory) || 0;
-                  }
-
-                  const requestedQty = Number(item.quantity) || 1;
-
-                  if (currentStock < requestedQty) {
-                    toast({
-                      variant: "destructive",
-                      title: "Inventory Shortage",
-                      description: `${item.name}${item.size ? ` (${item.size})` : ""} is out of stock or insufficient. Available: ${currentStock}`
-                    });
-                    throw new Error("Out of stock");
-                  }
-                } else {
-                  toast({
-                    variant: "destructive",
-                    title: "Product Error",
-                    description: `${item.name} is no longer in our catalog.`
-                  });
-                  throw new Error("Product not found");
-                }
+              const stockResult = await validateStockLevels(db, currentOrderData.items || []);
+              if (!stockResult.success) {
+                toast({
+                  variant: "destructive",
+                  title: "Inventory Error",
+                  description: stockResult.message
+                });
+                throw new Error(stockResult.message);
               }
 
-              // 1. Create the order details
-              const payload = {
-                ...orderData,
-                status: 'awaiting_processing',
-                paymentStatus: 'awaiting_payment',
-                viewed: false, // Mark as new order
-                createdAt: serverTimestamp()
-              };
+              // 1. Generate a temporary Reference for PayPal Metadata
+              const tempRefId = `PAYPAL_PENDING_${Date.now()}_${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
-              // 2. Save to database
-              const docRef = await addDoc(collection(db, 'orders'), payload);
-
-              // 3. Initiate PayPal transaction tied to our Doc ID
+              // 2. Initiate PayPal transaction tied to our Temp Ref
               return actions.order.create({
                 intent: "CAPTURE",
                 purchase_units: [
@@ -160,8 +122,8 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
                       currency_code: "CAD",
                       value: amount.toFixed(2),
                     },
-                    custom_id: docRef.id,
-                    description: `FSLNO Order #${docRef.id.substring(0, 6)}`
+                    custom_id: tempRefId,
+                    description: `FSLNO Order Ref: ${tempRefId.substring(0, 12)}`
                   },
                 ],
               });
@@ -176,62 +138,31 @@ export function PayPalPayment({ amount, orderData, onSuccess, validate, clientId
             try {
               const details = await actions.order.capture();
               const purchaseUnit = details.purchase_units?.[0];
-              const firestoreId = purchaseUnit?.custom_id;
+              const tempRefId = purchaseUnit?.custom_id;
 
-              if (firestoreId) {
-                // Update order to paid status
-                await updateDoc(doc(db, 'orders', firestoreId), {
+              if (tempRefId) {
+                const currentOrderData = callbacks.current.orderData;
+                
+                // 1. Create actual order document in Firestore
+                const orderPayload = {
+                  ...currentOrderData,
                   paymentStatus: 'paid',
-                  status: 'awaiting_processing',
+                  status: currentOrderData.isAllDigital ? 'delivered' : 'awaiting_processing',
+                  viewed: false,
+                  createdAt: serverTimestamp(),
                   updatedAt: serverTimestamp(),
                   paypalTransactionId: details.id,
-                  payerEmail: details.payer?.email_address || 'unknown'
-                });
+                  payerEmail: details.payer?.email_address || 'unknown',
+                  tempReferenceId: tempRefId
+                };
 
-                // Update Stock Levels
-                try {
-                  const items = orderData.items || [];
-                  for (const item of items) {
-                    const productRef = doc(db, getLivePath(`products/${item.id}`));
-                    const productSnap = await getDoc(productRef);
-                    
-                    if (productSnap.exists()) {
-                      const productData = productSnap.data();
-                      const variants = productData.variants || [];
-                      const deductQty = Number(item.quantity) || 1;
-                      
-                      let updatePayload: any = {
-                        updatedAt: serverTimestamp()
-                      };
+                const orderDocRef = await addDoc(collection(db, 'orders'), orderPayload);
+                const firestoreId = orderDocRef.id;
 
-                      if (variants.length > 0) {
-                        const updatedVariants = variants.map((v: any) => {
-                          if (v.size === item.size) {
-                            const currentStock = Number(v.stock) || 0;
-                            return { ...v, stock: Math.max(0, currentStock - deductQty) };
-                          }
-                          return v;
-                        });
-
-                        // Calculate new total inventory
-                        const newTotalInventory = updatedVariants.reduce((acc: number, v: any) => acc + (Number(v.stock) || 0), 0);
-                        
-                        updatePayload.variants = updatedVariants;
-                        updatePayload.inventory = newTotalInventory;
-                      } else {
-                        // Direct inventory deduction
-                        const currentInventory = Number(productData.inventory) || 0;
-                        updatePayload.inventory = Math.max(0, currentInventory - deductQty);
-                      }
-
-                      await updateDoc(productRef, updatePayload);
-                    }
-                  }
-                } catch (invErr) {
-                  console.error("[INVENTORY] Deduction Failure:", invErr);
-                }
+                // 2. Update Stock Levels (Deduction)
+                await decrementStockLevels(db, currentOrderData.items || []);
                 
-                onSuccess(firestoreId);
+                callbacks.current.onSuccess(firestoreId);
               }
             } catch (err) {
               console.error("[PAYPAL] Capture Sync Failure:", err);
